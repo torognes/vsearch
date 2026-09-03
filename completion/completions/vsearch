@@ -1,0 +1,189 @@
+# vsearch completion for bash
+# Auto-generated from spec/vsearch.yaml — do not edit by hand.
+#
+# Install: place this file (named "vsearch") in a bash-completion lookup
+# directory, e.g. /usr/share/bash-completion/completions/vsearch, or source
+# it from ~/.bashrc. 'make install' does this for you.
+
+shopt -s extglob 2>/dev/null
+
+# Complete a filename argument, optionally restricted to an extension
+# pattern (e.g. "fasta|fa|fna").  Uses _filedir from bash-completion when
+# available; falls back to a compgen-based implementation otherwise.
+_vsearch_filedir() {
+    local exts="$1"
+    if declare -F _filedir >/dev/null 2>&1; then
+        if [[ -n "$exts" ]]; then
+            _filedir "@($exts)"
+        else
+            _filedir
+        fi
+        return
+    fi
+    COMPREPLY=()
+    if [[ -n "$exts" ]]; then
+        COMPREPLY=( $(compgen -f -X "!*.@($exts)" -- "$cur") )
+        COMPREPLY+=( $(compgen -d -S / -- "$cur") )
+    else
+        COMPREPLY=( $(compgen -f -- "$cur") )
+    fi
+    compopt -o filenames 2>/dev/null
+}
+
+_vsearch() {
+    local cur prev cmd opts i
+    COMPREPLY=()
+    cur="${COMP_WORDS[COMP_CWORD]}"
+    prev="${COMP_WORDS[COMP_CWORD-1]}"
+
+    # ---- Detect which command (if any) is on the line ----
+    cmd=""
+    for ((i=1; i<COMP_CWORD; i++)); do
+        case "${COMP_WORDS[i]}" in
+            --chimeras_denovo|--uchime_denovo|--uchime2_denovo|--uchime3_denovo|--uchime_ref|--cluster_fast|--cluster_size|--cluster_smallmem|--cluster_unoise|--sff_convert|--derep_fulllength|--derep_id|--derep_prefix|--derep_smallmem|--fastx_uniques|--rereplicate|--fasta2fastq|--fastq_convert|--fastq_chars|--fastq_stats|--fastq_eestats|--fastq_eestats2|--fastx_mask|--maskfasta|--orient|--fastq_join|--fastq_mergepairs|--allpairs_global|--cut|--fastx_revcomp|--search_exact|--usearch_global|--shuffle|--sortbylength|--sortbysize|--fastx_getseq|--fastx_getseqs|--fastx_getsubseq|--fastx_subsample|--sintax|--fastx_filter|--fastq_filter|--makeudb_usearch|--udb2fasta|--udbinfo|--udbstats|--help|--version)
+                cmd="${COMP_WORDS[i]}"
+                break ;;
+        esac
+    done
+
+    # ---- Complete the value for a value-taking option ----
+    case "$prev" in
+        --dbmask|--qmask)
+            COMPREPLY=( $(compgen -W "none dust soft" -- "$cur") )
+            return ;;
+        --strand)
+            COMPREPLY=( $(compgen -W "plus both" -- "$cur") )
+            return ;;
+        --allpairs_global|--chimeras_denovo|--cut|--derep_fulllength|--derep_id|--derep_prefix|--derep_smallmem|--fasta2fastq|--makeudb_usearch|--maskfasta|--rereplicate|--search_exact|--shuffle|--sortbylength|--sortbysize|--uchime2_denovo|--uchime3_denovo|--uchime_denovo|--uchime_ref|--usearch_global)  # fasta input
+            _vsearch_filedir "fasta|fa|fna|ffn|fasta.gz|fa.gz|fna.gz|ffn.gz|fasta.bz2|fa.bz2|fna.bz2|ffn.bz2"
+            return ;;
+        --db)  # fasta_or_udb input
+            _vsearch_filedir "fasta|fa|fna|ffn|udb|fasta.gz|fa.gz|fna.gz|ffn.gz|fasta.bz2|fa.bz2|fna.bz2|ffn.bz2"
+            return ;;
+        --fastq_chars|--fastq_convert|--fastq_eestats|--fastq_eestats2|--fastq_filter|--fastq_join|--fastq_mergepairs|--fastq_stats|--reverse)  # fastq input
+            _vsearch_filedir "fastq|fq|fastq.gz|fq.gz|fastq.bz2|fq.bz2"
+            return ;;
+        --cluster_fast|--cluster_size|--cluster_smallmem|--cluster_unoise|--fastx_filter|--fastx_getseq|--fastx_getseqs|--fastx_getsubseq|--fastx_mask|--fastx_revcomp|--fastx_subsample|--fastx_uniques|--orient|--sintax)  # fastx input
+            _vsearch_filedir "fasta|fa|fna|ffn|fastq|fq|fasta.gz|fa.gz|fna.gz|ffn.gz|fastq.gz|fq.gz|fasta.bz2|fa.bz2|fna.bz2|ffn.bz2|fastq.bz2|fq.bz2"
+            return ;;
+        --sff_convert)  # sff input
+            _vsearch_filedir "sff"
+            return ;;
+        --udb2fasta|--udbinfo|--udbstats)  # udb input
+            _vsearch_filedir "udb"
+            return ;;
+        --label_words|--labels)  # any file
+            _vsearch_filedir ""
+            return ;;
+        --alnout|--biomout|--blast6out|--borderline|--centroids|--chimeras|--consout|--dbmatched|--dbnotmatched|--eetabbedout|--fastaout|--fastaout_discarded|--fastaout_discarded_rev|--fastaout_notmerged_fwd|--fastaout_notmerged_rev|--fastaout_rev|--fastapairs|--fastqout|--fastqout_discarded|--fastqout_discarded_rev|--fastqout_notmerged_fwd|--fastqout_notmerged_rev|--fastqout_rev|--lcaout|--log|--matched|--mothur_shared_out|--msaout|--nonchimeras|--notmatched|--notmatchedfq|--otutabout|--output|--profile|--qsegout|--samout|--tabbedout|--tsegout|--uc|--uchimealns|--uchimeout|--userout)  # output file
+            _vsearch_filedir ""
+            return ;;
+        --abskew|--alignwidth|--band|--chimeras_diff_pct|--chimeras_length_min|--chimeras_parents_max|--chimeras_parts|--clusters|--cut_pattern|--dn|--ee_cutoffs|--fasta_width|--fastq_ascii|--fastq_asciiout|--fastq_maxdiffpct|--fastq_maxdiffs|--fastq_maxee|--fastq_maxee_rate|--fastq_maxlen|--fastq_maxmergelen|--fastq_maxns|--fastq_minlen|--fastq_minmergelen|--fastq_minovlen|--fastq_minqual|--fastq_qmax|--fastq_qmaxout|--fastq_qmin|--fastq_qminout|--fastq_stripleft|--fastq_stripright|--fastq_tail|--fastq_truncee|--fastq_truncee_rate|--fastq_trunclen|--fastq_trunclen_keep|--fastq_truncqual|--gapext|--gapopen|--hspw|--id|--iddef|--idprefix|--idsuffix|--join_padgap|--join_padgapq|--label|--label_field|--label_suffix|--label_word|--lca_cutoff|--length_cutoffs|--match|--max_unmasked_pct|--maxaccepts|--maxdiffs|--maxgaps|--maxhits|--maxid|--maxqsize|--maxqt|--maxrejects|--maxseqlength|--maxsize|--maxsizeratio|--maxsl|--maxsubs|--maxuniquesize|--mid|--min_unmasked_pct|--mincols|--mindiffs|--mindiv|--minh|--minhsp|--minqt|--minseqlength|--minsize|--minsizeratio|--minsl|--mintsize|--minuniquesize|--minwordmatches|--mismatch|--pattern|--query_cov|--randseed|--relabel|--rowlen|--sample|--sample_pct|--sample_size|--sintax_cutoff|--slots|--subseq_end|--subseq_start|--target_cov|--threads|--topn|--unoise_alpha|--userfields|--weak_id|--wordlength|--xdrop_nw|--xn)
+            return ;;
+    esac
+
+    # ---- Suggest option names ----
+    case "$cmd" in
+        --chimeras_denovo)
+            opts="--abskew --alignwidth --alnout --chimeras --chimeras_diff_pct --chimeras_length_min --chimeras_parents_max --chimeras_parts --fasta_width --gapext --gapopen --hardmask --label_suffix --lengthout --log --match --maxseqlength --minseqlength --mismatch --no_progress --nonchimeras --notrunclabels --qmask --quiet --relabel --relabel_keep --relabel_md5 --relabel_self --relabel_sha1 --sample --sizein --sizeout --tabbedout --threads --xee --xlength --xn --xsize";;
+        --uchime_denovo)
+            opts="--abskew --alignwidth --borderline --chimeras --dn --fasta_score --fasta_width --gapext --gapopen --hardmask --label_suffix --lengthout --log --match --maxseqlength --mindiffs --mindiv --minh --minseqlength --mismatch --no_progress --nonchimeras --notrunclabels --qmask --quiet --relabel --relabel_keep --relabel_md5 --relabel_self --relabel_sha1 --sample --sizein --sizeout --threads --uchimealns --uchimeout --uchimeout5 --xee --xlength --xn --xsize";;
+        --uchime2_denovo)
+            opts="--abskew --alignwidth --borderline --chimeras --dn --fasta_score --fasta_width --gapext --gapopen --hardmask --label_suffix --lengthout --log --match --maxseqlength --mindiffs --mindiv --minh --minseqlength --mismatch --no_progress --nonchimeras --notrunclabels --qmask --quiet --relabel --relabel_keep --relabel_md5 --relabel_self --relabel_sha1 --sample --sizein --sizeout --threads --uchimealns --uchimeout --uchimeout5 --xee --xlength --xn --xsize";;
+        --uchime3_denovo)
+            opts="--abskew --alignwidth --borderline --chimeras --dn --fasta_score --fasta_width --gapext --gapopen --hardmask --label_suffix --lengthout --log --match --maxseqlength --mindiffs --mindiv --minh --minseqlength --mismatch --no_progress --nonchimeras --notrunclabels --qmask --quiet --relabel --relabel_keep --relabel_md5 --relabel_self --relabel_sha1 --sample --sizein --sizeout --threads --uchimealns --uchimeout --uchimeout5 --xee --xlength --xn --xsize";;
+        --uchime_ref)
+            opts="--abskew --alignwidth --borderline --chimeras --db --dbmask --dn --fasta_score --fasta_width --gapext --gapopen --hardmask --label_suffix --lengthout --log --match --maxseqlength --mindiffs --mindiv --minh --minseqlength --mismatch --no_progress --nonchimeras --notrunclabels --qmask --quiet --relabel --relabel_keep --relabel_md5 --relabel_self --relabel_sha1 --sample --self --selfid --sizein --sizeout --strand --threads --uchimealns --uchimeout --uchimeout5 --xee --xlength --xn --xsize";;
+        --cluster_fast)
+            opts="--alnout --biomout --blast6out --bzip2_decompress --centroid_sizeout --centroids --clusterout_id --clusterout_sort --clusters --consout --fasta_width --fastapairs --gapext --gapopen --gzip_decompress --hardmask --id --iddef --idprefix --idsuffix --label_suffix --leftjust --lengthout --log --match --matched --maxaccepts --maxdiffs --maxgaps --maxhits --maxid --maxqsize --maxqt --maxrejects --maxseqlength --maxsizeratio --maxsl --maxsubs --mid --mincols --minqt --minseqlength --minsizeratio --minsl --mintsize --minwordmatches --mismatch --mothur_shared_out --msaout --n_mismatch --no_progress --notmatched --notrunclabels --otutabout --output_no_hits --profile --qmask --qsegout --query_cov --quiet --relabel --relabel_keep --relabel_md5 --relabel_self --relabel_sha1 --rightjust --rowlen --samheader --samout --sample --self --selfid --sizein --sizeorder --sizeout --strand --target_cov --threads --top_hits_only --tsegout --uc --userfields --userout --weak_id --wordlength --xee --xlength --xsize";;
+        --cluster_size)
+            opts="--alnout --biomout --blast6out --bzip2_decompress --centroid_sizeout --centroids --clusterout_id --clusterout_sort --clusters --consout --fasta_width --fastapairs --gapext --gapopen --gzip_decompress --hardmask --id --iddef --idprefix --idsuffix --label_suffix --leftjust --lengthout --log --match --matched --maxaccepts --maxdiffs --maxgaps --maxhits --maxid --maxqsize --maxqt --maxrejects --maxseqlength --maxsizeratio --maxsl --maxsubs --mid --mincols --minqt --minseqlength --minsizeratio --minsl --mintsize --minwordmatches --mismatch --mothur_shared_out --msaout --n_mismatch --no_progress --notmatched --notrunclabels --otutabout --output_no_hits --profile --qmask --qsegout --query_cov --quiet --relabel --relabel_keep --relabel_md5 --relabel_self --relabel_sha1 --rightjust --rowlen --samheader --samout --sample --self --selfid --sizein --sizeorder --sizeout --strand --target_cov --threads --top_hits_only --tsegout --uc --userfields --userout --weak_id --wordlength --xee --xlength --xsize";;
+        --cluster_smallmem)
+            opts="--alnout --biomout --blast6out --bzip2_decompress --centroid_sizeout --centroids --clusterout_id --clusterout_sort --clusters --consout --fasta_width --fastapairs --gapext --gapopen --gzip_decompress --hardmask --id --iddef --idprefix --idsuffix --label_suffix --leftjust --lengthout --log --match --matched --maxaccepts --maxdiffs --maxgaps --maxhits --maxid --maxqsize --maxqt --maxrejects --maxseqlength --maxsizeratio --maxsl --maxsubs --mid --mincols --minqt --minseqlength --minsizeratio --minsl --mintsize --minwordmatches --mismatch --mothur_shared_out --msaout --n_mismatch --no_progress --notmatched --notrunclabels --otutabout --output_no_hits --profile --qmask --qsegout --query_cov --quiet --relabel --relabel_keep --relabel_md5 --relabel_self --relabel_sha1 --rightjust --rowlen --samheader --samout --sample --self --selfid --sizein --sizeorder --sizeout --strand --target_cov --threads --top_hits_only --tsegout --uc --userfields --userout --usersort --weak_id --wordlength --xee --xlength --xsize";;
+        --cluster_unoise)
+            opts="--alnout --biomout --blast6out --bzip2_decompress --centroid_sizeout --centroids --clusterout_id --clusterout_sort --clusters --consout --fasta_width --fastapairs --gapext --gapopen --gzip_decompress --hardmask --id --iddef --idprefix --idsuffix --label_suffix --leftjust --lengthout --log --match --matched --maxaccepts --maxdiffs --maxgaps --maxhits --maxid --maxqsize --maxqt --maxrejects --maxseqlength --maxsizeratio --maxsl --maxsubs --mid --mincols --minqt --minseqlength --minsize --minsizeratio --minsl --mintsize --minwordmatches --mismatch --mothur_shared_out --msaout --n_mismatch --no_progress --notmatched --notrunclabels --otutabout --output_no_hits --profile --qmask --qsegout --query_cov --quiet --relabel --relabel_keep --relabel_md5 --relabel_self --relabel_sha1 --rightjust --rowlen --samheader --samout --sample --self --selfid --sizein --sizeorder --sizeout --strand --target_cov --threads --top_hits_only --tsegout --uc --unoise_alpha --userfields --userout --weak_id --wordlength --xee --xlength --xsize";;
+        --sff_convert)
+            opts="--fastq_asciiout --fastq_qmaxout --fastq_qminout --fastqout --label_suffix --lengthout --log --no_progress --quiet --relabel --relabel_keep --relabel_md5 --relabel_self --relabel_sha1 --sample --sff_clip --sizeout --threads";;
+        --derep_fulllength)
+            opts="--bzip2_decompress --fasta_width --gzip_decompress --lengthout --log --maxseqlength --maxuniquesize --minseqlength --minuniquesize --no_progress --notrunclabels --output --quiet --relabel --relabel_keep --relabel_md5 --relabel_self --relabel_sha1 --sample --sizein --sizeout --strand --threads --topn --uc --xee --xlength --xsize";;
+        --derep_id)
+            opts="--bzip2_decompress --fasta_width --gzip_decompress --label_suffix --lengthout --log --maxseqlength --maxuniquesize --minseqlength --minuniquesize --no_progress --notrunclabels --output --quiet --relabel --relabel_keep --relabel_md5 --relabel_self --relabel_sha1 --sample --sizein --sizeout --strand --threads --topn --uc --xee --xlength --xsize";;
+        --derep_prefix)
+            opts="--bzip2_decompress --fasta_width --gzip_decompress --label_suffix --lengthout --log --maxseqlength --maxuniquesize --minseqlength --minuniquesize --no_progress --notrunclabels --output --quiet --relabel --relabel_keep --relabel_md5 --relabel_self --relabel_sha1 --sample --sizein --sizeout --strand --threads --topn --uc --xee --xlength --xsize";;
+        --derep_smallmem)
+            opts="--bzip2_decompress --fasta_width --fastaout --fastq_ascii --fastq_qmax --fastq_qmin --gzip_decompress --label_suffix --lengthout --log --maxseqlength --maxuniquesize --minseqlength --minuniquesize --no_progress --notrunclabels --quiet --relabel --relabel_keep --relabel_md5 --relabel_self --relabel_sha1 --sample --sizein --sizeout --strand --threads --xee --xlength --xsize";;
+        --fastx_uniques)
+            opts="--bzip2_decompress --fasta_width --fastaout --fastq_ascii --fastq_asciiout --fastq_qmax --fastq_qmaxout --fastq_qmin --fastq_qminout --fastq_qout_max --fastqout --gzip_decompress --label_suffix --lengthout --log --maxseqlength --maxuniquesize --minseqlength --minuniquesize --no_progress --notrunclabels --quiet --relabel --relabel_keep --relabel_md5 --relabel_self --relabel_sha1 --sample --sizein --sizeout --strand --tabbedout --threads --topn --uc --xee --xlength --xsize";;
+        --rereplicate)
+            opts="--bzip2_decompress --fasta_width --gzip_decompress --label_suffix --lengthout --log --no_progress --notrunclabels --output --quiet --relabel --relabel_keep --relabel_md5 --relabel_self --relabel_sha1 --sample --sizein --sizeout --threads --xee --xlength --xsize";;
+        --fasta2fastq)
+            opts="--bzip2_decompress --fastq_asciiout --fastq_qmaxout --fastqout --gzip_decompress --label_suffix --lengthout --log --no_progress --quiet --relabel --relabel_keep --relabel_md5 --relabel_self --relabel_sha1 --sample --sizein --sizeout --threads --xee --xlength --xsize";;
+        --fastq_convert)
+            opts="--bzip2_decompress --fastq_ascii --fastq_asciiout --fastq_qmax --fastq_qmaxout --fastq_qmin --fastq_qminout --fastqout --gzip_decompress --label_suffix --lengthout --log --no_progress --quiet --relabel --relabel_keep --relabel_md5 --relabel_self --relabel_sha1 --sample --sizein --sizeout --threads --xee --xlength --xsize";;
+        --fastq_chars)
+            opts="--bzip2_decompress --fastq_tail --gzip_decompress --log --no_progress --quiet --threads";;
+        --fastq_stats)
+            opts="--bzip2_decompress --fastq_ascii --fastq_qmax --fastq_qmin --gzip_decompress --log --no_progress --quiet --threads";;
+        --fastq_eestats)
+            opts="--bzip2_decompress --fastq_ascii --fastq_qmax --fastq_qmin --gzip_decompress --log --no_progress --output --quiet --threads";;
+        --fastq_eestats2)
+            opts="--bzip2_decompress --ee_cutoffs --fastq_ascii --fastq_qmax --fastq_qmin --gzip_decompress --length_cutoffs --log --no_progress --output --quiet --threads";;
+        --fastx_mask)
+            opts="--bzip2_decompress --fasta_width --fastaout --fastq_ascii --fastq_qmax --fastq_qmin --fastqout --gzip_decompress --hardmask --label_suffix --lengthout --log --max_unmasked_pct --min_unmasked_pct --no_progress --notrunclabels --qmask --quiet --relabel --relabel_keep --relabel_md5 --relabel_self --relabel_sha1 --sample --sizein --sizeout --threads --xee --xlength --xsize";;
+        --maskfasta)
+            opts="--bzip2_decompress --fasta_width --gzip_decompress --hardmask --label_suffix --lengthout --log --max_unmasked_pct --maxseqlength --min_unmasked_pct --minseqlength --no_progress --notrunclabels --output --qmask --quiet --relabel --relabel_keep --relabel_md5 --relabel_self --relabel_sha1 --sample --sizein --sizeout --threads --xee --xlength --xsize";;
+        --orient)
+            opts="--bzip2_decompress --db --dbmask --fasta_width --fastaout --fastqout --gzip_decompress --hardmask --label_suffix --lengthout --log --no_progress --notmatched --notrunclabels --qmask --quiet --relabel --relabel_keep --relabel_md5 --relabel_self --relabel_sha1 --sample --sizein --sizeout --tabbedout --threads --wordlength --xee --xlength --xsize";;
+        --fastq_join)
+            opts="--bzip2_decompress --fasta_width --fastaout --fastq_ascii --fastq_qmax --fastq_qmin --fastqout --gzip_decompress --join_padgap --join_padgapq --label_suffix --lengthout --log --no_progress --quiet --relabel --relabel_keep --relabel_md5 --relabel_self --relabel_sha1 --reverse --sizein --sizeout --threads --xee --xlength --xsize";;
+        --fastq_mergepairs)
+            opts="--bzip2_decompress --eeout --eetabbedout --fasta_width --fastaout --fastaout_notmerged_fwd --fastaout_notmerged_rev --fastq_allowmergestagger --fastq_ascii --fastq_eeout --fastq_maxdiffpct --fastq_maxdiffs --fastq_maxee --fastq_maxlen --fastq_maxmergelen --fastq_maxns --fastq_minlen --fastq_minmergelen --fastq_minovlen --fastq_nostagger --fastq_qmax --fastq_qmaxout --fastq_qmin --fastq_qminout --fastq_truncqual --fastqout --fastqout_notmerged_fwd --fastqout_notmerged_rev --gzip_decompress --label_suffix --lengthout --log --no_progress --quiet --relabel --relabel_keep --relabel_md5 --relabel_self --relabel_sha1 --reverse --sample --sizein --sizeout --threads --xee --xlength --xsize";;
+        --allpairs_global)
+            opts="--acceptall --alnout --blast6out --bzip2_decompress --fasta_width --fastapairs --gapext --gapopen --gzip_decompress --hardmask --id --iddef --idprefix --idsuffix --label_suffix --leftjust --lengthout --log --match --matched --maxaccepts --maxdiffs --maxgaps --maxhits --maxid --maxqsize --maxqt --maxrejects --maxseqlength --maxsizeratio --maxsl --maxsubs --mid --mincols --minqt --minseqlength --minsizeratio --minsl --mintsize --minwordmatches --mismatch --n_mismatch --no_progress --notmatched --notrunclabels --output_no_hits --qmask --qsegout --query_cov --quiet --relabel --relabel_keep --relabel_md5 --relabel_self --relabel_sha1 --rightjust --rowlen --samheader --samout --sample --self --selfid --sizein --sizeout --target_cov --threads --top_hits_only --tsegout --uc --userfields --userout --weak_id --wordlength --xee --xlength --xsize";;
+        --cut)
+            opts="--bzip2_decompress --cut_pattern --fasta_width --fastaout --fastaout_discarded --fastaout_discarded_rev --fastaout_rev --gzip_decompress --label_suffix --lengthout --log --no_progress --notrunclabels --quiet --relabel --relabel_keep --relabel_md5 --relabel_self --relabel_sha1 --sample --sizein --sizeout --xee --xlength --xsize";;
+        --fastx_revcomp)
+            opts="--bzip2_decompress --fasta_width --fastaout --fastq_ascii --fastq_qmax --fastq_qmin --fastqout --gzip_decompress --label_suffix --lengthout --log --no_progress --notrunclabels --quiet --relabel --relabel_keep --relabel_md5 --relabel_self --relabel_sha1 --sample --sizein --sizeout --threads --xee --xlength --xsize";;
+        --search_exact)
+            opts="--alnout --biomout --blast6out --bzip2_decompress --db --dbmask --dbmatched --dbnotmatched --fasta_width --fastapairs --gzip_decompress --hardmask --label_suffix --lca_cutoff --lcaout --lengthout --log --match --matched --maxhits --maxqsize --maxqt --maxseqlength --maxsizeratio --maxsl --mincols --minqt --minseqlength --minsizeratio --minsl --mintsize --mismatch --mothur_shared_out --no_progress --notmatched --notrunclabels --otutabout --output_no_hits --qmask --qsegout --quiet --relabel --relabel_keep --relabel_md5 --relabel_self --relabel_sha1 --rowlen --samheader --samout --sample --self --sizein --sizeout --strand --threads --top_hits_only --tsegout --uc --uc_allhits --userfields --userout --xee --xlength --xsize";;
+        --usearch_global)
+            opts="--alnout --biomout --blast6out --bzip2_decompress --db --dbmask --dbmatched --dbnotmatched --fasta_width --fastapairs --gapext --gapopen --gzip_decompress --hardmask --id --iddef --idprefix --idsuffix --label_suffix --lca_cutoff --lcaout --leftjust --lengthout --log --match --matched --maxaccepts --maxdiffs --maxgaps --maxhits --maxid --maxqsize --maxqt --maxrejects --maxseqlength --maxsizeratio --maxsl --maxsubs --mid --mincols --minqt --minseqlength --minsizeratio --minsl --mintsize --minwordmatches --mismatch --mothur_shared_out --n_mismatch --no_progress --notmatched --notrunclabels --otutabout --output_no_hits --qmask --qsegout --query_cov --quiet --relabel --relabel_keep --relabel_md5 --relabel_self --relabel_sha1 --rightjust --rowlen --samheader --samout --sample --self --selfid --sizein --sizeout --strand --target_cov --threads --top_hits_only --tsegout --uc --uc_allhits --userfields --userout --weak_id --wordlength --xee --xlength --xsize";;
+        --shuffle)
+            opts="--bzip2_decompress --fasta_width --fastq_ascii --fastq_qmax --fastq_qmin --gzip_decompress --label_suffix --lengthout --log --maxseqlength --minseqlength --no_progress --notrunclabels --output --quiet --randseed --relabel --relabel_keep --relabel_md5 --relabel_self --relabel_sha1 --sample --sizein --sizeout --threads --topn --xee --xlength --xsize";;
+        --sortbylength)
+            opts="--bzip2_decompress --fasta_width --fastq_ascii --fastq_qmax --fastq_qmin --gzip_decompress --label_suffix --lengthout --log --maxseqlength --minseqlength --no_progress --notrunclabels --output --quiet --relabel --relabel_keep --relabel_md5 --relabel_self --relabel_sha1 --sample --sizein --sizeout --threads --topn --xee --xlength --xsize";;
+        --sortbysize)
+            opts="--bzip2_decompress --fasta_width --fastq_ascii --fastq_qmax --fastq_qmin --gzip_decompress --label_suffix --lengthout --log --maxseqlength --maxsize --minseqlength --minsize --no_progress --notrunclabels --output --quiet --relabel --relabel_keep --relabel_md5 --relabel_self --relabel_sha1 --sample --sizein --sizeout --threads --topn --xee --xlength --xsize";;
+        --fastx_getseq)
+            opts="--bzip2_decompress --fasta_width --fastaout --fastq_ascii --fastq_qmax --fastq_qmin --fastqout --gzip_decompress --label --label_substr_match --label_suffix --lengthout --log --no_progress --notmatched --notmatchedfq --notrunclabels --quiet --relabel --relabel_keep --relabel_md5 --relabel_self --relabel_sha1 --sample --sizein --sizeout --threads --xee --xlength --xsize";;
+        --fastx_getseqs)
+            opts="--bzip2_decompress --fasta_width --fastaout --fastq_ascii --fastq_qmax --fastq_qmin --fastqout --gzip_decompress --label --label_field --label_substr_match --label_suffix --label_word --label_words --labels --lengthout --log --no_progress --notmatched --notmatchedfq --notrunclabels --quiet --relabel --relabel_keep --relabel_md5 --relabel_self --relabel_sha1 --sample --sizein --sizeout --threads --xee --xlength --xsize";;
+        --fastx_getsubseq)
+            opts="--bzip2_decompress --fasta_width --fastaout --fastq_ascii --fastq_qmax --fastq_qmin --fastqout --gzip_decompress --label --label_substr_match --label_suffix --lengthout --log --no_progress --notmatched --notmatchedfq --notrunclabels --quiet --relabel --relabel_keep --relabel_md5 --relabel_self --relabel_sha1 --sample --sizein --sizeout --subseq_end --subseq_start --threads --xee --xlength --xsize";;
+        --fastx_subsample)
+            opts="--bzip2_decompress --fasta_width --fastaout --fastaout_discarded --fastq_ascii --fastq_qmax --fastq_qmin --fastqout --fastqout_discarded --gzip_decompress --label_suffix --lengthout --log --no_progress --notrunclabels --quiet --randseed --relabel --relabel_keep --relabel_md5 --relabel_self --relabel_sha1 --sample --sample_pct --sample_size --sizein --sizeout --threads --xee --xlength --xsize";;
+        --sintax)
+            opts="--bzip2_decompress --db --dbmask --fastq_ascii --fastq_qmax --fastq_qmin --gzip_decompress --label_suffix --log --maxseqlength --minseqlength --no_progress --notrunclabels --quiet --randseed --sintax_cutoff --sintax_random --strand --tabbedout --threads --wordlength";;
+        --fastx_filter)
+            opts="--bzip2_decompress --eeout --fasta_width --fastaout --fastaout_discarded --fastaout_discarded_rev --fastaout_rev --fastq_ascii --fastq_eeout --fastq_maxee --fastq_maxee_rate --fastq_maxlen --fastq_maxns --fastq_minlen --fastq_minqual --fastq_qmax --fastq_qmin --fastq_stripleft --fastq_stripright --fastq_truncee --fastq_truncee_rate --fastq_trunclen --fastq_trunclen_keep --fastq_truncqual --fastqout --fastqout_discarded --fastqout_discarded_rev --fastqout_rev --gzip_decompress --label_suffix --lengthout --log --maxsize --minsize --no_progress --notrunclabels --quiet --relabel --relabel_keep --relabel_md5 --relabel_self --relabel_sha1 --reverse --sample --sizein --sizeout --threads --xee --xlength --xsize";;
+        --fastq_filter)
+            opts="--bzip2_decompress --eeout --fasta_width --fastaout --fastaout_discarded --fastaout_discarded_rev --fastaout_rev --fastq_ascii --fastq_eeout --fastq_maxee --fastq_maxee_rate --fastq_maxlen --fastq_maxns --fastq_minlen --fastq_minqual --fastq_qmax --fastq_qmin --fastq_stripleft --fastq_stripright --fastq_truncee --fastq_truncee_rate --fastq_trunclen --fastq_trunclen_keep --fastq_truncqual --fastqout --fastqout_discarded --fastqout_discarded_rev --fastqout_rev --gzip_decompress --label_suffix --lengthout --log --maxsize --minsize --no_progress --quiet --relabel --relabel_keep --relabel_md5 --relabel_self --relabel_sha1 --reverse --sample --sizein --sizeout --threads --xee --xlength --xsize";;
+        --makeudb_usearch)
+            opts="--bzip2_decompress --dbmask --gzip_decompress --hardmask --log --maxseqlength --minseqlength --no_progress --notrunclabels --output --quiet --threads --wordlength";;
+        --udb2fasta)
+            opts="--fasta_width --label_suffix --lengthout --log --no_progress --output --quiet --relabel --relabel_keep --relabel_md5 --relabel_self --relabel_sha1 --sample --sizein --sizeout --threads --xee --xlength --xsize";;
+        --udbinfo)
+            opts="--log --quiet --threads";;
+        --udbstats)
+            opts="--log --no_progress --quiet --threads";;
+        --help)
+            opts="--log --quiet --threads";;
+        --version)
+            opts="--log --quiet --threads";;
+        *)
+            opts="--allpairs_global --chimeras_denovo --cluster_fast --cluster_size --cluster_smallmem --cluster_unoise --cut --derep_fulllength --derep_id --derep_prefix --derep_smallmem --fasta2fastq --fastq_chars --fastq_convert --fastq_eestats --fastq_eestats2 --fastq_filter --fastq_join --fastq_mergepairs --fastq_stats --fastx_filter --fastx_getseq --fastx_getseqs --fastx_getsubseq --fastx_mask --fastx_revcomp --fastx_subsample --fastx_uniques --help --makeudb_usearch --maskfasta --orient --rereplicate --search_exact --sff_convert --shuffle --sintax --sortbylength --sortbysize --uchime2_denovo --uchime3_denovo --uchime_denovo --uchime_ref --udb2fasta --udbinfo --udbstats --usearch_global --version -h -v";;
+    esac
+    COMPREPLY=( $(compgen -W "$opts" -- "$cur") )
+}
+
+complete -F _vsearch vsearch

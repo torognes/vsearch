@@ -3,9 +3,11 @@
 *.json
 *.o
 *.pdf
+*.pyc
 *.texinfo
 *~
 .cache/
+__pycache__/
 .deps
 .dirstamp
 /api_examples/example_chimera

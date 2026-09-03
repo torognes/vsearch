@@ -1,0 +1,2781 @@
+# vsearch completion spec
+# ------------------------
+# Single source of truth for vsearch's command-line interface.
+# Per-shell completion scripts (bash, zsh, fish) are generated from this file.
+#
+# Conventions
+#   - Every option is declared once in `options:`.
+#   - "Command" options (the action selector) are listed under `commands:` and
+#     also appear in `options:` with `command: true`.
+#   - For input FILENAME options, set `arg.ftype` to a key in `file_types:` so
+#     completion can filter by extension. Omit `ftype` to accept any file
+#     (e.g. plain-text inputs like label lists).
+#   - For output FILENAME options, do NOT set `arg.ftype` (no filter — user
+#     picks any path).
+#   - `command_options:` maps each command to the list of additional options
+#     that are valid when that command is active. Populated from the C++
+#     argument-parsing source.
+#   - `hidden: true` on an option means it is accepted by vsearch but should
+#     NOT be suggested by completion (deprecated / ignored / experimental).
+#     Generators must skip these when emitting suggestions.
+
+# ---------------------------------------------------------------------------
+# Reusable enum value lists
+# ---------------------------------------------------------------------------
+enums:
+  mask_method: [none, dust, soft]
+  strand: [plus, both]
+
+# ---------------------------------------------------------------------------
+# File-extension filters for INPUT files
+# Compressed forms (.gz, .bz2) are accepted wherever the underlying format is.
+# Note: .faa (protein FASTA) is intentionally excluded — vsearch is nucleotide-only.
+# ---------------------------------------------------------------------------
+file_types:
+  fasta:
+    extensions: [fasta, fa, fna, ffn, fasta.gz, fa.gz, fna.gz, ffn.gz, fasta.bz2, fa.bz2, fna.bz2, ffn.bz2]
+  fastq:
+    extensions: [fastq, fq, fastq.gz, fq.gz, fastq.bz2, fq.bz2]
+  fastx:
+    extensions: [fasta, fa, fna, ffn, fastq, fq, fasta.gz, fa.gz, fna.gz, ffn.gz, fastq.gz, fq.gz, fasta.bz2, fa.bz2, fna.bz2, ffn.bz2, fastq.bz2, fq.bz2]
+  fasta_or_udb:
+    extensions: [fasta, fa, fna, ffn, udb, fasta.gz, fa.gz, fna.gz, ffn.gz, fasta.bz2, fa.bz2, fna.bz2, ffn.bz2]
+  sff:
+    extensions: [sff]
+  udb:
+    extensions: [udb]
+
+# ---------------------------------------------------------------------------
+# List of command (action) options. Order is the order shown in --help.
+# Each must also appear in options: with `command: true`.
+# ---------------------------------------------------------------------------
+commands:
+  # Chimera detection (new algorithm)
+  - --chimeras_denovo
+  # Chimera detection (UCHIME family)
+  - --uchime_denovo
+  - --uchime2_denovo
+  - --uchime3_denovo
+  - --uchime_ref
+  # Clustering
+  - --cluster_fast
+  - --cluster_size
+  - --cluster_smallmem
+  - --cluster_unoise
+  # SFF conversion
+  - --sff_convert
+  # Dereplication / rereplication
+  - --derep_fulllength
+  - --derep_id
+  - --derep_prefix
+  - --derep_smallmem
+  - --fastx_uniques
+  - --rereplicate
+  # FASTA <-> FASTQ
+  - --fasta2fastq
+  - --fastq_convert
+  # FASTQ analysis
+  - --fastq_chars
+  - --fastq_stats
+  - --fastq_eestats
+  - --fastq_eestats2
+  # Masking
+  - --fastx_mask
+  - --maskfasta
+  # Orient
+  - --orient
+  # Paired-end
+  - --fastq_join
+  - --fastq_mergepairs
+  # Pairwise alignment
+  - --allpairs_global
+  # Restriction site cutting
+  - --cut
+  # Reverse complement
+  - --fastx_revcomp
+  # Searching
+  - --search_exact
+  - --usearch_global
+  # Shuffling / sorting
+  - --shuffle
+  - --sortbylength
+  - --sortbysize
+  # Get sequences by labels / subsequence extraction
+  - --fastx_getseq
+  - --fastx_getseqs
+  - --fastx_getsubseq
+  # Subsampling
+  - --fastx_subsample
+  # Taxonomic classification
+  - --sintax
+  # Trimming / filtering
+  - --fastx_filter
+  - --fastq_filter
+  # UDB files
+  - --makeudb_usearch
+  - --udb2fasta
+  - --udbinfo
+  - --udbstats
+  # Help / version (also action commands — print info and exit)
+  - --help
+  - --version
+
+# ---------------------------------------------------------------------------
+# Options
+# ---------------------------------------------------------------------------
+# Per-option fields:
+#   name       (required) long option name, including leading "--"
+#   short      (optional) short option name, including leading "-"
+#   arg        (required) argument descriptor; see arg.type values below
+#   command    (optional) true if this option selects an action; must also
+#              be listed in `commands:` above
+#   hidden     (optional) true if vsearch accepts this option but completion
+#              should NOT suggest it (deprecated / ignored / experimental)
+#   desc       (required) short human-readable description
+#
+# arg.type values:
+#   flag       no argument (boolean switch)
+#   int        integer
+#   real       floating-point number
+#   string     opaque string value
+#   file       input filename (set ftype: <file_type_key> to filter,
+#              or omit ftype to accept any file)
+#   outfile    output filename (no extension filter)
+#   enum       value from enums.<values key>
+#   int_list   comma-separated integers (e.g. "50,1000,50")
+#   real_list  comma-separated reals (e.g. "0.5,1,2")
+# ---------------------------------------------------------------------------
+options:
+
+  # -------------------- General --------------------
+  - name: --bzip2_decompress
+    arg: { type: flag }
+    desc: "decompress input with bzip2 (required if pipe)"
+  - name: --fasta_width
+    arg: { type: int }
+    desc: "width of FASTA seq lines, 0 for no wrap (80)"
+  - name: --gzip_decompress
+    arg: { type: flag }
+    desc: "decompress input with gzip (required if pipe)"
+  - name: --help
+    short: -h
+    command: true
+    arg: { type: flag }
+    desc: "display help information"
+  - name: --log
+    arg: { type: outfile }
+    desc: "write messages, timing and memory info to file"
+  - name: --maxseqlength
+    arg: { type: int }
+    desc: "maximum sequence length (50000)"
+  - name: --minseqlength
+    arg: { type: int }
+    desc: "minimum sequence length (clust/derep/search: 32, other: 1)"
+  - name: --no_progress
+    arg: { type: flag }
+    desc: "do not show progress indicator"
+  - name: --notrunclabels
+    arg: { type: flag }
+    desc: "do not truncate labels at first space"
+  - name: --quiet
+    arg: { type: flag }
+    desc: "output just warnings and fatal errors to stderr"
+  - name: --threads
+    arg: { type: int }
+    desc: "number of threads to use, zero for all cores (0)"
+  - name: --version
+    short: -v
+    command: true
+    arg: { type: flag }
+    desc: "display version information"
+
+  # -------------------- Commands (action flags) --------------------
+  - name: --chimeras_denovo
+    command: true
+    arg: { type: file, ftype: fasta }
+    desc: "detect chimeras de novo in long exact sequences"
+  - name: --uchime_denovo
+    command: true
+    arg: { type: file, ftype: fasta }
+    desc: "detect chimeras de novo"
+  - name: --uchime2_denovo
+    command: true
+    arg: { type: file, ftype: fasta }
+    desc: "detect chimeras de novo in denoised amplicons"
+  - name: --uchime3_denovo
+    command: true
+    arg: { type: file, ftype: fasta }
+    desc: "detect chimeras de novo in denoised amplicons"
+  - name: --uchime_ref
+    command: true
+    arg: { type: file, ftype: fasta }
+    desc: "detect chimeras using a reference database"
+  - name: --cluster_fast
+    command: true
+    arg: { type: file, ftype: fastx }
+    desc: "cluster sequences after sorting by length"
+  - name: --cluster_size
+    command: true
+    arg: { type: file, ftype: fastx }
+    desc: "cluster sequences after sorting by abundance"
+  - name: --cluster_smallmem
+    command: true
+    arg: { type: file, ftype: fastx }
+    desc: "cluster already sorted sequences"
+  - name: --cluster_unoise
+    command: true
+    arg: { type: file, ftype: fastx }
+    desc: "denoise Illumina amplicon reads"
+  - name: --sff_convert
+    command: true
+    arg: { type: file, ftype: sff }
+    desc: "convert given SFF file to FASTQ format"
+  - name: --derep_fulllength
+    command: true
+    arg: { type: file, ftype: fasta }
+    desc: "dereplicate sequences in given FASTA file"
+  - name: --derep_id
+    command: true
+    arg: { type: file, ftype: fasta }
+    desc: "dereplicate using both identifiers and sequences"
+  - name: --derep_prefix
+    command: true
+    arg: { type: file, ftype: fasta }
+    desc: "dereplicate sequences based on prefixes"
+  - name: --derep_smallmem
+    command: true
+    arg: { type: file, ftype: fasta }
+    desc: "dereplicate using less memory"
+  - name: --fastx_uniques
+    command: true
+    arg: { type: file, ftype: fastx }
+    desc: "dereplicate sequences in FASTA/FASTQ file"
+  - name: --rereplicate
+    command: true
+    arg: { type: file, ftype: fasta }
+    desc: "rereplicate sequences in given FASTA file"
+  - name: --fasta2fastq
+    command: true
+    arg: { type: file, ftype: fasta }
+    desc: "convert from FASTA to FASTQ with fake quality scores"
+  - name: --fastq_convert
+    command: true
+    arg: { type: file, ftype: fastq }
+    desc: "convert between FASTQ file formats"
+  - name: --fastq_chars
+    command: true
+    arg: { type: file, ftype: fastq }
+    desc: "analyse FASTQ file for version and quality range"
+  - name: --fastq_stats
+    command: true
+    arg: { type: file, ftype: fastq }
+    desc: "report statistics on FASTQ file"
+  - name: --fastq_eestats
+    command: true
+    arg: { type: file, ftype: fastq }
+    desc: "quality score and expected error statistics"
+  - name: --fastq_eestats2
+    command: true
+    arg: { type: file, ftype: fastq }
+    desc: "expected error and length cutoff statistics"
+  - name: --fastx_mask
+    command: true
+    arg: { type: file, ftype: fastx }
+    desc: "mask sequences in given FASTA or FASTQ file"
+  - name: --maskfasta
+    command: true
+    arg: { type: file, ftype: fasta }
+    desc: "mask sequences in given FASTA file"
+  - name: --orient
+    command: true
+    arg: { type: file, ftype: fastx }
+    desc: "orient sequences in given FASTA/FASTQ file"
+  - name: --fastq_join
+    command: true
+    arg: { type: file, ftype: fastq }
+    desc: "join paired-end reads into one sequence with gap"
+  - name: --fastq_mergepairs
+    command: true
+    arg: { type: file, ftype: fastq }
+    desc: "merge paired-end reads into one sequence"
+  - name: --allpairs_global
+    command: true
+    arg: { type: file, ftype: fasta }
+    desc: "perform global alignment of all sequence pairs"
+  - name: --cut
+    command: true
+    arg: { type: file, ftype: fasta }
+    desc: "restriction site cutting of FASTA input"
+  - name: --fastx_revcomp
+    command: true
+    arg: { type: file, ftype: fastx }
+    desc: "reverse-complement sequences in FASTA or FASTQ file"
+  - name: --search_exact
+    command: true
+    arg: { type: file, ftype: fasta }
+    desc: "queries for exact match search"
+  - name: --usearch_global
+    command: true
+    arg: { type: file, ftype: fasta }
+    desc: "queries for global alignment search"
+  - name: --shuffle
+    command: true
+    arg: { type: file, ftype: fasta }
+    desc: "shuffle order of sequences in FASTA file randomly"
+  - name: --sortbylength
+    command: true
+    arg: { type: file, ftype: fasta }
+    desc: "sort sequences by length in given FASTA file"
+  - name: --sortbysize
+    command: true
+    arg: { type: file, ftype: fasta }
+    desc: "abundance sort sequences in given FASTA file"
+  - name: --fastx_getseq
+    command: true
+    arg: { type: file, ftype: fastx }
+    desc: "extract a sequence matching a label from FASTA/FASTQ file"
+  - name: --fastx_getseqs
+    command: true
+    arg: { type: file, ftype: fastx }
+    desc: "extract sequences matching labels from FASTA/FASTQ file"
+  - name: --fastx_getsubseq
+    command: true
+    arg: { type: file, ftype: fastx }
+    desc: "extract a subsequence from FASTA/FASTQ file"
+  - name: --fastx_subsample
+    command: true
+    arg: { type: file, ftype: fastx }
+    desc: "subsample sequences from given FASTA/FASTQ file"
+  - name: --sintax
+    command: true
+    arg: { type: file, ftype: fastx }
+    desc: "classify sequences in given FASTA/FASTQ file"
+  - name: --fastx_filter
+    command: true
+    arg: { type: file, ftype: fastx }
+    desc: "trim and filter sequences in FASTA/FASTQ file"
+  - name: --fastq_filter
+    command: true
+    arg: { type: file, ftype: fastq }
+    desc: "trim and filter sequences in FASTQ file"
+  - name: --makeudb_usearch
+    command: true
+    arg: { type: file, ftype: fasta }
+    desc: "make UDB file from given FASTA file"
+  - name: --udb2fasta
+    command: true
+    arg: { type: file, ftype: udb }
+    desc: "output FASTA file from given UDB file"
+  - name: --udbinfo
+    command: true
+    arg: { type: file, ftype: udb }
+    desc: "show information about UDB file"
+  - name: --udbstats
+    command: true
+    arg: { type: file, ftype: udb }
+    desc: "report statistics about indexed words in UDB file"
+
+  # -------------------- Data --------------------
+  - name: --db
+    arg: { type: file, ftype: fasta_or_udb }
+    desc: "reference database (FASTA, or UDB for --usearch_global/--sintax)"
+  - name: --reverse
+    arg: { type: file, ftype: fastq }
+    desc: "FASTQ file with reverse / other-end paired-end reads"
+
+  # -------------------- Parameters: chimera (new) --------------------
+  - name: --abskew
+    arg: { type: real }
+    desc: "minimum abundance ratio (1.0; uchime: 2.0; uchime3: 16.0)"
+  - name: --chimeras_diff_pct
+    arg: { type: real }
+    desc: "mismatch percent allowed in each chimeric region (0.0)"
+  - name: --chimeras_length_min
+    arg: { type: int }
+    desc: "minimum length of each chimeric region (10)"
+  - name: --chimeras_parents_max
+    arg: { type: int }
+    desc: "maximum number of parent sequences (3)"
+  - name: --chimeras_parts
+    arg: { type: int }
+    desc: "number of parts to divide sequences (length/100)"
+
+  # -------------------- Parameters: UCHIME --------------------
+  - name: --dn
+    arg: { type: real }
+    desc: "'no' vote pseudo-count (1.4)"
+  - name: --mindiffs
+    arg: { type: int }
+    desc: "minimum number of differences in segment (3)"
+  - name: --mindiv
+    arg: { type: real }
+    desc: "minimum divergence from closest parent (0.8)"
+  - name: --minh
+    arg: { type: real }
+    desc: "minimum score (0.28); ignored in uchime2/3"
+  - name: --self
+    arg: { type: flag }
+    desc: "exclude identical labels (uchime_ref / search)"
+  - name: --selfid
+    arg: { type: flag }
+    desc: "exclude identical sequences (uchime_ref / search)"
+  - name: --xn
+    arg: { type: real }
+    desc: "'no' vote weight (8.0)"
+
+  # -------------------- Parameters: clustering --------------------
+  - name: --cons_truncate
+    arg: { type: flag }
+    hidden: true
+    desc: "ignored / deprecated"
+  - name: --id
+    arg: { type: real }
+    desc: "reject if identity lower; accepted values 0-1.0"
+  - name: --iddef
+    arg: { type: int }
+    desc: "id definition, 0-4 = CD-HIT, all, int, MBL, BLAST (2)"
+  - name: --qmask
+    arg: { type: enum, values: mask_method }
+    desc: "mask query/seqs (none, dust, soft; default dust)"
+  - name: --strand
+    arg: { type: enum, values: strand }
+    desc: "use plus or both strands (plus)"
+  - name: --usersort
+    arg: { type: flag }
+    desc: "indicate sequences not pre-sorted by length"
+  - name: --minsize
+    arg: { type: int }
+    desc: "minimum abundance (sortbysize / filter / unoise)"
+  - name: --unoise_alpha
+    arg: { type: real }
+    desc: "alpha parameter for unoise (2.0)"
+
+  # -------------------- Parameters: SFF --------------------
+  - name: --sff_clip
+    arg: { type: flag }
+    desc: "clip ends of sequences as indicated in file"
+  - name: --fastq_asciiout
+    arg: { type: int }
+    desc: "FASTQ output quality score ASCII base char (33)"
+  - name: --fastq_qmaxout
+    arg: { type: int }
+    desc: "maximum base quality value for FASTQ output (41)"
+  - name: --fastq_qminout
+    arg: { type: int }
+    desc: "minimum base quality value for FASTQ output (0)"
+
+  # -------------------- Parameters: dereplication / FASTQ input --------------------
+  - name: --maxuniquesize
+    arg: { type: int }
+    desc: "maximum abundance for output from dereplication"
+  - name: --minuniquesize
+    arg: { type: int }
+    desc: "minimum abundance for output from dereplication"
+  - name: --fastq_ascii
+    arg: { type: int }
+    desc: "FASTQ input quality score ASCII base char (33)"
+  - name: --fastq_qmax
+    arg: { type: int }
+    desc: "maximum base quality value for FASTQ input (41)"
+  - name: --fastq_qmin
+    arg: { type: int }
+    desc: "minimum base quality value for FASTQ input (0)"
+
+  # -------------------- Parameters: fastq_chars --------------------
+  - name: --fastq_tail
+    arg: { type: int }
+    desc: "min length of tails to count for fastq_chars (4)"
+
+  # -------------------- Parameters: fastq_eestats(2) --------------------
+  - name: --ee_cutoffs
+    arg: { type: real_list }
+    desc: "fastq_eestats2 expected error cutoffs (0.5,1,2)"
+  - name: --length_cutoffs
+    arg: { type: int_list }
+    desc: "fastq_eestats2 length cutoffs min,max,incr (50,*,50)"
+
+  # -------------------- Parameters: masking --------------------
+  - name: --hardmask
+    arg: { type: flag }
+    desc: "mask by replacing with N instead of lower case"
+  - name: --max_unmasked_pct
+    arg: { type: real }
+    desc: "max unmasked % of sequences to keep (100.0)"
+  - name: --min_unmasked_pct
+    arg: { type: real }
+    desc: "min unmasked % of sequences to keep (0.0)"
+  - name: --dbmask
+    arg: { type: enum, values: mask_method }
+    desc: "mask db sequences (none, dust, soft; default dust)"
+
+  # -------------------- Parameters: orient / UDB / search --------------------
+  - name: --wordlength
+    arg: { type: int }
+    desc: "length of words for database index 3-15 (8 / 12 for orient)"
+
+  # -------------------- Parameters: fastq_join --------------------
+  - name: --join_padgap
+    arg: { type: string }
+    desc: "sequence string used for padding (NNNNNNNN)"
+  - name: --join_padgapq
+    arg: { type: string }
+    desc: "quality string used for padding (IIIIIIII)"
+
+  # -------------------- Parameters: fastq_mergepairs --------------------
+  - name: --fastq_allowmergestagger
+    arg: { type: flag }
+    desc: "allow merging of staggered reads"
+  - name: --fastq_maxdiffpct
+    arg: { type: real }
+    desc: "maximum percentage diff bases in overlap (100.0)"
+  - name: --fastq_maxdiffs
+    arg: { type: int }
+    desc: "maximum number of different bases in overlap (10)"
+  - name: --fastq_maxee
+    arg: { type: real }
+    desc: "maximum expected error value"
+  - name: --fastq_maxmergelen
+    arg: { type: int }
+    desc: "maximum length of entire merged sequence"
+  - name: --fastq_maxns
+    arg: { type: int }
+    desc: "maximum number of N's"
+  - name: --fastq_minlen
+    arg: { type: int }
+    desc: "minimum input read length after truncation (1)"
+  - name: --fastq_minmergelen
+    arg: { type: int }
+    desc: "minimum length of entire merged sequence"
+  - name: --fastq_minovlen
+    arg: { type: int }
+    desc: "minimum length of overlap between reads (10)"
+  - name: --fastq_nostagger
+    arg: { type: flag }
+    desc: "disallow merging of staggered reads (default)"
+  - name: --fastq_truncqual
+    arg: { type: int }
+    desc: "base quality value for truncation"
+
+  # -------------------- Parameters: pairwise --------------------
+  - name: --acceptall
+    arg: { type: flag }
+    desc: "output all pairwise alignments"
+
+  # -------------------- Parameters: cut --------------------
+  - name: --cut_pattern
+    arg: { type: string }
+    desc: "pattern to match with ^ and _ at cut sites"
+
+  # -------------------- Parameters: searching --------------------
+  - name: --fulldp
+    arg: { type: flag }
+    hidden: true
+    desc: "ignored (full dynamic programming alignment is always on)"
+  - name: --gapext
+    arg: { type: string }
+    desc: "penalties for gap extension (2I/1E)"
+  - name: --gapopen
+    arg: { type: string }
+    desc: "penalties for gap opening (20I/2E)"
+  - name: --idprefix
+    arg: { type: int }
+    desc: "reject if first n nucleotides do not match"
+  - name: --idsuffix
+    arg: { type: int }
+    desc: "reject if last n nucleotides do not match"
+  - name: --lca_cutoff
+    arg: { type: real }
+    desc: "fraction of matching hits required for LCA (1.0)"
+  - name: --leftjust
+    arg: { type: flag }
+    desc: "reject if terminal gaps at alignment left end"
+  - name: --match
+    arg: { type: int }
+    desc: "score for match (2)"
+  - name: --maxaccepts
+    arg: { type: int }
+    desc: "number of hits to accept and show per strand (1)"
+  - name: --maxdiffs
+    arg: { type: int }
+    desc: "reject if more substitutions or indels"
+  - name: --maxgaps
+    arg: { type: int }
+    desc: "reject if more indels"
+  - name: --maxhits
+    arg: { type: int }
+    desc: "maximum number of hits to show (unlimited)"
+  - name: --maxid
+    arg: { type: real }
+    desc: "reject if identity higher"
+  - name: --maxqsize
+    arg: { type: int }
+    desc: "reject if query abundance larger"
+  - name: --maxqt
+    arg: { type: real }
+    desc: "reject if query/target length ratio higher"
+  - name: --maxrejects
+    arg: { type: int }
+    desc: "number of non-matching hits to consider (32)"
+  - name: --maxsizeratio
+    arg: { type: real }
+    desc: "reject if query/target abundance ratio higher"
+  - name: --maxsl
+    arg: { type: real }
+    desc: "reject if shorter/longer length ratio higher"
+  - name: --maxsubs
+    arg: { type: int }
+    desc: "reject if more substitutions"
+  - name: --mid
+    arg: { type: real }
+    desc: "reject if percent identity lower, ignoring gaps"
+  - name: --mincols
+    arg: { type: int }
+    desc: "reject if alignment length shorter"
+  - name: --minqt
+    arg: { type: real }
+    desc: "reject if query/target length ratio lower"
+  - name: --minsizeratio
+    arg: { type: real }
+    desc: "reject if query/target abundance ratio lower"
+  - name: --minsl
+    arg: { type: real }
+    desc: "reject if shorter/longer length ratio lower"
+  - name: --mintsize
+    arg: { type: int }
+    desc: "reject if target abundance lower"
+  - name: --minwordmatches
+    arg: { type: int }
+    desc: "minimum number of word matches required (12)"
+  - name: --mismatch
+    arg: { type: int }
+    desc: "score for mismatch (-4)"
+  - name: --n_mismatch
+    arg: { type: flag }
+    desc: "consider aligning with N's as mismatches"
+  - name: --pattern
+    arg: { type: string }
+    hidden: true
+    desc: "ignored"
+  - name: --query_cov
+    arg: { type: real }
+    desc: "reject if fraction of query seq. aligned lower"
+  - name: --rightjust
+    arg: { type: flag }
+    desc: "reject if terminal gaps at alignment right end"
+  - name: --slots
+    arg: { type: int }
+    hidden: true
+    desc: "ignored"
+  - name: --target_cov
+    arg: { type: real }
+    desc: "reject if fraction of target seq. aligned lower"
+  - name: --weak_id
+    arg: { type: real }
+    desc: "include aligned hits with >= id; continue search"
+
+  # -------------------- Parameters: sort / shuffle --------------------
+  - name: --maxsize
+    arg: { type: int }
+    desc: "maximum abundance (sortbysize / filter)"
+  - name: --randseed
+    arg: { type: int }
+    desc: "seed for PRNG, zero to use random data source (0)"
+
+  # -------------------- Parameters: subsample --------------------
+  - name: --sample_pct
+    arg: { type: real }
+    desc: "sampling percentage between 0.0 and 100.0"
+  - name: --sample_size
+    arg: { type: int }
+    desc: "sampling size"
+
+  # -------------------- Parameters: sintax --------------------
+  - name: --sintax_cutoff
+    arg: { type: real }
+    desc: "confidence value cutoff level (0.0)"
+  - name: --sintax_random
+    arg: { type: flag }
+    desc: "use random sequence, not shortest, if equal match"
+
+  # -------------------- Parameters: filter --------------------
+  - name: --fastq_maxee_rate
+    arg: { type: real }
+    desc: "discard if expected error rate is higher"
+  - name: --fastq_maxlen
+    arg: { type: int }
+    desc: "discard if length of sequence is longer"
+  - name: --fastq_minqual
+    arg: { type: int }
+    desc: "discard if any base quality value lower (0)"
+  - name: --fastq_stripleft
+    arg: { type: int }
+    desc: "delete given number of bases from the 5' end"
+  - name: --fastq_stripright
+    arg: { type: int }
+    desc: "delete given number of bases from the 3' end"
+  - name: --fastq_truncee
+    arg: { type: real }
+    desc: "truncate to given maximum expected error"
+  - name: --fastq_truncee_rate
+    arg: { type: real }
+    desc: "truncate to given maximum expected error rate"
+  - name: --fastq_trunclen
+    arg: { type: int }
+    desc: "truncate to given length (discard if shorter)"
+  - name: --fastq_trunclen_keep
+    arg: { type: int }
+    desc: "truncate to given length (keep if shorter)"
+
+  # -------------------- Parameters: abundance / relabel (cross-cutting) --------------------
+  - name: --sizein
+    arg: { type: flag }
+    desc: "propagate abundance annotation from input"
+  - name: --sizeout
+    arg: { type: flag }
+    desc: "write abundance annotation to output"
+  - name: --xsize
+    arg: { type: flag }
+    desc: "strip abundance information in output"
+  - name: --xee
+    arg: { type: flag }
+    desc: "remove expected errors (ee) info from output"
+  - name: --eeout
+    arg: { type: flag }
+    desc: "include expected errors in output"
+  - name: --relabel
+    arg: { type: string }
+    desc: "relabel sequences with this prefix string"
+  - name: --relabel_keep
+    arg: { type: flag }
+    desc: "keep the old label after the new when relabelling"
+  - name: --relabel_md5
+    arg: { type: flag }
+    desc: "relabel with md5 digest of normalized sequence"
+  - name: --relabel_self
+    arg: { type: flag }
+    desc: "relabel with the sequence itself as label"
+  - name: --relabel_sha1
+    arg: { type: flag }
+    desc: "relabel with sha1 digest of normalized sequence"
+  - name: --label_suffix
+    arg: { type: string }
+    desc: "suffix to append to label"
+
+  # -------------------- Output: alignment / chimera-specific --------------------
+  - name: --alignwidth
+    arg: { type: int }
+    desc: "width of alignments in alignment output file (60 / 80)"
+  - name: --alnout
+    arg: { type: outfile }
+    desc: "filename for human-readable alignment output"
+  - name: --chimeras
+    arg: { type: outfile }
+    desc: "output chimeric sequences to file"
+  - name: --nonchimeras
+    arg: { type: outfile }
+    desc: "output non-chimeric sequences to file"
+  - name: --borderline
+    arg: { type: outfile }
+    desc: "output borderline chimeric sequences to file"
+  - name: --fasta_score
+    arg: { type: flag }
+    desc: "include chimera score in FASTA output"
+  - name: --uchimealns
+    arg: { type: outfile }
+    desc: "output chimera alignments to file"
+  - name: --uchimeout
+    arg: { type: outfile }
+    desc: "output chimera info to tab-separated file"
+  - name: --uchimeout5
+    arg: { type: flag }
+    desc: "make output compatible with uchime version 5"
+
+  # -------------------- Output: clustering --------------------
+  - name: --biomout
+    arg: { type: outfile }
+    desc: "filename for OTU table output in BIOM 1.0 format"
+  - name: --centroids
+    arg: { type: outfile }
+    desc: "output centroid sequences to FASTA file"
+  - name: --clusterout_id
+    arg: { type: flag }
+    desc: "add cluster id info to consout and profile files"
+  - name: --clusterout_sort
+    arg: { type: flag }
+    desc: "order msaout, consout, profile by decreasing abundance"
+  - name: --clusters
+    arg: { type: string }
+    desc: "output each cluster to a separate FASTA file (prefix)"
+  - name: --consout
+    arg: { type: outfile }
+    desc: "output cluster consensus sequences to FASTA file"
+  - name: --mothur_shared_out
+    arg: { type: outfile }
+    desc: "filename for OTU table output in mothur format"
+  - name: --msaout
+    arg: { type: outfile }
+    desc: "output multiple sequence alignments to FASTA file"
+  - name: --otutabout
+    arg: { type: outfile }
+    desc: "filename for OTU table output in classic format"
+  - name: --profile
+    arg: { type: outfile }
+    desc: "output sequence profile of each cluster to file"
+  - name: --sizeorder
+    arg: { type: flag }
+    desc: "sort accepted centroids by abundance, AGC"
+  - name: --uc
+    arg: { type: outfile }
+    desc: "filename for UCLUST-like output"
+
+  # -------------------- Output: general FASTA/FASTQ --------------------
+  - name: --fastaout
+    arg: { type: outfile }
+    desc: "FASTA output filename"
+  - name: --fastqout
+    arg: { type: outfile }
+    desc: "FASTQ output filename"
+  - name: --output
+    arg: { type: outfile }
+    desc: "output to specified file"
+  - name: --tabbedout
+    arg: { type: outfile }
+    desc: "output to tab-separated file"
+  - name: --topn
+    arg: { type: int }
+    desc: "output only n most abundant / first n sequences"
+
+  # -------------------- Output: orient --------------------
+  - name: --notmatched
+    arg: { type: outfile }
+    desc: "FASTA filename for non-matching / undetermined sequences"
+
+  # -------------------- Output: merge / filter --------------------
+  - name: --eetabbedout
+    arg: { type: outfile }
+    desc: "output error statistics to specified file"
+  - name: --fastaout_notmerged_fwd
+    arg: { type: outfile }
+    desc: "FASTA filename for non-merged forward sequences"
+  - name: --fastaout_notmerged_rev
+    arg: { type: outfile }
+    desc: "FASTA filename for non-merged reverse sequences"
+  - name: --fastq_eeout
+    arg: { type: flag }
+    desc: "include expected errors (ee) in FASTQ output"
+  - name: --fastqout_notmerged_fwd
+    arg: { type: outfile }
+    desc: "FASTQ filename for non-merged forward sequences"
+  - name: --fastqout_notmerged_rev
+    arg: { type: outfile }
+    desc: "FASTQ filename for non-merged reverse sequences"
+  - name: --fastaout_discarded
+    arg: { type: outfile }
+    desc: "FASTA filename for discarded / non-matching sequences"
+  - name: --fastaout_discarded_rev
+    arg: { type: outfile }
+    desc: "FASTA filename for discarded reverse sequences"
+  - name: --fastaout_rev
+    arg: { type: outfile }
+    desc: "FASTA filename for passed reverse / cut reverse sequences"
+  - name: --fastqout_discarded
+    arg: { type: outfile }
+    desc: "FASTQ filename for discarded sequences"
+  - name: --fastqout_discarded_rev
+    arg: { type: outfile }
+    desc: "FASTQ filename for discarded reverse sequences"
+  - name: --fastqout_rev
+    arg: { type: outfile }
+    desc: "FASTQ filename for passed reverse sequences"
+
+  # -------------------- Output: searching --------------------
+  - name: --blast6out
+    arg: { type: outfile }
+    desc: "filename for BLAST-like tab-separated output"
+  - name: --dbmatched
+    arg: { type: outfile }
+    desc: "FASTA file for matching database sequences"
+  - name: --dbnotmatched
+    arg: { type: outfile }
+    desc: "FASTA file for non-matching database sequences"
+  - name: --fastapairs
+    arg: { type: outfile }
+    desc: "FASTA file with pairs of query and target"
+  - name: --lcaout
+    arg: { type: outfile }
+    desc: "output LCA of matching sequences to file"
+  - name: --matched
+    arg: { type: outfile }
+    desc: "FASTA file for matching query sequences"
+  - name: --output_no_hits
+    arg: { type: flag }
+    desc: "output non-matching queries to output files"
+  - name: --rowlen
+    arg: { type: int }
+    desc: "width of alignment lines in alnout output (64)"
+  - name: --samheader
+    arg: { type: flag }
+    desc: "include a header in the SAM output file"
+  - name: --samout
+    arg: { type: outfile }
+    desc: "filename for SAM format output"
+  - name: --top_hits_only
+    arg: { type: flag }
+    desc: "output only hits with identity equal to the best"
+  - name: --uc_allhits
+    arg: { type: flag }
+    desc: "show all, not just top hit with uc output"
+  - name: --userfields
+    arg: { type: string }
+    desc: "fields to output in userout file"
+  - name: --userout
+    arg: { type: outfile }
+    desc: "filename for user-defined tab-separated output"
+
+  # -------------------- Parameters: fastx_getseq(s) / getsubseq --------------------
+  - name: --label
+    arg: { type: string }
+    desc: "label to match (fastx_getseq)"
+  - name: --labels
+    arg: { type: file }
+    desc: "file with one label per line (fastx_getseqs)"
+  - name: --label_field
+    arg: { type: string }
+    desc: "header field name to match against (fastx_getseqs)"
+  - name: --label_word
+    arg: { type: string }
+    desc: "single word to match in label (fastx_getseqs)"
+  - name: --label_words
+    arg: { type: file }
+    desc: "file with one word per line to match in labels (fastx_getseqs)"
+  - name: --label_substr_match
+    arg: { type: flag }
+    desc: "allow substring (not just exact) matching of labels"
+  - name: --subseq_start
+    arg: { type: int }
+    desc: "start position of subsequence to extract (1-based)"
+  - name: --subseq_end
+    arg: { type: int }
+    desc: "end position of subsequence to extract (1-based, inclusive)"
+
+  # -------------------- Output: search query/target segments --------------------
+  - name: --qsegout
+    arg: { type: outfile }
+    desc: "FASTA filename for aligned query segments"
+  - name: --tsegout
+    arg: { type: outfile }
+    desc: "FASTA filename for aligned target segments"
+  - name: --notmatchedfq
+    arg: { type: outfile }
+    desc: "FASTQ filename for non-matching / undetermined sequences"
+
+  # -------------------- Output: misc flags --------------------
+  - name: --centroid_sizeout
+    arg: { type: flag }
+    desc: "include abundance information in centroid output"
+  - name: --fastq_qout_max
+    arg: { type: flag }
+    desc: "use maximum FASTQ quality value for merged output base"
+  - name: --lengthout
+    arg: { type: flag }
+    desc: "write sequence length annotation to output labels"
+  - name: --xlength
+    arg: { type: flag }
+    desc: "strip sequence length annotation from output labels"
+  - name: --sample
+    arg: { type: string }
+    desc: "sample identifier added to output labels"
+
+  # -------------------- Hidden / ignored alignment parameters --------------------
+  # These are accepted by vsearch but completion does not suggest them.
+  - name: --band
+    arg: { type: int }
+    hidden: true
+    desc: "ignored (alignment band width)"
+  - name: --hspw
+    arg: { type: int }
+    hidden: true
+    desc: "ignored (high-scoring pair width)"
+  - name: --minhsp
+    arg: { type: int }
+    hidden: true
+    desc: "ignored (minimum HSP)"
+  - name: --xdrop_nw
+    arg: { type: int }
+    hidden: true
+    desc: "ignored (x-drop for Needleman-Wunsch alignment)"
+
+# ---------------------------------------------------------------------------
+# command_options
+# ---------------------------------------------------------------------------
+# Maps each command (action) flag to the COMPLETE list of options that are
+# valid alongside it. Derived from the valid_options table in the C++
+# argument-parsing source.
+#
+# Notes:
+#   - The list is exhaustive, not additive: no "general" options are
+#     implicitly valid. Every option vsearch accepts together with a given
+#     command is listed explicitly. (Different commands accept different
+#     subsets of the general options — e.g. --udbinfo accepts only --log,
+#     --quiet and --threads.)
+#   - The command itself is not repeated in its own list.
+#   - Hidden options (`hidden: true` in `options:`) appear here when the
+#     parser accepts them; generators must filter them out when emitting
+#     completion suggestions, but should still recognise them as valid
+#     for the purposes of "is this option allowed here?" checks.
+# ---------------------------------------------------------------------------
+command_options:
+  --allpairs_global:
+    - --acceptall
+    - --alnout
+    - --band
+    - --blast6out
+    - --bzip2_decompress
+    - --fasta_width
+    - --fastapairs
+    - --fulldp
+    - --gapext
+    - --gapopen
+    - --gzip_decompress
+    - --hardmask
+    - --hspw
+    - --id
+    - --iddef
+    - --idprefix
+    - --idsuffix
+    - --label_suffix
+    - --leftjust
+    - --lengthout
+    - --log
+    - --match
+    - --matched
+    - --maxaccepts
+    - --maxdiffs
+    - --maxgaps
+    - --maxhits
+    - --maxid
+    - --maxqsize
+    - --maxqt
+    - --maxrejects
+    - --maxseqlength
+    - --maxsizeratio
+    - --maxsl
+    - --maxsubs
+    - --mid
+    - --mincols
+    - --minhsp
+    - --minqt
+    - --minseqlength
+    - --minsizeratio
+    - --minsl
+    - --mintsize
+    - --minwordmatches
+    - --mismatch
+    - --n_mismatch
+    - --no_progress
+    - --notmatched
+    - --notrunclabels
+    - --output_no_hits
+    - --pattern
+    - --qmask
+    - --qsegout
+    - --query_cov
+    - --quiet
+    - --relabel
+    - --relabel_keep
+    - --relabel_md5
+    - --relabel_self
+    - --relabel_sha1
+    - --rightjust
+    - --rowlen
+    - --samheader
+    - --samout
+    - --sample
+    - --self
+    - --selfid
+    - --sizein
+    - --sizeout
+    - --slots
+    - --target_cov
+    - --threads
+    - --top_hits_only
+    - --tsegout
+    - --uc
+    - --userfields
+    - --userout
+    - --weak_id
+    - --wordlength
+    - --xdrop_nw
+    - --xee
+    - --xlength
+    - --xsize
+  --chimeras_denovo:
+    - --abskew
+    - --alignwidth
+    - --alnout
+    - --chimeras
+    - --chimeras_diff_pct
+    - --chimeras_length_min
+    - --chimeras_parents_max
+    - --chimeras_parts
+    - --fasta_width
+    - --gapext
+    - --gapopen
+    - --hardmask
+    - --label_suffix
+    - --lengthout
+    - --log
+    - --match
+    - --maxseqlength
+    - --minseqlength
+    - --mismatch
+    - --no_progress
+    - --nonchimeras
+    - --notrunclabels
+    - --qmask
+    - --quiet
+    - --relabel
+    - --relabel_keep
+    - --relabel_md5
+    - --relabel_self
+    - --relabel_sha1
+    - --sample
+    - --sizein
+    - --sizeout
+    - --tabbedout
+    - --threads
+    - --xee
+    - --xlength
+    - --xn
+    - --xsize
+  --cluster_fast:
+    - --alnout
+    - --band
+    - --biomout
+    - --blast6out
+    - --bzip2_decompress
+    - --centroid_sizeout
+    - --centroids
+    - --clusterout_id
+    - --clusterout_sort
+    - --clusters
+    - --cons_truncate
+    - --consout
+    - --fasta_width
+    - --fastapairs
+    - --fulldp
+    - --gapext
+    - --gapopen
+    - --gzip_decompress
+    - --hardmask
+    - --hspw
+    - --id
+    - --iddef
+    - --idprefix
+    - --idsuffix
+    - --label_suffix
+    - --leftjust
+    - --lengthout
+    - --log
+    - --match
+    - --matched
+    - --maxaccepts
+    - --maxdiffs
+    - --maxgaps
+    - --maxhits
+    - --maxid
+    - --maxqsize
+    - --maxqt
+    - --maxrejects
+    - --maxseqlength
+    - --maxsizeratio
+    - --maxsl
+    - --maxsubs
+    - --mid
+    - --mincols
+    - --minhsp
+    - --minqt
+    - --minseqlength
+    - --minsizeratio
+    - --minsl
+    - --mintsize
+    - --minwordmatches
+    - --mismatch
+    - --mothur_shared_out
+    - --msaout
+    - --n_mismatch
+    - --no_progress
+    - --notmatched
+    - --notrunclabels
+    - --otutabout
+    - --output_no_hits
+    - --pattern
+    - --profile
+    - --qmask
+    - --qsegout
+    - --query_cov
+    - --quiet
+    - --relabel
+    - --relabel_keep
+    - --relabel_md5
+    - --relabel_self
+    - --relabel_sha1
+    - --rightjust
+    - --rowlen
+    - --samheader
+    - --samout
+    - --sample
+    - --self
+    - --selfid
+    - --sizein
+    - --sizeorder
+    - --sizeout
+    - --slots
+    - --strand
+    - --target_cov
+    - --threads
+    - --top_hits_only
+    - --tsegout
+    - --uc
+    - --userfields
+    - --userout
+    - --weak_id
+    - --wordlength
+    - --xdrop_nw
+    - --xee
+    - --xlength
+    - --xsize
+  --cluster_size:
+    - --alnout
+    - --band
+    - --biomout
+    - --blast6out
+    - --bzip2_decompress
+    - --centroid_sizeout
+    - --centroids
+    - --clusterout_id
+    - --clusterout_sort
+    - --clusters
+    - --cons_truncate
+    - --consout
+    - --fasta_width
+    - --fastapairs
+    - --fulldp
+    - --gapext
+    - --gapopen
+    - --gzip_decompress
+    - --hardmask
+    - --hspw
+    - --id
+    - --iddef
+    - --idprefix
+    - --idsuffix
+    - --label_suffix
+    - --leftjust
+    - --lengthout
+    - --log
+    - --match
+    - --matched
+    - --maxaccepts
+    - --maxdiffs
+    - --maxgaps
+    - --maxhits
+    - --maxid
+    - --maxqsize
+    - --maxqt
+    - --maxrejects
+    - --maxseqlength
+    - --maxsizeratio
+    - --maxsl
+    - --maxsubs
+    - --mid
+    - --mincols
+    - --minhsp
+    - --minqt
+    - --minseqlength
+    - --minsizeratio
+    - --minsl
+    - --mintsize
+    - --minwordmatches
+    - --mismatch
+    - --mothur_shared_out
+    - --msaout
+    - --n_mismatch
+    - --no_progress
+    - --notmatched
+    - --notrunclabels
+    - --otutabout
+    - --output_no_hits
+    - --pattern
+    - --profile
+    - --qmask
+    - --qsegout
+    - --query_cov
+    - --quiet
+    - --relabel
+    - --relabel_keep
+    - --relabel_md5
+    - --relabel_self
+    - --relabel_sha1
+    - --rightjust
+    - --rowlen
+    - --samheader
+    - --samout
+    - --sample
+    - --self
+    - --selfid
+    - --sizein
+    - --sizeorder
+    - --sizeout
+    - --slots
+    - --strand
+    - --target_cov
+    - --threads
+    - --top_hits_only
+    - --tsegout
+    - --uc
+    - --userfields
+    - --userout
+    - --weak_id
+    - --wordlength
+    - --xdrop_nw
+    - --xee
+    - --xlength
+    - --xsize
+  --cluster_smallmem:
+    - --alnout
+    - --band
+    - --biomout
+    - --blast6out
+    - --bzip2_decompress
+    - --centroid_sizeout
+    - --centroids
+    - --clusterout_id
+    - --clusterout_sort
+    - --clusters
+    - --cons_truncate
+    - --consout
+    - --fasta_width
+    - --fastapairs
+    - --fulldp
+    - --gapext
+    - --gapopen
+    - --gzip_decompress
+    - --hardmask
+    - --hspw
+    - --id
+    - --iddef
+    - --idprefix
+    - --idsuffix
+    - --label_suffix
+    - --leftjust
+    - --lengthout
+    - --log
+    - --match
+    - --matched
+    - --maxaccepts
+    - --maxdiffs
+    - --maxgaps
+    - --maxhits
+    - --maxid
+    - --maxqsize
+    - --maxqt
+    - --maxrejects
+    - --maxseqlength
+    - --maxsizeratio
+    - --maxsl
+    - --maxsubs
+    - --mid
+    - --mincols
+    - --minhsp
+    - --minqt
+    - --minseqlength
+    - --minsizeratio
+    - --minsl
+    - --mintsize
+    - --minwordmatches
+    - --mismatch
+    - --mothur_shared_out
+    - --msaout
+    - --n_mismatch
+    - --no_progress
+    - --notmatched
+    - --notrunclabels
+    - --otutabout
+    - --output_no_hits
+    - --pattern
+    - --profile
+    - --qmask
+    - --qsegout
+    - --query_cov
+    - --quiet
+    - --relabel
+    - --relabel_keep
+    - --relabel_md5
+    - --relabel_self
+    - --relabel_sha1
+    - --rightjust
+    - --rowlen
+    - --samheader
+    - --samout
+    - --sample
+    - --self
+    - --selfid
+    - --sizein
+    - --sizeorder
+    - --sizeout
+    - --slots
+    - --strand
+    - --target_cov
+    - --threads
+    - --top_hits_only
+    - --tsegout
+    - --uc
+    - --userfields
+    - --userout
+    - --usersort
+    - --weak_id
+    - --wordlength
+    - --xdrop_nw
+    - --xee
+    - --xlength
+    - --xsize
+  --cluster_unoise:
+    - --alnout
+    - --band
+    - --biomout
+    - --blast6out
+    - --bzip2_decompress
+    - --centroid_sizeout
+    - --centroids
+    - --clusterout_id
+    - --clusterout_sort
+    - --clusters
+    - --cons_truncate
+    - --consout
+    - --fasta_width
+    - --fastapairs
+    - --fulldp
+    - --gapext
+    - --gapopen
+    - --gzip_decompress
+    - --hardmask
+    - --hspw
+    - --id
+    - --iddef
+    - --idprefix
+    - --idsuffix
+    - --label_suffix
+    - --leftjust
+    - --lengthout
+    - --log
+    - --match
+    - --matched
+    - --maxaccepts
+    - --maxdiffs
+    - --maxgaps
+    - --maxhits
+    - --maxid
+    - --maxqsize
+    - --maxqt
+    - --maxrejects
+    - --maxseqlength
+    - --maxsizeratio
+    - --maxsl
+    - --maxsubs
+    - --mid
+    - --mincols
+    - --minhsp
+    - --minqt
+    - --minseqlength
+    - --minsize
+    - --minsizeratio
+    - --minsl
+    - --mintsize
+    - --minwordmatches
+    - --mismatch
+    - --mothur_shared_out
+    - --msaout
+    - --n_mismatch
+    - --no_progress
+    - --notmatched
+    - --notrunclabels
+    - --otutabout
+    - --output_no_hits
+    - --pattern
+    - --profile
+    - --qmask
+    - --qsegout
+    - --query_cov
+    - --quiet
+    - --relabel
+    - --relabel_keep
+    - --relabel_md5
+    - --relabel_self
+    - --relabel_sha1
+    - --rightjust
+    - --rowlen
+    - --samheader
+    - --samout
+    - --sample
+    - --self
+    - --selfid
+    - --sizein
+    - --sizeorder
+    - --sizeout
+    - --slots
+    - --strand
+    - --target_cov
+    - --threads
+    - --top_hits_only
+    - --tsegout
+    - --uc
+    - --unoise_alpha
+    - --userfields
+    - --userout
+    - --weak_id
+    - --wordlength
+    - --xdrop_nw
+    - --xee
+    - --xlength
+    - --xsize
+  --cut:
+    - --bzip2_decompress
+    - --cut_pattern
+    - --fasta_width
+    - --fastaout
+    - --fastaout_discarded
+    - --fastaout_discarded_rev
+    - --fastaout_rev
+    - --gzip_decompress
+    - --label_suffix
+    - --lengthout
+    - --log
+    - --no_progress
+    - --notrunclabels
+    - --quiet
+    - --relabel
+    - --relabel_keep
+    - --relabel_md5
+    - --relabel_self
+    - --relabel_sha1
+    - --sample
+    - --sizein
+    - --sizeout
+    - --xee
+    - --xlength
+    - --xsize
+  --derep_fulllength:
+    - --bzip2_decompress
+    - --fasta_width
+    - --gzip_decompress
+    - --lengthout
+    - --log
+    - --maxseqlength
+    - --maxuniquesize
+    - --minseqlength
+    - --minuniquesize
+    - --no_progress
+    - --notrunclabels
+    - --output
+    - --quiet
+    - --relabel
+    - --relabel_keep
+    - --relabel_md5
+    - --relabel_self
+    - --relabel_sha1
+    - --sample
+    - --sizein
+    - --sizeout
+    - --strand
+    - --threads
+    - --topn
+    - --uc
+    - --xee
+    - --xlength
+    - --xsize
+  --derep_id:
+    - --bzip2_decompress
+    - --fasta_width
+    - --gzip_decompress
+    - --label_suffix
+    - --lengthout
+    - --log
+    - --maxseqlength
+    - --maxuniquesize
+    - --minseqlength
+    - --minuniquesize
+    - --no_progress
+    - --notrunclabels
+    - --output
+    - --quiet
+    - --relabel
+    - --relabel_keep
+    - --relabel_md5
+    - --relabel_self
+    - --relabel_sha1
+    - --sample
+    - --sizein
+    - --sizeout
+    - --strand
+    - --threads
+    - --topn
+    - --uc
+    - --xee
+    - --xlength
+    - --xsize
+  --derep_prefix:
+    - --bzip2_decompress
+    - --fasta_width
+    - --gzip_decompress
+    - --label_suffix
+    - --lengthout
+    - --log
+    - --maxseqlength
+    - --maxuniquesize
+    - --minseqlength
+    - --minuniquesize
+    - --no_progress
+    - --notrunclabels
+    - --output
+    - --quiet
+    - --relabel
+    - --relabel_keep
+    - --relabel_md5
+    - --relabel_self
+    - --relabel_sha1
+    - --sample
+    - --sizein
+    - --sizeout
+    - --strand
+    - --threads
+    - --topn
+    - --uc
+    - --xee
+    - --xlength
+    - --xsize
+  --derep_smallmem:
+    - --bzip2_decompress
+    - --fasta_width
+    - --fastaout
+    - --fastq_ascii
+    - --fastq_qmax
+    - --fastq_qmin
+    - --gzip_decompress
+    - --label_suffix
+    - --lengthout
+    - --log
+    - --maxseqlength
+    - --maxuniquesize
+    - --minseqlength
+    - --minuniquesize
+    - --no_progress
+    - --notrunclabels
+    - --quiet
+    - --relabel
+    - --relabel_keep
+    - --relabel_md5
+    - --relabel_self
+    - --relabel_sha1
+    - --sample
+    - --sizein
+    - --sizeout
+    - --strand
+    - --threads
+    - --xee
+    - --xlength
+    - --xsize
+  --fasta2fastq:
+    - --bzip2_decompress
+    - --fastq_asciiout
+    - --fastq_qmaxout
+    - --fastqout
+    - --gzip_decompress
+    - --label_suffix
+    - --lengthout
+    - --log
+    - --no_progress
+    - --quiet
+    - --relabel
+    - --relabel_keep
+    - --relabel_md5
+    - --relabel_self
+    - --relabel_sha1
+    - --sample
+    - --sizein
+    - --sizeout
+    - --threads
+    - --xee
+    - --xlength
+    - --xsize
+  --fastq_chars:
+    - --bzip2_decompress
+    - --fastq_tail
+    - --gzip_decompress
+    - --log
+    - --no_progress
+    - --quiet
+    - --threads
+  --fastq_convert:
+    - --bzip2_decompress
+    - --fastq_ascii
+    - --fastq_asciiout
+    - --fastq_qmax
+    - --fastq_qmaxout
+    - --fastq_qmin
+    - --fastq_qminout
+    - --fastqout
+    - --gzip_decompress
+    - --label_suffix
+    - --lengthout
+    - --log
+    - --no_progress
+    - --quiet
+    - --relabel
+    - --relabel_keep
+    - --relabel_md5
+    - --relabel_self
+    - --relabel_sha1
+    - --sample
+    - --sizein
+    - --sizeout
+    - --threads
+    - --xee
+    - --xlength
+    - --xsize
+  --fastq_eestats:
+    - --bzip2_decompress
+    - --fastq_ascii
+    - --fastq_qmax
+    - --fastq_qmin
+    - --gzip_decompress
+    - --log
+    - --no_progress
+    - --output
+    - --quiet
+    - --threads
+  --fastq_eestats2:
+    - --bzip2_decompress
+    - --ee_cutoffs
+    - --fastq_ascii
+    - --fastq_qmax
+    - --fastq_qmin
+    - --gzip_decompress
+    - --length_cutoffs
+    - --log
+    - --no_progress
+    - --output
+    - --quiet
+    - --threads
+  --fastq_filter:
+    - --bzip2_decompress
+    - --eeout
+    - --fasta_width
+    - --fastaout
+    - --fastaout_discarded
+    - --fastaout_discarded_rev
+    - --fastaout_rev
+    - --fastq_ascii
+    - --fastq_eeout
+    - --fastq_maxee
+    - --fastq_maxee_rate
+    - --fastq_maxlen
+    - --fastq_maxns
+    - --fastq_minlen
+    - --fastq_minqual
+    - --fastq_qmax
+    - --fastq_qmin
+    - --fastq_stripleft
+    - --fastq_stripright
+    - --fastq_truncee
+    - --fastq_truncee_rate
+    - --fastq_trunclen
+    - --fastq_trunclen_keep
+    - --fastq_truncqual
+    - --fastqout
+    - --fastqout_discarded
+    - --fastqout_discarded_rev
+    - --fastqout_rev
+    - --gzip_decompress
+    - --label_suffix
+    - --lengthout
+    - --log
+    - --maxsize
+    - --minsize
+    - --no_progress
+    - --quiet
+    - --relabel
+    - --relabel_keep
+    - --relabel_md5
+    - --relabel_self
+    - --relabel_sha1
+    - --reverse
+    - --sample
+    - --sizein
+    - --sizeout
+    - --threads
+    - --xee
+    - --xlength
+    - --xsize
+  --fastq_join:
+    - --bzip2_decompress
+    - --fasta_width
+    - --fastaout
+    - --fastq_ascii
+    - --fastq_qmax
+    - --fastq_qmin
+    - --fastqout
+    - --gzip_decompress
+    - --join_padgap
+    - --join_padgapq
+    - --label_suffix
+    - --lengthout
+    - --log
+    - --no_progress
+    - --quiet
+    - --relabel
+    - --relabel_keep
+    - --relabel_md5
+    - --relabel_self
+    - --relabel_sha1
+    - --reverse
+    - --sizein
+    - --sizeout
+    - --threads
+    - --xee
+    - --xlength
+    - --xsize
+  --fastq_mergepairs:
+    - --bzip2_decompress
+    - --eeout
+    - --eetabbedout
+    - --fasta_width
+    - --fastaout
+    - --fastaout_notmerged_fwd
+    - --fastaout_notmerged_rev
+    - --fastq_allowmergestagger
+    - --fastq_ascii
+    - --fastq_eeout
+    - --fastq_maxdiffpct
+    - --fastq_maxdiffs
+    - --fastq_maxee
+    - --fastq_maxlen
+    - --fastq_maxmergelen
+    - --fastq_maxns
+    - --fastq_minlen
+    - --fastq_minmergelen
+    - --fastq_minovlen
+    - --fastq_nostagger
+    - --fastq_qmax
+    - --fastq_qmaxout
+    - --fastq_qmin
+    - --fastq_qminout
+    - --fastq_truncqual
+    - --fastqout
+    - --fastqout_notmerged_fwd
+    - --fastqout_notmerged_rev
+    - --gzip_decompress
+    - --label_suffix
+    - --lengthout
+    - --log
+    - --no_progress
+    - --quiet
+    - --relabel
+    - --relabel_keep
+    - --relabel_md5
+    - --relabel_self
+    - --relabel_sha1
+    - --reverse
+    - --sample
+    - --sizein
+    - --sizeout
+    - --threads
+    - --xee
+    - --xlength
+    - --xsize
+  --fastq_stats:
+    - --bzip2_decompress
+    - --fastq_ascii
+    - --fastq_qmax
+    - --fastq_qmin
+    - --gzip_decompress
+    - --log
+    - --no_progress
+    - --quiet
+    - --threads
+  --fastx_filter:
+    - --bzip2_decompress
+    - --eeout
+    - --fasta_width
+    - --fastaout
+    - --fastaout_discarded
+    - --fastaout_discarded_rev
+    - --fastaout_rev
+    - --fastq_ascii
+    - --fastq_eeout
+    - --fastq_maxee
+    - --fastq_maxee_rate
+    - --fastq_maxlen
+    - --fastq_maxns
+    - --fastq_minlen
+    - --fastq_minqual
+    - --fastq_qmax
+    - --fastq_qmin
+    - --fastq_stripleft
+    - --fastq_stripright
+    - --fastq_truncee
+    - --fastq_truncee_rate
+    - --fastq_trunclen
+    - --fastq_trunclen_keep
+    - --fastq_truncqual
+    - --fastqout
+    - --fastqout_discarded
+    - --fastqout_discarded_rev
+    - --fastqout_rev
+    - --gzip_decompress
+    - --label_suffix
+    - --lengthout
+    - --log
+    - --maxsize
+    - --minsize
+    - --no_progress
+    - --notrunclabels
+    - --quiet
+    - --relabel
+    - --relabel_keep
+    - --relabel_md5
+    - --relabel_self
+    - --relabel_sha1
+    - --reverse
+    - --sample
+    - --sizein
+    - --sizeout
+    - --threads
+    - --xee
+    - --xlength
+    - --xsize
+  --fastx_getseq:
+    - --bzip2_decompress
+    - --fasta_width
+    - --fastaout
+    - --fastq_ascii
+    - --fastq_qmax
+    - --fastq_qmin
+    - --fastqout
+    - --gzip_decompress
+    - --label
+    - --label_substr_match
+    - --label_suffix
+    - --lengthout
+    - --log
+    - --no_progress
+    - --notmatched
+    - --notmatchedfq
+    - --notrunclabels
+    - --quiet
+    - --relabel
+    - --relabel_keep
+    - --relabel_md5
+    - --relabel_self
+    - --relabel_sha1
+    - --sample
+    - --sizein
+    - --sizeout
+    - --threads
+    - --xee
+    - --xlength
+    - --xsize
+  --fastx_getseqs:
+    - --bzip2_decompress
+    - --fasta_width
+    - --fastaout
+    - --fastq_ascii
+    - --fastq_qmax
+    - --fastq_qmin
+    - --fastqout
+    - --gzip_decompress
+    - --label
+    - --label_field
+    - --label_substr_match
+    - --label_suffix
+    - --label_word
+    - --label_words
+    - --labels
+    - --lengthout
+    - --log
+    - --no_progress
+    - --notmatched
+    - --notmatchedfq
+    - --notrunclabels
+    - --quiet
+    - --relabel
+    - --relabel_keep
+    - --relabel_md5
+    - --relabel_self
+    - --relabel_sha1
+    - --sample
+    - --sizein
+    - --sizeout
+    - --threads
+    - --xee
+    - --xlength
+    - --xsize
+  --fastx_getsubseq:
+    - --bzip2_decompress
+    - --fasta_width
+    - --fastaout
+    - --fastq_ascii
+    - --fastq_qmax
+    - --fastq_qmin
+    - --fastqout
+    - --gzip_decompress
+    - --label
+    - --label_substr_match
+    - --label_suffix
+    - --lengthout
+    - --log
+    - --no_progress
+    - --notmatched
+    - --notmatchedfq
+    - --notrunclabels
+    - --quiet
+    - --relabel
+    - --relabel_keep
+    - --relabel_md5
+    - --relabel_self
+    - --relabel_sha1
+    - --sample
+    - --sizein
+    - --sizeout
+    - --subseq_end
+    - --subseq_start
+    - --threads
+    - --xee
+    - --xlength
+    - --xsize
+  --fastx_mask:
+    - --bzip2_decompress
+    - --fasta_width
+    - --fastaout
+    - --fastq_ascii
+    - --fastq_qmax
+    - --fastq_qmin
+    - --fastqout
+    - --gzip_decompress
+    - --hardmask
+    - --label_suffix
+    - --lengthout
+    - --log
+    - --max_unmasked_pct
+    - --min_unmasked_pct
+    - --no_progress
+    - --notrunclabels
+    - --qmask
+    - --quiet
+    - --relabel
+    - --relabel_keep
+    - --relabel_md5
+    - --relabel_self
+    - --relabel_sha1
+    - --sample
+    - --sizein
+    - --sizeout
+    - --threads
+    - --xee
+    - --xlength
+    - --xsize
+  --fastx_revcomp:
+    - --bzip2_decompress
+    - --fasta_width
+    - --fastaout
+    - --fastq_ascii
+    - --fastq_qmax
+    - --fastq_qmin
+    - --fastqout
+    - --gzip_decompress
+    - --label_suffix
+    - --lengthout
+    - --log
+    - --no_progress
+    - --notrunclabels
+    - --quiet
+    - --relabel
+    - --relabel_keep
+    - --relabel_md5
+    - --relabel_self
+    - --relabel_sha1
+    - --sample
+    - --sizein
+    - --sizeout
+    - --threads
+    - --xee
+    - --xlength
+    - --xsize
+  --fastx_subsample:
+    - --bzip2_decompress
+    - --fasta_width
+    - --fastaout
+    - --fastaout_discarded
+    - --fastq_ascii
+    - --fastq_qmax
+    - --fastq_qmin
+    - --fastqout
+    - --fastqout_discarded
+    - --gzip_decompress
+    - --label_suffix
+    - --lengthout
+    - --log
+    - --no_progress
+    - --notrunclabels
+    - --quiet
+    - --randseed
+    - --relabel
+    - --relabel_keep
+    - --relabel_md5
+    - --relabel_self
+    - --relabel_sha1
+    - --sample
+    - --sample_pct
+    - --sample_size
+    - --sizein
+    - --sizeout
+    - --threads
+    - --xee
+    - --xlength
+    - --xsize
+  --fastx_uniques:
+    - --bzip2_decompress
+    - --fasta_width
+    - --fastaout
+    - --fastq_ascii
+    - --fastq_asciiout
+    - --fastq_qmax
+    - --fastq_qmaxout
+    - --fastq_qmin
+    - --fastq_qminout
+    - --fastq_qout_max
+    - --fastqout
+    - --gzip_decompress
+    - --label_suffix
+    - --lengthout
+    - --log
+    - --maxseqlength
+    - --maxuniquesize
+    - --minseqlength
+    - --minuniquesize
+    - --no_progress
+    - --notrunclabels
+    - --quiet
+    - --relabel
+    - --relabel_keep
+    - --relabel_md5
+    - --relabel_self
+    - --relabel_sha1
+    - --sample
+    - --sizein
+    - --sizeout
+    - --strand
+    - --tabbedout
+    - --threads
+    - --topn
+    - --uc
+    - --xee
+    - --xlength
+    - --xsize
+  --makeudb_usearch:
+    - --bzip2_decompress
+    - --dbmask
+    - --gzip_decompress
+    - --hardmask
+    - --log
+    - --maxseqlength
+    - --minseqlength
+    - --no_progress
+    - --notrunclabels
+    - --output
+    - --quiet
+    - --threads
+    - --wordlength
+  --maskfasta:
+    - --bzip2_decompress
+    - --fasta_width
+    - --gzip_decompress
+    - --hardmask
+    - --label_suffix
+    - --lengthout
+    - --log
+    - --max_unmasked_pct
+    - --maxseqlength
+    - --min_unmasked_pct
+    - --minseqlength
+    - --no_progress
+    - --notrunclabels
+    - --output
+    - --qmask
+    - --quiet
+    - --relabel
+    - --relabel_keep
+    - --relabel_md5
+    - --relabel_self
+    - --relabel_sha1
+    - --sample
+    - --sizein
+    - --sizeout
+    - --threads
+    - --xee
+    - --xlength
+    - --xsize
+  --orient:
+    - --bzip2_decompress
+    - --db
+    - --dbmask
+    - --fasta_width
+    - --fastaout
+    - --fastqout
+    - --gzip_decompress
+    - --hardmask
+    - --label_suffix
+    - --lengthout
+    - --log
+    - --no_progress
+    - --notmatched
+    - --notrunclabels
+    - --qmask
+    - --quiet
+    - --relabel
+    - --relabel_keep
+    - --relabel_md5
+    - --relabel_self
+    - --relabel_sha1
+    - --sample
+    - --sizein
+    - --sizeout
+    - --tabbedout
+    - --threads
+    - --wordlength
+    - --xee
+    - --xlength
+    - --xsize
+  --rereplicate:
+    - --bzip2_decompress
+    - --fasta_width
+    - --gzip_decompress
+    - --label_suffix
+    - --lengthout
+    - --log
+    - --no_progress
+    - --notrunclabels
+    - --output
+    - --quiet
+    - --relabel
+    - --relabel_keep
+    - --relabel_md5
+    - --relabel_self
+    - --relabel_sha1
+    - --sample
+    - --sizein
+    - --sizeout
+    - --threads
+    - --xee
+    - --xlength
+    - --xsize
+  --search_exact:
+    - --alnout
+    - --biomout
+    - --blast6out
+    - --bzip2_decompress
+    - --db
+    - --dbmask
+    - --dbmatched
+    - --dbnotmatched
+    - --fasta_width
+    - --fastapairs
+    - --gzip_decompress
+    - --hardmask
+    - --label_suffix
+    - --lca_cutoff
+    - --lcaout
+    - --lengthout
+    - --log
+    - --match
+    - --matched
+    - --maxhits
+    - --maxqsize
+    - --maxqt
+    - --maxseqlength
+    - --maxsizeratio
+    - --maxsl
+    - --mincols
+    - --minqt
+    - --minseqlength
+    - --minsizeratio
+    - --minsl
+    - --mintsize
+    - --mismatch
+    - --mothur_shared_out
+    - --no_progress
+    - --notmatched
+    - --notrunclabels
+    - --otutabout
+    - --output_no_hits
+    - --qmask
+    - --qsegout
+    - --quiet
+    - --relabel
+    - --relabel_keep
+    - --relabel_md5
+    - --relabel_self
+    - --relabel_sha1
+    - --rowlen
+    - --samheader
+    - --samout
+    - --sample
+    - --self
+    - --sizein
+    - --sizeout
+    - --strand
+    - --threads
+    - --top_hits_only
+    - --tsegout
+    - --uc
+    - --uc_allhits
+    - --userfields
+    - --userout
+    - --xee
+    - --xlength
+    - --xsize
+  --sff_convert:
+    - --fastq_asciiout
+    - --fastq_qmaxout
+    - --fastq_qminout
+    - --fastqout
+    - --label_suffix
+    - --lengthout
+    - --log
+    - --no_progress
+    - --quiet
+    - --relabel
+    - --relabel_keep
+    - --relabel_md5
+    - --relabel_self
+    - --relabel_sha1
+    - --sample
+    - --sff_clip
+    - --sizeout
+    - --threads
+  --shuffle:
+    - --bzip2_decompress
+    - --fasta_width
+    - --fastq_ascii
+    - --fastq_qmax
+    - --fastq_qmin
+    - --gzip_decompress
+    - --label_suffix
+    - --lengthout
+    - --log
+    - --maxseqlength
+    - --minseqlength
+    - --no_progress
+    - --notrunclabels
+    - --output
+    - --quiet
+    - --randseed
+    - --relabel
+    - --relabel_keep
+    - --relabel_md5
+    - --relabel_self
+    - --relabel_sha1
+    - --sample
+    - --sizein
+    - --sizeout
+    - --threads
+    - --topn
+    - --xee
+    - --xlength
+    - --xsize
+  --sintax:
+    - --bzip2_decompress
+    - --db
+    - --dbmask
+    - --fastq_ascii
+    - --fastq_qmax
+    - --fastq_qmin
+    - --gzip_decompress
+    - --label_suffix
+    - --log
+    - --maxseqlength
+    - --minseqlength
+    - --no_progress
+    - --notrunclabels
+    - --quiet
+    - --randseed
+    - --sintax_cutoff
+    - --sintax_random
+    - --strand
+    - --tabbedout
+    - --threads
+    - --wordlength
+  --sortbylength:
+    - --bzip2_decompress
+    - --fasta_width
+    - --fastq_ascii
+    - --fastq_qmax
+    - --fastq_qmin
+    - --gzip_decompress
+    - --label_suffix
+    - --lengthout
+    - --log
+    - --maxseqlength
+    - --minseqlength
+    - --no_progress
+    - --notrunclabels
+    - --output
+    - --quiet
+    - --relabel
+    - --relabel_keep
+    - --relabel_md5
+    - --relabel_self
+    - --relabel_sha1
+    - --sample
+    - --sizein
+    - --sizeout
+    - --threads
+    - --topn
+    - --xee
+    - --xlength
+    - --xsize
+  --sortbysize:
+    - --bzip2_decompress
+    - --fasta_width
+    - --fastq_ascii
+    - --fastq_qmax
+    - --fastq_qmin
+    - --gzip_decompress
+    - --label_suffix
+    - --lengthout
+    - --log
+    - --maxseqlength
+    - --maxsize
+    - --minseqlength
+    - --minsize
+    - --no_progress
+    - --notrunclabels
+    - --output
+    - --quiet
+    - --relabel
+    - --relabel_keep
+    - --relabel_md5
+    - --relabel_self
+    - --relabel_sha1
+    - --sample
+    - --sizein
+    - --sizeout
+    - --threads
+    - --topn
+    - --xee
+    - --xlength
+    - --xsize
+  --uchime2_denovo:
+    - --abskew
+    - --alignwidth
+    - --borderline
+    - --chimeras
+    - --dn
+    - --fasta_score
+    - --fasta_width
+    - --gapext
+    - --gapopen
+    - --hardmask
+    - --label_suffix
+    - --lengthout
+    - --log
+    - --match
+    - --maxseqlength
+    - --mindiffs
+    - --mindiv
+    - --minh
+    - --minseqlength
+    - --mismatch
+    - --no_progress
+    - --nonchimeras
+    - --notrunclabels
+    - --qmask
+    - --quiet
+    - --relabel
+    - --relabel_keep
+    - --relabel_md5
+    - --relabel_self
+    - --relabel_sha1
+    - --sample
+    - --sizein
+    - --sizeout
+    - --threads
+    - --uchimealns
+    - --uchimeout
+    - --uchimeout5
+    - --xee
+    - --xlength
+    - --xn
+    - --xsize
+  --uchime3_denovo:
+    - --abskew
+    - --alignwidth
+    - --borderline
+    - --chimeras
+    - --dn
+    - --fasta_score
+    - --fasta_width
+    - --gapext
+    - --gapopen
+    - --hardmask
+    - --label_suffix
+    - --lengthout
+    - --log
+    - --match
+    - --maxseqlength
+    - --mindiffs
+    - --mindiv
+    - --minh
+    - --minseqlength
+    - --mismatch
+    - --no_progress
+    - --nonchimeras
+    - --notrunclabels
+    - --qmask
+    - --quiet
+    - --relabel
+    - --relabel_keep
+    - --relabel_md5
+    - --relabel_self
+    - --relabel_sha1
+    - --sample
+    - --sizein
+    - --sizeout
+    - --threads
+    - --uchimealns
+    - --uchimeout
+    - --uchimeout5
+    - --xee
+    - --xlength
+    - --xn
+    - --xsize
+  --uchime_denovo:
+    - --abskew
+    - --alignwidth
+    - --borderline
+    - --chimeras
+    - --dn
+    - --fasta_score
+    - --fasta_width
+    - --gapext
+    - --gapopen
+    - --hardmask
+    - --label_suffix
+    - --lengthout
+    - --log
+    - --match
+    - --maxseqlength
+    - --mindiffs
+    - --mindiv
+    - --minh
+    - --minseqlength
+    - --mismatch
+    - --no_progress
+    - --nonchimeras
+    - --notrunclabels
+    - --qmask
+    - --quiet
+    - --relabel
+    - --relabel_keep
+    - --relabel_md5
+    - --relabel_self
+    - --relabel_sha1
+    - --sample
+    - --sizein
+    - --sizeout
+    - --threads
+    - --uchimealns
+    - --uchimeout
+    - --uchimeout5
+    - --xee
+    - --xlength
+    - --xn
+    - --xsize
+  --uchime_ref:
+    - --abskew
+    - --alignwidth
+    - --borderline
+    - --chimeras
+    - --db
+    - --dbmask
+    - --dn
+    - --fasta_score
+    - --fasta_width
+    - --gapext
+    - --gapopen
+    - --hardmask
+    - --label_suffix
+    - --lengthout
+    - --log
+    - --match
+    - --maxseqlength
+    - --mindiffs
+    - --mindiv
+    - --minh
+    - --minseqlength
+    - --mismatch
+    - --no_progress
+    - --nonchimeras
+    - --notrunclabels
+    - --qmask
+    - --quiet
+    - --relabel
+    - --relabel_keep
+    - --relabel_md5
+    - --relabel_self
+    - --relabel_sha1
+    - --sample
+    - --self
+    - --selfid
+    - --sizein
+    - --sizeout
+    - --strand
+    - --threads
+    - --uchimealns
+    - --uchimeout
+    - --uchimeout5
+    - --xee
+    - --xlength
+    - --xn
+    - --xsize
+  --udb2fasta:
+    - --fasta_width
+    - --label_suffix
+    - --lengthout
+    - --log
+    - --no_progress
+    - --output
+    - --quiet
+    - --relabel
+    - --relabel_keep
+    - --relabel_md5
+    - --relabel_self
+    - --relabel_sha1
+    - --sample
+    - --sizein
+    - --sizeout
+    - --threads
+    - --xee
+    - --xlength
+    - --xsize
+  --udbinfo:
+    - --log
+    - --quiet
+    - --threads
+  --udbstats:
+    - --log
+    - --no_progress
+    - --quiet
+    - --threads
+  --help:
+    - --log
+    - --quiet
+    - --threads
+  --version:
+    - --log
+    - --quiet
+    - --threads
+  --usearch_global:
+    - --alnout
+    - --band
+    - --biomout
+    - --blast6out
+    - --bzip2_decompress
+    - --db
+    - --dbmask
+    - --dbmatched
+    - --dbnotmatched
+    - --fasta_width
+    - --fastapairs
+    - --fulldp
+    - --gapext
+    - --gapopen
+    - --gzip_decompress
+    - --hardmask
+    - --hspw
+    - --id
+    - --iddef
+    - --idprefix
+    - --idsuffix
+    - --label_suffix
+    - --lca_cutoff
+    - --lcaout
+    - --leftjust
+    - --lengthout
+    - --log
+    - --match
+    - --matched
+    - --maxaccepts
+    - --maxdiffs
+    - --maxgaps
+    - --maxhits
+    - --maxid
+    - --maxqsize
+    - --maxqt
+    - --maxrejects
+    - --maxseqlength
+    - --maxsizeratio
+    - --maxsl
+    - --maxsubs
+    - --mid
+    - --mincols
+    - --minhsp
+    - --minqt
+    - --minseqlength
+    - --minsizeratio
+    - --minsl
+    - --mintsize
+    - --minwordmatches
+    - --mismatch
+    - --mothur_shared_out
+    - --n_mismatch
+    - --no_progress
+    - --notmatched
+    - --notrunclabels
+    - --otutabout
+    - --output_no_hits
+    - --pattern
+    - --qmask
+    - --qsegout
+    - --query_cov
+    - --quiet
+    - --relabel
+    - --relabel_keep
+    - --relabel_md5
+    - --relabel_self
+    - --relabel_sha1
+    - --rightjust
+    - --rowlen
+    - --samheader
+    - --samout
+    - --sample
+    - --self
+    - --selfid
+    - --sizein
+    - --sizeout
+    - --slots
+    - --strand
+    - --target_cov
+    - --threads
+    - --top_hits_only
+    - --tsegout
+    - --uc
+    - --uc_allhits
+    - --userfields
+    - --userout
+    - --weak_id
+    - --wordlength
+    - --xdrop_nw
+    - --xee
+    - --xlength
+    - --xsize
