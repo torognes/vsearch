@@ -41,6 +41,11 @@
       `--label_field`, `--label_substr_match`, `--subseq_start`,
       `--subseq_end` and `--notmatchedfq`). The three commands have
       manual pages but could not be discovered from the help text.
+    - fix: `--help` now lists the output annotation options
+      `--lengthout`, `--xlength` and `--sample` wherever it already
+      lists their siblings `--sizeout` and `--xsize`, and lists
+      `--allow_fewer` under `--fastx_subsample`. All four were accepted
+      but appeared nowhere in the help text.
 
 **v2.31.0** released April 29th, 2026
 :   Includes the following changes:
