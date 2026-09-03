@@ -4576,10 +4576,87 @@ namespace {
     return k;
   }
 
+  /* The commands that run a worker pool; every other command is
+     single-threaded, and --threads above 1 draws a warning there. */
+  auto is_multithreaded(Command const command) -> bool
+  {
+    switch (command)
+      {
+      case Command::allpairs_global:
+      case Command::cluster_fast:
+      case Command::cluster_size:
+      case Command::cluster_smallmem:
+      case Command::cluster_unoise:
+      case Command::fastq_mergepairs:
+      case Command::fastx_mask:
+      case Command::maskfasta:
+      case Command::search_exact:
+      case Command::sintax:
+      case Command::uchime_ref:
+      case Command::usearch_global:
+        return true;
+      default:
+        return false;
+      }
+  }
+
+  /* The five chimera-detection commands, all served by core/chimera.cpp. */
+  auto is_chimera_command(Command const command) -> bool
+  {
+    switch (command)
+      {
+      case Command::uchime_denovo:
+      case Command::uchime2_denovo:
+      case Command::uchime3_denovo:
+      case Command::uchime_ref:
+      case Command::chimeras_denovo:
+        return true;
+      default:
+        return false;
+      }
+  }
+
+  /* The four clustering commands, all served by core/cluster.cpp. */
+  auto is_clustering_command(Command const command) -> bool
+  {
+    switch (command)
+      {
+      case Command::cluster_fast:
+      case Command::cluster_size:
+      case Command::cluster_smallmem:
+      case Command::cluster_unoise:
+        return true;
+      default:
+        return false;
+      }
+  }
+
+  /* The commands whose default --minseqlength is 32 rather than 1: they index
+     or compare k-mers, and a sequence shorter than a word is not usable. */
+  auto has_long_minseqlength_default(Command const command) -> bool
+  {
+    switch (command)
+      {
+      case Command::cluster_fast:
+      case Command::cluster_size:
+      case Command::cluster_smallmem:
+      case Command::cluster_unoise:
+      case Command::derep_fulllength:
+      case Command::derep_id:
+      case Command::derep_prefix:
+      case Command::makeudb_usearch:
+      case Command::sintax:
+      case Command::usearch_global:
+        return true;
+      default:
+        return false;
+      }
+  }
+
   /* Resolve the thread count: validate the --threads range, use all cores for
      the multithreaded commands (otherwise force a single thread, warning if the
      user asked for more), and warn about --sintax --randseed across threads. */
-  auto configure_threads(int const k,
+  auto configure_threads(int const k, Command const command,
                          std::array<struct option, number_of_options> const & long_options,
                          struct Parameters & parameters) -> void
   {
@@ -4587,10 +4664,7 @@ namespace {
 
     validate_thread_count(parameters.opt_threads);
 
-    if ((parameters.opt_allpairs_global != nullptr) or (parameters.opt_cluster_fast != nullptr) or (parameters.opt_cluster_size != nullptr) or
-        (parameters.opt_cluster_smallmem != nullptr) or (parameters.opt_cluster_unoise != nullptr) or (parameters.opt_fastq_mergepairs != nullptr) or
-        (parameters.opt_fastx_mask != nullptr) or (parameters.opt_maskfasta != nullptr) or (parameters.opt_search_exact != nullptr) or (parameters.opt_sintax != nullptr) or
-        (parameters.opt_uchime_ref != nullptr) or (parameters.opt_usearch_global != nullptr))
+    if (is_multithreaded(command))
       {
         if (parameters.opt_threads == 0)
           {
@@ -4624,13 +4698,13 @@ namespace {
      for. A library session sets no opt_<command> pointer at all, which is why
      QualityOrigin is a parameter everywhere else rather than something derived
      from the struct. */
-  auto cli_quality_origin(struct Parameters const & parameters) -> QualityOrigin
+  auto cli_quality_origin(Command const command) -> QualityOrigin
   {
-    if (parameters.opt_fastq_mergepairs != nullptr)
+    if (command == Command::fastq_mergepairs)
       {
         return QualityOrigin::merged;
       }
-    if (parameters.opt_fasta2fastq != nullptr)
+    if (command == Command::fasta2fastq)
       {
         return QualityOrigin::generated;
       }
@@ -4650,6 +4724,7 @@ namespace {
      --fastq_ascii 64 working: a flat default of 93 would make 64 + 93 = 157
      fail the sum rule before a single byte was read. */
   auto resolve_quality_bound_defaults(std::vector<bool> const & options_selected,
+                                      Command const command,
                                       struct Parameters & parameters) -> void
   {
     if (not options_selected[option_fastq_qmax])
@@ -4704,7 +4779,7 @@ namespace {
            MergePairs can apply the same one in a library session, where there
            is no command to read it off. */
         parameters.opt_fastq_qmaxout =
-          resolve_fastq_qmaxout(parameters, cli_quality_origin(parameters));
+          resolve_fastq_qmaxout(parameters, cli_quality_origin(command));
       }
 
     /* From here on the CLI's consumers -- fasta2fastq.cpp, fastq_convert.cpp,
@@ -4720,9 +4795,10 @@ namespace {
      co-dependent defaults that must be settled alongside the range checks
      (weak_id, maxrejects, wordlength, ...). */
   auto validate_option_values(std::vector<bool> const & options_selected,
+                              Command const command,
                               struct Parameters & parameters) -> void
   {
-    if (parameters.opt_cluster_unoise != nullptr)
+    if (command == Command::cluster_unoise)
       {
         /* 0.90 is the UNOISE default identity floor, not a forced value:
            a user-supplied --weak_id takes precedence (it used to be
@@ -4741,7 +4817,7 @@ namespace {
 
     if (parameters.opt_maxrejects == -1)
       {
-        if (parameters.opt_cluster_fast != nullptr)
+        if (command == Command::cluster_fast)
           {
             parameters.opt_maxrejects = 8;
           }
@@ -4754,7 +4830,7 @@ namespace {
     if (parameters.opt_wordlength == 0)
       {
         /* set default word length */
-        if (parameters.opt_orient != nullptr)
+        if (command == Command::orient)
           {
             parameters.opt_wordlength = 12;
           }
@@ -4886,7 +4962,7 @@ namespace {
        range 63..93 unguarded, so --fastq_ascii 64 --fastq_qmaxout 93 wrote
        byte 157 (a SIGSEGV in 2.31.0); and it refused a --fastq_qminout that
        offset 64 represents perfectly well, since 64 - 31 is still '!'. */
-    auto const origin = cli_quality_origin(parameters);
+    auto const origin = cli_quality_origin(command);
     auto const output_offset = fastq_output_offset(parameters, origin);
     std::string const offset_option =
       (origin == QualityOrigin::merged) ? "--fastq_ascii" : "--fastq_asciiout";
@@ -5020,7 +5096,7 @@ namespace {
         fatal(message);
       }
 
-    if ((parameters.opt_chimeras_denovo != nullptr) and (not options_selected[option_alignwidth]))
+    if ((command == Command::chimeras_denovo) and (not options_selected[option_alignwidth]))
       {
         parameters.opt_alignwidth = 60;
       }
@@ -5029,6 +5105,7 @@ namespace {
   /* Apply the generic sentinel fixups and the command-specific defaults
      (minsize, abskew, minseqlength, sintax label handling). */
   auto apply_command_defaults(std::vector<bool> const & options_selected,
+                              Command const command,
                               struct Parameters & parameters) -> void
   {
     /* TODO: check valid range of gap penalties */
@@ -5048,7 +5125,7 @@ namespace {
     /* set default opt_minsize depending on command */
     if (parameters.opt_minsize == 0)
       {
-        if (parameters.opt_cluster_unoise != nullptr)
+        if (command == Command::cluster_unoise)
           {
             parameters.opt_minsize = 8;
           }
@@ -5061,11 +5138,11 @@ namespace {
     /* set default opt_abskew depending on command */
     if (not options_selected[option_abskew])
       {
-        if (parameters.opt_chimeras_denovo != nullptr)
+        if (command == Command::chimeras_denovo)
           {
             parameters.opt_abskew = 1.0;
           }
-        else if (parameters.opt_uchime3_denovo != nullptr)
+        else if (command == Command::uchime3_denovo)
           {
             parameters.opt_abskew = 16.0;
           }
@@ -5079,16 +5156,7 @@ namespace {
 
     if (parameters.opt_minseqlength < 0)
       {
-        if ((parameters.opt_cluster_fast != nullptr) or
-            (parameters.opt_cluster_size != nullptr) or
-            (parameters.opt_cluster_smallmem != nullptr) or
-            (parameters.opt_cluster_unoise != nullptr) or
-            (parameters.opt_derep_fulllength != nullptr) or
-            (parameters.opt_derep_id != nullptr) or
-            (parameters.opt_derep_prefix != nullptr) or
-            (parameters.opt_makeudb_usearch != nullptr) or
-            (parameters.opt_sintax != nullptr) or
-            (parameters.opt_usearch_global != nullptr))
+        if (has_long_minseqlength_default(command))
           {
             parameters.opt_minseqlength = 32;
           }
@@ -5107,7 +5175,7 @@ namespace {
                       "no sequence will satisfy the length filter");
       }
 
-    if (parameters.opt_sintax != nullptr)
+    if (command == Command::sintax)
       {
       parameters.opt_notrunclabels = true;
       }
@@ -5115,18 +5183,18 @@ namespace {
     /* Command-specific option overrides, moved here from the former
        dispatch-time cmd_* wrappers so the command handlers receive a fully
        resolved, unmodified Parameters. */
-    if (parameters.opt_allpairs_global != nullptr)
+    if (command == Command::allpairs_global)
       {
         parameters.opt_strand = false;
         parameters.opt_uc_allhits = true;
       }
 
-    if (parameters.opt_rereplicate != nullptr)
+    if (command == Command::rereplicate)
       {
         parameters.opt_xsize = true;
       }
 
-    if ((parameters.opt_fastq_join != nullptr) and
+    if ((command == Command::fastq_join) and
         (not parameters.opt_join_padgapq_set_by_user))
       {
         // Q40 with an offset of 33 ('I') or of 64 ('h'); the default
@@ -5145,20 +5213,15 @@ namespace {
      cmd_chimera(); runs only when a chimera command is active and after
      apply_command_defaults() has resolved opt_abskew's command-specific default,
      so it sees exactly the configuration the command dispatch used to. */
-  auto validate_chimera_options(struct Parameters const & parameters) -> void
+  auto validate_chimera_options(Command const command,
+                                struct Parameters const & parameters) -> void
   {
-    bool const is_chimera_command =
-      (parameters.opt_uchime_denovo != nullptr) or
-      (parameters.opt_uchime_ref != nullptr) or
-      (parameters.opt_uchime2_denovo != nullptr) or
-      (parameters.opt_uchime3_denovo != nullptr) or
-      (parameters.opt_chimeras_denovo != nullptr);
-    if (not is_chimera_command)
+    if (not is_chimera_command(command))
       {
         return;
       }
 
-    if ((parameters.opt_uchime_ref != nullptr) and (parameters.opt_db == nullptr))
+    if ((command == Command::uchime_ref) and (parameters.opt_db == nullptr))
       {
         fatal("Database filename not specified with --db");
       }
@@ -5178,7 +5241,7 @@ namespace {
         fatal("Argument to --dn must be > 0");
       }
 
-    if ((parameters.opt_uchime2_denovo == nullptr) and (parameters.opt_uchime3_denovo == nullptr))
+    if ((command != Command::uchime2_denovo) and (command != Command::uchime3_denovo))
       {
         if (parameters.opt_mindiffs <= 0)
           {
@@ -5238,15 +5301,16 @@ namespace {
      during args_init(); each block runs only when its command is active and
      after apply_command_defaults() has resolved the relevant defaults, so it
      sees exactly the configuration the command dispatch used to. */
-  auto validate_command_requirements(struct Parameters const & parameters) -> void
+  auto validate_command_requirements(Command const command,
+                                     struct Parameters const & parameters) -> void
   {
-    if ((parameters.opt_allpairs_global != nullptr) and
+    if ((command == Command::allpairs_global) and
         (not ((parameters.opt_acceptall != 0) or ((parameters.opt_id >= 0.0) and (parameters.opt_id <= 1.0)))))
       {
         fatal("Specify either --acceptall or --id with an identity from 0.0 to 1.0");
       }
 
-    if (parameters.opt_usearch_global != nullptr)
+    if (command == Command::usearch_global)
       {
         if (parameters.opt_db == nullptr)
           {
@@ -5259,12 +5323,12 @@ namespace {
           }
       }
 
-    if ((parameters.opt_search_exact != nullptr) and (parameters.opt_db == nullptr))
+    if ((command == Command::search_exact) and (parameters.opt_db == nullptr))
       {
         fatal("Database filename not specified with --db");
       }
 
-    if (parameters.opt_fastx_subsample != nullptr)
+    if (command == Command::fastx_subsample)
       {
         if ((parameters.opt_fastaout == nullptr) and (parameters.opt_fastqout == nullptr))
           {
@@ -5288,15 +5352,14 @@ namespace {
           }
       }
 
-    if (((parameters.opt_cluster_fast != nullptr) or (parameters.opt_cluster_smallmem != nullptr) or
-         (parameters.opt_cluster_size != nullptr) or (parameters.opt_cluster_unoise != nullptr)) and
-        (parameters.opt_cluster_unoise == nullptr) and
+    if (is_clustering_command(command) and
+        (command != Command::cluster_unoise) and
         ((parameters.opt_id < 0.0) or (parameters.opt_id > 1.0)))
       {
         fatal("Identity between 0.0 and 1.0 must be specified with --id");
       }
 
-    if (parameters.opt_fastq_mergepairs != nullptr)
+    if (command == Command::fastq_mergepairs)
       {
         if (parameters.opt_reverse == nullptr)
           {
@@ -5341,7 +5404,7 @@ namespace {
         }
       }
 
-    if (parameters.opt_fastq_join != nullptr)
+    if (command == Command::fastq_join)
       {
         if (is_not_ASCII(parameters.opt_join_padgap)) {
           fatal("Option --join_padgap contains non-ASCII characters");
@@ -5383,19 +5446,19 @@ auto args_init(int const argc, char ** argv, struct Parameters & parameters) -> 
     ? command_of_row[static_cast<std::size_t>(k)]
     : Command::none;
 
-  configure_threads(k, long_options, parameters);
+  configure_threads(k, command, long_options, parameters);
 
-  resolve_quality_bound_defaults(options_selected, parameters);
+  resolve_quality_bound_defaults(options_selected, command, parameters);
 
-  validate_option_values(options_selected, parameters);
+  validate_option_values(options_selected, command, parameters);
 
-  apply_command_defaults(options_selected, parameters);
+  apply_command_defaults(options_selected, command, parameters);
 
   validate_outputs_specified(k, parameters);
 
-  validate_chimera_options(parameters);
+  validate_chimera_options(command, parameters);
 
-  validate_command_requirements(parameters);
+  validate_command_requirements(command, parameters);
 
   // refactoring: C++17 <filesystem> std::filesystem::is_regular_file
   // check if stderr is referring to a terminal
