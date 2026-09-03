@@ -249,14 +249,45 @@ inline auto hit_compare_bysize_typed(struct hit const & lhs, struct hit const & 
     }
   return 0;
 }
+
+
+/* offer one index element to the candidate heap, which keeps the best
+   `capacity` of them; shared by the counter loop of search_topscores and by
+   its second pass over the low-k-mer targets */
+auto add_candidate(struct searchinfo_s & searchinfo,
+                   unsigned int const index,
+                   count_t const count) -> void
+{
+  auto const seqno = searchinfo.dbindex->getmapping(index);
+
+  elem_t novel;
+  novel.count = count;
+  novel.seqno = seqno;
+  novel.length = static_cast<unsigned int>(searchinfo.db->getsequencelen(seqno));
+
+  searchinfo.m.add(novel);
+}
 }  // anonymous namespace
 
 
 auto search_enough_kmers(struct searchinfo_s const & searchinfo,
-                         unsigned int const count) -> bool
+                         struct KmerEvidence const & evidence) -> bool
 {
   struct Parameters const & parameters = *searchinfo.parameters;
-  return (count >= parameters.opt_minwordmatches) or (count >= searchinfo.kmersample.size());
+  /* Neither sequence can share more distinct k-mers than it holds, so the
+     requirement is capped by both counts. Capping it by the query's alone (as
+     this did) asks a candidate holding fewer than opt_minwordmatches k-mers
+     for more than it can supply, and hides it whatever the pairwise identity
+     (torognes/vsearch#328). A candidate holding none is left out of the cap:
+     it shares none either, and a requirement of zero would make every such
+     sequence a candidate for every query. */
+  auto required = std::min(static_cast<std::size_t>(parameters.opt_minwordmatches),
+                           searchinfo.kmersample.size());
+  if (evidence.target_kmers != 0)
+    {
+      required = std::min(required, static_cast<std::size_t>(evidence.target_kmers));
+    }
+  return evidence.shared >= required;
 }
 
 
@@ -335,15 +366,31 @@ auto search_topscores(struct searchinfo_s * searchinfo) -> void
       auto const count = kmer_counts[i];
       if (count >= minmatches)
         {
-          auto const seqno = searchinfo->dbindex->getmapping(i);
-          auto const length = static_cast<unsigned int>(searchinfo->db->getsequencelen(seqno));
+          add_candidate(*searchinfo, i, count);
+        }
+    }
 
-          elem_t novel;
-          novel.count = count;
-          novel.seqno = seqno;
-          novel.length = length;
-
-          searchinfo->m.add(novel);
+  /* The candidates the loop above cannot reach: a target holding fewer
+     distinct k-mers than minmatches can never share minmatches of them, so it
+     was asked for more evidence than it can supply -- an exact match included
+     (torognes/vsearch#328). Offer each of them the threshold it can meet,
+     min(minmatches, its own count), which only ever lowers a threshold that
+     was unachievable and so leaves every candidate selected above untouched.
+     The list holds no k-mer-less target (see Dbindex::low_kmer_targets), hence
+     no threshold of zero here, and it is empty unless the database really
+     holds short or heavily masked sequences. Offering these after the loop
+     rather than in index order cannot change the outcome: the heap ranks
+     candidates by count, then length, then sequence number, a strict total
+     order over distinct targets, so which ones it keeps does not depend on the
+     order they arrive in. */
+  assert(searchinfo->dbindex->minwordmatches ==
+         static_cast<unsigned int>(parameters.opt_minwordmatches));
+  for (auto const & target : searchinfo->dbindex->low_kmer_targets)
+    {
+      auto const count = kmer_counts[target.index];
+      if ((count < minmatches) and (count >= std::min(minmatches, target.kmers)))
+        {
+          add_candidate(*searchinfo, target.index, count);
         }
     }
 

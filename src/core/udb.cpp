@@ -539,6 +539,36 @@ auto udb_read(const char * filename,
             progress.update(i + 1);
           }
       }
+
+      /* Distinct k-mers per index element, for the low_kmer_targets list
+         below. Counted from the stored k-mer lists, which are complete for
+         every k-mer -- the bitmaps above are filled from them -- so this is
+         one pass over the loaded index rather than a second pass over the
+         sequences, whose masking at index build time this session does not
+         know. Every entry was checked against seqcount when the index was
+         read, so the counter below is always in range. Index element numbers
+         and sequence numbers coincide for a UDB database (map[i] == i, set
+         further down). */
+      std::vector<unsigned int> kmers_per_target(seqcount, 0U);
+      for (auto kmer = 0U; kmer < dbindex.hashsize; ++kmer)
+        {
+          auto const first = dbindex.kmerhash[kmer];
+          for (auto j = 0U; j < dbindex.kmercount[kmer]; ++j)
+            {
+              ++kmers_per_target[dbindex.kmerindex[first + j]];
+            }
+        }
+
+      assert(parameters.opt_minwordmatches >= 0);
+      dbindex.minwordmatches = static_cast<unsigned int>(parameters.opt_minwordmatches);
+      for (auto element = 0U; element < seqcount; ++element)
+        {
+          auto const kmers = kmers_per_target[element];
+          if ((kmers != 0) and (kmers < dbindex.minwordmatches))
+            {
+              dbindex.low_kmer_targets.push_back(LowKmerTarget{element, kmers});
+            }
+        }
     }
 
   /* get abundances and longest header */

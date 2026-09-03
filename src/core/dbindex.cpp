@@ -199,6 +199,16 @@ auto Dbindex::add_sequence(unsigned int const seqno, Masking const seqmask, stru
   auto const uniquelist = uhandle.count(static_cast<int>(wordlength),
                                         db.sequence_view(seqno), seqmask);
   map[count] = seqno;
+  /* record the target-side ceiling on the candidate threshold while the count
+     is at hand (see low_kmer_targets). prepare() reserved exactly as many
+     entries as its counting scan found, so this cannot reallocate: the
+     clustering paths add centroids to the index between search rounds, and a
+     reallocation there would move a list the next round reads. */
+  if ((not uniquelist.empty()) and (uniquelist.size() < minwordmatches))
+    {
+      low_kmer_targets.push_back(LowKmerTarget{count,
+                                               static_cast<unsigned int>(uniquelist.size())});
+    }
   for (auto const kmer : uniquelist)
     {
       if (has_bitmap(kmer))
@@ -302,12 +312,20 @@ auto Dbindex::prepare(Masking const seqmask, struct Database const & db, struct 
      configured one (a UDB database sets wordlength in udb_read instead). */
   wordlength = static_cast<unsigned int>(parameters.opt_wordlength);
   hashsize = 1U << (2 * wordlength);
+  /* the threshold the low_kmer_targets list is built against; resolved from
+     --wordlength in parameters.cpp, so never negative by the time any index is
+     built */
+  assert(parameters.opt_minwordmatches >= 0);
+  minwordmatches = static_cast<unsigned int>(parameters.opt_minwordmatches);
 
   /* allocate memory for kmer count array */
   kmercount.assign(hashsize, 0U);
 
   /* first scan, just count occurrences */
   uint64_t sequences_without_kmers = 0;
+  /* sequences that are in the index but cannot reach minwordmatches, counted
+     here only to size low_kmer_targets exactly (see add_sequence) */
+  uint64_t sequences_with_few_kmers = 0;
   {
     Progress progress("Counting k-mers", seqcount, parameters);
     for (auto seqno = 0U; seqno < seqcount ; seqno++)
@@ -317,6 +335,10 @@ auto Dbindex::prepare(Masking const seqmask, struct Database const & db, struct 
         if (uniquelist.empty())
           {
             ++sequences_without_kmers;
+          }
+        else if (uniquelist.size() < minwordmatches)
+          {
+            ++sequences_with_few_kmers;
           }
         for (auto const kmer : uniquelist)
           {
@@ -330,6 +352,10 @@ auto Dbindex::prepare(Masking const seqmask, struct Database const & db, struct 
      the middle of a progress line (warn() opens with a newline anyway) */
   warn_sequences_without_kmers(KmerlessCounts{sequences_without_kmers, seqcount},
                                wordlength, seqmask);
+
+  /* the exact size add_sequence() will need, so that it never reallocates
+     while a clustering run is adding to the list between search rounds */
+  low_kmer_targets.reserve(sequences_with_few_kmers);
 
   /* determine minimum kmer count for bitmap usage */
   unsigned int const bitmap_mincount = bitmap_min_matches(seqcount);
@@ -402,6 +428,9 @@ auto Dbindex::clear() -> void
   kmerbitmap_slot.clear();  kmerbitmap_slot.shrink_to_fit();
   bitmap_pool.clear();      bitmap_pool.shrink_to_fit();
   bitmap_width = 0;
+
+  low_kmer_targets.clear();  low_kmer_targets.shrink_to_fit();
+  minwordmatches = 0;
 
   uhandle = Uniquer();
 

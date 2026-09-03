@@ -73,6 +73,18 @@ struct Parameters;
 struct Database;
 
 
+/* One database sequence that is in the k-mer index but holds fewer distinct
+   k-mers than the candidate threshold asks for: its index element number (the
+   numbering of Dbindex::map, not the sequence number) and how many distinct
+   k-mers it contributed. Named fields rather than two adjacent unsigned ints a
+   call site would be free to swap. */
+struct LowKmerTarget
+{
+  unsigned int index;
+  unsigned int kmers;
+};
+
+
 /* The database k-mer index. Owns its buffers (RAII: released by clear() and the
    destructor) and is non-copyable. The read API (the getX members) is const so
    the search worker threads can query one shared index concurrently. Built
@@ -96,6 +108,20 @@ struct Dbindex
   std::vector<Bitmap> bitmap_pool;
   unsigned int bitmap_width = 0;  /* bits in each pooled bitmap; see set_bitmap_width */
   std::vector<unsigned int, FatalAllocator<unsigned int>> map;  /* mapping from index element number to seqno */
+  /* The index elements holding fewer distinct k-mers than minwordmatches, with
+     that count. A target cannot share more k-mers than it holds, so asking one
+     of these for minwordmatches shared k-mers asks for more than it can supply
+     and hides it from every query, an exact match included
+     (torognes/vsearch#328); search_topscores() gives each the threshold it can
+     meet instead. A list rather than one threshold per index element because
+     search reads it once per query on top of the per-sequence counter loop,
+     and that loop is hot enough for one extra load per indexed sequence to
+     show (see search_topscores in core/searchcore.cpp) -- while the list is
+     empty for a database of ordinary-length, lightly masked sequences, and
+     then costs nothing at all. Sequences that yield no k-mer are left out:
+     they are absent from the index, can share nothing, and stay unreachable
+     (prepare() warns about them). */
+  std::vector<LowKmerTarget, FatalAllocator<LowKmerTarget>> low_kmer_targets;
   Uniquer uhandle {};  /* unique-kmer finder, used while building */
   unsigned int count = 0;  /* number of sequences added to the index */
   unsigned int hashsize = 0;  /* number of kmer slots, i.e. 4^wordlength */
@@ -112,6 +138,14 @@ struct Dbindex
      carried for reporting only, never consulted during search. Set by udb_read
      from the file, reported by udbstats; stays 0 for a FASTA-built index. */
   unsigned int dbaccel = 0;
+
+  /* The candidate threshold low_kmer_targets was built against, i.e. the
+     opt_minwordmatches of the session that built the index: index state, like
+     wordlength above, because it decides which targets are on that list. Set
+     by prepare() for a FASTA database and by udb_read for a UDB one, and
+     asserted against the searching session's own parameters in
+     search_topscores. */
+  unsigned int minwordmatches = 0;
 
   Dbindex() = default;
   ~Dbindex();

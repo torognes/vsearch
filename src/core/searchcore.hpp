@@ -294,5 +294,16 @@ auto search_joinhits(struct searchinfo_s * si_p,
                      struct searchinfo_s * si_m,
                      std::vector<struct hit> & hits) -> void;
 
+/* The k-mer evidence for one candidate target: how many distinct k-mers it
+   shares with the query, and how many it holds at all -- its own ceiling on
+   `shared`, and so on the threshold it can be asked to meet. Zero means the
+   candidate contributes no k-mer, hence shares none. A struct, because two
+   adjacent unsigned ints would be swappable at the call site. */
+struct KmerEvidence
+{
+  unsigned int shared;
+  unsigned int target_kmers;
+};
+
 auto search_enough_kmers(struct searchinfo_s const & searchinfo,
-                         unsigned int count) -> bool;
+                         struct KmerEvidence const & evidence) -> bool;
