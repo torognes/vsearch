@@ -65,20 +65,61 @@ jobs:
 
     - name: Install dependencies
       run: |
-        # aws/tap and azure/bicep are pre-tapped on the GitHub macOS runner
-        # images and trigger Homebrew tap-trust warnings; we use nothing from
-        # them, so remove them before updating/installing. azure/bicep ships an
-        # installed formula (bicep): uninstall it first so the tap untaps
-        # cleanly without --force (which would itself print a warning). Each
-        # step is guarded so it stays quiet and non-fatal on a future image
-        # that no longer has these taps/formulae. We do NOT silence stderr of
-        # the actual operations: hiding it is what masked the earlier failure.
-        brew list bicep >/dev/null 2>&1 && brew uninstall bicep
-        for tap in aws/tap azure/bicep; do
-          brew tap | grep -qx "$tap" && brew untap "$tap"
+        # ./autogen.sh runs autoreconf, so this job needs autoconf and
+        # automake, and nothing else. configure.ac asks for very little of
+        # them (AC_PREREQ 2.63, AM_INIT_AUTOMAKE with no version, no libtool
+        # and no third-party macros), so whatever the runner image ships is
+        # good enough: install one only when it is genuinely absent, and do
+        # not run "brew update" at all.
+        #
+        # That is deliberate, not laziness. Homebrew 6.0 moved macOS Intel
+        # x86_64 to tier 3 in September 2026: no CI, and no bottles built for
+        # the platform any more. "brew update" refreshes the formula index,
+        # every preinstalled formula then counts as outdated, and
+        # "brew install" upgrades an outdated formula -- which on Intel, with
+        # no bottle to fetch, means compiling it. That is what broke this job
+        # on 2026-09-03: nine minutes and forty-six seconds inside this step,
+        # then a failure, while the arm64 job did the same install from
+        # bottles in eighty seconds. Touching nothing that is already present
+        # keeps the step off that path on both runners.
+        #
+        # aws/tap, azure/bicep and hashicorp/tap are pre-tapped on the GitHub
+        # macOS runner images and make brew noisy; hashicorp/tap now makes it
+        # print a hard error as it scans formulae ("hashicorp/tap/vagrant:
+        # formula requires at least a URL"). We use nothing from them, so
+        # remove them before installing. azure/bicep ships an installed
+        # formula (bicep): uninstall it first so the tap untaps cleanly
+        # without --force (which would itself print a warning). Each removal
+        # stays quiet and non-fatal on a future image that no longer has these
+        # taps/formulae, as before; it is written as an "if" rather than
+        # chained with "&&" so that it no longer relies on another command
+        # following it, a failing "&&" list being the step's exit status when
+        # it comes last. We do NOT silence stderr of the actual operations:
+        # hiding it is what masked an earlier failure.
+        missing=()
+        for tool in autoconf automake ; do
+          if ! command -v "$tool" >/dev/null 2>&1 ; then
+            missing+=("$tool")
+          fi
         done
-        brew update
-        brew install autoconf automake
+
+        if [ "${#missing[@]}" -gt 0 ] ; then
+          echo "installing: ${missing[*]}"
+          if brew list bicep >/dev/null 2>&1 ; then
+            brew uninstall bicep
+          fi
+          for tap in aws/tap azure/bicep hashicorp/tap ; do
+            if brew tap | grep -qx "$tap" ; then
+              brew untap "$tap"
+            fi
+          done
+          brew install "${missing[@]}"
+        fi
+
+        # both must now be on PATH: fail here, with versions in the log,
+        # rather than inside autoreconf
+        autoconf --version | head -n 1
+        automake --version | head -n 1
 
     - name: Configure and build for ${{ matrix.target.name }}
       run: |
