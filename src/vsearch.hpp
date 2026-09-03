@@ -195,7 +195,7 @@ public:
   char * opt_udbinfo = nullptr;
   char * opt_udbstats = nullptr;
   char * opt_usearch_global = nullptr;
-  char * progname = nullptr;  // refactoring: unused?
+  char * progname = nullptr;
   std::FILE * fp_log = nullptr;
   DynamicLibraries const * dyn_libs = nullptr;
   double opt_fastq_truncee_rate = std::numeric_limits<double>::max();
