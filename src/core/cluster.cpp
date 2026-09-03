@@ -245,7 +245,7 @@ auto cluster_query_init(struct searchinfo_s & si, int const seqcount, int const 
      a query frees them. */
 
   static constexpr auto overflow_padding = 16U;  // 16 * sizeof(count_t) = 32 bytes headroom
-  si.qsequence_v.resize(static_cast<std::size_t>(db.getlongestsequence()));
+  si.qsequence_v.resize(db.getlongestsequence());
   si.qsequence = make_span(si.qsequence_v).first(0);
 
   si.kmers_v.reserve(static_cast<std::size_t>(seqcount) + overflow_padding);

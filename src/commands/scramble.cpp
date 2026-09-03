@@ -121,8 +121,7 @@ namespace {
        grow the slot vector if needed (fresh slots carry epoch 0,
        stale by construction) and invalidate every slot in O(1) */
     auto next_record(std::size_t const n_keys) -> void {
-      auto const region =
-        static_cast<std::size_t>(vsearch::table_size_half(n_keys));
+      std::size_t const region = vsearch::table_size_half(n_keys);
       if (region > slots_.size()) {
         slots_.resize(region);
       }
@@ -138,7 +137,7 @@ namespace {
        cluster in the low bits and linear probing would degenerate into
        long chains */
     auto find_or_insert(uint64_t const key, uint32_t const next_id) noexcept -> uint32_t {
-      auto index = static_cast<std::size_t>(vsearch::splitmix64_mix(key)) & mask_;
+      std::size_t index = vsearch::splitmix64_mix(key) & mask_;
       while (true) {
         Slot & slot = slots_[index];
         if (slot.epoch != epoch_) {  // empty this record: claim it

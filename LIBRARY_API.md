@@ -945,13 +945,42 @@ Known error triggers include:
 
 - Invalid FASTA/FASTQ format, or an unreadable/missing file, in
   `db.read()` / `udb_read()`
-- FASTQ quality values outside `[opt_fastq_qmin, opt_fastq_qmax]`
-  (as of API 0.20.0 `opt_fastq_qmax` and `opt_fastq_qmaxout` default to
-  93, the highest score the Sanger offset can represent, rather than to
-  41; a library session that sets `opt_fastq_ascii = 64` should lower
-  both to 62, since only the CLI derives them from the offset)
+- FASTQ quality values outside `[opt_fastq_qmin, opt_fastq_qmax]`.
+  `opt_fastq_qmax` defaults to the highest score the input offset can
+  represent and is derived from `opt_fastq_ascii` when the session
+  opens, so setting `opt_fastq_ascii = 64` lowers it to 62 for you (it
+  used to be the caller's job; as of API 0.23.1 it is not).
+  `opt_fastq_qmaxout` is different: its default depends on what is being
+  written rather than on the struct, so it is left at a sentinel and
+  resolved by the consumer — `MergePairs` applies the ceiling
+  `--fastq_mergepairs` uses (41). Set it explicitly only to override
+  that; the session refuses a value the output offset cannot carry
 - File I/O failures
-- Out of memory (xmalloc/xrealloc failure)
+- Out of memory (xmalloc/xrealloc failure). Note this covers vsearch's
+  own allocation checks only: a `std::bad_alloc` from an ordinary
+  container growth is a plain C++ exception, not a `VsearchError`, and
+  one raised inside a `noexcept` function terminates rather than
+  unwinding.
+- A quality configuration the output offset cannot represent:
+  `opt_fastq_ascii + opt_fastq_qmaxout` above 126, checked when the
+  session opens (a merged symbol is written with `opt_fastq_ascii`)
+
+**One hole in the contract.** A deferred *output write* error — full
+disk, quota exceeded, broken pipe, or a failing `fclose` — is reported
+by a `unique_ptr`/`shared_ptr` deleter, which runs from a destructor.
+Destructors are implicitly `noexcept` and a throw during unwinding
+terminates regardless, so that path cannot become a catchable
+`VsearchError`: it ends the process even inside a session.
+
+This is latent, not live: **no function declared in `vsearch_api.h` or
+its module headers owns an output handle**, so no API call can reach it.
+The invariant is not enforced, though — `open_output_file()` and the
+command entry points have external linkage in `libvsearch_core.a`, so a
+consumer who writes their own `extern` declaration, or includes an
+`*_internal.hpp`, can reach an opener and make the hazard live. Do not.
+If an output-writing API is ever added, the deleter needs to record the
+failure into session state and report it from an explicit checked-close
+step first.
 
 **Catching and recovering:**
 

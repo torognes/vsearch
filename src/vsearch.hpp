@@ -74,7 +74,7 @@
 #include <limits>
 
 #include "core/mask.hpp"  // Masking
-#include "utils/quality_encoding.hpp"  // sanger_ascii_offset (opt_fastq_ascii default)
+#include "utils/quality_encoding.hpp"  // sanger_ascii_offset (opt_fastq_ascii default), fastq_qmaxout_unset
 #include "utils/userfields.hpp"  // Userfield
 
 // C++20 refactoring: constexpr
@@ -206,7 +206,12 @@ public:
   int64_t opt_fastq_ascii = sanger_ascii_offset;
   int64_t opt_fastq_asciiout = sanger_ascii_offset;
   int64_t opt_fastq_qmax = default_max_quality;
-  int64_t opt_fastq_qmaxout = default_max_quality;
+  /* the sentinel, not a ceiling: the default depends on what the caller is
+     about to write (see QualityOrigin in parameters.hpp), which this struct
+     cannot know. The CLI resolves it at parse time and stores the answer here,
+     so a command reads a real value; a library-reachable consumer must call
+     resolve_fastq_qmaxout() instead of reading the member. */
+  int64_t opt_fastq_qmaxout = fastq_qmaxout_unset;
   int64_t opt_fastq_qmin = 0;
   int64_t opt_fastq_qminout = 0;
   int64_t opt_fastq_minqual = 0;

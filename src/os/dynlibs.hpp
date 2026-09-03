@@ -109,7 +109,15 @@ namespace compression
 class DynamicLibraries
 {
 public:
-  DynamicLibraries() noexcept;
+  /* NOT noexcept: it fatal()s when a compression library loads but its symbols
+     do not resolve, and fatal() throws VsearchError inside a library session
+     (utils/fatal_throw.cpp). Marked noexcept, that throw would call
+     std::terminate -- the very outcome VsearchSession exists to prevent.
+     Nothing depends on the noexcept: the constructor is not called from a
+     destructor, so the throw propagates normally, and the CLI is unaffected
+     because it links the exit-only fatal_exit.cpp and never throws.
+     See DONE_20260902_noexcept_fatal_library_terminate.md. */
+  DynamicLibraries();
   ~DynamicLibraries();
 
   // owns OS library handles: neither copyable nor movable

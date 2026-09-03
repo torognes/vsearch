@@ -60,7 +60,7 @@
 
 #include "cli.h"
 #include "vsearch.hpp"
-#include "parameters.hpp"  // parameters_resolve_derived, parameters_validate, validate_thread_count
+#include "parameters.hpp"  // parameters_resolve_derived, parameters_validate, validate_thread_count, QualityOrigin, fastq_output_offset, resolve_fastq_qmaxout
 #include "os/system.hpp"  // system_get_available_cores
 #include "core/buffer_headroom.hpp"  // buffer_headroom
 #include "core/mask.hpp"  // Masking
@@ -75,6 +75,7 @@
 #include <algorithm>  // std::count, std::any_of
 #include <array>
 #include <getopt.h>  // getopt_long_only, optarg, optind, opterr, struct option
+#include <cassert>  // assert
 #include <cerrno>  // errno, ERANGE
 #include <cmath>  // std::isfinite
 #include <cstdint>  // int64_t
@@ -4618,6 +4619,25 @@ namespace {
        the manual states, and as tested) */
   }
 
+  /* The origin of the quality symbols this command writes. Only the CLI can
+     work this out: it is the one caller that knows which command was asked
+     for. A library session sets no opt_<command> pointer at all, which is why
+     QualityOrigin is a parameter everywhere else rather than something derived
+     from the struct. */
+  auto cli_quality_origin(struct Parameters const & parameters) -> QualityOrigin
+  {
+    if (parameters.opt_fastq_mergepairs != nullptr)
+      {
+        return QualityOrigin::merged;
+      }
+    if (parameters.opt_fasta2fastq != nullptr)
+      {
+        return QualityOrigin::generated;
+      }
+    return QualityOrigin::passed_through;
+  }
+
+
   /* --fastq_qmax and --fastq_qmaxout default to the highest score the chosen
      encoding can represent. That ceiling is 126 - offset, so it is only known
      once --fastq_ascii and --fastq_asciiout have been parsed: the member
@@ -4675,15 +4695,24 @@ namespace {
            The --fastq_mergepairs half is a deliberate deviation from
            torognes/vsearch#609, which asks for --fastq_qmaxout 93
            unconditionally. Reviewed and kept on 2026-08-29, on the grounds
-           above, and recorded in the v3.0.0 changelog entry; removing
-           --fastq_mergepairs from the test below is the whole of the change
-           needed to follow #609 literally, should that be revisited. */
+           above, and recorded in the v3.0.0 changelog entry; mapping
+           --fastq_mergepairs to QualityOrigin::passed_through in
+           cli_quality_origin() is the whole of the change needed to follow
+           #609 literally, should that be revisited.
+
+           The rule itself now lives in resolve_fastq_qmaxout() so that
+           MergePairs can apply the same one in a library session, where there
+           is no command to read it off. */
         parameters.opt_fastq_qmaxout =
-          ((parameters.opt_fasta2fastq != nullptr) or
-           (parameters.opt_fastq_mergepairs != nullptr))
-          ? legacy_max_quality
-          : highest_printable_ascii - parameters.opt_fastq_asciiout;
+          resolve_fastq_qmaxout(parameters, cli_quality_origin(parameters));
       }
+
+    /* From here on the CLI's consumers -- fasta2fastq.cpp, fastq_convert.cpp,
+       sff_convert.cpp and derep.cpp -- read opt_fastq_qmaxout directly, which
+       is only correct because this function has just settled it. A command
+       reaching them without passing through here would clamp every quality to
+       the sentinel. */
+    assert(parameters.opt_fastq_qmaxout != fastq_qmaxout_unset);
   }
 
 
@@ -4850,14 +4879,28 @@ namespace {
         fatal("The argument to --fastq_asciiout must be 33 or 64");
       }
 
-    if (parameters.opt_fastq_asciiout + parameters.opt_fastq_qminout < lowest_printable_ascii)
+    /* Both output bounds are stated against the offset this command writes
+       with, not against --fastq_asciiout unconditionally: --fastq_mergepairs
+       encodes with --fastq_ascii and does not accept --fastq_asciiout. Naming
+       the wrong offset erred in both directions -- it left the ceiling's whole
+       range 63..93 unguarded, so --fastq_ascii 64 --fastq_qmaxout 93 wrote
+       byte 157 (a SIGSEGV in 2.31.0); and it refused a --fastq_qminout that
+       offset 64 represents perfectly well, since 64 - 31 is still '!'. */
+    auto const origin = cli_quality_origin(parameters);
+    auto const output_offset = fastq_output_offset(parameters, origin);
+    std::string const offset_option =
+      (origin == QualityOrigin::merged) ? "--fastq_ascii" : "--fastq_asciiout";
+
+    if (output_offset + parameters.opt_fastq_qminout < lowest_printable_ascii)
       {
-        fatal("Sum of arguments to --fastq_asciiout and --fastq_qminout must be no less than 33");
+        fatal("Sum of arguments to " + offset_option
+              + " and --fastq_qminout must be no less than 33");
       }
 
-    if (parameters.opt_fastq_asciiout + parameters.opt_fastq_qmaxout > highest_printable_ascii)
+    if (output_offset + parameters.opt_fastq_qmaxout > highest_printable_ascii)
       {
-        fatal("Sum of arguments to --fastq_asciiout and --fastq_qmaxout must be no more than 126");
+        fatal("Sum of arguments to " + offset_option
+              + " and --fastq_qmaxout must be no more than 126");
       }
 
     if (parameters.opt_gzip_decompress and parameters.opt_bzip2_decompress)

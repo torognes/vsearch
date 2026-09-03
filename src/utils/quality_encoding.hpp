@@ -61,6 +61,7 @@
 #pragma once
 
 #include <algorithm>  // std::min, std::max
+#include <cstdint>  // int64_t
 #include <limits>  // std::numeric_limits
 
 /* FASTQ quality-score ASCII offsets: the byte value subtracted from a
@@ -90,9 +91,19 @@ constexpr int highest_printable_ascii = 126; // '~'
 
 /* The quality ceiling vsearch used before 3.0, when 41 was the highest score
    an Illumina 1.8+ file was expected to carry. It survives as the
-   --fastq_qmaxout default of --fasta2fastq alone, which fabricates quality
-   rather than clamping it (see resolve_quality_bound_defaults() in cli.cc). */
+   --fastq_qmaxout default of the two commands that produce a score rather
+   than clamping one read from a file: --fasta2fastq, which fabricates it, and
+   --fastq_mergepairs, which computes it (see QualityOrigin in parameters.hpp). */
 constexpr int legacy_max_quality = 41;
+
+/* "--fastq_qmaxout was not given", the sentinel Parameters starts it at. It
+   has to sit outside the option's own range, and the option accepts negative
+   values: --fastq_asciiout 64 admits --fastq_qminout down to -31, and
+   --fastq_qminout may not exceed --fastq_qmaxout, so -1 and its neighbours are
+   all values a user can actually pass. The CLI overwrites this at parse time
+   with the value for the command it is about to run; the library cannot, and
+   leaves it for resolve_fastq_qmaxout() at the point of use. */
+constexpr int64_t fastq_qmaxout_unset = std::numeric_limits<int64_t>::min();
 
 
 /* The lowest and highest quality symbol seen so far, the two values every

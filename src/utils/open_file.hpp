@@ -88,6 +88,24 @@ using FileHandle = std::unique_ptr<std::FILE, CloseFileHandle>;
 // exceeded, broken pipe) is surfaced as a fatal error rather than left as a
 // silently truncated output file. Input streams keep the plain CloseFileHandle
 // above (a stale read-error flag must not turn into a write failure).
+//
+// LIBRARY INVARIANT: no library-exposed function may own an output handle.
+// This deleter cannot report through a session. It fatal()s, and fatal()
+// throws VsearchError in a library session -- but the deleter runs from
+// ~unique_ptr / ~shared_ptr, destructors are implicitly noexcept, and a throw
+// during unwinding terminates regardless, so the noexcept on operator() below
+// is a statement of fact rather than a choice. An API function that owned an output handle
+// would therefore turn a recoverable deferred write error into std::terminate,
+// silently. Nothing enforces the invariant: open_output_file() and the command
+// entry points have external linkage in libvsearch_core.a, so a consumer who
+// writes their own extern declaration reaches an opener. What keeps it latent
+// today is only that no declared API function opens one.
+//
+// Fixing it properly means recording the failure into session state and
+// reporting it from an explicit checked-close entry point called before the
+// handle dies. Deferred on 2026-09-02: no output-writing API is planned. If
+// one is added, build that first. See
+// DONE_20260902_noexcept_fatal_library_terminate.md.
 struct CheckedCloseOutputHandle {
   auto operator()(std::FILE * file_handle) const noexcept -> void;  // defined in open_file.cpp
 };

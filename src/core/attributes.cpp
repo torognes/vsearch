@@ -68,12 +68,11 @@
 #include <algorithm>  // std::find_if, std::search, std::sort
 #include <array>
 #include <cerrno>  // errno
-#include <cstddef>  // std::ptrdiff_t, std::size_t
+#include <cstddef>  // std::size_t
 #include <cstdint>  // int64_t, uint64_t
 #include <cstdio>  // std::FILE, std::fprintf, std::fputs
 #include <cstdlib>  // std::strtoll
 #include <cstring>  // std::strlen
-#include <iterator>  // std::next, std::distance
 
 
 // anonymous namespace: limit visibility and usage to this translation unit
@@ -187,10 +186,20 @@ auto header_fprint_strip(std::FILE * output_handle,
 
   /* by position in the header; the attribute names differ, so no two spans
      share a start and the order among equals never comes up */
-  std::sort(found.begin(),
-            std::next(found.begin(), static_cast<std::ptrdiff_t>(nth_attribute)),
+
+  /* the whole array is sorted, not just its [0, nth_attribute) prefix, and the
+     absent slots are ordered last so that the prefix is unchanged. Sorting a
+     runtime-length sub-range of a 3-element array makes GCC inline the
+     >_S_threshold (16) arm of std::__final_insertion_sort and then warn that
+     found[16] is out of bounds (-Warray-bounds), even though nth_attribute is
+     at most 3 by construction. A compile-time constant length folds that dead
+     arm away. */
+  std::sort(found.begin(), found.end(),
             [](Attribute_span const & lhs, Attribute_span const & rhs) -> bool
-            { return lhs.start < rhs.start; });
+            {
+              if (lhs.present != rhs.present) { return lhs.present; }
+              return lhs.start < rhs.start;
+            });
 
   /* print */
 
