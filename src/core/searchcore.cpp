@@ -318,7 +318,7 @@ auto search_topscores(struct searchinfo_s * searchinfo) -> void
       if (bitmap != nullptr)
         {
 #ifdef __x86_64__
-          if (parameters.ssse3_present != 0)
+          if (parameters.runtime.ssse3_present != 0)
             {
               increment_counters_from_bitmap_ssse3(kmer_counts.data(),
                                                    bitmap, indexed_count);
@@ -771,7 +771,7 @@ auto search_acceptable_aligned(struct searchinfo_s const & searchinfo,
       /* maxdiffs */
       (difference_count(hit) <= parameters.opt_maxdiffs))
     {
-      if (parameters.opt_cluster_unoise != nullptr)
+      if (searchinfo.unoise_acceptance)
         {
           const auto mismatches = hit.mismatches;
           auto const skew = 1.0 * static_cast<double>(searchinfo.qsize) / static_cast<double>(searchinfo.db->getabundance(static_cast<uint64_t>(hit.target)));

@@ -230,7 +230,7 @@ auto orient(struct Parameters const & parameters) -> void
 
   /* prepare reading of queries */
 
-  query_h = fastx_open(parameters.opt_orient, parameters);
+  query_h = fastx_open(parameters.input_filename, parameters);
 
   /* open output files */
 

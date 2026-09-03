@@ -113,7 +113,7 @@ auto udbinfo(struct Parameters const & parameters) -> void
 {
   /* Read UDB header and show basic info */
 
-  char const * const filename = parameters.opt_udbinfo;
+  char const * const filename = parameters.input_filename;
 
   /* Reject a pipe up front, matching udb_read(): --udbinfo needs the file
      size to validate the sequence count below and cannot obtain it from a

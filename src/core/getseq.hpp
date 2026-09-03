@@ -60,8 +60,22 @@
 
 #pragma once
 
+/* Which of the three commands getseq() is serving. The three differ in how a
+   sequence is selected and in whether a window of it is written, and getseq()
+   used to tell them apart by asking which opt_<command> pointer was non-null.
+   A library caller sets none of them, so the caller states its mode instead --
+   the same reasoning as QualityOrigin in parameters.hpp.
+
+     one_label        --fastx_getseq, one --label, whole sequence
+     one_subsequence  --fastx_getsubseq, one --label, the --subseq_start
+                      .. --subseq_end window of it
+     label_set        --fastx_getseqs, any of the --label/--labels/
+                      --label_word/--label_words criteria, whole sequence */
+enum struct GetseqMode { one_label, one_subsequence, label_set };
+
 /* Shared engine behind the fastx_getseq, fastx_getseqs and
    fastx_getsubseq commands. filename is the primary input file; the
    selection criteria (labels, subsequence range, ...) are read from
    the parameters. */
-auto getseq(struct Parameters const & parameters, char const * filename) -> void;
+auto getseq(struct Parameters const & parameters, GetseqMode mode,
+            char const * filename) -> void;

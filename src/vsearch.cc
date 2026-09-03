@@ -140,7 +140,7 @@ namespace {
 auto usage_hint(struct Parameters const & parameters) -> void {
   if (parameters.opt_quiet) { return ; }
   fprint(stderr, "For more help, please enter: ");
-  std::fputs(parameters.progname, stderr);
+  std::fputs(parameters.runtime.progname, stderr);
   fprint(stderr, " --help\nFor further details, please consult the manual by entering: man vsearch\n\nSelected command examples:\n\nvsearch --allpairs_global FILENAME --id 0.5 --alnout FILENAME\nvsearch --cluster_size FILENAME --id 0.97 --centroids FILENAME\nvsearch --cut FILENAME --cut_pattern G^AATT_C --fastaout FILENAME\nvsearch --fastq_chars FILENAME\nvsearch --fastq_convert FILENAME --fastqout FILENAME --fastq_ascii 64\nvsearch --fastq_eestats FILENAME --output FILENAME\nvsearch --fastq_eestats2 FILENAME --output FILENAME\nvsearch --fastq_mergepairs FILENAME --reverse FILENAME --fastqout FILENAME\nvsearch --fastq_stats FILENAME --log FILENAME\nvsearch --fastx_filter FILENAME --fastaout FILENAME --fastq_trunclen 100\nvsearch --fastx_getseq FILENAME --label LABEL --fastaout FILENAME\nvsearch --fastx_mask FILENAME --fastaout FILENAME\nvsearch --fastx_revcomp FILENAME --fastqout FILENAME\nvsearch --fastx_subsample FILENAME --fastaout FILENAME --sample_pct 1\nvsearch --fastx_uniques FILENAME --fastaout FILENAME\nvsearch --makeudb_usearch FILENAME --output FILENAME\nvsearch --search_exact FILENAME --db FILENAME --alnout FILENAME\nvsearch --sff_convert FILENAME --output FILENAME --sff_clip\nvsearch --shuffle FILENAME --output FILENAME\nvsearch --sintax FILENAME --db FILENAME --tabbedout FILENAME\nvsearch --sortbylength FILENAME --output FILENAME\nvsearch --sortbysize FILENAME --output FILENAME\nvsearch --uchime_denovo FILENAME --nonchimeras FILENAME\nvsearch --uchime_ref FILENAME --db FILENAME --nonchimeras FILENAME\nvsearch --usearch_global FILENAME --db FILENAME --id 0.97 --alnout FILENAME\n\nOther commands: cluster_fast, cluster_smallmem, cluster_unoise, cut,\n                derep_id, derep_fulllength, derep_prefix, derep_smallmem,\n                fasta2fastq, fastq_filter, fastq_join, fastx_getseqs,\n                fastx_getsubseq, fastx_syncpairs, maskfasta, orient, rereplicate,\n                scramble, uchime2_denovo, uchime3_denovo, udb2fasta, udbinfo,\n                udbstats, version\n\n");
 }
 
@@ -209,7 +209,7 @@ auto fill_prog_header(struct Parameters & parameters) -> void
     ? decimal::to_text(available_cores) + "/" + decimal::to_text(cores)
     : decimal::to_text(cores);
 
-  parameters.prog_header =
+  parameters.runtime.prog_header =
     std::string(PROG_NAME) + " v" + PROG_VERSION + "_" + PROG_ARCH + ", "
     + memory + " RAM, " + processors + " cores";
 }
@@ -247,7 +247,7 @@ auto getentirecommandline(int const argc, char * const * argv) -> std::string
 
 auto show_header(struct Parameters const & parameters) -> void {
   if (parameters.opt_quiet) { return ; }
-  fprint(stderr, View<char>{parameters.prog_header.data(), parameters.prog_header.size()});
+  fprint(stderr, View<char>{parameters.runtime.prog_header.data(), parameters.runtime.prog_header.size()});
   fprint(stderr, '\n');
   fprint(stderr, "https://github.com/torognes/vsearch\n");
   fprint(stderr, '\n');
@@ -362,7 +362,7 @@ auto main(int const argc, char** argv) -> int
 
   fill_prog_header(parameters);
 
-  parameters.command_line = getentirecommandline(argc, argv);
+  parameters.runtime.command_line = getentirecommandline(argc, argv);
 
   cpu_features_detect(parameters);
 
@@ -381,7 +381,7 @@ auto main(int const argc, char** argv) -> int
        when this scope ends (replaces the former dynlibs_open/close pair,
        whose close ran outside this block). */
     DynamicLibraries const dynamic_libraries;
-    parameters.dyn_libs = &dynamic_libraries;
+    parameters.runtime.dyn_libs = &dynamic_libraries;
 
     cpu_features_test(parameters);
 

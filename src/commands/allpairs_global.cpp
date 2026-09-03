@@ -248,7 +248,8 @@ static auto allpairs_output_results(struct allpairs_state_s & state,
                                   qseqlen,
                                   hp->target,
                                   state.db,
-                                  state.parameters);
+                                  state.parameters,
+                                  PerfectMatch::whole_alignment);
             }
 
           if (state.fp_userout != nullptr)
@@ -282,7 +283,8 @@ static auto allpairs_output_results(struct allpairs_state_s & state,
                               qseqlen,
                               0,
                               state.db,
-                              state.parameters);
+                              state.parameters,
+                              PerfectMatch::whole_alignment);
         }
 
       if (state.parameters.opt_output_no_hits != 0)
@@ -581,9 +583,9 @@ auto allpairs_global(struct Parameters const & parameters) -> void
   fp_alnout = alnout_handle.get();
   if (fp_alnout != nullptr)
     {
-      fprint(fp_alnout, make_view(parameters.command_line));
+      fprint(fp_alnout, make_view(parameters.runtime.command_line));
       fprint(fp_alnout, '\n');
-      fprint(fp_alnout, make_view(parameters.prog_header));
+      fprint(fp_alnout, make_view(parameters.runtime.prog_header));
       fprint(fp_alnout, '\n');
     }
 
@@ -606,9 +608,9 @@ auto allpairs_global(struct Parameters const & parameters) -> void
   OutputFileHandle notmatched_handle = open_optional_output_file(parameters.opt_notmatched, OutputOption{"--notmatched"});
   fp_notmatched = notmatched_handle.get();
 
-  state.db.read(parameters.opt_allpairs_global, 0, parameters);
+  state.db.read(parameters.input_filename, 0, parameters);
 
-  results_show_samheader(fp_samout, parameters.opt_allpairs_global, state.db, parameters);
+  results_show_samheader(fp_samout, parameters.input_filename, state.db, parameters);
 
   if (parameters.opt_qmask == Masking::dust)
     {

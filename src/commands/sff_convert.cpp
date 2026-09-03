@@ -474,8 +474,8 @@ auto sff_convert(struct Parameters const & parameters) -> void
 {
   /* open input and output files */
 
-  auto fp_sff = open_input_file(parameters.opt_sff_convert);
-  check_sff_input(parameters.opt_sff_convert, (not fp_sff));
+  auto fp_sff = open_input_file(parameters.input_filename);
+  check_sff_input(parameters.input_filename, (not fp_sff));
   auto const output_handle = open_mandatory_output_file(parameters.opt_fastqout, OutputOption{"--fastqout"});
 
 

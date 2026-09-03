@@ -317,7 +317,8 @@ auto search_exact_output_results(struct search_exact_state_s & state,
                                   qseqlen,
                                   hit.target,
                                   state.db,
-                                  parameters);
+                                  parameters,
+                                  PerfectMatch::whole_alignment);
             }
 
           if (state.fp_userout != nullptr)
@@ -358,7 +359,8 @@ auto search_exact_output_results(struct search_exact_state_s & state,
                               qseqlen,
                               0,
                               state.db,
-                              parameters);
+                              parameters,
+                              PerfectMatch::whole_alignment);
         }
 
       if (parameters.opt_output_no_hits != 0)
@@ -669,9 +671,9 @@ auto search_exact(struct Parameters const & parameters) -> void
   state.fp_alnout = alnout_handle.get();
   if (state.fp_alnout != nullptr)
     {
-      fprint(state.fp_alnout, make_view(parameters.command_line));
+      fprint(state.fp_alnout, make_view(parameters.runtime.command_line));
       fprint(state.fp_alnout, '\n');
-      fprint(state.fp_alnout, make_view(parameters.prog_header));
+      fprint(state.fp_alnout, make_view(parameters.runtime.prog_header));
       fprint(state.fp_alnout, '\n');
     }
   OutputFileHandle samout_handle = open_optional_output_file(parameters.opt_samout, OutputOption{"--samout"});
@@ -710,7 +712,7 @@ auto search_exact(struct Parameters const & parameters) -> void
   state.qmatches_abundance = 0;
   state.queries = 0;
   state.queries_abundance = 0;
-  auto const query_owner = fastx_open(parameters.opt_search_exact, parameters);
+  auto const query_owner = fastx_open(parameters.input_filename, parameters);
   state.query_fastx_h = query_owner.get();  // workers borrow the raw handle
 
   /* The query file is parsed inside the worker threads

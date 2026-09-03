@@ -163,7 +163,7 @@ auto sortbysize(struct Parameters const & parameters) -> void
 {
   auto const output_handle = open_mandatory_output_file(parameters.opt_output, OutputOption{"--output"});
   Database db;
-  db.read(parameters.opt_sortbysize, 0, parameters);
+  db.read(parameters.input_filename, 0, parameters);
   // memory-intensive: the entire database is now held in memory
 
   auto deck = create_deck(db, parameters);

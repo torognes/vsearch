@@ -375,7 +375,7 @@ auto sintax_search_topscores(struct searchinfo_s * searchinfo,
       if (bitmap != nullptr)
         {
 #ifdef __x86_64__
-          if (parameters.ssse3_present != 0)
+          if (parameters.runtime.ssse3_present != 0)
             {
               increment_counters_from_bitmap_ssse3(kmer_counts.data(),
                                                    bitmap, indexed_count);
@@ -785,7 +785,7 @@ auto sintax(struct Parameters const & parameters) -> void
 
   /* prepare reading of queries */
 
-  auto const query_fastx_h = fastx_open(parameters.opt_sintax, parameters);
+  auto const query_fastx_h = fastx_open(parameters.input_filename, parameters);
   state.query_fastx_h = query_fastx_h.get();  // workers borrow the raw handle
 
   /* The query file is parsed inside the worker threads (see

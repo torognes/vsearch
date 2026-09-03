@@ -291,7 +291,7 @@ auto fastq_chars(struct Parameters const & parameters) -> void
   stats.tail_chars.resize(n_characters);
   stats.maxrun.resize(n_characters);
 
-  auto fastq_handle = fastq_open(parameters.opt_fastq_chars, parameters);
+  auto fastq_handle = fastq_open(parameters.input_filename, parameters);
   /* this command *is* the encoding diagnostic and prints its own guess below,
      so the reader must not say the same thing first */
   fastq_handle->silence_offset_warning();

@@ -60,6 +60,8 @@
 
 #pragma once
 
+#include "core/chimera.hpp"  // ChimeraMode
+
 /* Internal seam between the CLI chimera-detection engine (core/chimera.cpp)
    and its five thin command wrappers (commands/uchime_denovo.cpp,
    commands/uchime2_denovo.cpp, commands/uchime3_denovo.cpp,
@@ -67,5 +69,6 @@
    public library API, so it lives here rather than in core/chimera.hpp.
 
    The five commands all run this one engine; it selects reference-vs-de-novo
-   detection and the algorithm variant from the parameters. */
-auto chimera(struct Parameters const & parameters) -> void;
+   detection and the algorithm variant from the mode. */
+
+auto chimera(ChimeraMode mode, struct Parameters const & parameters) -> void;

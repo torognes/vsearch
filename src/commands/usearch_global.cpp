@@ -260,7 +260,8 @@ static auto search_output_results(struct search_cli_state_s & state,
                                   qseqlen,
                                   hp->target,
                                   state.db,
-                                  state.parameters);
+                                  state.parameters,
+                                  PerfectMatch::whole_alignment);
             }
 
           if (state.fp_userout != nullptr)
@@ -301,7 +302,8 @@ static auto search_output_results(struct search_cli_state_s & state,
                               qseqlen,
                               0,
                               state.db,
-                              state.parameters);
+                              state.parameters,
+                              PerfectMatch::whole_alignment);
         }
 
       if (state.parameters.opt_output_no_hits != 0)
@@ -523,9 +525,9 @@ static auto search_prep(struct search_cli_state_s & state) -> void
   state.fp_alnout = open_optional_output_file(state.parameters.opt_alnout, OutputOption{"--alnout"});
   if (state.fp_alnout != nullptr)
     {
-      fprint(state.fp_alnout.get(), make_view(state.parameters.command_line));
+      fprint(state.fp_alnout.get(), make_view(state.parameters.runtime.command_line));
       fprint(state.fp_alnout.get(), '\n');
-      fprint(state.fp_alnout.get(), make_view(state.parameters.prog_header));
+      fprint(state.fp_alnout.get(), make_view(state.parameters.runtime.prog_header));
       fprint(state.fp_alnout.get(), '\n');
     }
 
@@ -640,7 +642,7 @@ auto usearch_global(struct Parameters const & parameters) -> void
   qmatches_abundance = 0;
   queries = 0;
   queries_abundance = 0;
-  auto const query_fastx_h = fastx_open(parameters.opt_usearch_global, parameters);
+  auto const query_fastx_h = fastx_open(parameters.input_filename, parameters);
   state.query_fastx_h = query_fastx_h.get();  // workers borrow the raw handle
 
   /* The query file is parsed inside the worker threads (search_thread_run).

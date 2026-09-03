@@ -587,7 +587,7 @@ auto help(struct Parameters const & parameters) -> void {
   show_publication();
 
   fprint(stdout, "Usage: ");
-  std::fputs(parameters.progname, stdout);
+  std::fputs(parameters.runtime.progname, stdout);
   fprint(stdout, " [OPTIONS]\n");
 
   for (char const * const line : help_message)

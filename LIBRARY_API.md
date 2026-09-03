@@ -470,11 +470,13 @@ are populated; all other fields are zero/empty.
 
 ### De novo mode
 
-For de novo chimera detection, set `opt_chimeras_denovo` to a non-null
-value before calling `chimera_detect_init()`. This selects the
-`--chimeras_denovo` algorithm (detection in long exact sequences), which
-is distinct from `--uchime_denovo` — the two produce different
-classifications and output. In this mode:
+For de novo chimera detection, pass `ChimeraMode::chimeras_denovo` as the
+last argument of `chimera_detect_init()` (or of
+`chimera_detect_thread_init()` / `chimera_detect_batch()`). This selects
+the `--chimeras_denovo` algorithm (detection in long exact sequences),
+which is distinct from `--uchime_denovo` — the two produce different
+classifications and output. The argument defaults to
+`ChimeraMode::uchime_ref`, the reference-based detection. In this mode:
 
 - Process queries in decreasing abundance order
 - After classifying a query as non-chimeric, add it to the reference

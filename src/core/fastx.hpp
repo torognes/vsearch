@@ -143,7 +143,7 @@ private:
 
 enum struct Format : unsigned char { undefined, plain, bzip, gzip };
 
-class DynamicLibraries;  // set from parameters.dyn_libs in fastx_open()
+class DynamicLibraries;  // set from parameters.runtime.dyn_libs in fastx_open()
 
 /* Deleter that closes an open gzip/bzip2 stream through the borrowed
    DynamicLibraries facade, routing to the matching close function by Format.

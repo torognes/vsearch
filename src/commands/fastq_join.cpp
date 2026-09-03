@@ -123,7 +123,7 @@ namespace {
 
   auto open_input_files(struct Parameters const & parameters) -> struct input_files {
     struct input_files infiles;
-    infiles.forward.name = parameters.opt_fastq_join;
+    infiles.forward.name = parameters.input_filename;
     infiles.reverse.name = parameters.opt_reverse;
     if (infiles.forward.name != nullptr) {
       infiles.forward.handle = fastq_open(infiles.forward.name, parameters);

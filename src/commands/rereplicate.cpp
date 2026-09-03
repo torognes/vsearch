@@ -101,7 +101,7 @@ namespace {
 auto rereplicate(struct Parameters const & parameters) -> void
 {
   auto const output_handle = open_mandatory_output_file(parameters.opt_output, OutputOption{"--output"});
-  auto input_handle = fasta_open(parameters.opt_rereplicate, parameters);
+  auto input_handle = fasta_open(parameters.input_filename, parameters);
   auto const filesize = static_cast<int64_t>(input_handle->get_size());
 
   int64_t n_amplicons = 0;

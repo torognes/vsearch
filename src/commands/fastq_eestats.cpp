@@ -208,7 +208,7 @@ auto fastq_eestats(struct Parameters const & parameters) -> void
     fatal("Output file for fastq_eestats must be specified with --output");
   }
 
-  auto h = fastq_open(parameters.opt_fastq_eestats, parameters);
+  auto h = fastq_open(parameters.input_filename, parameters);
 
   uint64_t const filesize = h->get_size();
 

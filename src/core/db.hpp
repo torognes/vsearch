@@ -145,7 +145,16 @@ public:
      appends its own terminator. */
   auto add(bool is_fastq_record, SeqRecord const & record, int64_t abundance) -> void;
 
-  auto read(char const * filename, int upcase, struct Parameters const & parameters) -> void;
+  /* Whether read() enforces the --minsize abundance floor as it loads, so a
+     sequence below it never enters the database and is counted in its own
+     "discarded" tally. Only --cluster_unoise does this; every other reader
+     keeps such sequences and lets a later stage decide. It used to be read as
+     "opt_cluster_unoise is non-null", which a library caller never sets. The
+     default keeps every sequence, which is what all but one caller wants. */
+  enum struct MinsizeFilter { keep_all, drop_below_minsize };
+
+  auto read(char const * filename, int upcase, struct Parameters const & parameters,
+            MinsizeFilter minsize_filter = MinsizeFilter::keep_all) -> void;
   auto clear() -> void;
 
   /* UDB bulk-load seam, used only by udb_read (the second database loader, which

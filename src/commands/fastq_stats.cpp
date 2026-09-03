@@ -570,7 +570,7 @@ auto fastq_stats(struct Parameters const & parameters) -> void
       fatal("Output file for fastq_stats must be specified with --log");
     }
 
-  auto input_handle = fastq_open(parameters.opt_fastq_stats, parameters);
+  auto input_handle = fastq_open(parameters.input_filename, parameters);
   /* the parser records the quality-symbol range of each record as it copies
      the quality line, which is what check_minmax_scores() reads below */
   input_handle->track_quality_range();
