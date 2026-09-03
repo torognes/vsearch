@@ -65,5 +65,5 @@
 
 auto fastx_getseqs(struct Parameters const & parameters) -> void
 {
-  getseq(parameters, parameters.opt_fastx_getseqs);
+  getseq(parameters, GetseqMode::label_set, parameters.opt_fastx_getseqs);
 }

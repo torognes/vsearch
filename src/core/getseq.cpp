@@ -437,7 +437,8 @@ private:
 }  // anonymous namespace
 
 
-auto getseq(struct Parameters const & parameters, char const * filename) -> void
+auto getseq(struct Parameters const & parameters, GetseqMode const mode,
+            char const * filename) -> void
 {
   if ((parameters.opt_fastqout == nullptr) and (parameters.opt_fastaout == nullptr) and
       (parameters.opt_notmatched == nullptr) and (parameters.opt_notmatchedfq == nullptr))
@@ -450,14 +451,14 @@ auto getseq(struct Parameters const & parameters, char const * filename) -> void
      against by test_label_match() */
   std::vector<std::vector<char>> labels_data;
 
-  if (parameters.opt_fastx_getseq != nullptr)
+  if (mode == GetseqMode::one_label)
     {
       if (parameters.opt_label == nullptr)
         {
           fatal("Missing label option");
         }
     }
-  else if (parameters.opt_fastx_getsubseq != nullptr)
+  else if (mode == GetseqMode::one_subsequence)
     {
       if (parameters.opt_label == nullptr)
         {
@@ -474,7 +475,7 @@ auto getseq(struct Parameters const & parameters, char const * filename) -> void
           fatal("The argument to option subseq_start must be equal or less than to subseq_end");
         }
     }
-  else if (parameters.opt_fastx_getseqs != nullptr)
+  else if (mode == GetseqMode::label_set)
     {
       int label_options = 0;
       if (parameters.opt_label != nullptr)
@@ -545,7 +546,7 @@ auto getseq(struct Parameters const & parameters, char const * filename) -> void
 
             int64_t start = 1;
             auto end = static_cast<int64_t>(h1->sequence_view().size());
-            if (parameters.opt_fastx_getsubseq != nullptr)
+            if (mode == GetseqMode::one_subsequence)
               {
                 start = std::max(parameters.opt_subseq_start, start);
                 end = std::min(parameters.opt_subseq_end, end);
