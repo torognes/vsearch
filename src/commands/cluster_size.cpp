@@ -65,5 +65,5 @@
 
 auto cluster_size(struct Parameters const & parameters) -> void
 {
-  cluster(parameters.opt_cluster_size, parameters);
+  cluster(parameters.opt_cluster_size, ClusterMode::size, parameters);
 }

@@ -65,5 +65,5 @@
 
 auto cluster_unoise(struct Parameters const & parameters) -> void
 {
-  cluster(parameters.opt_cluster_unoise, parameters);
+  cluster(parameters.opt_cluster_unoise, ClusterMode::unoise, parameters);
 }

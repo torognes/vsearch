@@ -65,5 +65,5 @@
 
 auto cluster_fast(struct Parameters const & parameters) -> void
 {
-  cluster(parameters.opt_cluster_fast, parameters);
+  cluster(parameters.opt_cluster_fast, ClusterMode::fast, parameters);
 }

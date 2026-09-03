@@ -260,7 +260,8 @@ static auto search_output_results(struct search_cli_state_s & state,
                                   qseqlen,
                                   hp->target,
                                   state.db,
-                                  state.parameters);
+                                  state.parameters,
+                                  PerfectMatch::whole_alignment);
             }
 
           if (state.fp_userout != nullptr)
@@ -301,7 +302,8 @@ static auto search_output_results(struct search_cli_state_s & state,
                               qseqlen,
                               0,
                               state.db,
-                              state.parameters);
+                              state.parameters,
+                              PerfectMatch::whole_alignment);
         }
 
       if (state.parameters.opt_output_no_hits != 0)

@@ -220,6 +220,14 @@ struct searchinfo_s
      searchcore functions that take a searchinfo_s read the sequences through it.
      The pointee is the caller's Database and must outlive the si. */
   struct Database const * db = nullptr;
+  /* whether search_acceptable_aligned() applies the UNOISE skew/beta rule on
+     top of the ordinary accept criteria. Only --cluster_unoise does; it used
+     to be read as "opt_cluster_unoise is non-null", which a library caller
+     never sets, so an engine driven through the library read as not-UNOISE no
+     matter what it was asked to do. Set by the per-thread init at each call
+     site beside parameters; false everywhere else, which is what every other
+     search path wants. */
+  bool unoise_acceptance = false;
 };
 
 /* The hits of the query at hand: the live prefix of the reused hit buffer.

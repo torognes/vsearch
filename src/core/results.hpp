@@ -107,6 +107,16 @@ auto results_show_blast6out_one(std::FILE * output_handle,
                                 int64_t qseqlen,
                                 struct Database const & db) -> void;
 
+/* How the '=' (perfect match) verdict of a .uc H record is reached.
+   --cluster_fast ignores terminal gaps, so a query identical to a longer
+   centroid over its own whole length still counts as a perfect match; every
+   other command that writes a .uc record (--cluster_size, --cluster_smallmem,
+   --cluster_unoise, --usearch_global, --search_exact, --allpairs_global)
+   requires identity across the whole alignment. This used to be read as
+   "opt_cluster_fast is non-null", which a library caller never sets, so the
+   caller states the rule instead. */
+enum struct PerfectMatch { whole_alignment, ignoring_terminal_gaps };
+
 /* hit == nullptr: the query matched nothing */
 auto results_show_uc_one(std::FILE * output_handle,
                          struct hit const * hit,
@@ -114,7 +124,8 @@ auto results_show_uc_one(std::FILE * output_handle,
                          int64_t qseqlen,
                          int clusterno,
                          struct Database const & db,
-                         struct Parameters const & parameters) -> void;
+                         struct Parameters const & parameters,
+                         PerfectMatch perfect_match_rule) -> void;
 
 /* hit == nullptr: the query matched nothing */
 auto results_show_userout_one(std::FILE * output_handle,

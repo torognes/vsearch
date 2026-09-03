@@ -61,6 +61,7 @@
 #include "vsearch.hpp"
 #include "core/attributes.hpp"
 #include "core/db.hpp"  // Database
+#include "core/results.hpp"  // PerfectMatch, the results_show_* declarations
 #include "core/fasta.hpp"  // fasta_print_general
 #include "core/searchcore.hpp"  // struct hit, top_hits
 #include "core/showalign.hpp"
@@ -89,9 +90,9 @@
 // anonymous namespace: limit visibility and usage to this translation unit
 namespace {
 
-  auto check_if_perfect_match(char const * opt_cluster_fast,
+  auto check_if_perfect_match(PerfectMatch const rule,
                               struct hit const & hit) -> bool {
-    if (opt_cluster_fast != nullptr) {
+    if (rule == PerfectMatch::ignoring_terminal_gaps) {
       /* cluster_fast */
       /* use '=' for identical sequences, ignoring terminal gaps */
       return (hit.matches == hit.internal_alignmentlength);
@@ -336,7 +337,8 @@ auto results_show_uc_one(std::FILE * output_handle,
                          int64_t const qseqlen,
                          int const clusterno,
                          struct Database const & db,
-                         struct Parameters const & parameters) -> void
+                         struct Parameters const & parameters,
+                         PerfectMatch const perfect_match_rule) -> void
 {
   /*
     http://www.drive5.com/usearch/manual/ucout.html
@@ -361,7 +363,7 @@ auto results_show_uc_one(std::FILE * output_handle,
     return;
   }
 
-  auto const is_perfect_match = check_if_perfect_match(parameters.opt_cluster_fast, *hit);
+  auto const is_perfect_match = check_if_perfect_match(perfect_match_rule, *hit);
 
   OutputRecord record {output_handle};
   fprint(record, "H\t");

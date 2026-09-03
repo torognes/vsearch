@@ -317,7 +317,8 @@ auto search_exact_output_results(struct search_exact_state_s & state,
                                   qseqlen,
                                   hit.target,
                                   state.db,
-                                  parameters);
+                                  parameters,
+                                  PerfectMatch::whole_alignment);
             }
 
           if (state.fp_userout != nullptr)
@@ -358,7 +359,8 @@ auto search_exact_output_results(struct search_exact_state_s & state,
                               qseqlen,
                               0,
                               state.db,
-                              parameters);
+                              parameters,
+                              PerfectMatch::whole_alignment);
         }
 
       if (parameters.opt_output_no_hits != 0)

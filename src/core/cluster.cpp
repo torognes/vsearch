@@ -127,6 +127,10 @@ struct cluster_cli_state_s
      free_hit_alignments, the searchcore) keep reading the globals — the library
      session/batch entries have no Parameters. */
   struct Parameters const & parameters;
+  /* which of the four clustering commands this run is; the engine reads it
+     wherever the four behave differently, instead of asking which
+     opt_<command> pointer is non-null */
+  ClusterMode const mode;
   /* a copy of parameters with opt_maxaccepts/opt_maxrejects clamped to the
      database size (cluster()); si->parameters points here so the shared
      searchcore and evaluate_extra_hits read the clamped values without a
@@ -159,7 +163,8 @@ struct cluster_cli_state_s
   std::FILE * fp_qsegout = nullptr;
   std::FILE * fp_tsegout = nullptr;
 
-  explicit cluster_cli_state_s(struct Parameters const & params) : parameters(params) {}
+  cluster_cli_state_s(struct Parameters const & params, ClusterMode const cluster_mode)
+    : parameters(params), mode(cluster_mode) {}
 };
 
 /* per-thread slice of queries assigned for the current round; owned by
@@ -228,12 +233,14 @@ inline auto cluster_query_core(struct searchinfo_s & si, struct Database const &
 auto cluster_query_init(struct searchinfo_s & si, int const seqcount, int const tophits,
                         struct Database const & db,
                         struct Parameters const & parameters,
-                        struct Dbindex const & dbindex) -> void
+                        struct Dbindex const & dbindex,
+                        bool const unoise_acceptance) -> void
 {
   /* initialisation of data for one thread; run once for each thread */
   /* thread specific initialiation */
 
   si.parameters = &parameters;  /* searchcore reads config through the si (E1) */
+  si.unoise_acceptance = unoise_acceptance;  /* the --cluster_unoise accept rule */
   si.dbindex = &dbindex;  /* searchcore reads the k-mer index through the si */
   si.db = &db;  /* searchcore reads the sequences through the si */
   si.qsize = 1;
@@ -313,7 +320,8 @@ struct cluster_work_pool_s
                       int const tophits, bool const need_minus,
                       struct Parameters const & params,
                       struct Dbindex const & index,
-                      struct Database const & database)
+                      struct Database const & database,
+                      bool const unoise_acceptance)
     : parameters(params),
       dbindex(index),
       db(database),
@@ -323,12 +331,12 @@ struct cluster_work_pool_s
   {
     for (auto & si : si_plus)
       {
-        cluster_query_init(si, seqcount, tophits, db, parameters, dbindex);
+        cluster_query_init(si, seqcount, tophits, db, parameters, dbindex, unoise_acceptance);
         si.strand = 0;
       }
     for (auto & si : si_minus)
       {
-        cluster_query_init(si, seqcount, tophits, db, parameters, dbindex);
+        cluster_query_init(si, seqcount, tophits, db, parameters, dbindex, unoise_acceptance);
         si.strand = 1;
       }
     runner = make_unique<ThreadRunner>(static_cast<std::size_t>(nthreads),
@@ -463,7 +471,10 @@ auto cluster_core_results_hit(struct cluster_cli_state_s & state,
                           qseqlen,
                           clusterno,
                           db,
-                          state.parameters);
+                          state.parameters,
+                          (state.mode == ClusterMode::fast)
+                            ? PerfectMatch::ignoring_terminal_gaps
+                            : PerfectMatch::whole_alignment);
     }
 
   if (state.fp_alnout != nullptr)
@@ -944,7 +955,8 @@ auto cluster_core_parallel(struct cluster_cli_state_s & state,
   /* Own worker pool + per-thread search state (E4); see cluster_work_pool_s.
      The local si_plus/si_minus aliases let the loops below read unchanged. */
   cluster_work_pool_s pool(static_cast<int>(state.parameters.opt_threads), seqcount, tophits,
-                           state.parameters.opt_strand, state.effective_parameters, state.dbindex, db);
+                           state.parameters.opt_strand, state.effective_parameters, state.dbindex, db,
+                           state.mode == ClusterMode::unoise);
   auto & si_plus = pool.si_plus;
   auto & si_minus = pool.si_minus;
 
@@ -977,7 +989,7 @@ auto cluster_core_parallel(struct cluster_cli_state_s & state,
             {
               int const length = static_cast<int>(db.getsequencelen(static_cast<uint64_t>(seqno)));
 
-              if ((state.parameters.opt_cluster_smallmem != nullptr) and (state.parameters.opt_usersort == 0) and (length > lastlength))
+              if ((state.mode == ClusterMode::smallmem) and (state.parameters.opt_usersort == 0) and (length > lastlength))
                 {
                   fatal("Sequences not sorted by length and --usersort not specified.");
                 }
@@ -1108,10 +1120,13 @@ auto cluster_core_serial(struct cluster_cli_state_s & state,
   std::array<struct searchinfo_s, 1> si_p {{}};  // refactoring: direct initialization?
   std::array<struct searchinfo_s, 1> si_m {{}};
 
-  cluster_query_init(si_p.front(), seqcount, tophits, db, state.effective_parameters, state.dbindex);
+  bool const unoise_acceptance = (state.mode == ClusterMode::unoise);
+  cluster_query_init(si_p.front(), seqcount, tophits, db, state.effective_parameters,
+                     state.dbindex, unoise_acceptance);
   if (state.parameters.opt_strand)
     {
-      cluster_query_init(si_m.front(), seqcount, tophits, db, state.effective_parameters, state.dbindex);
+      cluster_query_init(si_m.front(), seqcount, tophits, db, state.effective_parameters,
+                         state.dbindex, unoise_acceptance);
     }
 
   /* si_m is a one-element array whether or not the reverse strand is searched,
@@ -1129,7 +1144,7 @@ auto cluster_core_serial(struct cluster_cli_state_s & state,
     {
       int const length = static_cast<int>(db.getsequencelen(static_cast<uint64_t>(seqno)));
 
-      if ((state.parameters.opt_cluster_smallmem != nullptr) and (state.parameters.opt_usersort == 0) and (length > lastlength))
+      if ((state.mode == ClusterMode::smallmem) and (state.parameters.opt_usersort == 0) and (length > lastlength))
         {
           fatal("Sequences not sorted by length and --usersort not specified.");
         }
@@ -1205,10 +1220,10 @@ auto cluster_core_serial(struct cluster_cli_state_s & state,
 }  // anonymous namespace
 
 
-auto cluster(char const * dbname,
+auto cluster(char const * dbname, ClusterMode const mode,
              struct Parameters const & parameters) -> void
 {
-  cluster_cli_state_s state(parameters);
+  cluster_cli_state_s state(parameters, mode);
   auto & clusterinfo = state.clusterinfo;
   auto & clusters = state.clusters;
   auto & fp_centroids = state.fp_centroids;
@@ -1264,7 +1279,11 @@ auto cluster(char const * dbname,
   OutputFileHandle biomout_handle = open_optional_output_file(parameters.opt_biomout, OutputOption{"--biomout"});
   fp_biomout = biomout_handle.get();
 
-  state.db.read(dbname, 0, parameters);
+  /* --cluster_unoise drops sequences below --minsize as it reads; the other
+     three keep every sequence. */
+  state.db.read(dbname, 0, parameters,
+                (mode == ClusterMode::unoise) ? Database::MinsizeFilter::drop_below_minsize
+                                              : Database::MinsizeFilter::keep_all);
 
   results_show_samheader(fp_samout, dbname, state.db, parameters);
 
@@ -1281,11 +1300,11 @@ auto cluster(char const * dbname,
 
   int const seqcount = static_cast<int>(state.db.getsequencecount());
 
-  if (parameters.opt_cluster_fast != nullptr)
+  if (mode == ClusterMode::fast)
     {
       state.db.sortbylength(parameters);
     }
-  else if ((parameters.opt_cluster_size != nullptr) or (parameters.opt_cluster_unoise != nullptr))
+  else if ((mode == ClusterMode::size) or (mode == ClusterMode::unoise))
     {
       state.db.sortbyabundance(parameters);
     }
@@ -1708,13 +1727,15 @@ auto cluster_session_init(struct cluster_session_s * cs, struct Parameters const
   cs->tophits = std::min(cs->tophits, cs->seqcount);
 
   cs->si = make_unique<searchinfo_s>();
-  cluster_query_init(*cs->si, cs->seqcount, cs->tophits, db, parameters, *cs->dbindex);
+  /* false: the library cluster session has no UNOISE mode to ask for, exactly
+     as it had no opt_cluster_unoise to set. */
+  cluster_query_init(*cs->si, cs->seqcount, cs->tophits, db, parameters, *cs->dbindex, false);
   cs->si->strand = 0;
 
   if (parameters.opt_strand)
     {
       cs->si_minus = make_unique<searchinfo_s>();
-      cluster_query_init(*cs->si_minus, cs->seqcount, cs->tophits, db, parameters, *cs->dbindex);
+      cluster_query_init(*cs->si_minus, cs->seqcount, cs->tophits, db, parameters, *cs->dbindex, false);
       cs->si_minus->strand = 1;
     }
 
@@ -1838,8 +1859,11 @@ auto cluster_assign_batch(struct cluster_session_s * cs,
      per-thread searchinfo arrays and creates the ThreadRunner; the destructor
      joins the workers and cluster_query_exit()s them. The local si_plus/
      si_minus aliases let the loop below read unchanged. */
+  /* false: as in cluster_session_init(), the library batch path has no UNOISE
+     mode to ask for. */
   cluster_work_pool_s pool(static_cast<int>(parameters.opt_threads), cs->seqcount,
-                           cs->tophits, parameters.opt_strand, parameters, *cs->dbindex, *cs->db);
+                           cs->tophits, parameters.opt_strand, parameters, *cs->dbindex, *cs->db,
+                           false);
   auto & si_plus = pool.si_plus;
   auto & si_minus = pool.si_minus;
 

@@ -60,6 +60,8 @@
 
 #pragma once
 
+#include <cstdint>  // std::uint8_t
+
 /* Internal seam between the CLI clustering engine (core/cluster.cpp) and
    its four thin command wrappers (commands/cluster_fast.cpp,
    commands/cluster_smallmem.cpp, commands/cluster_size.cpp,
@@ -68,5 +70,17 @@
 
    The four commands all run this one engine; it selects its presort order
    (by length for cluster_fast, by abundance for cluster_size/cluster_unoise)
-   and the cluster_smallmem length-monotonicity check from the parameters. */
-auto cluster(char const * dbname, struct Parameters const & parameters) -> void;
+   and the cluster_smallmem length-monotonicity check from the mode. */
+
+/* Which of the four clustering commands the shared engine runs as. They differ
+   in how the database is presorted, in whether an unsorted input is an error,
+   in the hit-acceptance rule, in whether --minsize is applied while reading,
+   and in how a perfect match is decided in the .uc output. cluster() used to
+   tell them apart by asking which opt_<command> pointer was non-null; a
+   library caller sets none of them, so the caller states its mode instead --
+   the same reasoning as QualityOrigin (parameters.hpp) and Derep_mode
+   (derep_internal.hpp). */
+enum struct ClusterMode : std::uint8_t { fast, size, smallmem, unoise };
+
+auto cluster(char const * dbname, ClusterMode mode,
+             struct Parameters const & parameters) -> void;
