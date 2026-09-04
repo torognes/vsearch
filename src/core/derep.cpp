@@ -964,7 +964,7 @@ static auto dereplicating(std::unique_ptr<fastx_s> const & input_handle,
                       {
                         static constexpr auto uninformative_quality = int64_t{2};
                         static constexpr auto negligible_weight_ratio = int64_t{4};
-                        static constexpr auto resolvable_abundance = int64_t{1} << 40U;
+                        static constexpr auto resolvable_abundance = static_cast<int64_t>(uint64_t{1} << 40U);
                         auto const quality1 =
                           static_cast<int64_t>(symbol1) - parameters.opt_fastq_ascii;
                         if ((quality1 >= uninformative_quality)
