@@ -70,7 +70,7 @@
   /*       0         1         2         3         4         5         6         7          */
   /*       01234567890123456789012345678901234567890123456789012345678901234567890123456789 */
   // C++17 refactoring: deduce the size with CTAD and drop this constant
-  static constexpr std::size_t help_line_count = 561;
+  static constexpr std::size_t help_line_count = 562;
   static constexpr std::array<char const *, help_line_count> help_message =
     {{
       "\n",
@@ -223,6 +223,7 @@
       "  --fastq_qmaxout INT         maximum base quality value for FASTQ output (41)\n",
       "  --fastq_qmin INT            minimum base quality value for FASTQ input (0)\n",
       "  --fastq_qminout INT         minimum base quality value for FASTQ output (0)\n",
+      "  --fastq_qout_max            keep the highest quality score in each position\n",
       "  --fastaout FILENAME         output FASTA file (for fastx_uniques)\n",
       "  --fastqout FILENAME         output FASTQ file (for fastx_uniques)\n",
       "  --lengthout                 write length annotation to output\n",
