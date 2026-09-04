@@ -7,7 +7,6 @@ RUN yum -y install \
     automake \
     bzip2-devel \
     gcc-c++ \
-    groff-base \
     make \
     simde-devel \
     zlib-devel
