@@ -70,9 +70,9 @@ mkdir build && cd build
 make ARFLAGS="cr"
 ```
 
-To build VSEARCH on Debian and similar Linux distributions (Ubuntu etc) you'll need the following packages: autoconf, automake, g++, groff, libbz2-dev, make, zlib1g-dev. Include libsimde-dev to build on riscv64 or mips64el.
+To build VSEARCH on Debian and similar Linux distributions (Ubuntu etc) you'll need the following packages: autoconf, automake, g++, libbz2-dev, make, zlib1g-dev. Include libsimde-dev to build on riscv64 or mips64el.
 
-To build VSEARCH on Fedora and similar Linux distributions (RHEL, Centos etc) you'll need the following packages: autoconf, automake, bzip2-devel, gcc-c++, groff-base, make, zlib-devel.
+To build VSEARCH on Fedora and similar Linux distributions (RHEL, Centos etc) you'll need the following packages: autoconf, automake, bzip2-devel, gcc-c++, make, zlib-devel.
 
 Of these, `autoconf` and `automake` are only needed if you regenerate the build system with `./autogen.sh` (e.g. after editing `configure.ac` or a `Makefile.am`); an ordinary build from the shipped files does not require them.
 
