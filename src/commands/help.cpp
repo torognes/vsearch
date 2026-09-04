@@ -70,11 +70,13 @@
   /*       0         1         2         3         4         5         6         7          */
   /*       01234567890123456789012345678901234567890123456789012345678901234567890123456789 */
   // C++17 refactoring: deduce the size with CTAD and drop this constant
-  static constexpr std::size_t help_line_count = 559;
+  static constexpr std::size_t help_line_count = 561;
   static constexpr std::array<char const *, help_line_count> help_message =
     {{
       "\n",
       "For further details, please consult the manual by entering: man vsearch\n",
+      "(or man vsearch-<command> for one command). It is also readable online at\n",
+      "https://torognes.github.io/vsearch/\n",
       "\n",
       "General options\n",
       "  --bzip2_decompress          decompress input with bzip2 (required if pipe)\n",
