@@ -292,7 +292,10 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
 
         // memory-intensive: sequence buffers grown to fit the longest sequence
         vsearch::grow_to_fit(seq_up, static_cast<size_t>(seqlen));
-        vsearch::grow_to_fit(rc_seq_up, static_cast<size_t>(seqlen));
+        if (parameters.opt_strand)
+          {
+            vsearch::grow_to_fit(rc_seq_up, static_cast<size_t>(seqlen));
+          }
 
         if (100 * (stats.clusters + 1) > 95 * hashtable.size())
           {
@@ -303,12 +306,6 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
 
         /* normalize sequence: uppercase and replace U by T  */
         auto const seq_up_v = normalize_into(seq_up, sequence);
-
-        /* reverse complement if necessary */
-        if (parameters.opt_strand)
-          {
-            reverse_complement(make_span(rc_seq_up).first(static_cast<std::size_t>(seqlen)), seq_up_v);
-          }
 
         /*
           Find a free bucket, or the bucket holding this sequence. Sequences
@@ -334,6 +331,11 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
             /* no match on plus strand */
             /* check minus strand as well */
 
+            /* the reverse complement is only ever read here, so it is only
+               computed here: a record that matched a cluster on the plus
+               strand does not need one, and on dereplication input most
+               records do */
+            reverse_complement(make_span(rc_seq_up).first(static_cast<std::size_t>(seqlen)), seq_up_v);
             auto const rc_hash = hash_function(make_view(rc_seq_up).first(static_cast<std::size_t>(seqlen)));
             auto k =  hash2bucket(rc_hash, hashtable.size());
             auto * rc_bp = &hashtable[k];
@@ -417,12 +419,6 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
         /* normalize sequence: uppercase and replace U by T  */
         auto const seq_up_v = normalize_into(seq_up, sequence);
 
-        /* reverse complement if necessary */
-        if (parameters.opt_strand)
-          {
-            reverse_complement(make_span(rc_seq_up).first(static_cast<std::size_t>(seqlen)), seq_up_v);
-          }
-
         auto const hash = hash_function(seq_up_v);
         auto j =  hash2bucket(hash, hashtable.size());
         auto * bp = &hashtable[j];
@@ -438,6 +434,11 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
             /* no match on plus strand */
             /* check minus strand as well */
 
+            /* the reverse complement is only ever read here, so it is only
+               computed here: a record that matched a cluster on the plus
+               strand does not need one, and on dereplication input most
+               records do */
+            reverse_complement(make_span(rc_seq_up).first(static_cast<std::size_t>(seqlen)), seq_up_v);
             auto const rc_hash = hash_function(make_view(rc_seq_up).first(static_cast<std::size_t>(seqlen)));
             auto k =  hash2bucket(rc_hash, hashtable.size());
             auto * rc_bp = &hashtable[k];
