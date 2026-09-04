@@ -36,6 +36,18 @@ with the `--fastq_asciiout` offset and clamped to the range defined by
 written as 1, since both stand for the same uninformative error
 probability (0.75).
 
+The average is accumulated one grouped sequence at a time, and the
+running value is converted back to a quality score at every step. A
+score is therefore a poor estimator of the group's mean quality once
+the group is large: because a quality score stands for the highest
+error probability it can represent, a grouped sequence that disagrees
+downward at a position lowers the group's score there, while one that
+agrees upward leaves it unchanged as soon as the group carries much
+more abundance than the incoming sequence. A high-abundance group's
+scores thus reflect how many of its members disagreed downward at each
+position rather than the average of their scores. `--fastq_qout_max`
+is not affected, being independent of order and abundance.
+
 This command is not multithreaded. The inverse operation is
 `--rereplicate` (see
 [`vsearch-rereplicate(1)`](./vsearch-rereplicate.1.md)).
