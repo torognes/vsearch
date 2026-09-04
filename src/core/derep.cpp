@@ -86,6 +86,7 @@
 #include <cmath>  // std::log10, std::pow
 #include <cstdint> // int64_t, uint64_t
 #include <cstdio>  // std::FILE, std::fprintf
+#include <iterator>  // std::distance, std::next
 #include <limits>
 #include <memory>  // std::unique_ptr
 #include <string>
@@ -210,14 +211,18 @@ namespace {
   constexpr auto terminal = std::numeric_limits<unsigned int>::max();
 
 
-  auto count_selected(std::vector<struct bucket> const & hashtable,
+  /* takes the clusters, not the table they came out of: the empty buckets have
+     been moved past them (see derep(), below), so this no longer depends on
+     --minuniquesize being at least 1 to keep a bucket holding nothing out of
+     the count. */
+  auto count_selected(View<struct bucket> const clusters,
                       struct Parameters const & parameters) -> uint64_t {
     auto size_in_range = [&](struct bucket const & bucket) -> bool {
       /* compared as int64_t, the type of the two bounds */
       auto const size = static_cast<int64_t>(bucket.size);
       return ((size >= parameters.opt_minuniquesize) and (size <= parameters.opt_maxuniquesize));
     };
-    auto const selected = std::count_if(hashtable.begin(), hashtable.end(),
+    auto const selected = std::count_if(clusters.cbegin(), clusters.cend(),
                                         size_in_range);
     return std::min(static_cast<uint64_t>(selected),
                     static_cast<uint64_t>(parameters.opt_topn));
@@ -1098,20 +1103,38 @@ auto derep(struct Parameters const & parameters, Derep_mode const mode) -> void
   report_length_filtered(parameters, "minseqlength", parameters.opt_minseqlength, stats.discarded_short);
   report_length_filtered(parameters, "maxseqlength", parameters.opt_maxseqlength, stats.discarded_long);
 
+  /* The empty buckets are not results, and nothing below wants to see them:
+     one pass moves them past the clusters, and the rest of this function
+     works on the clusters alone. It leaves the reported order untouched --
+     abundance, then label, then input ordinal is a total order over the
+     occupied buckets, so the sorted sequence does not depend on the
+     permutation std::partition arrives at. */
+  auto const buckets = make_span(hashtable);
+  auto * const partition_point = std::partition(buckets.begin(), buckets.end(),
+                                                [](struct bucket const & entry) -> bool
+                                                { return is_occupied(entry); });
+  auto const clusters =
+    buckets.first(static_cast<std::size_t>(std::distance(buckets.begin(), partition_point)));
+  /* the reordering and the counting agree: dereplicating() increments its
+     cluster count exactly once per bucket it fills, and a zero abundance is
+     refused while the header is parsed, so no filled bucket can carry the
+     empty-bucket sentinel */
+  assert(clusters.size() == stats.clusters);
+
   {
     Progress const progress("Sorting", 1, parameters);
-    std::sort(hashtable.begin(), hashtable.end(), derep_bucket_before);
+    std::sort(clusters.begin(), clusters.end(), derep_bucket_before);
   }
 
   auto const median = median_of_descending(
-      make_view(hashtable).first(static_cast<std::size_t>(stats.clusters)),
+      View<struct bucket>{clusters},
       [](struct bucket const & entry) { return entry.size; });
   auto const average = 1.0 * static_cast<double>(stats.sumsize) / static_cast<double>(stats.clusters);
   report_unique_summary(stats, average, median, parameters);
 
   /* count selected */
 
-  auto const selected = count_selected(hashtable, parameters);
+  auto const selected = count_selected(View<struct bucket>{clusters}, parameters);
 
   /* write output */
 
