@@ -955,9 +955,11 @@ static auto dereplicating(std::unique_ptr<fastx_s> const & input_handle,
 
                        Verified by exhaustive search over every symbol pair,
                        twelve qminout/qmaxout windows and 4868 abundance pairs
-                       (84 million firing cases, no disagreement), and by
-                       counters over ~1.4 billion real conversions.
-                       TBD_20260904_dereplication_profiling.md, section 6f. */
+                       -- 84 million firing cases, no disagreement -- and by
+                       counters over some 1.4 billion conversions of real
+                       data, which never fired on a pair whose symbol then
+                       changed. The three cases the guards cover are pinned in
+                       vsearch-tests (fastx_uniques.sh). */
                     if (symbol2 > symbol1)
                       {
                         static constexpr auto uninformative_quality = int64_t{2};
