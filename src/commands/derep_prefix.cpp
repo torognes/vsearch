@@ -73,10 +73,11 @@
 #include "utils/seqcmp.hpp"
 #include "utils/span.hpp"
 #include "utils/string_normalize.hpp"
-#include <algorithm>  // std::max, std::sort, std::transform
+#include <algorithm>  // std::max, std::partition, std::sort, std::transform
+#include <cassert>  // assert
 #include <cstdint> // int64_t, uint64_t
 #include <cstdio>  // std::FILE, std::fprintf
-#include <iterator>  // std::next
+#include <iterator>  // std::distance, std::next
 #include <limits>
 #include <vector>
 
@@ -325,6 +326,28 @@ auto derep_prefix(struct Parameters const & parameters) -> void
       }
   }
 
+  /* Only the clusters are reported, and a cluster is a bucket that is both
+     occupied and not superseded by a longer prefix. The table holds between
+     1.5 and 3 buckets per input sequence (table_size_two_thirds, above), so
+     most of what the sort used to cover was empty, and every empty bucket it
+     compared sent the comparator to sequence zero's header. One pass moves
+     the clusters to the front and the sort then sees nothing else.
+
+     The reported order is unchanged: over the clusters, abundance then label
+     then input ordinal is a total order -- no two of them share both a label
+     and an ordinal -- so the sorted sequence does not depend on the
+     permutation std::partition arrives at. The predicate is not the plain
+     occupancy test used by core/derep.cpp: a superseded bucket stays claimed
+     so that the probe steps over it, and it is not a cluster. */
+  auto const buckets = make_span(hashtable);
+  auto * const partition_point =
+    std::partition(buckets.begin(), buckets.end(),
+                   [](struct bucket const & entry) -> bool
+                   { return is_occupied(entry) and not entry.deleted; });
+  auto const clusters =
+    buckets.first(static_cast<std::size_t>(std::distance(buckets.begin(), partition_point)));
+  assert(clusters.size() == stats.clusters);
+
   {
     Progress const progress("Sorting", 1, parameters);
 
@@ -358,7 +381,7 @@ auto derep_prefix(struct Parameters const & parameters) -> void
        header for the comparator to dereference */
     if (dbsequencecount > 0)
       {
-        std::sort(hashtable.begin(), hashtable.end(), compare_prefix);
+        std::sort(clusters.begin(), clusters.end(), compare_prefix);
       }
   }
 
