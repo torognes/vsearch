@@ -83,7 +83,7 @@
 #include <algorithm>  // std::count_if, std::equal, std::max, std::min, std::minmax_element, std::sort, std::transform
 #include <array>  // std::array
 #include <cassert>  // assert
-#include <cmath>  // std::log10, std::pow
+#include <cmath>  // std::log10, std::trunc
 #include <cstdint> // int64_t, uint64_t
 #include <cstdio>  // std::FILE, std::fprintf
 #include <iterator>  // std::distance, std::next
@@ -301,21 +301,6 @@ namespace {
                                               quality_symbols.end());
     vsearch::check_quality_score(*std::get<0>(extremes) - ascii_offset, parameters, location);
     vsearch::check_quality_score(*std::get<1>(extremes) - ascii_offset, parameters, location);
-  }
-
-
-  // refactoring: duplicate of q2p()?
-  inline auto convert_quality_symbol_to_probability(int const quality_symbol, struct Parameters const & parameters) -> double
-  {
-    static constexpr auto minimal_quality_value = 2;
-    static constexpr auto maximal_probability = 0.75;
-    auto const quality_value = quality_symbol - static_cast<int>(parameters.opt_fastq_ascii);
-    if (quality_value < minimal_quality_value)
-      {
-        return maximal_probability;
-      }
-    static constexpr auto base = 10.0;
-    return std::pow(base, -quality_value / base);
   }
 
 
