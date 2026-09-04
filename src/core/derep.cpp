@@ -831,12 +831,6 @@ static auto dereplicating(std::unique_ptr<fastx_s> const & input_handle,
         /* normalize sequence: uppercase and replace U by T  */
         auto const seq_up_v = normalize_into(seq_up, sequence);
 
-        /* reverse complement if necessary */
-        if (parameters.opt_strand)
-          {
-            reverse_complement(make_span(rc_seq_up).first(static_cast<std::size_t>(seqlen)), seq_up_v);
-          }
-
         /* Find free bucket or bucket for identical sequence (see
            holds_another_record) */
 
@@ -859,6 +853,7 @@ static auto dereplicating(std::unique_ptr<fastx_s> const & input_handle,
             /* no match on plus strand */
             /* check minus strand as well */
 
+            reverse_complement(make_span(rc_seq_up).first(static_cast<std::size_t>(seqlen)), seq_up_v);
             auto const rc_seq_up_v = make_view(rc_seq_up).first(static_cast<std::size_t>(seqlen));
             auto const rc_hash = hash_function(rc_seq_up_v) ^ hash_header;
             auto k = rc_hash & hash_mask;
