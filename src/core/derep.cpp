@@ -919,6 +919,62 @@ static auto dereplicating(std::unique_ptr<fastx_s> const & input_handle,
                         continue;
                       }
 
+                    /* The weighted mean below cannot leave the stored symbol's
+                       own interval here, so it would write back the symbol
+                       already stored. 99% of the merges on real varied-quality
+                       data land in this case.
+
+                       The stored value is always a symbol, so p1 is exactly a
+                       table entry, 10^-(q1/10) -- and that is the *top* of the
+                       interval that requantises back to q1. A strictly better
+                       incoming symbol pulls the mean down, away from the
+                       boundary, and cannot reach the interval's bottom (a
+                       factor 10^-0.1, i.e. 20.57% below p1) while the incoming
+                       abundance is at most a quarter of the accumulated one.
+
+                       Four guards, and every one of them was found by a case
+                       that the default configuration does not reach:
+
+                       - quality below 2 shares the 0.75 cap with every other
+                         one, so p1 is not its interval's top there;
+                       - a quality outside [qminout, qmaxout] is moved by the
+                         clamp in convert_probability_to_quality_symbol() even
+                         when the mean does not move;
+                       - the mean has to stay resolvable against double's
+                         rounding: the pull is at least 0.206 * s2 / (s1 + s2)
+                         of p1, so bounding s1 keeps it some 800 ulps wide,
+                         far above the three half-ulp roundings in the
+                         expression. Around s1/s2 = 2^53 the pull is *at* ulp
+                         scale and the computed mean can land an ulp above p1,
+                         which answers q1 - 1; the qualities where that shows
+                         first are exactly the 5, 8, 10 and 17 named in the
+                         round-trip comment below. A cluster of 2^40 members is
+                         not reachable, and past the bound the exact path runs;
+                       - s2 <= s1 / 4 rather than 4 * s2 <= s1, because
+                         --sizein makes s2 an arbitrary int64_t.
+
+                       Verified by exhaustive search over every symbol pair,
+                       twelve qminout/qmaxout windows and 4868 abundance pairs
+                       (84 million firing cases, no disagreement), and by
+                       counters over ~1.4 billion real conversions.
+                       TBD_20260904_dereplication_profiling.md, section 6f. */
+                    if (symbol2 > symbol1)
+                      {
+                        static constexpr auto uninformative_quality = int64_t{2};
+                        static constexpr auto negligible_weight_ratio = int64_t{4};
+                        static constexpr auto resolvable_abundance = int64_t{1} << 40U;
+                        auto const quality1 =
+                          static_cast<int64_t>(symbol1) - parameters.opt_fastq_ascii;
+                        if ((quality1 >= uninformative_quality)
+                            and (quality1 >= parameters.opt_fastq_qminout)
+                            and (quality1 <= parameters.opt_fastq_qmaxout)
+                            and (s2 <= (s1 / negligible_weight_ratio))
+                            and (s1 < resolvable_abundance))
+                          {
+                            continue;
+                          }
+                      }
+
                     auto const p1 = quality_table[symbol1];
                     auto const p2 = quality_table[symbol2];
 
