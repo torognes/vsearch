@@ -70,11 +70,13 @@
   /*       0         1         2         3         4         5         6         7          */
   /*       01234567890123456789012345678901234567890123456789012345678901234567890123456789 */
   // C++17 refactoring: deduce the size with CTAD and drop this constant
-  static constexpr std::size_t help_line_count = 559;
+  static constexpr std::size_t help_line_count = 562;
   static constexpr std::array<char const *, help_line_count> help_message =
     {{
       "\n",
       "For further details, please consult the manual by entering: man vsearch\n",
+      "(or man vsearch-<command> for one command). It is also readable online at\n",
+      "https://torognes.github.io/vsearch/\n",
       "\n",
       "General options\n",
       "  --bzip2_decompress          decompress input with bzip2 (required if pipe)\n",
@@ -221,6 +223,7 @@
       "  --fastq_qmaxout INT         maximum base quality value for FASTQ output (41)\n",
       "  --fastq_qmin INT            minimum base quality value for FASTQ input (0)\n",
       "  --fastq_qminout INT         minimum base quality value for FASTQ output (0)\n",
+      "  --fastq_qout_max            keep the highest quality score in each position\n",
       "  --fastaout FILENAME         output FASTA file (for fastx_uniques)\n",
       "  --fastqout FILENAME         output FASTQ file (for fastx_uniques)\n",
       "  --lengthout                 write length annotation to output\n",
@@ -509,10 +512,10 @@
       "  --xsize                     strip abundance information in output\n",
       "\n",
       "Sorting, shuffling and scrambling\n",
+      "  --scramble FILENAME         randomize nucleotide order within each sequence\n",
       "  --shuffle FILENAME          shuffle order of sequences in FASTA file randomly\n",
       "  --sortbylength FILENAME     sort sequences by length in given FASTA file\n",
       "  --sortbysize FILENAME       abundance sort sequences in given FASTA file\n",
-      "  --scramble FILENAME         randomize nucleotide order within each sequence\n",
       " Parameters\n",
       "  --fastq_ascii INT           FASTQ input quality score ASCII base char (33)\n",
       "  --fastq_qmax INT            maximum base quality value for FASTQ input (41)\n",

@@ -777,7 +777,10 @@ static auto dereplicating(std::unique_ptr<fastx_s> const & input_handle,
 
         // memory-intensive: sequence buffers grown to fit the longest sequence
         vsearch::grow_to_fit(seq_up, static_cast<std::size_t>(seqlen));
-        vsearch::grow_to_fit(rc_seq_up, static_cast<std::size_t>(seqlen));
+        if (parameters.opt_strand)
+          {
+            vsearch::grow_to_fit(rc_seq_up, static_cast<std::size_t>(seqlen));
+          }
 
         if (extra_info and (sequencecount + 1 > alloc_seqs))
           {
@@ -964,7 +967,7 @@ static auto dereplicating(std::unique_ptr<fastx_s> const & input_handle,
                       {
                         static constexpr auto uninformative_quality = int64_t{2};
                         static constexpr auto negligible_weight_ratio = int64_t{4};
-                        static constexpr auto resolvable_abundance = int64_t{1} << 40U;
+                        static constexpr auto resolvable_abundance = static_cast<int64_t>(uint64_t{1} << 40U);
                         auto const quality1 =
                           static_cast<int64_t>(symbol1) - parameters.opt_fastq_ascii;
                         if ((quality1 >= uninformative_quality)

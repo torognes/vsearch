@@ -207,6 +207,9 @@ system-wide.
 
 ## Sorting, shuffling and scrambling
 
+**[`vsearch-scramble(1)`](./commands/vsearch-scramble.1.md)**
+: Randomize the nucleotide order within each fasta or fastq entry.
+
 **[`vsearch-shuffle(1)`](./commands/vsearch-shuffle.1.md)**
 : Randomize the order of fasta or fastq entries.
 
@@ -215,9 +218,6 @@ system-wide.
 
 **[`vsearch-sortbysize(1)`](./commands/vsearch-sortbysize.1.md)**
 : Sort fasta or fastq sequences by decreasing abundance.
-
-**[`vsearch-scramble(1)`](./commands/vsearch-scramble.1.md)**
-: Randomize the nucleotide order within each fasta or fastq entry.
 
 
 ## Subsampling

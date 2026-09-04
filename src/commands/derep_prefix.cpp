@@ -350,21 +350,22 @@ auto derep_prefix(struct Parameters const & parameters) -> void
   {
     Progress const progress("Sorting", 1, parameters);
 
-    /* deleted(?) first, then by highest abundance, then by label, otherwise keep order */
+    /* highest abundance first, then by label, otherwise keep order. The
+       partition above leaves only clusters in range, so there is no longer a
+       'deleted' rank to compare -- nor any empty bucket whose header the
+       comparator would dereference, which is what the former
+       'dbsequencecount > 0' guard around the sort was protecting against: an
+       empty database now yields an empty range and the comparator is never
+       called. */
     auto const compare_prefix = [&db](struct bucket const & lhs, struct bucket const & rhs) -> bool
     {
-      if (static_cast<int>(lhs.deleted) != static_cast<int>(rhs.deleted))
-        {
-          return static_cast<int>(lhs.deleted) < static_cast<int>(rhs.deleted);
-        }
-
-      // both are deleted, compare abundances
+      // compare abundances
       if (lhs.size != rhs.size)
         {
           return lhs.size > rhs.size;
         }
 
-      // both are deleted, same abundances, compare sequence headers
+      // same abundances, compare sequence headers
       auto const result = db.header_view(lhs.seqno_first)
                             .compare(db.header_view(rhs.seqno_first));
       if (result != 0)
@@ -372,16 +373,11 @@ auto derep_prefix(struct Parameters const & parameters) -> void
           return result < 0;
         }
 
-      // both are deleted, same abundances, same sequence headers, compare input order
+      // same abundances, same sequence headers, compare input order
       return lhs.seqno_first < rhs.seqno_first;
     };
 
-    /* skip when the database is empty: the lone empty bucket has no valid
-       header for the comparator to dereference */
-    if (dbsequencecount > 0)
-      {
-        std::sort(clusters.begin(), clusters.end(), compare_prefix);
-      }
+    std::sort(clusters.begin(), clusters.end(), compare_prefix);
   }
 
   /* the live clusters are the leading 'clusters' entries: compare_prefix puts
