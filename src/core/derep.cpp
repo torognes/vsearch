@@ -777,7 +777,10 @@ static auto dereplicating(std::unique_ptr<fastx_s> const & input_handle,
 
         // memory-intensive: sequence buffers grown to fit the longest sequence
         vsearch::grow_to_fit(seq_up, static_cast<std::size_t>(seqlen));
-        vsearch::grow_to_fit(rc_seq_up, static_cast<std::size_t>(seqlen));
+        if (parameters.opt_strand)
+          {
+            vsearch::grow_to_fit(rc_seq_up, static_cast<std::size_t>(seqlen));
+          }
 
         if (extra_info and (sequencecount + 1 > alloc_seqs))
           {
