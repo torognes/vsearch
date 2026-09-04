@@ -95,7 +95,6 @@ namespace {
        from (header_get_size returns int64_t); see the same field in
        core/derep.cpp for what a 32-bit field did to a large annotation */
     uint64_t size = 0;
-    unsigned int count = 0;
     bool deleted = false;
   };
 
