@@ -7,6 +7,13 @@
 ## Render every manual page in ./manpages/ as a PDF next to it. This is
 ## a maintainer convenience, not part of the build: the PDF renderings
 ## are not tracked, not installed and not distributed.
+##
+## It needs groff (which is what 'man --troff' below formats through) and
+## ghostscript (ps2pdf). Neither is a vsearch build prerequisite any more:
+## both were dropped from CI, the two Dockerfiles and the README lists once
+## the monolithic PDF/HTML manual pipeline they served was retired, so
+## install them before running this -- groff ghostscript on Debian,
+## groff-base ghostscript on Fedora. require_commands says which is missing.
 
 ## every function below is reached by name through write_output(),
 ## which shellcheck cannot see
