@@ -205,7 +205,7 @@ system-wide.
 : Search sequences against a reference database using global alignment.
 
 
-## Shuffling, sorting, and scrambling
+## Sorting, shuffling and scrambling
 
 **[`vsearch-shuffle(1)`](./commands/vsearch-shuffle.1.md)**
 : Randomize the order of fasta or fastq entries.
