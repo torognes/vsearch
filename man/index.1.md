@@ -196,12 +196,6 @@ system-wide.
 : Use a restriction pattern to cut fasta sequences.
 
 
-## Scrambling
-
-**[`vsearch-scramble(1)`](./commands/vsearch-scramble.1.md)**
-: Randomize the nucleotide order within each fasta or fastq entry.
-
-
 ## Searching
 
 **[`vsearch-search_exact(1)`](./commands/vsearch-search_exact.1.md)**
@@ -211,7 +205,7 @@ system-wide.
 : Search sequences against a reference database using global alignment.
 
 
-## Shuffling and sorting
+## Shuffling, sorting, and scrambling
 
 **[`vsearch-shuffle(1)`](./commands/vsearch-shuffle.1.md)**
 : Randomize the order of fasta or fastq entries.
@@ -221,6 +215,9 @@ system-wide.
 
 **[`vsearch-sortbysize(1)`](./commands/vsearch-sortbysize.1.md)**
 : Sort fasta or fastq sequences by decreasing abundance.
+
+**[`vsearch-scramble(1)`](./commands/vsearch-scramble.1.md)**
+: Randomize the nucleotide order within each fasta or fastq entry.
 
 
 ## Subsampling
