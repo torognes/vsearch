@@ -431,14 +431,7 @@ auto search_exact_query(uint64_t const t, struct search_exact_state_s & state) -
          .first(static_cast<std::size_t>(number_of_strands(parameters.opt_strand))))
     {
       /* mask query */
-      if (parameters.opt_qmask == Masking::dust)
-        {
-          dust(si->qsequence, parameters);
-        }
-      else if ((parameters.opt_qmask == Masking::soft) && parameters.opt_hardmask)
-        {
-          hardmask(si->qsequence);
-        }
+      apply_masking(si->qsequence, parameters.opt_qmask, parameters);
 
       /* perform search */
       search_exact_onequery(si, state.dbhash);
@@ -624,14 +617,7 @@ auto search_exact_prep(struct search_exact_state_s & state) -> void
 
   results_show_samheader(state.fp_samout, parameters.opt_db, state.db, parameters);
 
-  if (parameters.opt_dbmask == Masking::dust)
-    {
-      dust_all(state.db, parameters);
-    }
-  else if ((parameters.opt_dbmask == Masking::soft) && parameters.opt_hardmask)
-    {
-      hardmask_all(state.db);
-    }
+  apply_masking(state.db, parameters.opt_dbmask, parameters);
 
   // memory-intensive: the entire database is now held in memory
 

@@ -2575,14 +2575,7 @@ auto chimera(ChimeraMode const mode, struct Parameters const & parameters) -> vo
       else
         {
           state.db.read(parameters.opt_db, 0, parameters);
-          if (parameters.opt_dbmask == Masking::dust)
-            {
-              dust_all(state.db, parameters);
-            }
-          else if ((parameters.opt_dbmask == Masking::soft) and parameters.opt_hardmask)
-            {
-              hardmask_all(state.db);
-            }
+          apply_masking(state.db, parameters.opt_dbmask, parameters);
           state.dbindex.prepare(parameters.opt_dbmask, state.db, parameters);
           state.dbindex.add_all_sequences(parameters.opt_dbmask, state.db, parameters);
         }
@@ -2602,14 +2595,7 @@ auto chimera(ChimeraMode const mode, struct Parameters const & parameters) -> vo
 
       state.db.read(parameters.input_filename, 0, parameters);
 
-      if (parameters.opt_qmask == Masking::dust)
-        {
-          dust_all(state.db, parameters);
-        }
-      else if ((parameters.opt_qmask == Masking::soft) and parameters.opt_hardmask)
-        {
-          hardmask_all(state.db);
-        }
+      apply_masking(state.db, parameters.opt_qmask, parameters);
 
       state.db.sortbyabundance(parameters);
       state.dbindex.prepare(parameters.opt_qmask, state.db, parameters);

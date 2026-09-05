@@ -397,6 +397,36 @@ auto hardmask(Span<char> const seq) -> void
 }
 
 
+auto apply_masking(struct Database & db, Masking const masking,
+                   struct Parameters const & parameters) -> void
+{
+  if (masking == Masking::dust)
+    {
+      dust_all(db, parameters);
+      return;
+    }
+  if ((masking == Masking::soft) and parameters.opt_hardmask)
+    {
+      hardmask_all(db);
+    }
+}
+
+
+auto apply_masking(Span<char> const sequence, Masking const masking,
+                   struct Parameters const & parameters) -> void
+{
+  if (masking == Masking::dust)
+    {
+      dust(sequence, parameters);
+      return;
+    }
+  if ((masking == Masking::soft) and parameters.opt_hardmask)
+    {
+      hardmask(sequence);
+    }
+}
+
+
 auto hardmask_all(struct Database & db) -> void
 {
   for (uint64_t i = 0; i < db.getsequencecount(); i++)

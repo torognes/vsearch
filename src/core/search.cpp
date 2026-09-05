@@ -313,14 +313,7 @@ auto search_session_single(struct search_session_s * ss,
   for (auto * const strand_si : make_view(strands)
          .first(static_cast<std::size_t>(number_of_strands(parameters.opt_strand))))
     {
-      if (parameters.opt_qmask == Masking::dust)
-        {
-          dust(strand_si->qsequence, parameters);
-        }
-      else if ((parameters.opt_qmask == Masking::soft) && parameters.opt_hardmask)
-        {
-          hardmask(strand_si->qsequence);
-        }
+      apply_masking(strand_si->qsequence, parameters.opt_qmask, parameters);
 
       search_onequery(strand_si, parameters.opt_qmask);
     }
@@ -442,14 +435,7 @@ static auto search_batch_worker_fn(struct search_batch_context_s & ctx,
     for (auto * const strand_si : make_view(strands)
            .first(static_cast<std::size_t>(number_of_strands(parameters.opt_strand))))
       {
-        if (parameters.opt_qmask == Masking::dust)
-          {
-            dust(strand_si->qsequence, parameters);
-          }
-        else if ((parameters.opt_qmask == Masking::soft) && parameters.opt_hardmask)
-          {
-            hardmask(strand_si->qsequence);
-          }
+        apply_masking(strand_si->qsequence, parameters.opt_qmask, parameters);
 
         search_onequery(strand_si, parameters.opt_qmask);
       }
