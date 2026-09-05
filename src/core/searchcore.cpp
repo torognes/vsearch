@@ -81,6 +81,7 @@
 #include <cstddef>  // std::size_t
 #include <iterator>  // std::distance, std::next
 #include <limits>
+#include <numeric>  // std::accumulate
 #include <utility>  // std::move
 #include <vector>
 
@@ -267,6 +268,81 @@ auto add_candidate(struct searchinfo_s & searchinfo,
 
   searchinfo.m.add(novel);
 }
+
+
+/* Offer every indexed sequence whose counter clears `minmatches` to the
+   candidate heap.
+
+   Most of those are dropped by the heap on their count alone (97% of them on
+   a 20 000-sequence amplicon database), after add_candidate has paid for two
+   random accesses to build an element nothing reads. A candidate has to clear
+   both minmatches and the heap's own threshold, and neither of those falls
+   while this runs, so whole blocks of counters below that bound can be
+   dismissed without looking at them one by one. Blocks that survive are still
+   offered a counter at a time, and each counter is re-tested, so which
+   candidates reach the heap does not depend on the blocking.
+
+   block_size is one 128-bit vector of counters, the width every architecture
+   vsearch supports provides. std::accumulate over a span of that fixed length
+   is what the auto-vectorizer turns into a horizontal maximum (the SSE2
+   psubusw/paddw idiom on x86-64, `umaxv` on aarch64, VSX on ppc64le), and it
+   falls back to a scalar fold everywhere else. Both halves of that sentence
+   are load-bearing: a run-time block length, or a short-circuiting search
+   such as std::any_of, is left scalar on every target. So is
+   std::max_element, which stays scalar even under an execution policy
+   because it has to return an iterator to the *first* maximal element.
+
+   // C++17 refactoring: replace with std::reduce, which expresses this fold
+   // directly and takes an execution policy; it generates the same code today
+
+   A View rather than a Span: the scan only reads the counters, and the view
+   is the counters of the indexed sequences and nothing else, so its own
+   length is the bound. Taking a separate count beside it would be a second
+   unsigned int the caller could swap with minmatches. */
+auto offer_counted_sequences(struct searchinfo_s & searchinfo,
+                             View<count_t> const kmer_counts,
+                             unsigned int const minmatches) -> void
+{
+  /* 32-bit on purpose, as at the call site: widening the loop bound to
+     std::size_t costs ~1 instruction per indexed sequence */
+  assert(kmer_counts.size() <= std::numeric_limits<unsigned int>::max());
+  auto const indexed_count = static_cast<unsigned int>(kmer_counts.size());
+
+  auto const offer = [&](unsigned int const index) -> void {
+    auto const count = kmer_counts[index];
+    if ((count >= minmatches) and searchinfo.m.may_accept(count))
+      {
+        add_candidate(searchinfo, index, count);
+      }
+  };
+
+  constexpr auto block_size = 8U;
+  auto const largest = [](count_t const acc, count_t const value) -> count_t {
+    return std::max(acc, value);
+  };
+
+  auto const blocks_end = indexed_count - (indexed_count % block_size);
+  for (auto i = 0U; i < blocks_end; i += block_size)
+    {
+      auto const threshold = std::max(minmatches, searchinfo.m.accept_threshold());
+      auto const block = kmer_counts.subspan(i, block_size);
+      auto const block_max = std::accumulate(block.cbegin(), block.cend(),
+                                             count_t{0}, largest);
+      if (static_cast<unsigned int>(block_max) < threshold)
+        {
+          continue;
+        }
+      for (auto offset = 0U; offset < block_size; ++offset)
+        {
+          offer(i + offset);
+        }
+    }
+
+  for (auto i = blocks_end; i < indexed_count; ++i)
+    {
+      offer(i);
+    }
+}
 }  // anonymous namespace
 
 
@@ -361,20 +437,9 @@ auto search_topscores(struct searchinfo_s * searchinfo) -> void
   auto const minmatches = std::min(static_cast<unsigned int>(parameters.opt_minwordmatches),
                                    static_cast<unsigned int>(searchinfo->kmersample.size()));
 
-  /* Most of the sequences clearing minmatches are dropped by the heap on
-     their count alone (97% of them on a 20 000-sequence amplicon database),
-     after add_candidate has paid for two random accesses to build an element
-     nothing reads. Minheap::may_accept answers that from the root count
-     alone, and answers it identically to add(), so the selection is
-     unchanged. */
-  for (auto i = 0U; i < indexed_count; i++)
-    {
-      auto const count = kmer_counts[i];
-      if ((count >= minmatches) and searchinfo->m.may_accept(count))
-        {
-          add_candidate(*searchinfo, i, count);
-        }
-    }
+  /* read-only from here on, and only as far as the indexed sequences reach */
+  auto const counted = View<count_t>{kmer_counts}.first(indexed_count);
+  offer_counted_sequences(*searchinfo, counted, minmatches);
 
   /* The candidates the loop above cannot reach: a target holding fewer
      distinct k-mers than minmatches can never share minmatches of them, so it
