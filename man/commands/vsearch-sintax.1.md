@@ -68,6 +68,13 @@ is multi-threaded.
 ## mandatory options
 
 #(./fragments/option_db_sintax.md)
+: Note: a UDB database is not interchangeable with the fasta file it was
+  built from. `vsearch-makeudb_usearch(1)` masks with *dust* by default and
+  stores the masked sequences, whereas `--sintax` never runs the DUST
+  algorithm on a fasta database (see `--dbmask` below). The same reference
+  therefore yields different classifications in its two forms. Build the UDB
+  with [`vsearch-makeudb_usearch(1)`](./vsearch-makeudb_usearch.1.md)
+  `--dbmask none` to obtain results identical to the fasta database.
 
 #(./fragments/option_tabbedout_sintax.md)
 
@@ -78,7 +85,8 @@ is multi-threaded.
 : Note: `--sintax` does not run the DUST algorithm on the database:
   masking only controls whether lowercase regions of the reference
   sequences are ignored when indexing, so `dust` (the default) behaves
-  like `soft`.
+  like `soft`. This option has no effect on a UDB database, whose
+  sequences were masked when the UDB was built (see `--db`).
 
 #(./fragments/option_randseed.md)
 
