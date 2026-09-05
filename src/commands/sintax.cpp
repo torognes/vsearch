@@ -410,6 +410,14 @@ auto sintax_search_topscores(struct searchinfo_s * searchinfo,
   for (auto i = 0U; i < indexed_count; i++)
     {
       count_t const count = kmer_counts[i];
+      /* Nothing below the running best is read by the body: both branches
+         require count >= best.count, so the two random accesses that follow,
+         the tie handling and its --sintax_random draw are all wasted on a
+         lower count. best.count never decreases, so a sequence skipped here
+         could not have won later either. The sentinel best.count of 0 ties
+         rather than skips, which is what keeps the first sequence eligible
+         when no k-mer is shared at all. */
+      if (count < best.count) { continue; }
       auto const seqno = searchinfo->dbindex->getmapping(i);
       auto const length = static_cast<unsigned int>(searchinfo->db->getsequencelen(seqno));
 
@@ -419,30 +427,30 @@ auto sintax_search_topscores(struct searchinfo_s * searchinfo,
           best.seqno = seqno;
           best.length = length;
           tophit_count = 1;
+          continue;
         }
-      else if (count == best.count)
+
+      /* a tie: the only case the early-out above leaves */
+      assert(count == best.count);
+      if (parameters.opt_sintax_random)
         {
-          if (parameters.opt_sintax_random)
+          tophit_count++;
+          if (random_bounded(rng, tophit_count) == 0)
             {
-              tophit_count++;
-              if (random_bounded(rng, tophit_count) == 0)
-                {
-                  best.seqno = seqno;
-                  best.length = length;
-                }
+              best.seqno = seqno;
+              best.length = length;
             }
-          else
-            {
-              if (length < best.length)
-                {
-                  best.seqno = seqno;
-                  best.length = length;
-                }
-              else if (length == best.length)
-                {
-                  best.seqno = std::min(seqno, best.seqno);
-                }
-            }
+          continue;
+        }
+
+      if (length < best.length)
+        {
+          best.seqno = seqno;
+          best.length = length;
+        }
+      else if (length == best.length)
+        {
+          best.seqno = std::min(seqno, best.seqno);
         }
     }
 
