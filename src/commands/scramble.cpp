@@ -305,7 +305,7 @@ namespace {
       if (sequence.size() <= static_cast<std::size_t>(kmer)) {
         return;
       }
-      graph_.rebuild(static_cast<View<char>>(sequence), kmer);
+      graph_.rebuild(View<char>{sequence}, kmer);
       select_last_exits(generator);
       shuffle_out_edges(generator);
       rewrite(sequence, kmer);

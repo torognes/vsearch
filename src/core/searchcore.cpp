@@ -81,6 +81,7 @@
 #include <cstddef>  // std::size_t
 #include <iterator>  // std::distance, std::next
 #include <limits>
+#include <numeric>  // std::accumulate
 #include <utility>  // std::move
 #include <vector>
 
@@ -251,6 +252,88 @@ inline auto hit_compare_bysize_typed(struct hit const & lhs, struct hit const & 
 }
 
 
+/* One slice of the counter array, and the index the slice starts at so that
+   what it reports is still the database's own numbering. Named fields rather
+   than a view beside a bare unsigned int a call site would be free to swap
+   with the other one it is handed (compare LowKmerTarget). */
+struct CounterSlice
+{
+  View<count_t> counts;
+  unsigned int first_index;
+};
+
+
+/* Count this slice's k-mer hits. Running the whole query k-mer sample against
+   one slice leaves that slice's counters final, because a counter depends
+   only on its own sequence's bit in each k-mer's bitmap. */
+auto accumulate_slice_counts(struct searchinfo_s const & searchinfo,
+#ifdef __x86_64__
+                             struct Parameters const & parameters,
+#else
+                             /* only x86-64 picks its kernel at run time; every
+                                other target builds a single plain-named
+                                variant (see arch/increment_counters.hpp) */
+                             // C++17 refactoring: [[maybe_unused]] and a name
+                             struct Parameters const &,
+#endif
+                             Span<count_t> const slice,
+                             unsigned int const first_index) -> void
+{
+  assert(slice.size() <= std::numeric_limits<unsigned int>::max());
+  auto const slice_length = static_cast<unsigned int>(slice.size());
+  auto const slice_end = first_index + slice_length;
+
+  std::fill_n(slice.begin(), slice_length, count_t{0});
+
+  for (auto const kmer : searchinfo.kmersample)
+    {
+      auto const * const bitmap = searchinfo.dbindex->getbitmap(kmer);
+
+      if (bitmap != nullptr)
+        {
+          /* one bit per indexed sequence, so the slice starts at the whole
+             byte first_index / 8 */
+          auto const * const bits = std::next(bitmap, first_index / 8);
+#ifdef __x86_64__
+          if (parameters.runtime.ssse3_present != 0)
+            {
+              increment_counters_from_bitmap_ssse3(slice.data(), bits, slice_length);
+            }
+          else
+            {
+              increment_counters_from_bitmap_sse2(slice.data(), bits, slice_length);
+            }
+#else
+          increment_counters_from_bitmap(slice.data(), bits, slice_length);
+#endif
+          continue;
+        }
+
+      /* Dbindex::add_sequence appends to a k-mer's list as it indexes the
+         sequences, so the list is in increasing index order and the entries
+         falling in this slice are a contiguous range. */
+      auto const * const list = searchinfo.dbindex->getmatchlist(kmer);
+      auto const count = searchinfo.dbindex->getmatchcount(kmer);
+      auto const * const last = std::next(list, count);
+      auto const * const first_in_slice = std::lower_bound(list, last, first_index);
+      auto const * const end_of_slice = std::lower_bound(first_in_slice, last, slice_end);
+      for (auto const * entry = first_in_slice; entry != end_of_slice; entry = std::next(entry))
+        {
+          /* Saturate at INT16_MAX (32767) rather than letting the
+             unsigned-short counter wrap at 65536. The SIMD bitmap path
+             (increment_counters_from_bitmap*) increments these counters
+             with signed saturation and so caps at 32767; matching that
+             here keeps every counter in [0, 32767], where the two paths
+             agree and neither can wrap a high-overlap target's count back
+             to ~0 and silently drop it from the candidate set (the cap is
+             far above any realistic minwordmatches). */
+          count_t & counter = slice[*entry - first_index];
+          if (counter < INT16_MAX) { ++counter; }
+        }
+    }
+}
+
+
 /* offer one index element to the candidate heap, which keeps the best
    `capacity` of them; shared by the counter loop of search_topscores and by
    its second pass over the low-k-mer targets */
@@ -266,6 +349,82 @@ auto add_candidate(struct searchinfo_s & searchinfo,
   novel.length = static_cast<unsigned int>(searchinfo.db->getsequencelen(seqno));
 
   searchinfo.m.add(novel);
+}
+
+
+/* Offer every indexed sequence whose counter clears `minmatches` to the
+   candidate heap.
+
+   Most of those are dropped by the heap on their count alone (97% of them on
+   a 20 000-sequence amplicon database), after add_candidate has paid for two
+   random accesses to build an element nothing reads. A candidate has to clear
+   both minmatches and the heap's own threshold, and neither of those falls
+   while this runs, so whole blocks of counters below that bound can be
+   dismissed without looking at them one by one. Blocks that survive are still
+   offered a counter at a time, and each counter is re-tested, so which
+   candidates reach the heap does not depend on the blocking.
+
+   block_size is one 128-bit vector of counters, the width every architecture
+   vsearch supports provides. std::accumulate over a span of that fixed length
+   is what the auto-vectorizer turns into a horizontal maximum (the SSE2
+   psubusw/paddw idiom on x86-64, `umaxv` on aarch64, VSX on ppc64le), and it
+   falls back to a scalar fold everywhere else. Both halves of that sentence
+   are load-bearing: a run-time block length, or a short-circuiting search
+   such as std::any_of, is left scalar on every target. So is
+   std::max_element, which stays scalar even under an execution policy
+   because it has to return an iterator to the *first* maximal element.
+
+   // C++17 refactoring: replace with std::reduce, which expresses this fold
+   // directly and takes an execution policy; it generates the same code today
+
+   The slice arrives as a CounterSlice rather than a view beside a bare
+   index, which would be a second unsigned int the call site could swap with
+   minmatches. Its view is read-only: the scan only reads the counters, and
+   it covers that slice and nothing else, so its own length is the bound. */
+auto offer_counted_sequences(struct searchinfo_s & searchinfo,
+                             struct CounterSlice const slice,
+                             unsigned int const minmatches) -> void
+{
+  auto const kmer_counts = slice.counts;
+  /* 32-bit on purpose, as at the call site: widening the loop bound to
+     std::size_t costs ~1 instruction per indexed sequence */
+  assert(kmer_counts.size() <= std::numeric_limits<unsigned int>::max());
+  auto const indexed_count = static_cast<unsigned int>(kmer_counts.size());
+
+  auto const offer = [&](unsigned int const index) -> void {
+    auto const count = kmer_counts[index];
+    if ((count >= minmatches) and searchinfo.m.may_accept(count))
+      {
+        add_candidate(searchinfo, slice.first_index + index, count);
+      }
+  };
+
+  constexpr auto block_size = 8U;
+  auto const largest = [](count_t const acc, count_t const value) -> count_t {
+    return std::max(acc, value);
+  };
+
+  auto const blocks_end = indexed_count - (indexed_count % block_size);
+  for (auto i = 0U; i < blocks_end; i += block_size)
+    {
+      auto const threshold = std::max(minmatches, searchinfo.m.accept_threshold());
+      auto const block = kmer_counts.subspan(i, block_size);
+      auto const block_max = std::accumulate(block.cbegin(), block.cend(),
+                                             count_t{0}, largest);
+      if (static_cast<unsigned int>(block_max) < threshold)
+        {
+          continue;
+        }
+      for (auto offset = 0U; offset < block_size; ++offset)
+        {
+          offer(i + offset);
+        }
+    }
+
+  for (auto i = blocks_end; i < indexed_count; ++i)
+    {
+      offer(i);
+    }
 }
 }  // anonymous namespace
 
@@ -306,51 +465,7 @@ auto search_topscores(struct searchinfo_s * searchinfo) -> void
   auto const kmer_counts = make_span(searchinfo->kmers_v);
   assert(indexed_count <= kmer_counts.size());
 
-  /* zero counts */
-  std::fill_n(kmer_counts.begin(), indexed_count, count_t{0});
-
   searchinfo->m.clear();
-
-  for (auto const kmer : searchinfo->kmersample)
-    {
-      auto const * bitmap = searchinfo->dbindex->getbitmap(kmer);
-
-      if (bitmap != nullptr)
-        {
-#ifdef __x86_64__
-          if (parameters.runtime.ssse3_present != 0)
-            {
-              increment_counters_from_bitmap_ssse3(kmer_counts.data(),
-                                                   bitmap, indexed_count);
-            }
-          else
-            {
-              increment_counters_from_bitmap_sse2(kmer_counts.data(),
-                                                  bitmap, indexed_count);
-            }
-#else
-          increment_counters_from_bitmap(kmer_counts.data(), bitmap, indexed_count);
-#endif
-        }
-      else
-        {
-          auto const * list = searchinfo->dbindex->getmatchlist(kmer);
-          auto const count = searchinfo->dbindex->getmatchcount(kmer);
-          for (auto j = 0U; j < count; j++)
-            {
-              /* Saturate at INT16_MAX (32767) rather than letting the
-                 unsigned-short counter wrap at 65536. The SIMD bitmap path
-                 (increment_counters_from_bitmap*) increments these counters
-                 with signed saturation and so caps at 32767; matching that
-                 here keeps every counter in [0, 32767], where the two paths
-                 agree and neither can wrap a high-overlap target's count back
-                 to ~0 and silently drop it from the candidate set (the cap is
-                 far above any realistic minwordmatches). */
-              count_t & counter = kmer_counts[list[j]];
-              if (counter < INT16_MAX) { ++counter; }
-            }
-        }
-    }
 
   /* 32-bit on purpose: the counters compared against it below are count_t
      (unsigned short), and widening the bound to std::size_t costs ~1
@@ -361,36 +476,82 @@ auto search_topscores(struct searchinfo_s * searchinfo) -> void
   auto const minmatches = std::min(static_cast<unsigned int>(parameters.opt_minwordmatches),
                                    static_cast<unsigned int>(searchinfo->kmersample.size()));
 
-  for (auto i = 0U; i < indexed_count; i++)
-    {
-      auto const count = kmer_counts[i];
-      if (count >= minmatches)
-        {
-          add_candidate(*searchinfo, i, count);
-        }
-    }
-
-  /* The candidates the loop above cannot reach: a target holding fewer
-     distinct k-mers than minmatches can never share minmatches of them, so it
-     was asked for more evidence than it can supply -- an exact match included
-     (torognes/vsearch#328). Offer each of them the threshold it can meet,
-     min(minmatches, its own count), which only ever lowers a threshold that
-     was unachievable and so leaves every candidate selected above untouched.
-     The list holds no k-mer-less target (see Dbindex::low_kmer_targets), hence
-     no threshold of zero here, and it is empty unless the database really
-     holds short or heavily masked sequences. Offering these after the loop
-     rather than in index order cannot change the outcome: the heap ranks
-     candidates by count, then length, then sequence number, a strict total
-     order over distinct targets, so which ones it keeps does not depend on the
-     order they arrive in. */
+  /* The low-k-mer targets are read alongside the slice that holds them, so
+     the cursor walks the list once over the whole scan: Dbindex::add_sequence
+     appends them as it indexes, hence in increasing index order. */
   assert(searchinfo->dbindex->minwordmatches ==
          static_cast<unsigned int>(parameters.opt_minwordmatches));
-  for (auto const & target : searchinfo->dbindex->low_kmer_targets)
+  auto const & low_kmer_targets = searchinfo->dbindex->low_kmer_targets;
+  auto low_kmer_cursor = low_kmer_targets.cbegin();
+
+  /* Count the k-mer hits one slice of the database at a time, rather than
+     making a full pass over every counter for every sampled k-mer.
+
+     A counter depends only on its own sequence's bit in each k-mer's bitmap,
+     so running the whole k-mer sample against one slice leaves that slice
+     final, and its candidates can be offered before the next slice is
+     touched. What the heap keeps does not depend on the order candidates
+     arrive in (see offer_counted_sequences), so the output is unchanged.
+
+     What this buys is memory traffic. The counter array is per-thread, and a
+     query walks it once per sampled k-mer -- about 120 times. While it fits a
+     core's private cache those passes are nearly free; once it does not, each
+     one streams from memory, and every thread streams at once. A slice keeps
+     the working set cache-resident whatever the size of the database, which
+     is what lets --threads keep scaling past a million references.
+
+     Which cache level the slice reaches barely matters -- anything from a few
+     hundred counters to half a million measures within a few per cent on a
+     large database, because the point is that the slice leaves main memory at
+     all. What does matter is the other end of the range: every slice repeats
+     the walk over the k-mer sample, so a slice smaller than the database
+     charges the bitmap lookups and the list bisections below once per slice.
+     Half a million counters is 1 MB, small enough to stay in a core's private
+     cache and large enough that a database of half a million sequences or
+     fewer -- which is most of them -- is a single slice and pays nothing.
+
+     It has to be a multiple of eight, so that a slice starts on a 16-byte
+     boundary (the SIMD kernels store counters aligned) and on a whole byte of
+     bitmap. */
+  constexpr auto slice_size = 524288U;
+  static_assert(slice_size % 8 == 0, "a slice must start 16-byte aligned");
+
+  for (auto slice_start = 0U; slice_start < indexed_count; slice_start += slice_size)
     {
-      auto const count = kmer_counts[target.index];
-      if ((count < minmatches) and (count >= std::min(minmatches, target.kmers)))
+      auto const slice_length = std::min(slice_size, indexed_count - slice_start);
+      auto const slice = kmer_counts.subspan(slice_start, slice_length);
+      auto const slice_end = slice_start + slice_length;
+
+      accumulate_slice_counts(*searchinfo, parameters, slice, slice_start);
+
+      offer_counted_sequences(*searchinfo,
+                              CounterSlice{View<count_t>{slice}, slice_start},
+                              minmatches);
+
+      /* The candidates the scan above cannot reach: a target holding fewer
+         distinct k-mers than minmatches can never share minmatches of them, so
+         it was asked for more evidence than it can supply -- an exact match
+         included (torognes/vsearch#328). Offer each of them the threshold it
+         can meet, min(minmatches, its own count), which only ever lowers a
+         threshold that was unachievable and so leaves every candidate selected
+         above untouched. The list holds no k-mer-less target (see
+         Dbindex::low_kmer_targets), hence no threshold of zero here, and it is
+         empty unless the database really holds short or heavily masked
+         sequences. Offering these after the slice rather than in index order
+         cannot change the outcome: the heap ranks candidates by count, then
+         length, then sequence number, a strict total order over distinct
+         targets, so which ones it keeps does not depend on the order they
+         arrive in. */
+      while ((low_kmer_cursor != low_kmer_targets.cend()) and
+             (low_kmer_cursor->index < slice_end))
         {
-          add_candidate(*searchinfo, target.index, count);
+          auto const count = slice[low_kmer_cursor->index - slice_start];
+          if ((count < minmatches) and
+              (count >= std::min(minmatches, low_kmer_cursor->kmers)))
+            {
+              add_candidate(*searchinfo, low_kmer_cursor->index, count);
+            }
+          low_kmer_cursor = std::next(low_kmer_cursor);
         }
     }
 
