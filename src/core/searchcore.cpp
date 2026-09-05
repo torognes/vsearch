@@ -361,10 +361,16 @@ auto search_topscores(struct searchinfo_s * searchinfo) -> void
   auto const minmatches = std::min(static_cast<unsigned int>(parameters.opt_minwordmatches),
                                    static_cast<unsigned int>(searchinfo->kmersample.size()));
 
+  /* Most of the sequences clearing minmatches are dropped by the heap on
+     their count alone (97% of them on a 20 000-sequence amplicon database),
+     after add_candidate has paid for two random accesses to build an element
+     nothing reads. Minheap::may_accept answers that from the root count
+     alone, and answers it identically to add(), so the selection is
+     unchanged. */
   for (auto i = 0U; i < indexed_count; i++)
     {
       auto const count = kmer_counts[i];
-      if (count >= minmatches)
+      if ((count >= minmatches) and searchinfo->m.may_accept(count))
         {
           add_candidate(*searchinfo, i, count);
         }

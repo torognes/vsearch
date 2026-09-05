@@ -61,6 +61,7 @@
 #pragma once
 
 #include "utils/fatal_allocator.hpp"  // FatalAllocator
+#include <cassert>  // assert
 #include <cstddef>  // std::size_t
 #include <vector>  // std::vector
 
@@ -86,6 +87,22 @@ public:
   auto add(elem_t const & element) -> void;
   auto sort() -> void;
   auto pop_last() -> elem_t;
+
+  /* False when add() is guaranteed to discard an element carrying that count,
+     so that a caller can skip building one. The heap keeps its minimum at the
+     root and orders on count first, so a full heap drops anything strictly
+     below the root count. Ties are not decided here: they still go through
+     add(), which breaks them on length and then on sequence number. Once the
+     heap is full its root count never decreases (replace_root only ever takes
+     an element the ordering places above the root), so an element skipped here
+     could not have been kept by a later add() either. */
+  auto may_accept(unsigned int const count) const -> bool
+  {
+    /* a full heap has a root to compare against; an empty heap counts as full
+       only when built with no capacity at all, and such a heap accepts nothing */
+    assert(capacity_ != 0);
+    return (array_.size() < capacity_) or (count >= array_.front().count);
+  }
 
 private:
   auto replace_root(elem_t tmp) -> void;
