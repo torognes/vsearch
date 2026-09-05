@@ -61,7 +61,7 @@
 #pragma once
 
 
-#include <cctype>  // std::isalnum, std::isdigit, std::isupper, std::tolower, std::toupper
+#include <cctype>  // std::isalnum, std::isdigit
 
 
 // Guarded wrappers around the single-character <cctype> functions.
@@ -81,12 +81,29 @@
 // vsearch never calls std::setlocale, so these run in the "C" locale, where
 // they are plain ASCII case folding and classification.
 
+// The three case helpers spell the "C" locale mapping out rather than calling
+// libc, which reaches it through __ctype_toupper_loc(): a thread-local load and
+// an indirect table lookup, per character, in a function the compiler cannot
+// inline or vectorise. dust_core() folds case over every base of every sequence
+// and --fastx_mask classifies every base again, which made libc's toupper 1.6 %
+// and isupper 1.0 % of a masking run. The arithmetic below is the same mapping
+// by the paragraph above: only one case's letters move, everything else is
+// identity. is_alnum and is_digit keep calling libc: they are not on a hot
+// path, and is_alnum in particular classifies far more than these letters do.
 inline auto to_upper(char const character) -> char {
-  return static_cast<char>(std::toupper(static_cast<unsigned char>(character)));
+  static constexpr auto letters_in_alphabet = 26U;
+  static constexpr auto case_bit = 32U;  // 0x20, the distance between cases
+  auto const byte = static_cast<unsigned char>(character);
+  auto const is_lower_case = static_cast<unsigned int>(byte - 'a') < letters_in_alphabet;
+  return static_cast<char>(byte - (is_lower_case ? case_bit : 0U));
 }
 
 inline auto to_lower(char const character) -> char {
-  return static_cast<char>(std::tolower(static_cast<unsigned char>(character)));
+  static constexpr auto letters_in_alphabet = 26U;
+  static constexpr auto case_bit = 32U;  // 0x20, the distance between cases
+  auto const byte = static_cast<unsigned char>(character);
+  auto const is_upper_case = static_cast<unsigned int>(byte - 'A') < letters_in_alphabet;
+  return static_cast<char>(byte + (is_upper_case ? case_bit : 0U));
 }
 
 inline auto is_alnum(char const character) -> bool {
@@ -98,5 +115,6 @@ inline auto is_digit(char const character) -> bool {
 }
 
 inline auto is_upper(char const character) -> bool {
-  return std::isupper(static_cast<unsigned char>(character)) != 0;
+  static constexpr auto letters_in_alphabet = 26U;
+  return static_cast<unsigned int>(static_cast<unsigned char>(character) - 'A') < letters_in_alphabet;
 }
