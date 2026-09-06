@@ -90,6 +90,7 @@
 #include <algorithm>  // std::copy, std::fill, std::fill_n, std::max, std::max_element, std::min, std::sort, std::transform
 #include <array>
 #include <cassert>
+#include <cstddef> // std::ptrdiff_t, std::size_t
 #include <cstdint> // int64_t, uint64_t
 #include <cstdio>  // std::FILE, std::fprintf, std::fputs
 #include <iterator>  // std::next
