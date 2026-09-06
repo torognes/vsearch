@@ -9,6 +9,16 @@ runs:
   using: composite
   steps:
     - shell: bash
+      env:
+        # "brew install" runs an implicit "brew update" of its own unless
+        # this is set, which would undo the whole point of the step below:
+        # a refreshed formula index marks every preinstalled formula
+        # outdated, and installing a tool then upgrades its outdated
+        # dependencies -- on Intel, with no bottles any more, by compiling
+        # them. That is the 9 min 46 s failure of 2026-09-03, and it is
+        # reachable again now that the images ship neither autoconf nor
+        # automake and the install path is the common one.
+        HOMEBREW_NO_AUTO_UPDATE: 1
       run: |
         # ./autogen.sh runs autoreconf, so this job needs autoconf and
         # automake, and nothing else. configure.ac asks for very little of
@@ -32,15 +42,21 @@ runs:
         # macOS runner images and make brew noisy; hashicorp/tap now makes it
         # print a hard error as it scans formulae ("hashicorp/tap/vagrant:
         # formula requires at least a URL"). We use nothing from them, so
-        # remove them before installing. azure/bicep ships an installed
-        # formula (bicep): uninstall it first so the tap untaps cleanly
-        # without --force (which would itself print a warning). Each removal
-        # stays quiet and non-fatal on a future image that no longer has these
-        # taps/formulae, as before; it is written as an "if" rather than
-        # chained with "&&" so that it no longer relies on another command
-        # following it, a failing "&&" list being the step's exit status when
-        # it comes last. We do NOT silence stderr of the actual operations:
-        # hiding it is what masked an earlier failure.
+        # remove them before installing.
+        #
+        # That removal is housekeeping, not a prerequisite: nothing in the
+        # loop below may fail the step, only "brew install" may. It could,
+        # and that is the 2026-09-06 failure: a tap that still has one of
+        # its own formulae installed refuses to untap and exits 1, and
+        # "brew untap hashicorp/tap" met hashicorp/tap/packer -- new on the
+        # image -- and took the whole job down with it. So a tap's installed
+        # formulae and casks are uninstalled first, and they are queried
+        # rather than named (bicep from azure/bicep was named here, before
+        # packer appeared next to it), with --force behind that as a last
+        # resort: it downgrades that refusal to a warning. Each removal
+        # stays quiet and non-fatal on a future image that no longer has
+        # these taps/formulae, as before. We do NOT silence stderr of the
+        # actual operations: hiding it is what masked an earlier failure.
         missing=()
         for tool in autoconf automake ; do
           if ! command -v "$tool" >/dev/null 2>&1 ; then
@@ -50,13 +66,21 @@ runs:
 
         if [ "${#missing[@]}" -gt 0 ] ; then
           echo "installing: ${missing[*]}"
-          if brew list bicep >/dev/null 2>&1 ; then
-            brew uninstall bicep
-          fi
           for tap in aws/tap azure/bicep hashicorp/tap ; do
-            if brew tap | grep -qx "$tap" ; then
-              brew untap "$tap"
+            if ! brew tap | grep -qx "$tap" ; then
+              continue
             fi
+            for kind in formula cask ; do
+              installed=()
+              # grep exits 1 when the tap has nothing installed
+              while IFS= read -r package ; do
+                installed+=("$package")
+              done < <(brew list "--$kind" --full-name | grep "^$tap/" || true)
+              if [ "${#installed[@]}" -gt 0 ] ; then
+                brew uninstall "--$kind" "${installed[@]}" || true
+              fi
+            done
+            brew untap "$tap" || brew untap --force "$tap" || true
           done
           brew install "${missing[@]}"
         fi
