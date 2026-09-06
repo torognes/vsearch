@@ -753,18 +753,30 @@ auto find_best_parents(struct chimera_info_s * ci) -> int
           /* wipe out matches for all candidates in positions
              covered by the previous parent */
 
+          /* Every winning qpos clears the window ending at it, and qpos only
+             increases, so consecutive winners ask for windows overlapping in
+             all but one position. Clearing a position is idempotent, so
+             skipping what an earlier window already cleared leaves exactly the
+             same array: wiped_upto is the first position not yet cleared. */
+          int wiped_upto = 0;
           for (int qpos = window - 1; qpos < ci->query_len; ++qpos)
             {
               int const z = (best_parent_cand[static_cast<size_t>(f - 1)] * ci->query_len) + qpos;
               if (ci->smooth[static_cast<size_t>(z)] == ci->maxsmooth[static_cast<size_t>(qpos)])
                 {
-                  for (int i = qpos + 1 - window; i <= qpos; ++i)
+                  int const first = std::max(qpos + 1 - window, wiped_upto);
+                  /* wiped_upto is a previous qpos plus one and qpos grows, so
+                     the window is never entirely behind the cleared prefix */
+                  assert(first <= qpos);
+                  for (int j = 0; j < ci->cand_count; ++j)
                     {
-                      for (int j = 0; j < ci->cand_count; ++j)
-                        {
-                          ci->match[static_cast<size_t>((j * ci->query_len) + i)] = 0;
-                        }
+                      auto const row = static_cast<std::ptrdiff_t>(j) *
+                                       static_cast<std::ptrdiff_t>(ci->query_len);
+                      std::fill(std::next(ci->match.begin(), row + first),
+                                std::next(ci->match.begin(), row + qpos + 1),
+                                0);
                     }
+                  wiped_upto = qpos + 1;
                 }
             }
         }
