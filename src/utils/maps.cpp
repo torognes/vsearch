@@ -300,37 +300,6 @@ constexpr std::array<unsigned char, 256> chrmap_no_change_vector = {{
     'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N',},};
 
 
-constexpr std::array<unsigned char, 256> chrmap_normalize_vector =
-  {{
-    /*
-
-      Map from ascii to ascii
-      Convert to upper case nucleotide, and replace U by T
-
-     @   A   B   C   D   E   F   G   H   I   J   K   L   M   N   O
-     P   Q   R   S   T   U   V   W   X   Y   Z   [   \   ]   ^   _
-    */
-
-    'N','N','N','N','N','N','N','N','N','N','N','N','N','N','N','N',
-    'N','N','N','N','N','N','N','N','N','N','N','N','N','N','N','N',
-    'N','N','N','N','N','N','N','N','N','N','N','N','N','N','N','N',
-    'N','N','N','N','N','N','N','N','N','N','N','N','N','N','N','N',
-
-    'N','A','B','C','D','N','N','G','H','N','N','K','N','M','N','N',
-    'N','N','R','S','T','T','V','W','N','Y','N','N','N','N','N','N',
-    'N','A','B','C','D','N','N','G','H','N','N','K','N','M','N','N',
-    'N','N','R','S','T','T','V','W','N','Y','N','N','N','N','N','N',
-
-    'N','N','N','N','N','N','N','N','N','N','N','N','N','N','N','N',
-    'N','N','N','N','N','N','N','N','N','N','N','N','N','N','N','N',
-    'N','N','N','N','N','N','N','N','N','N','N','N','N','N','N','N',
-    'N','N','N','N','N','N','N','N','N','N','N','N','N','N','N','N',
-
-    'N','N','N','N','N','N','N','N','N','N','N','N','N','N','N','N',
-    'N','N','N','N','N','N','N','N','N','N','N','N','N','N','N','N',
-    'N','N','N','N','N','N','N','N','N','N','N','N','N','N','N','N',
-    'N','N','N','N','N','N','N','N','N','N','N','N','N','N','N','N',
-  },};
 
 
 constexpr std::array<unsigned char, 256> chrmap_upcase_vector =
@@ -371,11 +340,6 @@ constexpr std::array<unsigned char, 256> chrmap_upcase_vector =
 
 auto chrmap_no_change() -> unsigned char const * {
   return chrmap_no_change_vector.data();
-}
-
-
-auto chrmap_normalize() -> unsigned char const * {
-  return chrmap_normalize_vector.data();
 }
 
 

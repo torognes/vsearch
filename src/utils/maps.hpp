@@ -109,8 +109,6 @@ inline auto map_accepted_base(char const base) -> char {
 
 auto chrmap_no_change() -> unsigned char const *;
 
-auto chrmap_normalize() -> unsigned char const *;
-
 auto chrmap_upcase() -> unsigned char const *;
 
 auto chrmap_complement() -> unsigned char const *;

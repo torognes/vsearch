@@ -58,23 +58,40 @@
 
 */
 
-#include "string_normalize.hpp"
-#include "utils/maps/normalize.hpp"  // vsearch::maps::normalize
-#include "utils/span.hpp"
-#include "utils/view.hpp"
-#include <algorithm>  // std::transform
-#include <cassert>
+#pragma once
+
+#include <cassert>  // assert
 
 
-namespace normalize = vsearch::maps::normalize;
+/* The one place a nucleotide becomes a table index.
 
+   It lives one level above the per-map namespaces, so each map reaches it
+   by unqualified lookup and no map owns a copy -- centralizing this cast
+   is the whole reason the character maps are accessors rather than bare
+   arrays.
 
-auto string_normalize(Span<char> const normalized, View<char> const raw_seq) -> void
+   Why the maps are shaped the way they are. vsearch is built without LTO,
+   so a mapper defined in a .cpp costs a real call per base at every call
+   site; before this refactoring that was 106 emitted calls, map_4bit()
+   alone accounting for 1.41 % of an --allpairs_global run. Each map is
+   therefore a header, and its table a function-local `static constexpr`:
+
+   - `static constexpr` is constant-initialized straight into .rodata, so
+     it carries no thread-safe-static guard. A `static const` initialized
+     by a call would cost a load and a branch on that guard at every call,
+     inside the hot loop -- verified down to GCC 4.9;
+   - the enclosing function is `inline`, so its local static has vague
+     linkage: every translation unit emits a COMDAT copy and the linker
+     keeps exactly one, which is what C++17 spells `inline constexpr`. */
+namespace vsearch
 {
-  /* convert string to upper case and replace U by T */
-  assert(normalized.size() >= raw_seq.size());
-  std::transform(raw_seq.begin(), raw_seq.end(), normalized.begin(),
-                 [](char const nucleotide) -> char {
-                   return normalize::map(nucleotide);
-                 });
-}
+  namespace maps
+  {
+
+    inline auto to_uchar(char const nucleotide) noexcept -> unsigned char {
+      assert(nucleotide >= 0);
+      return static_cast<unsigned char>(nucleotide);
+    }
+
+  }  // namespace maps
+}  // namespace vsearch
