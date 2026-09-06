@@ -237,6 +237,16 @@ struct chimera_info_s
 
   int parts = 0;  /* number of query parts for chimera detection */
 
+  /* si[0 .. parts_ready) have been through query_init(). The rest are built on
+     demand by chimera_process_query, because each one owns a k-mer counter
+     array with one entry per database sequence: building all maxparts of them
+     up front costs 100 x 2 bytes per reference per thread, and a uchime run
+     uses four of them. dbindex/tophits are the two query_init() arguments that
+     are not already reachable from ci. */
+  int parts_ready = 0;
+  struct Dbindex const * dbindex = nullptr;
+  int tophits = 0;
+
   /* API result fields — populated by eval_parents when result_out is set */
   struct chimera_result_s * result_out = nullptr;
 
@@ -2121,10 +2131,10 @@ auto chimera_thread_init(struct chimera_info_s * ci, int const tophits,
   ci->mode = mode;  /* detection core reads the command variant through ci */
   ci->db = &db;  /* detection core reads the sequences through ci */
 
-  for (int i = 0; i < maxparts; ++i)
-    {
-      query_init(&ci->si[static_cast<size_t>(i)], tophits, db, parameters, dbindex);
-    }
+  /* the per-part searchinfo_s are built on demand (see parts_ready) */
+  ci->dbindex = &dbindex;
+  ci->tophits = tophits;
+  ci->parts_ready = 0;
 
   ci->s = search16_init(parameters.opt_match,
                         parameters.opt_mismatch,
@@ -2167,6 +2177,16 @@ static auto chimera_process_query(struct chimera_info_s * ci,
                                   struct Database const & db) -> Status
 {
   struct Parameters const & parameters = *ci->parameters;
+
+  /* build the per-part search state this query needs, once */
+  assert(ci->dbindex != nullptr);
+  assert(ci->parts <= maxparts);
+  for (int i = ci->parts_ready; i < ci->parts; ++i)
+    {
+      query_init(&ci->si[static_cast<size_t>(i)], ci->tophits, db, parameters, *ci->dbindex);
+    }
+  ci->parts_ready = std::max(ci->parts_ready, ci->parts);
+
   /* partition query */
   partition_query(ci);
 
