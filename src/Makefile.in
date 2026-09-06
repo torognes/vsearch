@@ -233,9 +233,14 @@ am__libcpu_a_SOURCES_DIST = arch/simde/increment_counters.cpp \
 	utils/compare_strings_nocase.hpp utils/decimal_digits.hpp \
 	utils/dynlib_loader.hpp utils/element_order.hpp \
 	utils/fatal.hpp utils/fatal_allocator.hpp \
-	utils/grow_to_fit.hpp utils/hash_table_size.hpp utils/header_attribute.hpp \
-	utils/kmer_hash_struct.hpp utils/logfile.hpp \
-	utils/make_unique.hpp utils/maps.hpp utils/median.hpp \
+	utils/grow_to_fit.hpp utils/hash_table_size.hpp \
+	utils/header_attribute.hpp utils/kmer_hash_struct.hpp \
+	utils/logfile.hpp utils/make_unique.hpp utils/maps.hpp \
+	utils/maps/complement.hpp utils/maps/mask_ambig.hpp \
+	utils/maps/four_bit.hpp utils/maps/mask_lower.hpp \
+	utils/maps/no_change.hpp utils/maps/normalize.hpp \
+	utils/maps/upcase.hpp utils/maps/two_bit.hpp \
+	utils/maps/to_uchar.hpp utils/median.hpp \
 	utils/number_of_strands.hpp utils/open_file.hpp \
 	utils/os_byteswap.hpp utils/print_record.hpp \
 	utils/print_view.hpp utils/prog_id.hpp utils/progress.hpp \
@@ -309,9 +314,14 @@ am__libcpu_pic_a_SOURCES_DIST = arch/simde/increment_counters.cpp \
 	utils/compare_strings_nocase.hpp utils/decimal_digits.hpp \
 	utils/dynlib_loader.hpp utils/element_order.hpp \
 	utils/fatal.hpp utils/fatal_allocator.hpp \
-	utils/grow_to_fit.hpp utils/hash_table_size.hpp utils/header_attribute.hpp \
-	utils/kmer_hash_struct.hpp utils/logfile.hpp \
-	utils/make_unique.hpp utils/maps.hpp utils/median.hpp \
+	utils/grow_to_fit.hpp utils/hash_table_size.hpp \
+	utils/header_attribute.hpp utils/kmer_hash_struct.hpp \
+	utils/logfile.hpp utils/make_unique.hpp utils/maps.hpp \
+	utils/maps/complement.hpp utils/maps/mask_ambig.hpp \
+	utils/maps/four_bit.hpp utils/maps/mask_lower.hpp \
+	utils/maps/no_change.hpp utils/maps/normalize.hpp \
+	utils/maps/upcase.hpp utils/maps/two_bit.hpp \
+	utils/maps/to_uchar.hpp utils/median.hpp \
 	utils/number_of_strands.hpp utils/open_file.hpp \
 	utils/os_byteswap.hpp utils/print_record.hpp \
 	utils/print_view.hpp utils/prog_id.hpp utils/progress.hpp \
@@ -384,9 +394,14 @@ am__libcpu_sse2_a_SOURCES_DIST =  \
 	utils/compare_strings_nocase.hpp utils/decimal_digits.hpp \
 	utils/dynlib_loader.hpp utils/element_order.hpp \
 	utils/fatal.hpp utils/fatal_allocator.hpp \
-	utils/grow_to_fit.hpp utils/hash_table_size.hpp utils/header_attribute.hpp \
-	utils/kmer_hash_struct.hpp utils/logfile.hpp \
-	utils/make_unique.hpp utils/maps.hpp utils/median.hpp \
+	utils/grow_to_fit.hpp utils/hash_table_size.hpp \
+	utils/header_attribute.hpp utils/kmer_hash_struct.hpp \
+	utils/logfile.hpp utils/make_unique.hpp utils/maps.hpp \
+	utils/maps/complement.hpp utils/maps/mask_ambig.hpp \
+	utils/maps/four_bit.hpp utils/maps/mask_lower.hpp \
+	utils/maps/no_change.hpp utils/maps/normalize.hpp \
+	utils/maps/upcase.hpp utils/maps/two_bit.hpp \
+	utils/maps/to_uchar.hpp utils/median.hpp \
 	utils/number_of_strands.hpp utils/open_file.hpp \
 	utils/os_byteswap.hpp utils/print_record.hpp \
 	utils/print_view.hpp utils/prog_id.hpp utils/progress.hpp \
@@ -453,9 +468,14 @@ am__libcpu_sse2_pic_a_SOURCES_DIST =  \
 	utils/compare_strings_nocase.hpp utils/decimal_digits.hpp \
 	utils/dynlib_loader.hpp utils/element_order.hpp \
 	utils/fatal.hpp utils/fatal_allocator.hpp \
-	utils/grow_to_fit.hpp utils/hash_table_size.hpp utils/header_attribute.hpp \
-	utils/kmer_hash_struct.hpp utils/logfile.hpp \
-	utils/make_unique.hpp utils/maps.hpp utils/median.hpp \
+	utils/grow_to_fit.hpp utils/hash_table_size.hpp \
+	utils/header_attribute.hpp utils/kmer_hash_struct.hpp \
+	utils/logfile.hpp utils/make_unique.hpp utils/maps.hpp \
+	utils/maps/complement.hpp utils/maps/mask_ambig.hpp \
+	utils/maps/four_bit.hpp utils/maps/mask_lower.hpp \
+	utils/maps/no_change.hpp utils/maps/normalize.hpp \
+	utils/maps/upcase.hpp utils/maps/two_bit.hpp \
+	utils/maps/to_uchar.hpp utils/median.hpp \
 	utils/number_of_strands.hpp utils/open_file.hpp \
 	utils/os_byteswap.hpp utils/print_record.hpp \
 	utils/print_view.hpp utils/prog_id.hpp utils/progress.hpp \
@@ -522,9 +542,14 @@ am__libcpu_ssse3_a_SOURCES_DIST =  \
 	utils/compare_strings_nocase.hpp utils/decimal_digits.hpp \
 	utils/dynlib_loader.hpp utils/element_order.hpp \
 	utils/fatal.hpp utils/fatal_allocator.hpp \
-	utils/grow_to_fit.hpp utils/hash_table_size.hpp utils/header_attribute.hpp \
-	utils/kmer_hash_struct.hpp utils/logfile.hpp \
-	utils/make_unique.hpp utils/maps.hpp utils/median.hpp \
+	utils/grow_to_fit.hpp utils/hash_table_size.hpp \
+	utils/header_attribute.hpp utils/kmer_hash_struct.hpp \
+	utils/logfile.hpp utils/make_unique.hpp utils/maps.hpp \
+	utils/maps/complement.hpp utils/maps/mask_ambig.hpp \
+	utils/maps/four_bit.hpp utils/maps/mask_lower.hpp \
+	utils/maps/no_change.hpp utils/maps/normalize.hpp \
+	utils/maps/upcase.hpp utils/maps/two_bit.hpp \
+	utils/maps/to_uchar.hpp utils/median.hpp \
 	utils/number_of_strands.hpp utils/open_file.hpp \
 	utils/os_byteswap.hpp utils/print_record.hpp \
 	utils/print_view.hpp utils/prog_id.hpp utils/progress.hpp \
@@ -591,9 +616,14 @@ am__libcpu_ssse3_pic_a_SOURCES_DIST =  \
 	utils/compare_strings_nocase.hpp utils/decimal_digits.hpp \
 	utils/dynlib_loader.hpp utils/element_order.hpp \
 	utils/fatal.hpp utils/fatal_allocator.hpp \
-	utils/grow_to_fit.hpp utils/hash_table_size.hpp utils/header_attribute.hpp \
-	utils/kmer_hash_struct.hpp utils/logfile.hpp \
-	utils/make_unique.hpp utils/maps.hpp utils/median.hpp \
+	utils/grow_to_fit.hpp utils/hash_table_size.hpp \
+	utils/header_attribute.hpp utils/kmer_hash_struct.hpp \
+	utils/logfile.hpp utils/make_unique.hpp utils/maps.hpp \
+	utils/maps/complement.hpp utils/maps/mask_ambig.hpp \
+	utils/maps/four_bit.hpp utils/maps/mask_lower.hpp \
+	utils/maps/no_change.hpp utils/maps/normalize.hpp \
+	utils/maps/upcase.hpp utils/maps/two_bit.hpp \
+	utils/maps/to_uchar.hpp utils/median.hpp \
 	utils/number_of_strands.hpp utils/open_file.hpp \
 	utils/os_byteswap.hpp utils/print_record.hpp \
 	utils/print_view.hpp utils/prog_id.hpp utils/progress.hpp \
@@ -659,9 +689,14 @@ am__libvsearch_core_a_SOURCES_DIST = core/align_simd.hpp \
 	utils/compare_strings_nocase.hpp utils/decimal_digits.hpp \
 	utils/dynlib_loader.hpp utils/element_order.hpp \
 	utils/fatal.hpp utils/fatal_allocator.hpp \
-	utils/grow_to_fit.hpp utils/hash_table_size.hpp utils/header_attribute.hpp \
-	utils/kmer_hash_struct.hpp utils/logfile.hpp \
-	utils/make_unique.hpp utils/maps.hpp utils/median.hpp \
+	utils/grow_to_fit.hpp utils/hash_table_size.hpp \
+	utils/header_attribute.hpp utils/kmer_hash_struct.hpp \
+	utils/logfile.hpp utils/make_unique.hpp utils/maps.hpp \
+	utils/maps/complement.hpp utils/maps/mask_ambig.hpp \
+	utils/maps/four_bit.hpp utils/maps/mask_lower.hpp \
+	utils/maps/no_change.hpp utils/maps/normalize.hpp \
+	utils/maps/upcase.hpp utils/maps/two_bit.hpp \
+	utils/maps/to_uchar.hpp utils/median.hpp \
 	utils/number_of_strands.hpp utils/open_file.hpp \
 	utils/os_byteswap.hpp utils/print_record.hpp \
 	utils/print_view.hpp utils/prog_id.hpp utils/progress.hpp \
@@ -708,7 +743,7 @@ am__libvsearch_core_a_SOURCES_DIST = core/align_simd.hpp \
 	commands/sortbylength.cpp commands/sortbysize.cpp core/tax.cpp \
 	commands/makeudb_usearch.cpp commands/udb2fasta.cpp \
 	commands/udbinfo.cpp commands/udbstats.cpp core/udb.cpp \
-	core/unique.cpp utils/fatal.cpp utils/maps.cpp utils/cigar.cpp \
+	core/unique.cpp utils/fatal.cpp utils/cigar.cpp \
 	utils/compare_strings_nocase.cpp utils/open_file.cpp \
 	utils/os_byteswap.cpp utils/seqcmp.cpp \
 	utils/number_of_strands.cpp utils/timestamp.cpp \
@@ -810,7 +845,6 @@ am__objects_2 = core/libvsearch_core_a-align_simd.$(OBJEXT) \
 	core/libvsearch_core_a-udb.$(OBJEXT) \
 	core/libvsearch_core_a-unique.$(OBJEXT) \
 	utils/libvsearch_core_a-fatal.$(OBJEXT) \
-	utils/libvsearch_core_a-maps.$(OBJEXT) \
 	utils/libvsearch_core_a-cigar.$(OBJEXT) \
 	utils/libvsearch_core_a-compare_strings_nocase.$(OBJEXT) \
 	utils/libvsearch_core_a-open_file.$(OBJEXT) \
@@ -898,9 +932,14 @@ am____top_builddir__bin_vsearch_SOURCES_DIST = core/align_simd.hpp \
 	utils/compare_strings_nocase.hpp utils/decimal_digits.hpp \
 	utils/dynlib_loader.hpp utils/element_order.hpp \
 	utils/fatal.hpp utils/fatal_allocator.hpp \
-	utils/grow_to_fit.hpp utils/hash_table_size.hpp utils/header_attribute.hpp \
-	utils/kmer_hash_struct.hpp utils/logfile.hpp \
-	utils/make_unique.hpp utils/maps.hpp utils/median.hpp \
+	utils/grow_to_fit.hpp utils/hash_table_size.hpp \
+	utils/header_attribute.hpp utils/kmer_hash_struct.hpp \
+	utils/logfile.hpp utils/make_unique.hpp utils/maps.hpp \
+	utils/maps/complement.hpp utils/maps/mask_ambig.hpp \
+	utils/maps/four_bit.hpp utils/maps/mask_lower.hpp \
+	utils/maps/no_change.hpp utils/maps/normalize.hpp \
+	utils/maps/upcase.hpp utils/maps/two_bit.hpp \
+	utils/maps/to_uchar.hpp utils/median.hpp \
 	utils/number_of_strands.hpp utils/open_file.hpp \
 	utils/os_byteswap.hpp utils/print_record.hpp \
 	utils/print_view.hpp utils/prog_id.hpp utils/progress.hpp \
@@ -947,7 +986,7 @@ am____top_builddir__bin_vsearch_SOURCES_DIST = core/align_simd.hpp \
 	commands/sortbylength.cpp commands/sortbysize.cpp core/tax.cpp \
 	commands/makeudb_usearch.cpp commands/udb2fasta.cpp \
 	commands/udbinfo.cpp commands/udbstats.cpp core/udb.cpp \
-	core/unique.cpp utils/fatal.cpp utils/maps.cpp utils/cigar.cpp \
+	core/unique.cpp utils/fatal.cpp utils/cigar.cpp \
 	utils/compare_strings_nocase.cpp utils/open_file.cpp \
 	utils/os_byteswap.cpp utils/seqcmp.cpp \
 	utils/number_of_strands.cpp utils/timestamp.cpp \
@@ -1014,8 +1053,7 @@ am__objects_8 = core/align_simd.$(OBJEXT) \
 	commands/udb2fasta.$(OBJEXT) commands/udbinfo.$(OBJEXT) \
 	commands/udbstats.$(OBJEXT) core/udb.$(OBJEXT) \
 	core/unique.$(OBJEXT) utils/fatal.$(OBJEXT) \
-	utils/maps.$(OBJEXT) utils/cigar.$(OBJEXT) \
-	utils/compare_strings_nocase.$(OBJEXT) \
+	utils/cigar.$(OBJEXT) utils/compare_strings_nocase.$(OBJEXT) \
 	utils/open_file.$(OBJEXT) utils/os_byteswap.$(OBJEXT) \
 	utils/seqcmp.$(OBJEXT) utils/number_of_strands.$(OBJEXT) \
 	utils/timestamp.$(OBJEXT) utils/logfile.$(OBJEXT) \
@@ -1270,7 +1308,6 @@ am__depfiles_remade = ./$(DEPDIR)/cli.Po \
 	utils/$(DEPDIR)/libvsearch_core_a-fatal.Po \
 	utils/$(DEPDIR)/libvsearch_core_a-fatal_throw.Po \
 	utils/$(DEPDIR)/libvsearch_core_a-logfile.Po \
-	utils/$(DEPDIR)/libvsearch_core_a-maps.Po \
 	utils/$(DEPDIR)/libvsearch_core_a-number_of_strands.Po \
 	utils/$(DEPDIR)/libvsearch_core_a-open_file.Po \
 	utils/$(DEPDIR)/libvsearch_core_a-os_byteswap.Po \
@@ -1282,7 +1319,7 @@ am__depfiles_remade = ./$(DEPDIR)/cli.Po \
 	utils/$(DEPDIR)/libvsearch_core_a-timestamp.Po \
 	utils/$(DEPDIR)/libvsearch_core_a-userfields.Po \
 	utils/$(DEPDIR)/libvsearch_core_a-warn.Po \
-	utils/$(DEPDIR)/logfile.Po utils/$(DEPDIR)/maps.Po \
+	utils/$(DEPDIR)/logfile.Po \
 	utils/$(DEPDIR)/number_of_strands.Po \
 	utils/$(DEPDIR)/open_file.Po utils/$(DEPDIR)/os_byteswap.Po \
 	utils/$(DEPDIR)/random.Po \
@@ -1427,6 +1464,7 @@ am__leading_dot = @am__leading_dot@
 am__quote = @am__quote@
 am__tar = @am__tar@
 am__untar = @am__untar@
+bashcompdir = @bashcompdir@
 bindir = @bindir@
 build = @build@
 build_alias = @build_alias@
@@ -1439,6 +1477,7 @@ datarootdir = @datarootdir@
 docdir = @docdir@
 dvidir = @dvidir@
 exec_prefix = @exec_prefix@
+fishcompdir = @fishcompdir@
 host = @host@
 host_alias = @host_alias@
 host_cpu = @host_cpu@
@@ -1472,6 +1511,7 @@ target_vendor = @target_vendor@
 top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
+zshcompdir = @zshcompdir@
 AM_CFLAGS = -Wall -Wextra -Wpedantic -Wno-ignored-attributes \
 	$(am__append_1) $(am__append_2) $(am__append_3) \
 	$(am__append_4) $(am__append_5) $(am__append_6) \
@@ -1600,6 +1640,15 @@ utils/kmer_hash_struct.hpp \
 utils/logfile.hpp \
 utils/make_unique.hpp \
 utils/maps.hpp \
+utils/maps/complement.hpp \
+utils/maps/mask_ambig.hpp \
+utils/maps/four_bit.hpp \
+utils/maps/mask_lower.hpp \
+utils/maps/no_change.hpp \
+utils/maps/normalize.hpp \
+utils/maps/upcase.hpp \
+utils/maps/two_bit.hpp \
+utils/maps/to_uchar.hpp \
 utils/median.hpp \
 utils/number_of_strands.hpp \
 utils/open_file.hpp \
@@ -1768,7 +1817,6 @@ commands/udbstats.cpp \
 core/udb.cpp \
 core/unique.cpp \
 utils/fatal.cpp \
-utils/maps.cpp \
 utils/cigar.cpp \
 utils/compare_strings_nocase.cpp \
 utils/open_file.cpp \
@@ -2226,8 +2274,6 @@ utils/$(DEPDIR)/$(am__dirstamp):
 	@: > utils/$(DEPDIR)/$(am__dirstamp)
 utils/libvsearch_core_a-fatal.$(OBJEXT): utils/$(am__dirstamp) \
 	utils/$(DEPDIR)/$(am__dirstamp)
-utils/libvsearch_core_a-maps.$(OBJEXT): utils/$(am__dirstamp) \
-	utils/$(DEPDIR)/$(am__dirstamp)
 utils/libvsearch_core_a-cigar.$(OBJEXT): utils/$(am__dirstamp) \
 	utils/$(DEPDIR)/$(am__dirstamp)
 utils/libvsearch_core_a-compare_strings_nocase.$(OBJEXT):  \
@@ -2510,8 +2556,6 @@ core/udb.$(OBJEXT): core/$(am__dirstamp) \
 core/unique.$(OBJEXT): core/$(am__dirstamp) \
 	core/$(DEPDIR)/$(am__dirstamp)
 utils/fatal.$(OBJEXT): utils/$(am__dirstamp) \
-	utils/$(DEPDIR)/$(am__dirstamp)
-utils/maps.$(OBJEXT): utils/$(am__dirstamp) \
 	utils/$(DEPDIR)/$(am__dirstamp)
 utils/cigar.$(OBJEXT): utils/$(am__dirstamp) \
 	utils/$(DEPDIR)/$(am__dirstamp)
@@ -2826,7 +2870,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@utils/$(DEPDIR)/libvsearch_core_a-fatal.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@utils/$(DEPDIR)/libvsearch_core_a-fatal_throw.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@utils/$(DEPDIR)/libvsearch_core_a-logfile.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@utils/$(DEPDIR)/libvsearch_core_a-maps.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@utils/$(DEPDIR)/libvsearch_core_a-number_of_strands.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@utils/$(DEPDIR)/libvsearch_core_a-open_file.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@utils/$(DEPDIR)/libvsearch_core_a-os_byteswap.Po@am__quote@ # am--include-marker
@@ -2839,7 +2882,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@utils/$(DEPDIR)/libvsearch_core_a-userfields.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@utils/$(DEPDIR)/libvsearch_core_a-warn.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@utils/$(DEPDIR)/logfile.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@utils/$(DEPDIR)/maps.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@utils/$(DEPDIR)/number_of_strands.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@utils/$(DEPDIR)/open_file.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@utils/$(DEPDIR)/os_byteswap.Po@am__quote@ # am--include-marker
@@ -4240,20 +4282,6 @@ utils/libvsearch_core_a-fatal.obj: utils/fatal.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -c -o utils/libvsearch_core_a-fatal.obj `if test -f 'utils/fatal.cpp'; then $(CYGPATH_W) 'utils/fatal.cpp'; else $(CYGPATH_W) '$(srcdir)/utils/fatal.cpp'; fi`
 
-utils/libvsearch_core_a-maps.o: utils/maps.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -MT utils/libvsearch_core_a-maps.o -MD -MP -MF utils/$(DEPDIR)/libvsearch_core_a-maps.Tpo -c -o utils/libvsearch_core_a-maps.o `test -f 'utils/maps.cpp' || echo '$(srcdir)/'`utils/maps.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) utils/$(DEPDIR)/libvsearch_core_a-maps.Tpo utils/$(DEPDIR)/libvsearch_core_a-maps.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='utils/maps.cpp' object='utils/libvsearch_core_a-maps.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -c -o utils/libvsearch_core_a-maps.o `test -f 'utils/maps.cpp' || echo '$(srcdir)/'`utils/maps.cpp
-
-utils/libvsearch_core_a-maps.obj: utils/maps.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -MT utils/libvsearch_core_a-maps.obj -MD -MP -MF utils/$(DEPDIR)/libvsearch_core_a-maps.Tpo -c -o utils/libvsearch_core_a-maps.obj `if test -f 'utils/maps.cpp'; then $(CYGPATH_W) 'utils/maps.cpp'; else $(CYGPATH_W) '$(srcdir)/utils/maps.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) utils/$(DEPDIR)/libvsearch_core_a-maps.Tpo utils/$(DEPDIR)/libvsearch_core_a-maps.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='utils/maps.cpp' object='utils/libvsearch_core_a-maps.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -c -o utils/libvsearch_core_a-maps.obj `if test -f 'utils/maps.cpp'; then $(CYGPATH_W) 'utils/maps.cpp'; else $(CYGPATH_W) '$(srcdir)/utils/maps.cpp'; fi`
-
 utils/libvsearch_core_a-cigar.o: utils/cigar.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -MT utils/libvsearch_core_a-cigar.o -MD -MP -MF utils/$(DEPDIR)/libvsearch_core_a-cigar.Tpo -c -o utils/libvsearch_core_a-cigar.o `test -f 'utils/cigar.cpp' || echo '$(srcdir)/'`utils/cigar.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) utils/$(DEPDIR)/libvsearch_core_a-cigar.Tpo utils/$(DEPDIR)/libvsearch_core_a-cigar.Po
@@ -5086,7 +5114,6 @@ distclean: distclean-am
 	-rm -f utils/$(DEPDIR)/libvsearch_core_a-fatal.Po
 	-rm -f utils/$(DEPDIR)/libvsearch_core_a-fatal_throw.Po
 	-rm -f utils/$(DEPDIR)/libvsearch_core_a-logfile.Po
-	-rm -f utils/$(DEPDIR)/libvsearch_core_a-maps.Po
 	-rm -f utils/$(DEPDIR)/libvsearch_core_a-number_of_strands.Po
 	-rm -f utils/$(DEPDIR)/libvsearch_core_a-open_file.Po
 	-rm -f utils/$(DEPDIR)/libvsearch_core_a-os_byteswap.Po
@@ -5099,7 +5126,6 @@ distclean: distclean-am
 	-rm -f utils/$(DEPDIR)/libvsearch_core_a-userfields.Po
 	-rm -f utils/$(DEPDIR)/libvsearch_core_a-warn.Po
 	-rm -f utils/$(DEPDIR)/logfile.Po
-	-rm -f utils/$(DEPDIR)/maps.Po
 	-rm -f utils/$(DEPDIR)/number_of_strands.Po
 	-rm -f utils/$(DEPDIR)/open_file.Po
 	-rm -f utils/$(DEPDIR)/os_byteswap.Po
@@ -5382,7 +5408,6 @@ maintainer-clean: maintainer-clean-am
 	-rm -f utils/$(DEPDIR)/libvsearch_core_a-fatal.Po
 	-rm -f utils/$(DEPDIR)/libvsearch_core_a-fatal_throw.Po
 	-rm -f utils/$(DEPDIR)/libvsearch_core_a-logfile.Po
-	-rm -f utils/$(DEPDIR)/libvsearch_core_a-maps.Po
 	-rm -f utils/$(DEPDIR)/libvsearch_core_a-number_of_strands.Po
 	-rm -f utils/$(DEPDIR)/libvsearch_core_a-open_file.Po
 	-rm -f utils/$(DEPDIR)/libvsearch_core_a-os_byteswap.Po
@@ -5395,7 +5420,6 @@ maintainer-clean: maintainer-clean-am
 	-rm -f utils/$(DEPDIR)/libvsearch_core_a-userfields.Po
 	-rm -f utils/$(DEPDIR)/libvsearch_core_a-warn.Po
 	-rm -f utils/$(DEPDIR)/logfile.Po
-	-rm -f utils/$(DEPDIR)/maps.Po
 	-rm -f utils/$(DEPDIR)/number_of_strands.Po
 	-rm -f utils/$(DEPDIR)/open_file.Po
 	-rm -f utils/$(DEPDIR)/os_byteswap.Po
