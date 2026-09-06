@@ -90,6 +90,7 @@
 #include <algorithm>  // std::copy, std::fill, std::fill_n, std::max, std::max_element, std::min, std::sort, std::transform
 #include <array>
 #include <cassert>
+#include <cstddef> // std::ptrdiff_t, std::size_t
 #include <cstdint> // int64_t, uint64_t
 #include <cstdio>  // std::FILE, std::fprintf, std::fputs
 #include <iterator>  // std::next
@@ -236,6 +237,16 @@ struct chimera_info_s
   double best_h = 0;
 
   int parts = 0;  /* number of query parts for chimera detection */
+
+  /* si[0 .. parts_ready) have been through query_init(). The rest are built on
+     demand by chimera_process_query, because each one owns a k-mer counter
+     array with one entry per database sequence: building all maxparts of them
+     up front costs 100 x 2 bytes per reference per thread, and a uchime run
+     uses four of them. dbindex/tophits are the two query_init() arguments that
+     are not already reachable from ci. */
+  int parts_ready = 0;
+  struct Dbindex const * dbindex = nullptr;
+  int tophits = 0;
 
   /* API result fields — populated by eval_parents when result_out is set */
   struct chimera_result_s * result_out = nullptr;
@@ -490,8 +501,18 @@ auto realloc_arrays(struct chimera_info_s * chimera_info, struct Database const 
 
 auto reset_matches(struct chimera_info_s * a_chimera_info) -> void {
   // refactoring: initialization to zero? (useless), or reset to zero??
-  std::fill(a_chimera_info->match.begin(), a_chimera_info->match.end(), 0);
-  std::fill(a_chimera_info->insert.begin(), a_chimera_info->insert.end(), 0);
+  /* match and insert are row-major, one row of query_len entries per
+     candidate, grown once to the high-water mark maxcandidates *
+     longest-query-seen. Only the first cand_count * query_len entries are ever
+     written (find_matches) or read (find_best_parents, find_best_parents_long),
+     so clearing the whole allocation is wasted: at the uchime defaults
+     cand_count averages ~9 of the 400 rows. */
+  auto const live = static_cast<std::size_t>(a_chimera_info->cand_count) *
+                    static_cast<std::size_t>(a_chimera_info->query_len);
+  assert(live <= a_chimera_info->match.size());
+  assert(live <= a_chimera_info->insert.size());
+  std::fill_n(a_chimera_info->match.begin(), live, 0);
+  std::fill_n(a_chimera_info->insert.begin(), live, 0);
 }
 
 
@@ -743,18 +764,30 @@ auto find_best_parents(struct chimera_info_s * ci) -> int
           /* wipe out matches for all candidates in positions
              covered by the previous parent */
 
+          /* Every winning qpos clears the window ending at it, and qpos only
+             increases, so consecutive winners ask for windows overlapping in
+             all but one position. Clearing a position is idempotent, so
+             skipping what an earlier window already cleared leaves exactly the
+             same array: wiped_upto is the first position not yet cleared. */
+          int wiped_upto = 0;
           for (int qpos = window - 1; qpos < ci->query_len; ++qpos)
             {
               int const z = (best_parent_cand[static_cast<size_t>(f - 1)] * ci->query_len) + qpos;
               if (ci->smooth[static_cast<size_t>(z)] == ci->maxsmooth[static_cast<size_t>(qpos)])
                 {
-                  for (int i = qpos + 1 - window; i <= qpos; ++i)
+                  int const first = std::max(qpos + 1 - window, wiped_upto);
+                  /* wiped_upto is a previous qpos plus one and qpos grows, so
+                     the window is never entirely behind the cleared prefix */
+                  assert(first <= qpos);
+                  for (int j = 0; j < ci->cand_count; ++j)
                     {
-                      for (int j = 0; j < ci->cand_count; ++j)
-                        {
-                          ci->match[static_cast<size_t>((j * ci->query_len) + i)] = 0;
-                        }
+                      auto const row = static_cast<std::ptrdiff_t>(j) *
+                                       static_cast<std::ptrdiff_t>(ci->query_len);
+                      std::fill(std::next(ci->match.begin(), row + first),
+                                std::next(ci->match.begin(), row + qpos + 1),
+                                0);
                     }
+                  wiped_upto = qpos + 1;
                 }
             }
         }
@@ -2099,10 +2132,10 @@ auto chimera_thread_init(struct chimera_info_s * ci, int const tophits,
   ci->mode = mode;  /* detection core reads the command variant through ci */
   ci->db = &db;  /* detection core reads the sequences through ci */
 
-  for (int i = 0; i < maxparts; ++i)
-    {
-      query_init(&ci->si[static_cast<size_t>(i)], tophits, db, parameters, dbindex);
-    }
+  /* the per-part searchinfo_s are built on demand (see parts_ready) */
+  ci->dbindex = &dbindex;
+  ci->tophits = tophits;
+  ci->parts_ready = 0;
 
   ci->s = search16_init(parameters.opt_match,
                         parameters.opt_mismatch,
@@ -2145,6 +2178,16 @@ static auto chimera_process_query(struct chimera_info_s * ci,
                                   struct Database const & db) -> Status
 {
   struct Parameters const & parameters = *ci->parameters;
+
+  /* build the per-part search state this query needs, once */
+  assert(ci->dbindex != nullptr);
+  assert(ci->parts <= maxparts);
+  for (int i = ci->parts_ready; i < ci->parts; ++i)
+    {
+      query_init(&ci->si[static_cast<size_t>(i)], ci->tophits, db, parameters, *ci->dbindex);
+    }
+  ci->parts_ready = std::max(ci->parts_ready, ci->parts);
+
   /* partition query */
   partition_query(ci);
 
