@@ -59,83 +59,48 @@
 */
 
 #include "core/kmerhash.hpp"
-#include "utils/cityhash.hpp"  // hash_packed_kmer
 #include "utils/kmer_hash_struct.hpp"
 #include "utils/maps.hpp"
-#include "utils/hash_table_size.hpp"  // table_size_half
 #include "utils/view.hpp"  // View<char>
+#include <cassert>
 #include <cstddef>
-#include <cstdint>
+#include <limits>  // std::numeric_limits
 #include <vector>
 
 
-using Hash = decltype(&hash_packed_kmer);
-static constexpr Hash hash_function = hash_packed_kmer;
+/* A packed k-mer of length k occupies 2 * k bits, so the whole k-mer space is
+   4^k values: at the k the merge core uses (5) that is 1024 of them, few
+   enough that the k-mer can address an array directly. 'chain_head[kmer]'
+   then names a forward position carrying that k-mer, and the other positions
+   carrying it are threaded through 'chain_next', which is indexed by
+   position. Answering "which forward positions carry this k-mer" costs one
+   load and a chain walk in which every step is a match -- where an
+   open-addressing table also had to hash the k-mer, probe linearly, and
+   compare the k-mer of every other entry that had landed in the same run.
 
-
-// anonymous namespace: limit visibility and usage to this translation unit
-namespace {
-
-  auto reset_buckets(std::vector<struct kh_bucket_s> & hash) -> void {
-    auto const current_size = hash.size();
-    hash.clear();
-    hash.resize(current_size);
-  }
-
-}  // end of anonymous namespace
-
-
-namespace {
-/* the empty-bucket sentinel, and the reason positions are stored 1-based:
-   position 0 is a real position, so it cannot double as "no entry here". */
-inline auto is_occupied(struct kh_bucket_s const & entry) noexcept -> bool
-{
-  return entry.pos != 0U;
-}
-
-
-inline auto kh_insert_kmer(struct kh_handle_s & kmer_hash,
-                           int const k_offset,
-                           unsigned int const kmer,
-                           unsigned int const pos) -> void
-{
-  /* find free bucket in hash */
-  auto bucket = hash_function(kmer, k_offset) & kmer_hash.hash_mask;
-  while (is_occupied(kmer_hash.hash[bucket]))
-    {
-      bucket = (bucket + 1) & kmer_hash.hash_mask;
-    }
-
-  kmer_hash.hash[bucket].kmer = kmer;
-  kmer_hash.hash[bucket].pos = pos;
-}
-}  // anonymous namespace
+   Positions are stored biased by one, because position 0 is a real position
+   and so cannot double as the "end of chain" sentinel. */
 
 
 auto kh_insert_kmers(struct kh_handle_s & kmer_hash, int const k_offset, View<char> const seq) -> void
 {
+  assert(k_offset > 0);
+  assert(k_offset <= kmer_hash_max_k);
+  /* a position is stored in an unsigned int, biased by one */
+  assert(seq.size() < std::numeric_limits<unsigned int>::max());
+
   int const kmers = static_cast<int>(1U << (2U * static_cast<unsigned int>(k_offset)));
   auto const kmer_mask = static_cast<unsigned int>(kmers - 1);
 
-  reset_buckets(kmer_hash.hash);
-
-  /* reallocate hash table if necessary */
-
-  int64_t const needed = 2 * static_cast<int64_t>(seq.size());
-  auto const wanted = static_cast<int64_t>(vsearch::table_size_half(seq.size()));
-  if (kmer_hash.alloc < needed)
+  /* the heads have to be cleared: a stale one would name a position of the
+     previous read. The links do not, and clearing them would be wasted work
+     -- a chain is only ever entered through its head, so every link followed
+     at look-up time was written by this call. */
+  kmer_hash.chain_head.assign(static_cast<std::size_t>(kmers), 0U);
+  if (kmer_hash.chain_next.size() <= seq.size())
     {
-      /* 'alloc' starts at a power of two and only ever grows, so the smallest
-         power of two that fits is the same answer the doubling loop reached */
-      kmer_hash.alloc = wanted;
-      kmer_hash.hash.resize(static_cast<std::size_t>(kmer_hash.alloc));
+      kmer_hash.chain_next.resize(seq.size() + 1, 0U);
     }
-
-  kmer_hash.size = wanted;
-  kmer_hash.hash_mask = static_cast<unsigned int>(kmer_hash.size - 1);
-
-  kmer_hash.maxpos = static_cast<int>(seq.size());
-
 
   unsigned int bad = kmer_mask;
   unsigned int kmer = 0;
@@ -155,8 +120,10 @@ auto kh_insert_kmers(struct kh_handle_s & kmer_hash, int const k_offset, View<ch
 
       if (bad == 0U)
         {
-          /* 1-based pos of start of kmer */
-          kh_insert_kmer(kmer_hash, k_offset, kmer, static_cast<unsigned int>(pos - k_offset + 1 + 1));
+          /* 1-based pos of start of kmer, biased by one */
+          auto const entry = static_cast<unsigned int>(pos - k_offset + 1 + 1);
+          kmer_hash.chain_next[entry] = kmer_hash.chain_head[kmer];
+          kmer_hash.chain_head[kmer] = entry;
         }
       ++pos;
     }
@@ -168,6 +135,8 @@ auto kh_find_diagonals(struct kh_handle_s const & kmer_hash,
                        View<char> const seq,
                        std::vector<int> & diags) -> void
 {
+  assert(k_offset > 0);
+  assert(k_offset <= kmer_hash_max_k);
 
   int const kmers = static_cast<int>(1U << (2U * static_cast<unsigned int>(k_offset)));
   auto const kmer_mask = static_cast<unsigned int>(kmers - 1);
@@ -198,20 +167,21 @@ auto kh_find_diagonals(struct kh_handle_s const & kmer_hash,
 
       if (bad == 0U)
         {
-          /* find matching buckets in hash */
-          auto j = static_cast<unsigned int>(hash_function(kmer, k_offset) & kmer_hash.hash_mask);
-          while (is_occupied(kmer_hash.hash[j]))
+          /* walk the forward positions carrying exactly this k-mer. The
+             diagonal counters are a bag, so the order in which the chain
+             visits those positions cannot change the result. */
+          int const base_diag = len - (pos - k_offset + 1);
+          for (auto entry = kmer_hash.chain_head[kmer];
+               entry != 0U;
+               entry = kmer_hash.chain_next[entry])
             {
-              if (kmer_hash.hash[j].kmer == kmer)
+              /* 'entry - 1' undoes the bias, giving the 1-based start
+                 position of the k-mer in the forward read */
+              int const diag = base_diag + static_cast<int>(entry) - 1;
+              if (diag >= 0)
                 {
-                  int const fpos = static_cast<int>(kmer_hash.hash[j].pos) - 1;
-                  int const diag = len + fpos - (pos - k_offset + 1);
-                  if (diag >= 0)
-                    {
-                      ++diags[static_cast<std::size_t>(diag)];
-                    }
+                  ++diags[static_cast<std::size_t>(diag)];
                 }
-              j = (j + 1) & kmer_hash.hash_mask;
             }
         }
     }

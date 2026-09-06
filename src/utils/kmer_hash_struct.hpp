@@ -60,26 +60,20 @@
 
 #pragma once
 
-#include <cstdint>  // int64_t
 #include <vector>
 
 
-struct kh_bucket_s
-{
-  unsigned int kmer = 0;
-  unsigned int pos = 0; /* 1-based position, 0 = empty */
-};
-
 struct kh_handle_s
 {
-  static constexpr auto kmer_hash_allocation = 256;
-  static constexpr auto kmer_hash_mask = kmer_hash_allocation - 1U;
-  std::vector<struct kh_bucket_s> hash = std::vector<struct kh_bucket_s>(kmer_hash_allocation);
-  unsigned int hash_mask = kmer_hash_mask;
-  // size and alloc are 64-bit: the hash grows to 2 * sequence length, which
-  // exceeds INT_MAX for sequences above ~1.07 Gnt (the doubling would otherwise
-  // overflow int before reaching the target). See kh_insert_kmers().
-  int64_t size = 0;
-  int64_t alloc = kmer_hash_allocation;
-  int maxpos = 0;
+  /* Direct-address index over the packed k-mers of a forward read; the
+     encoding, and why only one of the two vectors is cleared per read pair,
+     are described in core/kmerhash.cpp. Both grow to fit and are reused
+     across pairs, so neither is allocated per pair. */
+  std::vector<unsigned int> chain_head;
+  std::vector<unsigned int> chain_next;
+  /* One counter per diagonal of the (forward + reverse) matrix, refilled for
+     each read pair. It lives here because this handle is already the merge
+     core's per-thread scratch, and a fresh vector per pair was a malloc and a
+     free on the hot path. */
+  std::vector<int> diagonal_counts;
 };

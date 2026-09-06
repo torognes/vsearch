@@ -70,7 +70,10 @@
    Five copies of two expressions lived at the call sites before this header:
    the 2/3-fill-rate loop in commands/derep_prefix.cpp and core/dbhash.cpp,
    character for character, and the load-factor-1/2 loop in core/unique.cpp and
-   twice in core/kmerhash.cpp. They are not worth a helper for their length --
+   twice in core/kmerhash.cpp -- the latter two have since gone, the merge
+   k-mer index being direct-addressed now and sizing no table at all, which
+   leaves core/unique.cpp and commands/scramble.cpp as the callers of
+   table_size_half. They are not worth a helper for their length --
    they are worth one because the reasoning that protects them was recorded at
    some copies and not others, exactly the shape of the dbindex bitmap mincount
    bug, which had to be fixed in two places because its sizing arithmetic was
@@ -82,8 +85,8 @@
    plausible size. Naming the rate removes the failure mode entirely and reads
    better at the call site.
 
-   The width is load-bearing, and the reasoning recorded at core/unique.cpp and
-   again on kh_handle_s (utils/kmer_hash_struct.hpp) applies to every caller:
+   The width is load-bearing, and the reasoning recorded at core/unique.cpp
+   applies to every caller:
    "the hash grows to 2 * sequence length, which exceeds INT_MAX for sequences
    above ~1.07 Gnt (the doubling would otherwise overflow int before reaching
    the target)". Taking and returning uint64_t also makes the intermediate

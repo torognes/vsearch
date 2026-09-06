@@ -64,6 +64,11 @@
 #include <vector>
 
 
+/* The index is direct-addressed, so it allocates 4^k chain heads: viable for
+   a small k only. Both call sites are the merge core (core/mergepairs.cpp),
+   which uses k = 5, i.e. 1024 slots. */
+constexpr auto kmer_hash_max_k = 8;
+
 auto kh_insert_kmers(struct kh_handle_s & kmer_hash, int k_offset, View<char> seq) -> void;
 
 auto kh_find_diagonals(struct kh_handle_s const & kmer_hash,
