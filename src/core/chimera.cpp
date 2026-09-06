@@ -490,8 +490,18 @@ auto realloc_arrays(struct chimera_info_s * chimera_info, struct Database const 
 
 auto reset_matches(struct chimera_info_s * a_chimera_info) -> void {
   // refactoring: initialization to zero? (useless), or reset to zero??
-  std::fill(a_chimera_info->match.begin(), a_chimera_info->match.end(), 0);
-  std::fill(a_chimera_info->insert.begin(), a_chimera_info->insert.end(), 0);
+  /* match and insert are row-major, one row of query_len entries per
+     candidate, grown once to the high-water mark maxcandidates *
+     longest-query-seen. Only the first cand_count * query_len entries are ever
+     written (find_matches) or read (find_best_parents, find_best_parents_long),
+     so clearing the whole allocation is wasted: at the uchime defaults
+     cand_count averages ~9 of the 400 rows. */
+  auto const live = static_cast<std::size_t>(a_chimera_info->cand_count) *
+                    static_cast<std::size_t>(a_chimera_info->query_len);
+  assert(live <= a_chimera_info->match.size());
+  assert(live <= a_chimera_info->insert.size());
+  std::fill_n(a_chimera_info->match.begin(), live, 0);
+  std::fill_n(a_chimera_info->insert.begin(), live, 0);
 }
 
 
