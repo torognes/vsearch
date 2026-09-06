@@ -93,6 +93,9 @@
 #include <string>
 #include <utility>  // std::move
 #include <vector>
+#include "utils/maps/no_change.hpp"
+
+namespace no_change = vsearch::maps::no_change;
 
 namespace four_bit = vsearch::maps::four_bit;
 
@@ -748,7 +751,7 @@ static auto dereplicating(std::unique_ptr<fastx_s> const & input_handle,
 
   {
     Progress progress(prompt, filesize, parameters);
-    while (input_handle->next(not parameters.opt_notrunclabels, chrmap_no_change()))
+    while (input_handle->next(not parameters.opt_notrunclabels, no_change::get_map().data()))
       {
         auto const sequence = input_handle->sequence_view();
         auto const seqlen = static_cast<int64_t>(sequence.size());

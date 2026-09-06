@@ -79,6 +79,8 @@
 #include <limits>
 #include <memory>  // std::unique_ptr
 #include <string>  // std::string
+#include "utils/maps/no_change.hpp"
+#include "utils/maps/upcase.hpp"
 
 
 constexpr uint64_t memchunk = 16777216;  // 2^24
@@ -369,7 +371,7 @@ auto Database::read(const char * filename, int const upcase, struct Parameters c
     Progress progress(prompt, static_cast<uint64_t>(filesize), parameters);
     while (input_handle->next(
                      not parameters.opt_notrunclabels,
-                      (upcase != 0) ? chrmap_upcase() : chrmap_no_change()))
+                      (upcase != 0) ? vsearch::maps::upcase::get_map().data() : vsearch::maps::no_change::get_map().data()))
       {
         size_t const sequencelength = input_handle->sequence_view().size();
         int64_t const abundance = input_handle->get_abundance();

@@ -79,6 +79,9 @@
 #include <cstdint>  // int64_t, uint64_t
 #include <cstdio>  // std::FILE
 #include <limits>
+#include "utils/maps/no_change.hpp"
+
+namespace no_change = vsearch::maps::no_change;
 
 
 namespace {
@@ -398,9 +401,9 @@ auto filter(bool const fastq_only, char const * filename, struct Parameters cons
 
   {
     Progress progress("Reading input file", filesize, parameters);
-    while (forward_handle->next(false, chrmap_no_change()))
+    while (forward_handle->next(false, no_change::get_map().data()))
       {
-        if ((reverse_handle != nullptr) and not reverse_handle->next(false, chrmap_no_change()))
+        if ((reverse_handle != nullptr) and not reverse_handle->next(false, no_change::get_map().data()))
           {
             fatal("More forward reads than reverse reads");
           }
@@ -539,7 +542,7 @@ auto filter(bool const fastq_only, char const * filename, struct Parameters cons
       }
   }
 
-  if ((reverse_handle != nullptr) and reverse_handle->next(false, chrmap_no_change()))
+  if ((reverse_handle != nullptr) and reverse_handle->next(false, no_change::get_map().data()))
     {
       fatal("More reverse reads than forward reads");
     }

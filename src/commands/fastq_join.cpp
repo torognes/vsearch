@@ -80,6 +80,9 @@
 #include <iterator>  // std::reverse_iterator
 #include <string>
 #include <vector>
+#include "utils/maps/no_change.hpp"
+
+namespace no_change = vsearch::maps::no_change;
 
 
 // anonymous namespace: limit visibility and usage to this translation unit
@@ -208,9 +211,9 @@ auto fastq_join(struct Parameters const & parameters) -> void
 
   {
     Progress progress("Joining reads", filesize, parameters);
-    while (infiles.forward.handle->next(false, chrmap_no_change()))
+    while (infiles.forward.handle->next(false, no_change::get_map().data()))
       {
-        if (not infiles.reverse.handle->next(false, chrmap_no_change()))
+        if (not infiles.reverse.handle->next(false, no_change::get_map().data()))
           {
             fatal("More forward reads than reverse reads");
           }
@@ -278,7 +281,7 @@ auto fastq_join(struct Parameters const & parameters) -> void
       }
   }
 
-  if (infiles.reverse.handle->next(false, chrmap_no_change()))
+  if (infiles.reverse.handle->next(false, no_change::get_map().data()))
     {
       fatal("More reverse reads than forward reads");
     }

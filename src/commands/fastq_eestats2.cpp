@@ -75,6 +75,9 @@
 #include <cstdio>  // std::FILE, std::fprintf
 #include <initializer_list>
 #include <vector>
+#include "utils/maps/upcase.hpp"
+
+namespace upcase = vsearch::maps::upcase;
 
 
 // anonymous namespace: limit visibility and usage to this translation unit
@@ -192,7 +195,7 @@ auto fastq_eestats2(struct Parameters const & parameters) -> void
 
   {
     Progress progress("Reading FASTQ file", filesize, parameters);
-    while (h->next(false, chrmap_upcase()))
+    while (h->next(false, upcase::get_map().data()))
       {
         ++seq_count;
 

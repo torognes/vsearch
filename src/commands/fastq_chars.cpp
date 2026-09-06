@@ -63,6 +63,7 @@
 #include "utils/print_view.hpp"  // fprint
 #include "utils/progress.hpp"
 #include "utils/maps.hpp"
+#include "utils/maps/upcase.hpp"
 #include "utils/quality_encoding.hpp"  // sanger_ascii_offset, solexa_ascii_offset
 #include "utils/view.hpp"
 #include <algorithm>  // std::find_if
@@ -71,6 +72,8 @@
 #include <cstdio>  // std::FILE, std::fprintf, std::size_t
 #include <iterator>  // std::distance
 #include <vector>
+
+namespace upcase = vsearch::maps::upcase;
 
 
 #ifndef NDEBUG
@@ -301,7 +304,7 @@ auto fastq_chars(struct Parameters const & parameters) -> void
   {
     Progress progress("Reading FASTQ file", filesize, parameters);
 
-    while (fastq_handle->next(false, chrmap_upcase()))
+    while (fastq_handle->next(false, upcase::get_map().data()))
       {
         auto const sequence = fastq_handle->sequence_view();
         auto const quality = fastq_handle->quality_view();

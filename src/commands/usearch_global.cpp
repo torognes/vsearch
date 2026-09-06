@@ -89,6 +89,9 @@
 #include <cstdio>  // std::FILE, std::fprintf
 #include <mutex>  // std::mutex, std::lock_guard
 #include <vector>
+#include "utils/maps/no_change.hpp"
+
+namespace no_change = vsearch::maps::no_change;
 
 
 /* Per-invocation state for a usearch_global run — previously the file-static
@@ -420,7 +423,7 @@ static auto search_thread_run(struct search_cli_state_s & state, uint64_t const 
   auto const has_work_to_claim = [&]() -> bool {
     if (not query_fastx_h->next(
                        (not state.parameters.opt_notrunclabels),
-                       chrmap_no_change()))
+                       no_change::get_map().data()))
       {
         return false;
       }

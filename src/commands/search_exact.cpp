@@ -91,6 +91,9 @@
 #include <mutex>  // std::mutex, std::lock_guard, std::unique_lock
 #include <string>  // std::string, std::to_string
 #include <vector>
+#include "utils/maps/no_change.hpp"
+
+namespace no_change = vsearch::maps::no_change;
 
 
 /* Per-invocation state for the CLI-only --search_exact command. Folds what
@@ -467,7 +470,7 @@ auto search_exact_thread_run(uint64_t const t, struct search_exact_state_s & sta
   uint64_t progress = 0;
 
   auto const has_work_to_claim = [&]() -> bool {
-    if (not state.query_fastx_h->next((not parameters.opt_notrunclabels), chrmap_no_change()))
+    if (not state.query_fastx_h->next((not parameters.opt_notrunclabels), no_change::get_map().data()))
       {
         return false;
       }

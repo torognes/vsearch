@@ -78,6 +78,11 @@
 #include <iterator>  // std::next
 #include <memory>  // std::unique_ptr
 #include <string>  // std::string, std::to_string
+#include "utils/maps/no_change.hpp"
+#include "utils/maps/upcase.hpp"
+
+namespace no_change = vsearch::maps::no_change;
+namespace upcase = vsearch::maps::upcase;
 
 
 // anonymous namespace: limit visibility and usage to this translation unit
@@ -411,8 +416,8 @@ auto fastq_next(fastx_handle input_handle,
          exhaustive -- the assert says so, because a third table would
          otherwise take the pass-through path in silence. One pointer
          comparison per line replaces a table load per accepted byte. */
-      assert((char_mapping == chrmap_no_change()) or (char_mapping == chrmap_upcase()));
-      if (char_mapping == chrmap_upcase())
+      assert((char_mapping == no_change::get_map().data()) or (char_mapping == upcase::get_map().data()));
+      if (char_mapping == upcase::get_map().data())
         {
           buffer_filter_extend<Mapping::upcase, false>(input_handle->sequence_buffer,
                                                        fragment.view,

@@ -64,7 +64,13 @@
 #include <cassert>  // assert
 
 
-/* Which of the two character maps a parser applies to the bases it accepts.
+/* What a parser needs to map a byte it has accepted, and nothing else: the
+   character maps themselves live one per header under utils/maps/, and a
+   translation unit includes the ones it names. Keeping them out of here is
+   what makes that split pay -- core/fastx.hpp includes this header for
+   Mapping, so anything left in it lands in most of the tree.
+
+   Which of the two character maps a parser applies to the bases it accepts.
    Passed as a template argument rather than as the table pointer it stands
    for, because every call site knows the answer at compile time: 22 of the 30
    fastx_s::next() calls name chrmap_no_change(), 7 name chrmap_upcase(), and
@@ -106,10 +112,4 @@ inline auto map_accepted_base(char const base) -> char {
   return static_cast<char>(static_cast<unsigned char>(base) & ~lowercase_bit);
 }
 
-
-auto chrmap_no_change() -> unsigned char const *;
-
-auto chrmap_upcase() -> unsigned char const *;
-
-auto map_uppercase(char nucleotide) -> char;
 

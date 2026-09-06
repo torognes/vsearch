@@ -113,6 +113,9 @@
 #include <cstdio>  // std::FILE, std::fprintf, std::size_t
 #include <mutex>  // std::mutex, std::lock_guard, std::unique_lock
 #include <vector>  // std::vector
+#include "utils/maps/no_change.hpp"
+
+namespace no_change = vsearch::maps::no_change;
 
 
 constexpr auto subset_size = 32;
@@ -608,7 +611,7 @@ static auto sintax_thread_run(struct sintax_state_s & state, uint64_t const t) -
   auto const has_work_to_claim = [&]() -> bool {
     if (not query_fastx_h->next(
                        not state.parameters.opt_notrunclabels,
-                       chrmap_no_change()))
+                       no_change::get_map().data()))
       {
         /* End of input, or a deferred parse error was recorded (CC3):
            fastx_next() returns false in both cases, so the worker stops

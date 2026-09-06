@@ -83,6 +83,9 @@
 #include <limits>  // std::numeric_limits
 #include <utility>  // std::swap
 #include <vector>
+#include "utils/maps/no_change.hpp"
+
+namespace no_change = vsearch::maps::no_change;
 
 
 constexpr auto initial_memory_allocation = 512;
@@ -434,7 +437,7 @@ auto scramble(struct Parameters const & parameters) -> void
 
     int64_t count = 0;  // the ordinal fed to --relabel; int would wrap at 2^31 records
     Progress progress("Scrambling", filesize, parameters);
-    while (input_handle->next(false, chrmap_no_change()))
+    while (input_handle->next(false, no_change::get_map().data()))
       {
         ++count;
 

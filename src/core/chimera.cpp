@@ -102,6 +102,11 @@
 #include <string>  // std::string
 #include <utility>  // std::move
 #include <vector>
+#include "utils/maps/no_change.hpp"
+#include "utils/maps/upcase.hpp"
+
+namespace no_change = vsearch::maps::no_change;
+namespace upcase = vsearch::maps::upcase;
 
 namespace four_bit = vsearch::maps::four_bit;
 
@@ -967,7 +972,7 @@ auto fill_alignment_parents(struct chimera_info_s * ci, struct Database const & 
             {
               if (j < runlength)
                 {
-                  alignment[alnpos] = map_uppercase(target_seq[static_cast<std::size_t>(tpos)]);
+                  alignment[alnpos] = upcase::map(target_seq[static_cast<std::size_t>(tpos)]);
                   ++tpos;
                   ++alnpos;
                 }
@@ -991,7 +996,7 @@ auto fill_alignment_parents(struct chimera_info_s * ci, struct Database const & 
 
               if (operation == Operation::match)
                 {
-                  alignment[alnpos] = map_uppercase(target_seq[static_cast<std::size_t>(tpos)]);
+                  alignment[alnpos] = upcase::map(target_seq[static_cast<std::size_t>(tpos)]);
                   ++tpos;
                   ++alnpos;
                 }
@@ -1042,7 +1047,7 @@ auto fill_in_alignment_string_for_query(View<char> const query,
     alnpos = fill_run(alignment, alnpos, insertions[qpos], '-');
 
     // add (mis-)matching position:
-    alignment[alnpos] = map_uppercase(query[qpos]);
+    alignment[alnpos] = upcase::map(query[qpos]);
     ++alnpos;
   }
   // add terminal gap (if any):
@@ -2349,7 +2354,7 @@ static auto chimera_thread_core(struct chimera_cli_state_s & state,
     if (state.mode == ChimeraMode::uchime_ref)
       {
         if (state.query_fasta_h->next((not state.parameters.opt_notrunclabels),
-                       chrmap_no_change()))
+                       no_change::get_map().data()))
           {
             auto const query_record = state.query_fasta_h->record();
             ci->query_len = static_cast<int>(query_record.sequence.size());

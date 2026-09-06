@@ -71,6 +71,9 @@
 #include <cstddef>  // std::size_t
 #include <cstdint>
 #include <vector>
+#include "utils/maps/no_change.hpp"
+
+namespace no_change = vsearch::maps::no_change;
 
 
 auto fasta2fastq(struct Parameters const & parameters) -> void
@@ -91,7 +94,7 @@ auto fasta2fastq(struct Parameters const & parameters) -> void
                     parameters);
 
   auto counter = int64_t{0};  // the ordinal is an int64_t (see OutputAnnotations)
-  while (fp_input->next(false, chrmap_no_change()))
+  while (fp_input->next(false, no_change::get_map().data()))
     {
       /* get sequence length and allocate more mem if necessary */
 

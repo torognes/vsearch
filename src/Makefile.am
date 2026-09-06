@@ -211,7 +211,9 @@ utils/maps/complement.hpp \
 utils/maps/mask_ambig.hpp \
 utils/maps/four_bit.hpp \
 utils/maps/mask_lower.hpp \
+utils/maps/no_change.hpp \
 utils/maps/normalize.hpp \
+utils/maps/upcase.hpp \
 utils/maps/two_bit.hpp \
 utils/maps/to_uchar.hpp \
 utils/median.hpp \
@@ -401,7 +403,6 @@ commands/udbstats.cpp \
 core/udb.cpp \
 core/unique.cpp \
 utils/fatal.cpp \
-utils/maps.cpp \
 utils/cigar.cpp \
 utils/compare_strings_nocase.cpp \
 utils/open_file.cpp \

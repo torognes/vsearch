@@ -80,6 +80,9 @@
 #include <string>
 #include <utility>  // std::move
 #include <vector>
+#include "utils/maps/no_change.hpp"
+
+namespace no_change = vsearch::maps::no_change;
 
 namespace four_bit = vsearch::maps::four_bit;
 
@@ -426,7 +429,7 @@ auto cut(struct Parameters const & parameters) -> void {
   struct statistics counters;
   std::vector<char> rc_buffer;
   std::vector<unsigned char> coded_buffer;
-  while (input_handle->next(false, chrmap_no_change()))
+  while (input_handle->next(false, no_change::get_map().data()))
     {
       cut_a_sequence(input_handle.get(), restriction, fastaout, counters, rc_buffer, coded_buffer, parameters);
 

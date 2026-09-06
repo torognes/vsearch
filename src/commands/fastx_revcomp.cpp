@@ -76,6 +76,9 @@
 #include <cstdint>  // int64_t, uint64_t
 #include <cstdio>  // std::FILE, std::fclose
 #include <vector>
+#include "utils/maps/no_change.hpp"
+
+namespace no_change = vsearch::maps::no_change;
 
 
 constexpr auto initial_memory_allocation = 512;
@@ -120,7 +123,7 @@ auto fastx_revcomp(struct Parameters const & parameters) -> void
 
     int64_t count = 0;  // the ordinal fed to --relabel; int would wrap at 2^31 records
     Progress progress(input_handle->is_fastq_format() ? "Reading FASTQ file" : "Reading FASTA file", filesize, parameters);
-    while (input_handle->next(false, chrmap_no_change()))
+    while (input_handle->next(false, no_change::get_map().data()))
       {
         ++count;
 
