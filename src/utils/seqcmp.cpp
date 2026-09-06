@@ -58,10 +58,12 @@
 
 */
 
-#include "maps.hpp"
+#include "utils/maps/four_bit.hpp"
 #include "view.hpp"  // View<char>
 #include <algorithm>  // std::mismatch
 #include <cassert>
+
+namespace four_bit = vsearch::maps::four_bit;
 
 
 // Find first position with a difference, if any. Return 0 for
@@ -69,21 +71,14 @@
 // alpha-sorting), +1 if rhs is sorted first.
 auto seqcmp(View<char> const lhs_seq, View<char> const rhs_seq) noexcept -> int {
   assert(lhs_seq.size() == rhs_seq.size());
-  auto const * const map_4bit_table = chrmap_4bit();
-  auto const same_nucleotide = [map_4bit_table](char const lhs, char const rhs) -> bool {
-    // the table has 256 entries, but sequence data is ASCII: this is the
-    // range check map_4bit() made through to_uchar() before the table was
-    // hoisted out of the loop (compiled out in release, where NDEBUG is set)
-    assert(static_cast<unsigned char>(lhs) < 128U);
-    assert(static_cast<unsigned char>(rhs) < 128U);
-    return map_4bit_table[static_cast<unsigned char>(lhs)] ==
-           map_4bit_table[static_cast<unsigned char>(rhs)];
+  auto const same_nucleotide = [](char const lhs, char const rhs) -> bool {
+    return four_bit::is_same(lhs, rhs);
   };
   auto const first_difference = std::mismatch(lhs_seq.cbegin(), lhs_seq.cend(),
                                               rhs_seq.cbegin(), same_nucleotide);
   if (first_difference.first == lhs_seq.cend()) {
     return 0;
   }
-  return map_4bit_table[static_cast<unsigned char>(*first_difference.first)] <
-         map_4bit_table[static_cast<unsigned char>(*first_difference.second)] ? -1 : +1;
+  return four_bit::map(*first_difference.first) <
+         four_bit::map(*first_difference.second) ? -1 : +1;
 }

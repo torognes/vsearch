@@ -74,6 +74,7 @@
 #include "utils/fatal.hpp"
 #include "utils/grow_to_fit.hpp"  // vsearch::grow_to_fit
 #include "utils/maps.hpp"
+#include "utils/maps/four_bit.hpp"
 #include "utils/median.hpp"
 #include "utils/open_file.hpp"
 #include "utils/print_view.hpp"  // fprint
@@ -92,6 +93,8 @@
 #include <string>
 #include <utility>  // std::move
 #include <vector>
+
+namespace four_bit = vsearch::maps::four_bit;
 
 
 // refactoring: deliberately not std::unordered_map. This table is sorted in
@@ -165,15 +168,8 @@ namespace {
     if (not is_occupied(candidate)) { return false; }  // free bucket
     if (candidate.hash != hash) { return true; }
     if (candidate.seq.size() != seq.size()) { return true; }
-    auto const * const map_4bit_table = chrmap_4bit();
-    auto const same_nucleotide = [map_4bit_table](char const lhs, char const rhs) -> bool {
-      // the table has 256 entries, but sequence data is ASCII: this is the
-      // range check map_4bit() made through to_uchar() before the table was
-      // hoisted out of the loop (compiled out in release, where NDEBUG is set)
-      assert(static_cast<unsigned char>(lhs) < 128U);
-      assert(static_cast<unsigned char>(rhs) < 128U);
-      return map_4bit_table[static_cast<unsigned char>(lhs)] ==
-             map_4bit_table[static_cast<unsigned char>(rhs)];
+    auto const same_nucleotide = [](char const lhs, char const rhs) -> bool {
+      return four_bit::is_same(lhs, rhs);
     };
     if (not std::equal(seq.cbegin(), seq.cend(), candidate.seq.cbegin(),
                        same_nucleotide)) { return true; }

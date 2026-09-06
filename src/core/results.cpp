@@ -69,6 +69,7 @@
 #include "utils/cigar.hpp"
 #include "utils/fatal.hpp"
 #include "utils/maps.hpp"
+#include "utils/maps/four_bit.hpp"
 #include "utils/view.hpp"
 #include "utils/taxonomic_fields.h"
 #include "utils/sequence_digest.hpp"
@@ -85,6 +86,8 @@
 #include <iterator>  // std::next
 #include <string>  // std::string, std::to_string
 #include <vector>
+
+namespace four_bit = vsearch::maps::four_bit;
 
 
 // anonymous namespace: limit visibility and usage to this translation unit
@@ -147,7 +150,7 @@ namespace {
      field. */
   auto is_identical_column(char const lhs, char const rhs) -> bool {
     if ((lhs == '-') or (rhs == '-')) { return false; }
-    return map_4bit(lhs) == map_4bit(rhs);
+    return four_bit::map(lhs) == four_bit::map(rhs);
   }
 
   /* One aligned row with '.' substituted at every column identical to the row
@@ -1032,7 +1035,7 @@ auto build_sam_strings(View<char> const alignment,
 
           for (auto i = 0LL; i < run; ++i)
             {
-              if (is_same_4bit(queryseq[qpos], targetseq[tpos]))
+              if (four_bit::is_same(queryseq[qpos], targetseq[tpos]))
                 {
                   ++matched;
                 }

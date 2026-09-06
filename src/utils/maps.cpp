@@ -72,74 +72,12 @@ namespace {
   }
 
 
-  constexpr std::array<unsigned char, 256> chrmap_4bit_vector =
-    {{
-      /*
-        Map from ascii to 4-bit nucleotide code
-
-        Aa:  1    0001
-        Bb: 14    1110   (not A) ex: 'B' & 'A' == 0000 while 'B' & anyother != 0000
-        Cc:  2    0010
-        Dd: 13    1101   (not C)
-        Gg:  4    0100
-        Hh: 11    1011   (not G)
-        Kk: 12    1100   (G or T)
-        Mm:  3    0011   (A or C)
-        Nn: 15    1111   ex: 'N' & any != 0000
-        Rr:  5    0101   (A or G)
-        Ss:  6    0110   (S or G)
-        Tt:  8    1000
-        Uu:  8    1000
-        Vv:  7    0111   (not T)
-        Ww:  9    1001   (A or T)
-        Yy: 10    1010   (C or T) ex: 'Y' & 'C' or 'T' == 0000
-        Others: 0
-
-        @   A   B   C   D   E   F   G   H   I   J   K   L   M   N   O
-        P   Q   R   S   T   U   V   W   X   Y   Z   [   \   ]   ^   _
-      */
-
-      0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-      0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-      0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-      0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-      0,  1, 14,  2, 13,  0,  0,  4, 11,  0,  0, 12,  0,  3, 15,  0,
-      0,  0,  5,  6,  8,  8,  7,  9,  0, 10,  0,  0,  0,  0,  0,  0,
-      0,  1, 14,  2, 13,  0,  0,  4, 11,  0,  0, 12,  0,  3, 15,  0,
-      0,  0,  5,  6,  8,  8,  7,  9,  0, 10,  0,  0,  0,  0,  0,  0,
-      0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-      0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-      0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-      0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-      0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-      0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-      0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-      0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-    },};
 
 
 
 
 
 
-  constexpr std::array<bool, 16> chrmap_ambiguous_4bit = {{
-    true,
-    false,  // Aa
-    false,  // Cc
-    true,
-    false,  // Gg
-    true,
-    true,
-    true,
-    false,  // TtUu
-    true,
-    true,
-    true,
-    true,
-    true,
-    true,
-    true,
-  },};
 
 
 
@@ -228,40 +166,8 @@ auto chrmap_upcase() -> unsigned char const * {
 }
 
 
-auto chrmap_4bit() -> unsigned char const * {
-  return chrmap_4bit_vector.data();
-}
-
-
 auto map_uppercase(char const nucleotide) -> char {
   return static_cast<char>(chrmap_upcase_vector[to_uchar(nucleotide)]);
 }
 
 
-auto map_4bit(char const nucleotide) -> unsigned char {
-  return chrmap_4bit_vector[to_uchar(nucleotide)];
-}
-
-
-auto is_equivalent_4bit(char const lhs, char const rhs) -> bool {
-  auto const lhs_unsigned = map_4bit(lhs);
-  auto const rhs_unsigned = map_4bit(rhs);
-  return ((lhs_unsigned & rhs_unsigned) != 0);
-}
-
-
-auto is_equivalent_4bit_rhs(char const lhs, char const rhs) -> bool {
-  auto const lhs_unsigned = to_uchar(lhs);
-  auto const rhs_unsigned = map_4bit(rhs);
-  return ((lhs_unsigned & rhs_unsigned) != 0);
-}
-
-
-auto is_ambiguous_4bit(unsigned char const nucleotide) -> bool {
-  return chrmap_ambiguous_4bit[nucleotide];
-}
-
-
-auto is_same_4bit(char const lhs, char const rhs) -> bool {
-  return map_4bit(lhs) == map_4bit(rhs);
-}

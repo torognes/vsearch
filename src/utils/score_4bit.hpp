@@ -60,7 +60,8 @@
 
 #pragma once
 
-#include "utils/maps.hpp"  // is_ambiguous_4bit
+#include "utils/maps.hpp"
+#include "utils/maps/four_bit.hpp"  // is_ambiguous_4bit
 #include <array>
 #include <cassert>
 
@@ -125,7 +126,7 @@ namespace vsearch
       {
         return scores.mismatch;
       }
-    if (is_ambiguous_4bit(lhs_code) or is_ambiguous_4bit(rhs_code))
+    if (maps::four_bit::is_ambiguous(lhs_code) or maps::four_bit::is_ambiguous(rhs_code))
       {
         return Cell{0};
       }

@@ -61,6 +61,7 @@
 #include "vsearch.hpp"
 #include "utils/cigar.hpp"
 #include "utils/maps.hpp"
+#include "utils/maps/four_bit.hpp"
 #include "utils/maps/complement.hpp"
 #include "utils/print_record.hpp"  // OutputRecord, fprint
 #include "utils/print_view.hpp"  // fprint
@@ -73,6 +74,8 @@
 #include <cstring>  // std::strlen
 #include <iterator>  // std::next
 #include <vector>
+
+namespace four_bit = vsearch::maps::four_bit;
 
 namespace complement = vsearch::maps::complement;
 
@@ -136,13 +139,13 @@ namespace {
 
   auto get_aligment_symbol(char const query_nuc, char const target_nuc, bool const n_mismatch) -> char {
     static constexpr auto is_N = 15U;
-    auto const query_coded = map_4bit(query_nuc);
-    auto const target_coded = map_4bit(target_nuc);
+    auto const query_coded = four_bit::map(query_nuc);
+    auto const target_coded = four_bit::map(target_nuc);
 
     if (n_mismatch and ((query_coded == is_N) or (target_coded == is_N))) {
       return ' ';  // N are mismatches
     }
-    if ((query_coded == target_coded) and not is_ambiguous_4bit(query_coded)) {
+    if ((query_coded == target_coded) and not four_bit::is_ambiguous(query_coded)) {
       return '|';  // a perfect match
     }
     if ((query_coded & target_coded) != 0U) {

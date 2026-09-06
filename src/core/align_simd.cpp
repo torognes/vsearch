@@ -64,6 +64,7 @@
 #include "utils/fatal_allocator.hpp"  // FatalAllocator
 #include "utils/grow_to_fit.hpp"  // vsearch::grow_to_fit
 #include "utils/maps.hpp"
+#include "utils/maps/four_bit.hpp"
 #include "utils/score_4bit.hpp"  // vsearch::score_4bit, SubstitutionScores, nucleotide_codes_4bit
 #include "utils/view.hpp"  // View<char>
 #include <algorithm>  // std::min, std::max
@@ -76,6 +77,8 @@
 #include <limits>
 #include <string>  // std::string, std::to_string
 #include <vector>  // std::vector
+
+namespace four_bit = vsearch::maps::four_bit;
 
 
 /*
@@ -1008,10 +1011,10 @@ auto backtrack16(s16info_s * s,
         }
       else
         {
-          if (is_equivalent_4bit(qseq[static_cast<std::size_t>(i)], dseq[j]))
+          if (four_bit::is_equivalent(qseq[static_cast<std::size_t>(i)], dseq[j]))
             {
-              if (s->n_mismatch and ((map_4bit(qseq[static_cast<std::size_t>(i)]) == 15) or
-                                     (map_4bit(dseq[j]) == 15)))
+              if (s->n_mismatch and ((four_bit::map(qseq[static_cast<std::size_t>(i)]) == 15) or
+                                     (four_bit::map(dseq[j]) == 15)))
                 {
                   ++mismatches;
                 }
@@ -1136,7 +1139,7 @@ auto search16_init(int64_t const score_match,
      4-bit codes, columns are query 4-bit codes, and codes 1 to 15 (the full
      IUPAC alphabet, ambiguity combinations and N included) all occur in
      validated input: search16_qprep points a query position's profile slot at
-     4 * map_4bit(nucleotide), and the channel loader writes map_4bit of every
+     4 * four_bit::map(nucleotide), and the channel loader writes map_4bit of every
      database byte into dseq. So unlike swarm's near-empty 32 x 32 table (its
      kernels read codes 1 to 4 only), nothing here can shrink: both 8-column
      transpose passes of dprofile_fill16 write profile slots that are read.
@@ -1235,7 +1238,7 @@ auto search16_qprep(s16info_s * s, View<char> const qseq) -> void
   std::size_t position = 0;
   for (auto const nucleotide : qseq)
     {
-      s->qtable[position] = s->dprofile.data() + (4 * map_4bit(nucleotide));
+      s->qtable[position] = s->dprofile.data() + (4 * four_bit::map(nucleotide));
       ++position;
     }
 }
@@ -1499,7 +1502,7 @@ auto search16(s16info_s * s,
                 {
                   if (d_begin[c] < d_end[c])
                     {
-                      dseq[(CHANNELS * j) + c] = map_4bit(static_cast<char>(*(d_begin[c]++)));
+                      dseq[(CHANNELS * j) + c] = four_bit::map(static_cast<char>(*(d_begin[c]++)));
                     }
                   else
                     {
@@ -1609,7 +1612,7 @@ auto search16(s16info_s * s,
                     {
                       if (d_begin[cc] < d_end[cc])
                         {
-                          dseq[(CHANNELS * j) + c] = map_4bit(static_cast<char>(*(d_begin[cc]++)));
+                          dseq[(CHANNELS * j) + c] = four_bit::map(static_cast<char>(*(d_begin[cc]++)));
                         }
                       else
                         {
@@ -1721,7 +1724,7 @@ auto search16(s16info_s * s,
                           if (d_begin[cc] < d_end[cc])
                             {
                               dseq[(CHANNELS * j) + c] =
-                                map_4bit(static_cast<char>(*(d_begin[cc]++)));
+                                four_bit::map(static_cast<char>(*(d_begin[cc]++)));
                             }
                           else
                             {

@@ -111,16 +111,5 @@ auto chrmap_no_change() -> unsigned char const *;
 
 auto chrmap_upcase() -> unsigned char const *;
 
-auto chrmap_4bit() -> unsigned char const *;
-
 auto map_uppercase(char nucleotide) -> char;
 
-auto map_4bit(char nucleotide) -> unsigned char;
-
-auto is_equivalent_4bit(char lhs, char rhs) -> bool;
-
-auto is_equivalent_4bit_rhs(char lhs, char rhs) -> bool;
-
-auto is_ambiguous_4bit(unsigned char nucleotide) -> bool;
-
-auto is_same_4bit(char lhs, char rhs) -> bool;

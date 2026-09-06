@@ -82,6 +82,7 @@
 #include "utils/grow_to_fit.hpp"  // vsearch::grow_to_fit
 #include "utils/make_unique.hpp"  // make_unique
 #include "utils/maps.hpp"
+#include "utils/maps/four_bit.hpp"
 #include "utils/open_file.hpp"
 #include "utils/span.hpp"
 #include "utils/threads.hpp"
@@ -101,6 +102,8 @@
 #include <string>  // std::string
 #include <utility>  // std::move
 #include <vector>
+
+namespace four_bit = vsearch::maps::four_bit;
 
 
 /*
@@ -540,8 +543,8 @@ auto find_matches(struct chimera_info_s * chimera_info, struct Database const & 
         case Operation::match:
           for (auto j = 0; j < runlength; ++j)
             {
-              if ((map_4bit(qseq[static_cast<size_t>(qpos)]) &
-                   map_4bit(tseq[static_cast<std::size_t>(tpos)])) != 0U)
+              if ((four_bit::map(qseq[static_cast<size_t>(qpos)]) &
+                   four_bit::map(tseq[static_cast<std::size_t>(tpos)])) != 0U)
                 {
                   chimera_info->match[static_cast<size_t>((i * chimera_info->query_len) + qpos)] = 1;
                 }
@@ -1097,11 +1100,11 @@ auto count_matches_with_parents(struct chimera_info_s const * chimera_info,
 
   for (auto i = 0; i < alignment_length; ++i)
     {
-      auto const qsym = map_4bit(chimera_info->qaln[static_cast<size_t>(i)]);
+      auto const qsym = four_bit::map(chimera_info->qaln[static_cast<size_t>(i)]);
 
       for (auto f = 0; f < chimera_info->parents_found; ++f)
         {
-          auto const psym = map_4bit(chimera_info->paln[static_cast<size_t>(f)][static_cast<size_t>(i)]);
+          auto const psym = four_bit::map(chimera_info->paln[static_cast<size_t>(f)][static_cast<size_t>(i)]);
           if (qsym == psym) {
             ++matches[static_cast<size_t>(f)];
           }
@@ -1170,9 +1173,9 @@ auto eval_parents_long(struct chimera_info_s * ci, struct chimera_cli_state_s * 
 
   for (int i = 0; i < alnlen; ++i)
     {
-      auto const qsym = map_4bit(ci->qaln[static_cast<size_t>(i)]);
+      auto const qsym = four_bit::map(ci->qaln[static_cast<size_t>(i)]);
       for (int f = 0; f < ci->parents_found; ++f) {
-        psym.emplace_back(map_4bit(ci->paln[static_cast<size_t>(f)][static_cast<size_t>(i)]));
+        psym.emplace_back(four_bit::map(ci->paln[static_cast<size_t>(f)][static_cast<size_t>(i)]));
       }
 
       /* lower case parent symbols that differ from query */
@@ -1426,9 +1429,9 @@ auto eval_parents(struct chimera_info_s * ci, struct chimera_cli_state_s * cli, 
 
   for (int i = 0; i < alnlen; ++i)
     {
-      auto const qsym  = map_4bit(ci->qaln[static_cast<size_t>(i)]);
-      auto const p1sym = map_4bit(ci->paln[0][static_cast<size_t>(i)]);
-      auto const p2sym = map_4bit(ci->paln[1][static_cast<size_t>(i)]);
+      auto const qsym  = four_bit::map(ci->qaln[static_cast<size_t>(i)]);
+      auto const p1sym = four_bit::map(ci->paln[0][static_cast<size_t>(i)]);
+      auto const p2sym = four_bit::map(ci->paln[1][static_cast<size_t>(i)]);
 
       /* ignore gap positions and those next to the gap */
       if ((qsym == 0U) or (p1sym == 0U) or (p2sym == 0U))
@@ -1445,9 +1448,9 @@ auto eval_parents(struct chimera_info_s * ci, struct chimera_cli_state_s * cli, 
         }
 
       /* ignore ambiguous symbols */
-      if (is_ambiguous_4bit(qsym) or
-          is_ambiguous_4bit(p1sym) or
-          is_ambiguous_4bit(p2sym))
+      if (four_bit::is_ambiguous(qsym) or
+          four_bit::is_ambiguous(p1sym) or
+          four_bit::is_ambiguous(p2sym))
         {
           ci->ignore[static_cast<size_t>(i)] = true;
         }
@@ -1735,9 +1738,9 @@ auto eval_parents(struct chimera_info_s * ci, struct chimera_cli_state_s * cli, 
             {
               ++cols;
 
-              auto const qsym = map_4bit(ci->qaln[static_cast<size_t>(i)]);
-              auto const asym = map_4bit(ci->paln[index_a][static_cast<size_t>(i)]);
-              auto const bsym = map_4bit(ci->paln[index_b][static_cast<size_t>(i)]);
+              auto const qsym = four_bit::map(ci->qaln[static_cast<size_t>(i)]);
+              auto const asym = four_bit::map(ci->paln[index_a][static_cast<size_t>(i)]);
+              auto const bsym = four_bit::map(ci->paln[index_b][static_cast<size_t>(i)]);
               auto const msym = (i <= best_i) ? asym : bsym;
 
               if (qsym == asym)

@@ -209,6 +209,7 @@ utils/make_unique.hpp \
 utils/maps.hpp \
 utils/maps/complement.hpp \
 utils/maps/mask_ambig.hpp \
+utils/maps/four_bit.hpp \
 utils/maps/mask_lower.hpp \
 utils/maps/normalize.hpp \
 utils/maps/two_bit.hpp \

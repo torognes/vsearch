@@ -67,6 +67,7 @@
 #include "core/fastx.hpp"
 #include "utils/fatal.hpp"
 #include "utils/maps.hpp"
+#include "utils/maps/four_bit.hpp"
 #include "utils/open_file.hpp"
 #include "utils/print_view.hpp"  // fprint
 #include "utils/progress.hpp"
@@ -79,6 +80,8 @@
 #include <string>
 #include <utility>  // std::move
 #include <vector>
+
+namespace four_bit = vsearch::maps::four_bit;
 
 
 // anonymous namespace: limit visibility and usage to this translation unit
@@ -148,14 +151,13 @@ namespace {
       }
 
     /* encode the sequence with the same 4-bit IUPAC code as the pattern, once
-       per record: the former per-position is_equivalent_4bit_rhs() re-mapped
-       the same sequence byte for every pattern offset, through a call the
-       compiler cannot inline across translation units (no LTO) */
-    auto const * const map_4bit_table = chrmap_4bit();
+       per record rather than once per (position, pattern offset) pair: the
+       matching below walks the pattern across every offset, and re-mapping
+       the same sequence byte at each of them was the cost this replaces */
     coded_buffer.resize(static_cast<std::size_t>(seq_length));
     std::transform(sequence.cbegin(), sequence.cend(), coded_buffer.begin(),
-                   [map_4bit_table](char const symbol) -> unsigned char {
-                     return map_4bit_table[static_cast<unsigned char>(symbol)];
+                   [](char const symbol) -> unsigned char {
+                     return four_bit::map(symbol);
                    });
 
     int64_t local_matches = 0;
@@ -343,7 +345,7 @@ namespace {
   auto reencode_restriction_pattern(std::string raw_pattern) -> std::string {
     auto pattern = remove_restriction_sites(std::move(raw_pattern));
     auto encode_characters = [](char const & character) -> char {
-      return static_cast<char>(map_4bit(character));
+      return static_cast<char>(four_bit::map(character));
     };
     std::transform(pattern.cbegin(), pattern.cend(),
                    pattern.begin(), encode_characters);
@@ -360,7 +362,7 @@ namespace {
 
   auto search_illegal_characters(std::string const & pattern) -> void {
     auto character_is_illegal = [](char const & character) -> void {
-      if (map_4bit(character) == '\0') {
+      if (four_bit::map(character) == '\0') {
         fatal("Illegal character in cut pattern");
       }
     };
