@@ -156,6 +156,18 @@ inline auto q_to_p(int const quality_symbol, struct Parameters const & parameter
   // probability = 10^-(quality / 10)
   return std::pow(power_base, -quality_value / quality_divider);
 }
+
+
+/* The complement of a base is one array subscript, but map_complement() puts
+   it behind a call into another translation unit, and the three loops below
+   take that call once per base of the reverse read. Passing the table in --
+   as core/kmerhash.cpp already does at its own call sites -- keeps the
+   subscript inline and gives the loops their registers back. */
+inline auto complement_symbol(unsigned char const * const complement_map,
+                              char const nucleotide) -> char
+{
+  return static_cast<char>(complement_map[static_cast<unsigned char>(nucleotide)]);
+}
 }  // anonymous namespace
 
 
@@ -268,6 +280,8 @@ auto merge_sym(char & sym,       char & qual,
 auto merge(merge_data_t & a_read_pair, QualityTables const & tables,
            struct Parameters const & parameters) -> void
 {
+  auto const * const complement_map = chrmap_complement();
+
   /* length of 5' overhang of the forward sequence not merged
      with the reverse sequence */
 
@@ -319,7 +333,7 @@ auto merge(merge_data_t & a_read_pair, QualityTables const & tables,
   while ((fwd_pos < a_read_pair.fwd_trunc) and (rev_pos >= 0))
     {
       auto fwd_sym = a_read_pair.fwd_sequence[static_cast<std::size_t>(fwd_pos)];
-      auto rev_sym = map_complement(a_read_pair.rev_sequence[static_cast<std::size_t>(rev_pos)]);
+      auto rev_sym = complement_symbol(complement_map, a_read_pair.rev_sequence[static_cast<std::size_t>(rev_pos)]);
       auto fwd_qual = a_read_pair.fwd_quality[static_cast<std::size_t>(fwd_pos)];
       auto rev_qual = a_read_pair.rev_quality[static_cast<std::size_t>(rev_pos)];
 
@@ -355,7 +369,7 @@ auto merge(merge_data_t & a_read_pair, QualityTables const & tables,
 
   while (rev_pos >= 0)
     {
-      sym = map_complement(a_read_pair.rev_sequence[static_cast<std::size_t>(rev_pos)]);
+      sym = complement_symbol(complement_map, a_read_pair.rev_sequence[static_cast<std::size_t>(rev_pos)]);
       qual = a_read_pair.rev_quality[static_cast<std::size_t>(rev_pos)];
 
       a_read_pair.merged_sequence[static_cast<std::size_t>(merged_pos)] = sym;
@@ -418,6 +432,8 @@ auto optimize(merge_data_t & a_read_pair,
 
   std::vector<int> diags(static_cast<std::size_t>(a_read_pair.fwd_trunc + a_read_pair.rev_trunc), 0);
 
+  auto const * const complement_map = chrmap_complement();
+
   kh_insert_kmers(kmerhash, k, make_view(a_read_pair.fwd_sequence).first(static_cast<std::size_t>(a_read_pair.fwd_trunc)));
   kh_find_diagonals(kmerhash, k, make_view(a_read_pair.rev_sequence).first(static_cast<std::size_t>(a_read_pair.rev_trunc)),
                     diags);
@@ -457,7 +473,7 @@ auto optimize(merge_data_t & a_read_pair,
               /* for each pair of bases in the overlap */
 
               auto const fwd_sym = a_read_pair.fwd_sequence[static_cast<std::size_t>(fwd_pos)];
-              auto const rev_sym = map_complement(a_read_pair.rev_sequence[static_cast<std::size_t>(rev_pos)]);
+              auto const rev_sym = complement_symbol(complement_map, a_read_pair.rev_sequence[static_cast<std::size_t>(rev_pos)]);
 
               auto const fwd_qual = static_cast<unsigned int>(static_cast<unsigned char>(a_read_pair.fwd_quality[static_cast<std::size_t>(fwd_pos)]));
               auto const rev_qual = static_cast<unsigned int>(static_cast<unsigned char>(a_read_pair.rev_quality[static_cast<std::size_t>(rev_pos)]));
