@@ -66,6 +66,7 @@
 #include "utils/fatal.hpp"
 #include "utils/kmer_hash_struct.hpp"
 #include "utils/maps.hpp"
+#include "utils/quality_encoding.hpp"  // lowest_printable_ascii, highest_printable_ascii
 #include "utils/view.hpp"  // View<char>
 #include <algorithm>  // std::min, std::max, std::copy_n
 #include <array>
@@ -73,6 +74,7 @@
 #include <cmath>  // std::pow, std::sqrt, std::round, std::log10, std::log2
 #include <cstddef>
 #include <cstdint>  // int64_t, uint64_t
+#include <limits>  // std::numeric_limits
 #include <string>  // std::string
 #include <vector>
 
@@ -167,6 +169,97 @@ inline auto complement_symbol(unsigned char const * const complement_map,
                               char const nucleotide) -> char
 {
   return static_cast<char>(complement_map[static_cast<unsigned char>(nucleotide)]);
+}
+
+
+/* The quality-truncation walk below carries two early exits -- a symbol
+   outside [qmin, qmax], and the first symbol at or below --fastq_truncqual --
+   so it cannot be vectorized, and at default settings it can never take
+   either: opt_fastq_truncqual initialises to std::numeric_limits<long>::min(),
+   which no quality value can reach. The walk is then a per-base range check
+   that runs only to prove that nothing is wrong.
+
+   A fixed min/max fold does vectorize, where the walk cannot and where
+   std::any_of and std::minmax_element would also stay scalar, and it settles
+   both questions for the whole read at once. */
+struct QualityBounds
+{
+  unsigned char lowest;
+  unsigned char highest;
+};
+
+
+inline auto quality_bounds(View<char> const quality) -> QualityBounds
+{
+  auto lowest = std::numeric_limits<unsigned char>::max();
+  unsigned char highest = 0;
+  for (auto const symbol : quality)
+    {
+      auto const value = static_cast<unsigned char>(symbol);
+      lowest = std::min(lowest, value);
+      highest = std::max(highest, value);
+    }
+  return QualityBounds{lowest, highest};
+}
+
+
+/* True when no symbol of the read can trigger either early exit, so the walk
+   would run to its end with no effect at all.
+
+   The fold is over unsigned char, which is what vectorizes on the SSE2
+   baseline, while get_qual() reads the symbol as a plain char, whose
+   signedness is implementation-defined. The two orderings agree exactly over
+   [33, 126], so the fold is pinned to that range first: anything outside it
+   -- which the FASTQ reader rejects, but a library caller supplies its own
+   quality strings -- falls back to the walk, which reproduces get_qual()
+   symbol by symbol, asserts included. */
+inline auto quality_walk_can_be_skipped(View<char> const quality,
+                                        struct Parameters const & parameters) -> bool
+{
+  if (quality.empty())
+    {
+      return true;
+    }
+  auto const bounds = quality_bounds(quality);
+  if ((bounds.lowest < lowest_printable_ascii) or
+      (bounds.highest > highest_printable_ascii))
+    {
+      return false;
+    }
+  auto const lowest_value = static_cast<int64_t>(bounds.lowest) - parameters.opt_fastq_ascii;
+  auto const highest_value = static_cast<int64_t>(bounds.highest) - parameters.opt_fastq_ascii;
+  return (lowest_value >= parameters.opt_fastq_qmin) and
+         (highest_value <= parameters.opt_fastq_qmax) and
+         (lowest_value > parameters.opt_fastq_truncqual);
+}
+
+
+/* Length of the read once truncated at the first quality symbol at or below
+   --fastq_truncqual. A symbol outside [qmin, qmax] is recorded on the read
+   pair by get_qual() and stops the walk; the caller checks for it, since only
+   the caller knows which of the two reads this was. */
+inline auto truncation_length(View<char> const quality,
+                              struct Parameters const & parameters,
+                              merge_data_t & a_read_pair) -> int64_t
+{
+  auto const length = static_cast<int64_t>(quality.size());
+  if (quality_walk_can_be_skipped(quality, parameters))
+    {
+      return length;
+    }
+  for (int64_t i = 0; i < length; i++)
+    {
+      auto const quality_value = get_qual(quality[static_cast<std::size_t>(i)], parameters, a_read_pair);
+      if (a_read_pair.quality_out_of_range)
+        {
+          return length;
+        }
+      if (quality_value <= parameters.opt_fastq_truncqual)
+        {
+          return i;
+        }
+    }
+  return length;
 }
 }  // anonymous namespace
 
@@ -605,22 +698,16 @@ auto process(merge_data_t & a_read_pair,
 
   if (not skip)
     {
-      for (int64_t i = 0; i < a_read_pair.fwd_length; i++)
+      fwd_trunc = truncation_length(
+        make_view(a_read_pair.fwd_quality).first(static_cast<std::size_t>(a_read_pair.fwd_length)),
+        parameters, a_read_pair);
+      if (a_read_pair.quality_out_of_range)
         {
-          auto const quality_value = get_qual(a_read_pair.fwd_quality[static_cast<std::size_t>(i)], parameters, a_read_pair);
-          if (a_read_pair.quality_out_of_range)
-            {
-              /* attributed here, not in get_qual: this runs once per
-                 failing pair, where a parameter would cost a per-base
-                 argument on the hot path for nothing */
-              a_read_pair.abort_location = a_read_pair.fwd_location;
-              return;
-            }
-          if (quality_value <= parameters.opt_fastq_truncqual)
-            {
-              fwd_trunc = i;
-              break;
-            }
+          /* attributed here, not in get_qual: this runs once per
+             failing pair, where a parameter would cost a per-base
+             argument on the hot path for nothing */
+          a_read_pair.abort_location = a_read_pair.fwd_location;
+          return;
         }
       if (fwd_trunc < parameters.opt_fastq_minlen)
         {
@@ -635,22 +722,16 @@ auto process(merge_data_t & a_read_pair,
 
   if (not skip)
     {
-      for (int64_t i = 0; i < a_read_pair.rev_length; i++)
+      rev_trunc = truncation_length(
+        make_view(a_read_pair.rev_quality).first(static_cast<std::size_t>(a_read_pair.rev_length)),
+        parameters, a_read_pair);
+      if (a_read_pair.quality_out_of_range)
         {
-          auto const quality_value = get_qual(a_read_pair.rev_quality[static_cast<std::size_t>(i)], parameters, a_read_pair);
-          if (a_read_pair.quality_out_of_range)
-            {
-              /* attributed here, not in get_qual: this runs once per
-                 failing pair, where a parameter would cost a per-base
-                 argument on the hot path for nothing */
-              a_read_pair.abort_location = a_read_pair.rev_location;
-              return;
-            }
-          if (quality_value <= parameters.opt_fastq_truncqual)
-            {
-              rev_trunc = i;
-              break;
-            }
+          /* attributed here, not in get_qual: this runs once per
+             failing pair, where a parameter would cost a per-base
+             argument on the hot path for nothing */
+          a_read_pair.abort_location = a_read_pair.rev_location;
+          return;
         }
       if (rev_trunc < parameters.opt_fastq_minlen)
         {
