@@ -523,7 +523,14 @@ auto optimize(merge_data_t & a_read_pair,
 
   auto kmers = 0;
 
-  std::vector<int> diags(static_cast<std::size_t>(a_read_pair.fwd_trunc + a_read_pair.rev_trunc), 0);
+  /* the handle's scratch, not a fresh vector: this runs once per read pair,
+     and the allocation it used to make was the only one left on that path.
+     assign() refills it with zeros without reallocating once the capacity has
+     settled. It aliases a member of 'kmerhash', which kh_find_diagonals()
+     takes by const reference -- distinct members, so the counters below are
+     the only thing either path writes. */
+  auto & diags = kmerhash.diagonal_counts;
+  diags.assign(static_cast<std::size_t>(a_read_pair.fwd_trunc + a_read_pair.rev_trunc), 0);
 
   auto const * const complement_map = chrmap_complement();
 

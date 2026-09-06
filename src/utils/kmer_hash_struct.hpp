@@ -71,4 +71,9 @@ struct kh_handle_s
      across pairs, so neither is allocated per pair. */
   std::vector<unsigned int> chain_head;
   std::vector<unsigned int> chain_next;
+  /* One counter per diagonal of the (forward + reverse) matrix, refilled for
+     each read pair. It lives here because this handle is already the merge
+     core's per-thread scratch, and a fresh vector per pair was a malloc and a
+     free on the hot path. */
+  std::vector<int> diagonal_counts;
 };
