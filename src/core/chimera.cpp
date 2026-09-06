@@ -102,10 +102,8 @@
 #include <string>  // std::string
 #include <utility>  // std::move
 #include <vector>
-#include "utils/maps/no_change.hpp"
 #include "utils/maps/upcase.hpp"
 
-namespace no_change = vsearch::maps::no_change;
 namespace upcase = vsearch::maps::upcase;
 
 namespace four_bit = vsearch::maps::four_bit;
@@ -1197,8 +1195,6 @@ auto eval_parents_long(struct chimera_info_s * ci, struct chimera_cli_state_s * 
     }
 
 
-
-
   auto const match_QP = count_matches_with_parents(ci, alnlen);
 
   int const seqno_a = static_cast<int>(ci->cand_list[static_cast<size_t>(ci->best_parents[0])]);
@@ -1512,7 +1508,6 @@ auto eval_parents(struct chimera_info_s * ci, struct chimera_cli_state_s * cli, 
 
       ci->diffs[static_cast<size_t>(i)] = diff;
     }
-
 
 
   /* compute score */
@@ -2354,7 +2349,7 @@ static auto chimera_thread_core(struct chimera_cli_state_s & state,
     if (state.mode == ChimeraMode::uchime_ref)
       {
         if (state.query_fasta_h->next((not state.parameters.opt_notrunclabels),
-                       no_change::get_map().data()))
+                       Mapping::none))
           {
             auto const query_record = state.query_fasta_h->record();
             ci->query_len = static_cast<int>(query_record.sequence.size());

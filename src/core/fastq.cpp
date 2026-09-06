@@ -78,11 +78,6 @@
 #include <iterator>  // std::next
 #include <memory>  // std::unique_ptr
 #include <string>  // std::string, std::to_string
-#include "utils/maps/no_change.hpp"
-#include "utils/maps/upcase.hpp"
-
-namespace no_change = vsearch::maps::no_change;
-namespace upcase = vsearch::maps::upcase;
 
 
 // anonymous namespace: limit visibility and usage to this translation unit
@@ -102,10 +97,6 @@ namespace {
     skip,     // (2) silently stripped (e.g. CR)
     newline,   // (3) LF; silently stripped here
   };
-
-
-
-
 
 
   /* How to handle an input character in a FASTQ sequence: all IUPAC characters
@@ -327,7 +318,7 @@ auto fastx_s::warn_if_offset_looks_wrong() -> void
 
 auto fastq_next(fastx_handle input_handle,
                 bool const truncateatspace,
-                const unsigned char * char_mapping) -> bool
+                Mapping const char_mapping) -> bool
 {
   input_handle->header_buffer.length = 0;
   input_handle->header_buffer.data()[0] = 0;
@@ -411,13 +402,13 @@ auto fastq_next(fastx_handle input_handle,
 
       /* copy to sequence buffer */
       auto const fragment = scan_line_fragment(input_handle);
-      /* The mapping is a compile-time fact at every caller (see maps.hpp), and
-         these are the only two tables in the tree, so the dispatch is
-         exhaustive -- the assert says so, because a third table would
-         otherwise take the pass-through path in silence. One pointer
-         comparison per line replaces a table load per accepted byte. */
-      assert((char_mapping == no_change::get_map().data()) or (char_mapping == upcase::get_map().data()));
-      if (char_mapping == upcase::get_map().data())
+      /* The mapping is a compile-time fact at every caller (see maps.hpp),
+         so the filter is specialized once per line rather than reading a
+         table per accepted byte. Mapping has exactly two members, so this
+         dispatch is exhaustive by construction; it used to take a table
+         pointer, and an assert had to stand in for what the type now
+         guarantees. */
+      if (char_mapping == Mapping::upcase)
         {
           buffer_filter_extend<Mapping::upcase, false>(input_handle->sequence_buffer,
                                                        fragment.view,

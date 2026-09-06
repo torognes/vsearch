@@ -101,8 +101,6 @@ namespace {
   }
 
 
-
-
   auto print_unique_summary(std::FILE * output_stream,
                             Derep_stats const & stats,
                             double const average,

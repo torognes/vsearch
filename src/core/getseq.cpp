@@ -91,9 +91,6 @@
 #include <unordered_set>
 #include <utility>  // std::move
 #include <vector>
-#include "utils/maps/no_change.hpp"
-
-namespace no_change = vsearch::maps::no_change;
 
 
 // anonymous namespace: limit visibility and usage to this translation unit
@@ -537,7 +534,7 @@ auto getseq(struct Parameters const & parameters, GetseqMode const mode,
 
   {
     Progress progress("Extracting sequences", filesize, parameters);
-    while (h1->next(not parameters.opt_notrunclabels, no_change::get_map().data()))
+    while (h1->next(not parameters.opt_notrunclabels, Mapping::none))
       {
         bool const match = matcher.matches(h1->header_view());
 

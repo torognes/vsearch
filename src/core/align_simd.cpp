@@ -1244,7 +1244,6 @@ auto search16_qprep(s16info_s * s, View<char> const qseq) -> void
 }
 
 
-
 auto compute_score_min(struct s16info_s const & alignment) -> short {
   auto const gap_penalty_max = std::max({
       0,

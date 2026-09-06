@@ -76,11 +76,6 @@
 #include <cstdio>  // std::FILE, std::size_t
 #include <iterator>  // std::next
 #include <memory>  // std::unique_ptr
-#include "utils/maps/no_change.hpp"
-#include "utils/maps/upcase.hpp"
-
-namespace no_change = vsearch::maps::no_change;
-namespace upcase = vsearch::maps::upcase;
 
 
 // anonymous namespace: limit visibility and usage to this translation unit
@@ -94,8 +89,6 @@ namespace {
     skip,    // (3) symbol is stripped, silently (tab, VT, FF, CR)
     count,   // (4) track the number of lines
   };
-
-
 
 
   /* How to handle an input character in a FASTA sequence: one row per byte
@@ -234,7 +227,7 @@ auto fasta_filter_sequence(fastx_handle input_handle) -> void
 
 auto fasta_next(fastx_handle input_handle,
                 bool const truncateatspace,
-                const unsigned char * char_mapping) -> bool
+                Mapping const char_mapping) -> bool
 {
   input_handle->lineno_start = input_handle->lineno;
 
@@ -318,13 +311,12 @@ auto fasta_next(fastx_handle input_handle,
   ++input_handle->seqno;
 
   fastx_filter_header(input_handle, truncateatspace);
-  /* The mapping is a compile-time fact at every caller (see maps.hpp), and
-     these are the only two tables in the tree, so the dispatch here is
-     exhaustive -- the assert says so, because a third table would otherwise
-     take the pass-through path in silence. One pointer comparison per record
-     replaces a table load per accepted byte. */
-  assert((char_mapping == no_change::get_map().data()) or (char_mapping == upcase::get_map().data()));
-  if (char_mapping == upcase::get_map().data())
+  /* The mapping is a compile-time fact at every caller (see maps.hpp), so
+     the parser is specialized once per record rather than reading a table
+     per accepted byte. Mapping has exactly two members, so this dispatch
+     is exhaustive by construction; it used to take a table pointer, and an
+     assert had to stand in for what the type now guarantees. */
+  if (char_mapping == Mapping::upcase)
     {
       fasta_filter_sequence<Mapping::upcase>(input_handle);
     }

@@ -93,9 +93,7 @@
 #include <string>
 #include <utility>  // std::move
 #include <vector>
-#include "utils/maps/no_change.hpp"
 
-namespace no_change = vsearch::maps::no_change;
 
 namespace four_bit = vsearch::maps::four_bit;
 
@@ -751,7 +749,7 @@ static auto dereplicating(std::unique_ptr<fastx_s> const & input_handle,
 
   {
     Progress progress(prompt, filesize, parameters);
-    while (input_handle->next(not parameters.opt_notrunclabels, no_change::get_map().data()))
+    while (input_handle->next(not parameters.opt_notrunclabels, Mapping::none))
       {
         auto const sequence = input_handle->sequence_view();
         auto const seqlen = static_cast<int64_t>(sequence.size());
@@ -1056,8 +1054,6 @@ static auto dereplicating(std::unique_ptr<fastx_s> const & input_handle,
   stats.maxsize = maxsize;
   return stats;
 }
-
-
 
 
 // used by --derep_fulllength, --derep_id, and --fastx_uniques

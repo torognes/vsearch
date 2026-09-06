@@ -80,9 +80,7 @@
 #include <string>
 #include <utility>  // std::move
 #include <vector>
-#include "utils/maps/no_change.hpp"
 
-namespace no_change = vsearch::maps::no_change;
 
 namespace four_bit = vsearch::maps::four_bit;
 
@@ -384,8 +382,6 @@ namespace {
   }
 
 
-
-
   auto close_output_files(struct file_purpose & fastaout) -> void {
     /* called before the stripped-character warning, so that a deferred write
        error is fatal ahead of it rather than after. The order among the four is
@@ -429,7 +425,7 @@ auto cut(struct Parameters const & parameters) -> void {
   struct statistics counters;
   std::vector<char> rc_buffer;
   std::vector<unsigned char> coded_buffer;
-  while (input_handle->next(false, no_change::get_map().data()))
+  while (input_handle->next(false, Mapping::none))
     {
       cut_a_sequence(input_handle.get(), restriction, fastaout, counters, rc_buffer, coded_buffer, parameters);
 

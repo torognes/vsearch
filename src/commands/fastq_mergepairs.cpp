@@ -87,9 +87,6 @@
 #include <cstdlib>  // std::exit, EXIT_FAILURE
 #include <mutex>  // std::mutex, std::unique_lock
 #include <vector>
-#include "utils/maps/upcase.hpp"
-
-namespace upcase = vsearch::maps::upcase;
 
 
 /* chunk constants */
@@ -469,9 +466,9 @@ auto read_pair(struct mergepairs_cli_state_s & state, merge_data_t & a_read_pair
   auto * const fastq_fwd = state.fastq_fwd.get();
   auto * const fastq_rev = state.fastq_rev.get();
 
-  if (fastq_fwd->next(false, upcase::get_map().data()))
+  if (fastq_fwd->next(false, Mapping::upcase))
     {
-      if (not fastq_rev->next(false, upcase::get_map().data()))
+      if (not fastq_rev->next(false, Mapping::upcase))
         {
           /* runs in a worker thread with the chunk lock released; request
              a cooperative abort instead of exiting here, and stop reading
@@ -1075,7 +1072,7 @@ auto fastq_mergepairs(struct Parameters const & parameters) -> void
     state.progress = nullptr;  // clear before the Progress it points to is destroyed
   }
 
-  if (fastq_rev->next(true, upcase::get_map().data()))
+  if (fastq_rev->next(true, Mapping::upcase))
     {
       fatal("More reverse reads than forward reads");
     }

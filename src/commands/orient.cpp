@@ -84,9 +84,6 @@
 #include <cstdint>  // uint64_t
 #include <cstdio>  // std::FILE, std::fprintf, std::fputs, std::size_t
 #include <vector>
-#include "utils/maps/no_change.hpp"
-
-namespace no_change = vsearch::maps::no_change;
 
 
 // documentation: assuming opt_wordlength = 3 (6 bits)
@@ -288,7 +285,7 @@ auto orient(struct Parameters const & parameters) -> void
 
     while (query_h->next(
                       (not parameters.opt_notrunclabels),
-                      no_change::get_map().data()))
+                      Mapping::none))
       {
         auto const query_head = query_h->header_view();
         auto const query_sequence = query_h->sequence_view();

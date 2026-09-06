@@ -77,9 +77,6 @@
 #include <limits>
 #include <numeric>  // std::partial_sum, std::inner_product, std::iota, std::accumulate
 #include <vector>
-#include "utils/maps/upcase.hpp"
-
-namespace upcase = vsearch::maps::upcase;
 
 
 constexpr auto n_eight_bit_values = std::size_t{256};
@@ -112,7 +109,6 @@ namespace {
     static constexpr auto base = 10.0;
     return std::pow(base, -quality_score / base);
   }
-
 
 
   /* The range comes from the parser, which recorded it while copying the
@@ -599,7 +595,7 @@ auto fastq_stats(struct Parameters const & parameters) -> void
   // note: fastq parsing represents 99% of total wallclock time
   {
     Progress progress("Reading FASTQ file", filesize, parameters);
-    while (input_handle->next(false, upcase::get_map().data()))
+    while (input_handle->next(false, Mapping::upcase))
       {
 
         /* update length statistics */

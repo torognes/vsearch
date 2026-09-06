@@ -180,10 +180,10 @@ private:
   friend auto fastx_file_fill_buffer(fastx_s * input_handle) -> uint64_t;
   friend auto fastx_filter_header(fastx_s * input_handle, bool truncateatspace) -> void;
   friend auto fastx_filter_sequence_length(fastx_s * input_handle) -> void;
-  friend auto fasta_next(fastx_s * input_handle, bool truncateatspace, unsigned char const * char_mapping) -> bool;
+  friend auto fasta_next(fastx_s * input_handle, bool truncateatspace, Mapping char_mapping) -> bool;
   template <Mapping mapping>
   friend auto fasta_filter_sequence(fastx_s * input_handle) -> void;
-  friend auto fastq_next(fastx_s * input_handle, bool truncateatspace, unsigned char const * char_mapping) -> bool;
+  friend auto fastq_next(fastx_s * input_handle, bool truncateatspace, Mapping char_mapping) -> bool;
   friend auto scan_line_fragment(fastx_s * input_handle) -> Line_fragment;
   friend auto consume_fragment(fastx_s * input_handle, Line_fragment const & fragment) -> void;
 
@@ -391,7 +391,7 @@ public:
 
   // Advance to the next record, dispatching to the FASTA or FASTQ parser by
   // format. Returns false at end of input or on a deferred parse error.
-  auto next(bool truncateatspace, unsigned char const * char_mapping) -> bool;
+  auto next(bool truncateatspace, Mapping char_mapping) -> bool;
 
   // Emit the end-of-input warning about invalid characters stripped from the
   // input (to stderr and, when open, the log file). This is the user-facing

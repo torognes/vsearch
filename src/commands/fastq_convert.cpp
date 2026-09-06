@@ -75,9 +75,6 @@
 #include <cstdint>  // int64_t, uint64_t
 #include <cstdio>  // std::FILE, std::size_t
 #include <vector>
-#include "utils/maps/no_change.hpp"
-
-namespace no_change = vsearch::maps::no_change;
 
 
 /* the printable ASCII range a quality character must end up in, whatever
@@ -182,7 +179,7 @@ auto fastq_convert(struct Parameters const & parameters) -> void
     std::vector<char> normalized_quality;
     auto n_entries = 1;
     Progress progress("Reading FASTQ file", filesize, parameters);
-    while (input_handle->next(false, no_change::get_map().data()))
+    while (input_handle->next(false, Mapping::none))
       {
         /* header */
 

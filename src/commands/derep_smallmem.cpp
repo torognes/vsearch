@@ -83,9 +83,6 @@
 #include <limits>
 #include <string>
 #include <vector>
-#include "utils/maps/no_change.hpp"
-
-namespace no_change = vsearch::maps::no_change;
 
 
 using Hash = decltype(&hash_cityhash128);
@@ -270,7 +267,7 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
 
   {
     Progress progress(prompt, filesize, parameters);
-    while (h->next(not parameters.opt_notrunclabels, no_change::get_map().data()))
+    while (h->next(not parameters.opt_notrunclabels, Mapping::none))
       {
         auto const sequence = h->sequence_view();
         auto const seqlen = static_cast<int64_t>(sequence.size());
@@ -409,7 +406,7 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
 
   {
     Progress progress("Writing FASTA output file", filesize, parameters);
-    while (h2->next(not parameters.opt_notrunclabels, no_change::get_map().data()))
+    while (h2->next(not parameters.opt_notrunclabels, Mapping::none))
       {
         auto const sequence = h2->sequence_view();
         auto const seqlen = static_cast<int64_t>(sequence.size());

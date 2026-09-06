@@ -84,12 +84,14 @@ namespace vsearch
       constexpr std::size_t table_size = 256;
 
 
-      /* The raw table, for the few loops that hand a whole map to
-         std::transform or to a SIMD gather. Reaching for it is the
-         exception: it puts the caller back in charge of the index cast,
-         which is what map() exists to prevent. */
-      inline auto get_map() noexcept
-        -> std::array<unsigned char, table_size> const & {
+      /* THE entry point -- upper-case nucleotide.
+         Every call site uses it, so the char -> unsigned char cast
+         happens in to_uchar() and nowhere else in the tree.
+
+         The table sits inside it because map() is all this map exposes:
+         nothing hands the whole upcase table to a std::transform or a
+         SIMD gather, so there is no get_map() to hold it. */
+      inline auto map(char const nucleotide) noexcept -> char {
         static constexpr std::array<unsigned char, table_size> table =
           {{
             /*
@@ -120,16 +122,8 @@ namespace vsearch
             'N','N','N','N','N','N','N','N','N','N','N','N','N','N','N','N',
             'N','N','N','N','N','N','N','N','N','N','N','N','N','N','N','N',
             'N','N','N','N','N','N','N','N','N','N','N','N','N','N','N','N',
-          },};
-        return table;
-      }
-
-
-      /* THE entry point -- upper-case nucleotide.
-         Every call site uses it, so the char -> unsigned char cast
-         happens in to_uchar() and nowhere else in the tree. */
-      inline auto map(char const nucleotide) noexcept -> char {
-        return static_cast<char>(get_map()[to_uchar(nucleotide)]);
+          },};;
+        return static_cast<char>(table[to_uchar(nucleotide)]);
       }
 
     }  // namespace upcase
