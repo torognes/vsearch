@@ -75,6 +75,7 @@
 #include <cstddef>
 #include <cstdint>  // int64_t, uint64_t
 #include <limits>  // std::numeric_limits
+#include <numeric>  // std::accumulate
 #include <string>  // std::string
 #include <vector>
 
@@ -179,9 +180,14 @@ inline auto complement_symbol(unsigned char const * const complement_map,
    which no quality value can reach. The walk is then a per-base range check
    that runs only to prove that nothing is wrong.
 
-   A fixed min/max fold does vectorize, where the walk cannot and where
-   std::any_of and std::minmax_element would also stay scalar, and it settles
-   both questions for the whole read at once. */
+   A value fold does vectorize, where the walk cannot, and it settles both
+   questions for the whole read at once. The spelling is load-bearing:
+   std::accumulate is the std algorithm that vectorizes here (16-byte vectors
+   on x86-64 SSE2, aarch64 and ppc64le alike), while std::minmax_element and
+   std::any_of stay scalar -- the first because it carries the min and max
+   *positions*, a loop-carried dependency on iterators the vectorizer cannot
+   model as a reduction, the second because of its early exit. Same finding as
+   DONE_20260905 in core/searchcore.cpp. */
 struct QualityBounds
 {
   unsigned char lowest;
@@ -191,15 +197,13 @@ struct QualityBounds
 
 inline auto quality_bounds(View<char> const quality) -> QualityBounds
 {
-  auto lowest = std::numeric_limits<unsigned char>::max();
-  unsigned char highest = 0;
-  for (auto const symbol : quality)
-    {
-      auto const value = static_cast<unsigned char>(symbol);
-      lowest = std::min(lowest, value);
-      highest = std::max(highest, value);
-    }
-  return QualityBounds{lowest, highest};
+  return std::accumulate(quality.cbegin(), quality.cend(),
+                         QualityBounds{std::numeric_limits<unsigned char>::max(), 0},
+                         [](QualityBounds const bounds, char const symbol) {
+                           auto const value = static_cast<unsigned char>(symbol);
+                           return QualityBounds{std::min(bounds.lowest, value),
+                                                std::max(bounds.highest, value)};
+                         });
 }
 
 
