@@ -135,13 +135,14 @@ constexpr auto max_sum = dust_window * dust_window / 2;  // 2048
 auto worst_region(View<char> const window) -> DustRegion
 {
   static constexpr auto dust_word = 3;
-  static constexpr auto score_scale = 10;  // the 10 of 10 * sum / j below
+  static constexpr auto score_scale = 10;  // the 10 of 10 * sum / offset below
   static constexpr auto per_position_cost = dust_level + 1;
   static constexpr auto reach_threshold = 2 * per_position_cost;
   static constexpr auto word_count = 1U << (2U * dust_word);  // 64
   static constexpr auto bitmask = word_count - 1;
-  /* words[] is indexed by j < window_length below, so a longer window would run
-     off the array; dust_core() passes at most dust_window by construction */
+  /* words[] is indexed by position < window_length below, so a longer window
+     would run off the array; dust_core() passes at most dust_window by
+     construction */
   assert(window.size() <= static_cast<std::size_t>(dust_window));
   auto const window_length = static_cast<int>(window.size());
   /* smallest possible region is 8 */
@@ -156,7 +157,7 @@ auto worst_region(View<char> const window) -> DustRegion
   auto best_end_offset = 0;
   /* both hold 6-bit quantities -- words[] is masked to bitmask, and counts[]
      rises by at most one per inner iteration, so it peaks at
-     window_length - i - 2 <= 62.
+     window_length - start_offset - 2 <= 62.
 
      unsigned char rather than int is worth 1.09x on --fastx_mask, and the
      reason is the reset below, not cache footprint: 256 bytes would fit L1
