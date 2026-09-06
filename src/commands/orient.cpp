@@ -270,14 +270,7 @@ auto orient(struct Parameters const & parameters) -> void
 
   if (not is_udb)
     {
-      if (parameters.opt_dbmask == Masking::dust)
-        {
-          dust_all(db, parameters);
-        }
-      else if ((parameters.opt_dbmask == Masking::soft) and parameters.opt_hardmask)
-        {
-          hardmask_all(db);
-        }
+      apply_masking(db, parameters.opt_dbmask, parameters);
       dbindex.prepare(parameters.opt_dbmask, db, parameters);
       dbindex.add_all_sequences(parameters.opt_dbmask, db, parameters);
     }

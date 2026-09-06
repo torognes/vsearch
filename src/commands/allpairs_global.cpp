@@ -612,14 +612,7 @@ auto allpairs_global(struct Parameters const & parameters) -> void
 
   results_show_samheader(fp_samout, parameters.input_filename, state.db, parameters);
 
-  if (parameters.opt_qmask == Masking::dust)
-    {
-      dust_all(state.db, parameters);
-    }
-  else if ((parameters.opt_qmask == Masking::soft) and parameters.opt_hardmask)
-    {
-      hardmask_all(state.db);
-    }
+  apply_masking(state.db, parameters.opt_qmask, parameters);
 
   // memory-intensive: the entire database is now held in memory
 

@@ -165,14 +165,7 @@ auto makeudb_usearch(struct Parameters const & parameters) -> void
       fatal("Cannot write a UDB file for an empty database");
     }
 
-  if (parameters.opt_dbmask == Masking::dust)
-    {
-      dust_all(db, parameters);
-    }
-  else if ((parameters.opt_dbmask == Masking::soft) and parameters.opt_hardmask)
-    {
-      hardmask_all(db);
-    }
+  apply_masking(db, parameters.opt_dbmask, parameters);
 
   dbindex.prepare(parameters.opt_dbmask, db, parameters);
   dbindex.add_all_sequences(parameters.opt_dbmask, db, parameters);

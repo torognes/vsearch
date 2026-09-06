@@ -78,14 +78,7 @@ auto maskfasta(struct Parameters const & parameters) -> void
 
   uint64_t const seqcount = db.getsequencecount();
 
-  if (parameters.opt_qmask == Masking::dust)
-    {
-      dust_all(db, parameters);
-    }
-  else if ((parameters.opt_qmask == Masking::soft) && parameters.opt_hardmask)
-    {
-      hardmask_all(db);
-    }
+  apply_masking(db, parameters.opt_qmask, parameters);
 
   {
     Progress progress("Writing output", seqcount, parameters);

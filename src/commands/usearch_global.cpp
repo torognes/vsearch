@@ -377,14 +377,7 @@ static auto search_query(struct search_cli_state_s & state, uint64_t const t) ->
          .first(static_cast<std::size_t>(number_of_strands(state.parameters.opt_strand))))
     {
       /* mask query */
-      if (state.parameters.opt_qmask == Masking::dust)
-        {
-          dust(si->qsequence, state.parameters);
-        }
-      else if ((state.parameters.opt_qmask == Masking::soft) && state.parameters.opt_hardmask)
-        {
-          hardmask(si->qsequence);
-        }
+      apply_masking(si->qsequence, state.parameters.opt_qmask, state.parameters);
 
       /* perform search */
       search_onequery(si, state.parameters.opt_qmask);
@@ -560,14 +553,7 @@ static auto search_prep(struct search_cli_state_s & state) -> void
     {
       state.db.read(state.parameters.opt_db, 0, state.parameters);
       results_show_samheader(state.fp_samout.get(), state.parameters.opt_db, state.db, state.parameters);
-      if (state.parameters.opt_dbmask == Masking::dust)
-        {
-          dust_all(state.db, state.parameters);
-        }
-      else if ((state.parameters.opt_dbmask == Masking::soft) && state.parameters.opt_hardmask)
-        {
-          hardmask_all(state.db);
-        }
+      apply_masking(state.db, state.parameters.opt_dbmask, state.parameters);
       // memory-intensive: the entire database is now held in memory
       state.seqcount = static_cast<int>(state.db.getsequencecount());
       state.dbindex.prepare(state.parameters.opt_dbmask, state.db, state.parameters);

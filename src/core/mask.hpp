@@ -73,6 +73,17 @@ auto hardmask(Span<char> seq) -> void;
 auto dust_all(struct Database & db, struct Parameters const & parameters) -> void;
 auto hardmask_all(struct Database & db) -> void;
 
+/* Mask a database, or a single sequence, the way the given Masking value asks
+   for, honouring --hardmask. Every command that masks wants exactly this, so it
+   lives here once rather than as the fourteen copies that differed only in
+   which of --qmask and --dbmask they read and which of the two targets they
+   passed. Masking::none, and soft masking without --hardmask, are the cases
+   with nothing to do: lower case already marks the masked regions. */
+auto apply_masking(struct Database & db, Masking masking,
+                   struct Parameters const & parameters) -> void;
+auto apply_masking(Span<char> sequence, Masking masking,
+                   struct Parameters const & parameters) -> void;
+
 /* === Library API for single-sequence masking === */
 
 /* Apply DUST low-complexity masking to a single sequence in-place.

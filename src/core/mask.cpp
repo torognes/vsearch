@@ -69,6 +69,7 @@
 #include "utils/threads.hpp"
 #include "utils/worker_loop.hpp"
 #include <algorithm>  // std::copy_n, std::fill, std::transform
+#include <numeric>  // std::partial_sum
 #include <cassert>
 #include <iterator>  // std::next
 #include <array>
@@ -81,10 +82,14 @@
 
 
 constexpr int dust_window = 64;
+/* the score a region must beat to be masked. At file scope because worst_region()'s
+   pruning bound is derived from it and would silently go wrong if the two
+   drifted apart; dust_core() is the only other reader. */
+constexpr int dust_level = 20;
 
 
 namespace {
-/* The lowest-complexity region wo() found in the window it was given, as an
+/* The lowest-complexity region worst_region() found in the window it was given, as an
    offset pair relative to that window. A zero score means no region: either
    the window is too short to hold one, or nothing in it repeated. The two
    int out-parameters this replaces were only ever read when the score cleared
@@ -100,31 +105,58 @@ struct DustRegion {
 };
 
 
-/* Ceiling for the overflow contract wo() asserts in its inner loop. At file
+/* Ceiling for the overflow contract worst_region() asserts in its inner loop. At file
    scope so that a release build, where the assert compiles away, does not see
    it as an unused local. */
 constexpr auto max_sum = dust_window * dust_window / 2;  // 2048
 
-auto wo(View<char> const window) -> DustRegion
+/* An exact bound on what a start position can still score, used by worst_region() to
+   skip the starts that provably cannot produce a region.
+
+   worst_region() scores the sub-window [a, b] as 10 * pairs(a, b) / (b - a + 2), so it
+   beats dust_level only when
+
+       10 * pairs(a, b)  >=  (dust_level + 1) * (b - a + 2)
+
+   Writing d(u) for the number of earlier occurrences of words[u] anywhere in
+   the window, a sub-window's pairs are a subset of the window's and its first
+   triplet pairs with nothing to its left, so
+
+       pairs(a, b)  <=  sum of d(u) over [a + 1, b]
+
+   Substituting and collecting the per-position term leaves a plain maximum
+   subarray problem over 10 * d(u) - (dust_level + 1):
+
+       max over b of  sum_{u = a+1}^{b} excess(u)  >=  2 * (dust_level + 1)
+
+   A start that misses that can neither hold the maximum dust_core() acts on
+   nor displace it, and the starts that survive keep their order, so the region
+   returned whenever the caller masks is the one the exhaustive scan found. */
+auto worst_region(View<char> const window) -> DustRegion
 {
   static constexpr auto dust_word = 3;
+  static constexpr auto score_scale = 10;  // the 10 of 10 * sum / j below
+  static constexpr auto per_position_cost = dust_level + 1;
+  static constexpr auto reach_threshold = 2 * per_position_cost;
   static constexpr auto word_count = 1U << (2U * dust_word);  // 64
   static constexpr auto bitmask = word_count - 1;
-  /* words[] is indexed by j < len below, so a longer window would run off the
-     array; dust_core() passes at most dust_window by construction */
+  /* words[] is indexed by j < window_length below, so a longer window would run
+     off the array; dust_core() passes at most dust_window by construction */
   assert(window.size() <= static_cast<std::size_t>(dust_window));
-  auto const len = static_cast<int>(window.size());
-  const auto l1 = len - dust_word + 1 - 5; /* smallest possible region is 8 */
-  if (l1 < 0)
+  auto const window_length = static_cast<int>(window.size());
+  /* smallest possible region is 8 */
+  const auto start_count = window_length - dust_word + 1 - 5;
+  if (start_count < 0)
     {
       return DustRegion{};
     }
 
-  auto bestv = 0;
-  auto besti = 0;
-  auto bestj = 0;
+  auto best_score = 0;
+  auto best_begin = 0;
+  auto best_end_offset = 0;
   /* both hold 6-bit quantities -- words[] is masked to bitmask, and counts[]
-     rises by at most one per inner iteration, so it peaks at len - i - 2 <= 62.
+     rises by at most one per inner iteration, so it peaks at
+     window_length - i - 2 <= 62.
 
      unsigned char rather than int is worth 1.09x on --fastx_mask, and the
      reason is the reset below, not cache footprint: 256 bytes would fit L1
@@ -138,50 +170,93 @@ auto wo(View<char> const window) -> DustRegion
      which the inner loop streams through 1.4 G times. */
   std::array<unsigned char, word_count> counts {{}};
   std::array<unsigned char, dust_window> words {{}};
+  /* First the per-position excess of the bound documented above worst_region(), then --
+     after the backward pass -- how far a run of them starting here can reach.
+     Both loops write every index the scan reads, so it is deliberately not
+     zero-initialised: at 256 bytes GCC clears it with the same microcoded
+     rep stos the note above measures, and that would be paid once per window
+     for no purpose. */
+  std::array<int, dust_window> reach;  // NOLINT(cppcoreguidelines-pro-type-member-init)
   auto word = 0U;
 
-  for (auto j = 0; j < len; j++)
+  for (auto position = 0; position < window_length; position++)
     {
       word <<= 2U;
-      word |= map_2bit(window[static_cast<std::size_t>(j)]);
-      words[static_cast<std::size_t>(j)] = static_cast<unsigned char>(word & bitmask);
+      word |= map_2bit(window[static_cast<std::size_t>(position)]);
+      auto const packed = static_cast<unsigned char>(word & bitmask);
+      words[static_cast<std::size_t>(position)] = packed;
+      auto const holds_a_whole_triplet = (position >= dust_word - 1);
+      if (holds_a_whole_triplet)
+        {
+          /* counts[packed] is d(position): how many earlier positions in this window
+             carry the same triplet. The scan below recomputes it as its own
+             first step, so recording it here is free bar one store. */
+          reach[static_cast<std::size_t>(position)] =
+            (score_scale * static_cast<int>(counts[packed])) - per_position_cost;
+          ++counts[packed];
+        }
     }
 
-  for (auto i = 0; i < l1; i++)
+  /* Kadane, right to left: every element becomes the largest total any run of
+     excesses starting there can reach. Extending only a run that is still
+     positive is what makes it a maximum rather than a plain suffix sum. */
+  auto const first_triplet = static_cast<std::size_t>(dust_word - 1);
+  auto const triplet_count = static_cast<std::size_t>(window_length) - first_triplet;
+  auto const scanned = make_span(reach).subspan(first_triplet, triplet_count);
+  std::partial_sum(scanned.rbegin(), scanned.rend(), scanned.rbegin(),
+                   [](int const best_so_far, int const excess) -> int {
+                     auto const extended =
+                       (best_so_far > 0) ? (excess + best_so_far) : excess;
+                     /* one excess is under score_scale * dust_window and at most
+                        dust_window of them accumulate, so the sum stays five
+                        orders of magnitude below INT_MAX */
+                     assert(extended <= score_scale * dust_window * dust_window);
+                     return extended;
+                   });
+
+  for (auto start_offset = 0; start_offset < start_count; start_offset++)
     {
+      /* the a + 1 of the bound: sub-windows starting at start_offset + 2
+         begin pairing one position later. Nothing this start can reach clears
+         dust_level, so skip the cost of finding that out the long way. */
+      if (reach[static_cast<std::size_t>(start_offset + dust_word)] < reach_threshold)
+        {
+          continue;
+        }
       counts.fill(0);  // reset counts to zero
 
       auto sum = 0;
 
-      for (auto j = dust_word - 1; j < len - i; j++)
+      for (auto offset = dust_word - 1; offset < window_length - start_offset; offset++)
         {
-          word = static_cast<unsigned int>(words[static_cast<std::size_t>(i + j)]);
-          const auto c = counts[word];
-          if (c != 0)
+          auto const window_position = static_cast<std::size_t>(start_offset + offset);
+          word = static_cast<unsigned int>(words[window_position]);
+          const auto repeats = counts[word];
+          if (repeats != 0)
             {
-              sum += c;
+              sum += repeats;
               /* 10 * sum is the one product in this loop; sum counts pairs
                  among at most dust_window window positions, so it stays four
                  orders of magnitude below INT_MAX. The assert states that
                  bound rather than leaving it to be re-derived. */
               assert(sum >= 0 and sum <= max_sum);
-              const auto v = 10 * sum / j;
+              const auto score = score_scale * sum / offset;
 
-              if (v > bestv)
+              if (score > best_score)
                 {
-                  bestv = v;
-                  besti = i;
-                  bestj = j;
+                  best_score = score;
+                  best_begin = start_offset;
+                  best_end_offset = offset;
                 }
             }
-          /* c is counts[word] read above, and nothing has touched the array
+          /* repeats is counts[word] read above, and nothing has touched the array
              since, so the increment below cannot wrap the byte */
-          assert(c < std::numeric_limits<unsigned char>::max());
+          assert(repeats < std::numeric_limits<unsigned char>::max());
           ++counts[word];
         }
     }
 
-  return DustRegion{bestv, besti, besti + bestj};
+  return DustRegion{best_score, best_begin, best_begin + best_end_offset};
 }
 }  // anonymous namespace
 
@@ -190,7 +265,6 @@ auto wo(View<char> const window) -> DustRegion
    Thread-safe: does not read any globals. */
 static auto dust_core(Span<char> const sequence, bool const use_hardmask) -> void
 {
-  static constexpr auto dust_level = 20;
   static constexpr auto half_dust_window = dust_window / 2;
 
   auto const len = static_cast<int>(sequence.size());
@@ -198,8 +272,9 @@ static auto dust_core(Span<char> const sequence, bool const use_hardmask) -> voi
   /* make a local copy of the original sequence -- exactly the span, and no
      further. This used to copy len + 1 bytes and write a '\0' back at [len],
      both one past the end: an undocumented requirement that every caller hand
-     dust() a buffer with a spare byte. The extra byte was never used (wo() and
-     the re-masking transform below are both bounded by len), and no caller
+     dust() a buffer with a spare byte. The extra byte was never used
+     (worst_region() and the re-masking transform below are both bounded by
+     len), and no caller
      reads a terminator here, so the read, the write and the requirement go
      together. An empty span is now handled too: it used to reach
      std::copy_n(nullptr, 1, ...). */
@@ -217,15 +292,17 @@ static auto dust_core(Span<char> const sequence, bool const use_hardmask) -> voi
   for (auto i = 0; i < len; i += half_dust_window)
     {
       const auto l = (len > i + dust_window) ? dust_window : len - i;
-      auto const worst = wo(make_view(local_seq).subspan(static_cast<std::size_t>(i),
-                                                         static_cast<std::size_t>(l)));
+      auto const window = make_view(local_seq).subspan(static_cast<std::size_t>(i),
+                                                       static_cast<std::size_t>(l));
+      auto const worst = worst_region(window);
 
       if (worst.score > dust_level)
         {
-          /* the low-complexity region wo() found, in sequence coordinates.
-             Each bound is widened before the arithmetic rather than after it,
-             and the subtraction is safe unsigned because wo() returns an end
-             at or past its begin (it is begin + bestj, with bestj >= 0). */
+          /* the low-complexity region worst_region() found, in sequence
+             coordinates. Each bound is widened before the arithmetic rather
+             than after it, and the subtraction is safe unsigned because
+             worst_region() returns an end at or past its begin (it is
+             begin + best_end_offset, with best_end_offset >= 0). */
           assert(worst.end >= worst.begin);
           auto const region = sequence.subspan(static_cast<std::size_t>(worst.begin)
                                                + static_cast<std::size_t>(i),
@@ -322,6 +399,36 @@ auto hardmask(Span<char> const seq) -> void
                      }
                    return nucleotide;
                  });
+}
+
+
+auto apply_masking(struct Database & db, Masking const masking,
+                   struct Parameters const & parameters) -> void
+{
+  if (masking == Masking::dust)
+    {
+      dust_all(db, parameters);
+      return;
+    }
+  if ((masking == Masking::soft) and parameters.opt_hardmask)
+    {
+      hardmask_all(db);
+    }
+}
+
+
+auto apply_masking(Span<char> const sequence, Masking const masking,
+                   struct Parameters const & parameters) -> void
+{
+  if (masking == Masking::dust)
+    {
+      dust(sequence, parameters);
+      return;
+    }
+  if ((masking == Masking::soft) and parameters.opt_hardmask)
+    {
+      hardmask(sequence);
+    }
 }
 
 
