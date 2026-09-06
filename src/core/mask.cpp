@@ -65,7 +65,7 @@
 #include "core/mask.hpp"
 #include "core/db.hpp"
 #include "utils/ascii_case.hpp"  // to_upper
-#include "utils/maps.hpp"
+#include "utils/maps/two_bit.hpp"
 #include "utils/threads.hpp"
 #include "utils/worker_loop.hpp"
 #include <algorithm>  // std::copy_n, std::fill, std::transform
@@ -79,6 +79,8 @@
 #include <mutex>  // std::mutex, std::unique_lock
 // #include <string>
 #include <vector>
+
+namespace two_bit = vsearch::maps::two_bit;
 
 
 constexpr int dust_window = 64;
@@ -183,7 +185,7 @@ auto worst_region(View<char> const window) -> DustRegion
   for (auto position = 0; position < window_length; position++)
     {
       word <<= 2U;
-      word |= map_2bit(window[static_cast<std::size_t>(position)]);
+      word |= two_bit::map(window[static_cast<std::size_t>(position)]);
       auto const packed = static_cast<unsigned char>(word & bitmask);
       words[static_cast<std::size_t>(position)] = packed;
       auto const holds_a_whole_triplet = (position >= dust_word - 1);

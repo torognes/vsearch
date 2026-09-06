@@ -91,8 +91,6 @@ namespace {
   };
 
 
-
-
   /* How to handle an input character in a FASTA sequence: one row per byte
      class (see core/fastx_char_class.hpp). The fallback carries 190 of the 256
      bytes -- a printable that is not IUPAC, a space and a high byte are all
@@ -229,7 +227,7 @@ auto fasta_filter_sequence(fastx_handle input_handle) -> void
 
 auto fasta_next(fastx_handle input_handle,
                 bool const truncateatspace,
-                const unsigned char * char_mapping) -> bool
+                Mapping const char_mapping) -> bool
 {
   input_handle->lineno_start = input_handle->lineno;
 
@@ -313,13 +311,12 @@ auto fasta_next(fastx_handle input_handle,
   ++input_handle->seqno;
 
   fastx_filter_header(input_handle, truncateatspace);
-  /* The mapping is a compile-time fact at every caller (see maps.hpp), and
-     these are the only two tables in the tree, so the dispatch here is
-     exhaustive -- the assert says so, because a third table would otherwise
-     take the pass-through path in silence. One pointer comparison per record
-     replaces a table load per accepted byte. */
-  assert((char_mapping == chrmap_no_change()) or (char_mapping == chrmap_upcase()));
-  if (char_mapping == chrmap_upcase())
+  /* The mapping is a compile-time fact at every caller (see maps.hpp), so
+     the parser is specialized once per record rather than reading a table
+     per accepted byte. Mapping has exactly two members, so this dispatch
+     is exhaustive by construction; it used to take a table pointer, and an
+     assert had to stand in for what the type now guarantees. */
+  if (char_mapping == Mapping::upcase)
     {
       fasta_filter_sequence<Mapping::upcase>(input_handle);
     }

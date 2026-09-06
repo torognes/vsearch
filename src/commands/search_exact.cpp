@@ -467,7 +467,7 @@ auto search_exact_thread_run(uint64_t const t, struct search_exact_state_s & sta
   uint64_t progress = 0;
 
   auto const has_work_to_claim = [&]() -> bool {
-    if (not state.query_fastx_h->next((not parameters.opt_notrunclabels), chrmap_no_change()))
+    if (not state.query_fastx_h->next((not parameters.opt_notrunclabels), Mapping::none))
       {
         return false;
       }

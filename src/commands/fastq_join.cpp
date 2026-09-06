@@ -208,9 +208,9 @@ auto fastq_join(struct Parameters const & parameters) -> void
 
   {
     Progress progress("Joining reads", filesize, parameters);
-    while (infiles.forward.handle->next(false, chrmap_no_change()))
+    while (infiles.forward.handle->next(false, Mapping::none))
       {
-        if (not infiles.reverse.handle->next(false, chrmap_no_change()))
+        if (not infiles.reverse.handle->next(false, Mapping::none))
           {
             fatal("More forward reads than reverse reads");
           }
@@ -223,9 +223,9 @@ auto fastq_join(struct Parameters const & parameters) -> void
         /* parsed from the forward header once; both writers below reuse it */
         auto const abundance = static_cast<uint64_t>(infiles.forward.handle->get_abundance());
 
-        /* reverse read: reverse-complement sequence (the shared one-pass
-           helper; the former in-place std::reverse + std::transform called
-           the cross-TU map_complement() once per base) */
+        /* reverse read: reverse-complement sequence, through the shared
+           one-pass helper rather than an in-place std::reverse followed by
+           a std::transform */
 
         vsearch::grow_to_fit(rc_buffer, rev_seq_length);
         reverse_complement(make_span(rc_buffer), rev_sequence);
@@ -278,7 +278,7 @@ auto fastq_join(struct Parameters const & parameters) -> void
       }
   }
 
-  if (infiles.reverse.handle->next(false, chrmap_no_change()))
+  if (infiles.reverse.handle->next(false, Mapping::none))
     {
       fatal("More reverse reads than forward reads");
     }

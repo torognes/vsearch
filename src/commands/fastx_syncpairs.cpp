@@ -69,7 +69,7 @@
 #include "utils/print_view.hpp"  // fprint
 #include "utils/progress.hpp"
 #include "utils/fatal.hpp"
-#include "utils/maps.hpp"  // chrmap_no_change()
+#include "utils/maps.hpp"  // Mapping::none
 #include "utils/open_file.hpp"
 #include "utils/view.hpp"  // View<char>
 #include <algorithm>  // std::equal, std::find_if
@@ -356,7 +356,7 @@ namespace {
                      KeyIndex & index,
                      struct Parameters const & parameters) -> void {
     Progress progress("Indexing reverse reads", reverse_handle->get_size(), parameters);
-    while (reverse_handle->next(false, chrmap_no_change())) {
+    while (reverse_handle->next(false, Mapping::none)) {
       auto const key = matching_key(reverse_handle->header_view(), separators);
       auto const position = records.size();
       if (not index.insert(key, position, records)) {
@@ -433,7 +433,7 @@ auto fastx_syncpairs(struct Parameters const & parameters) -> void
 
   {
     Progress progress("Synchronizing reads", forward_handle->get_size(), parameters);
-    while (forward_handle->next(false, chrmap_no_change())) {
+    while (forward_handle->next(false, Mapping::none)) {
       auto const key = matching_key(forward_handle->header_view(), separators);
       auto const position = reverse_index.find(key, reverse_records);
       if (position == KeyIndex::npos()) {

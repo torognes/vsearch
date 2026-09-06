@@ -61,11 +61,18 @@
 #include "core/kmerhash.hpp"
 #include "utils/kmer_hash_struct.hpp"
 #include "utils/maps.hpp"
+#include "utils/maps/complement.hpp"
+#include "utils/maps/mask_ambig.hpp"
+#include "utils/maps/two_bit.hpp"
 #include "utils/view.hpp"  // View<char>
 #include <cassert>
 #include <cstddef>
 #include <limits>  // std::numeric_limits
 #include <vector>
+
+namespace complement = vsearch::maps::complement;
+namespace mask_ambig = vsearch::maps::mask_ambig;
+namespace two_bit = vsearch::maps::two_bit;
 
 
 /* A packed k-mer of length k occupies 2 * k bits, so the whole k-mer space is
@@ -105,17 +112,15 @@ auto kh_insert_kmers(struct kh_handle_s & kmer_hash, int const k_offset, View<ch
   unsigned int bad = kmer_mask;
   unsigned int kmer = 0;
 
-  auto const * two_bit_map = chrmap_2bit();
-  auto const * mask_ambig_map = chrmap_mask_ambig();
   int pos = 0;
   for (auto const nucleotide : seq)
     {
       bad <<= 2ULL;
-      bad |= mask_ambig_map[static_cast<unsigned char>(nucleotide)];
+      bad |= mask_ambig::map(nucleotide);
       bad &= kmer_mask;
 
       kmer <<= 2ULL;
-      kmer |= two_bit_map[static_cast<unsigned char>(nucleotide)];
+      kmer |= two_bit::map(nucleotide);
       kmer &= kmer_mask;
 
       if (bad == 0U)
@@ -148,9 +153,6 @@ auto kh_find_diagonals(struct kh_handle_s const & kmer_hash,
      as an int once here rather than at each of the call sites */
   int const len = static_cast<int>(seq.size());
 
-  auto const * two_bit_map = chrmap_2bit();
-  auto const * mask_ambig_map = chrmap_mask_ambig();
-  auto const * complement_map = chrmap_complement();
   auto seq_cursor = seq.crbegin();
   for (int pos = 0; pos < len; pos++)
     {
@@ -158,11 +160,11 @@ auto kh_find_diagonals(struct kh_handle_s const & kmer_hash,
       ++seq_cursor;
 
       bad <<= 2ULL;
-      bad |= mask_ambig_map[static_cast<unsigned char>(nucleotide)];
+      bad |= mask_ambig::map(nucleotide);
       bad &= kmer_mask;
 
       kmer <<= 2ULL;
-      kmer |= two_bit_map[complement_map[static_cast<unsigned char>(nucleotide)]];
+      kmer |= two_bit::map(complement::map(nucleotide));
       kmer &= kmer_mask;
 
       if (bad == 0U)

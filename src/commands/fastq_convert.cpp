@@ -179,7 +179,7 @@ auto fastq_convert(struct Parameters const & parameters) -> void
     std::vector<char> normalized_quality;
     auto n_entries = 1;
     Progress progress("Reading FASTQ file", filesize, parameters);
-    while (input_handle->next(false, chrmap_no_change()))
+    while (input_handle->next(false, Mapping::none))
       {
         /* header */
 

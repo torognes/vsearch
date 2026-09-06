@@ -209,7 +209,7 @@ auto fastx_s::set_deferred_error(std::string const & message) -> void
 }
 
 
-auto fastx_s::next(bool const truncateatspace, unsigned char const * char_mapping) -> bool
+auto fastx_s::next(bool const truncateatspace, Mapping const char_mapping) -> bool
 {
   /* deferred-error mode (see fastx.hpp): if a previous call already recorded a
      parse error, report no further records so every worker stops; and if the

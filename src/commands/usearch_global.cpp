@@ -420,7 +420,7 @@ static auto search_thread_run(struct search_cli_state_s & state, uint64_t const 
   auto const has_work_to_claim = [&]() -> bool {
     if (not query_fastx_h->next(
                        (not state.parameters.opt_notrunclabels),
-                       chrmap_no_change()))
+                       Mapping::none))
       {
         return false;
       }
@@ -595,8 +595,6 @@ static auto search_done(struct search_cli_state_s & state) -> void
   state.db.clear();
 
 }
-
-
 
 
 auto usearch_global(struct Parameters const & parameters) -> void

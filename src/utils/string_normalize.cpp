@@ -59,20 +59,22 @@
 */
 
 #include "string_normalize.hpp"
-#include "maps.hpp"  // chrmap_normalize
+#include "utils/maps/normalize.hpp"  // vsearch::maps::normalize
 #include "utils/span.hpp"
 #include "utils/view.hpp"
 #include <algorithm>  // std::transform
 #include <cassert>
 
 
+namespace normalize = vsearch::maps::normalize;
+
+
 auto string_normalize(Span<char> const normalized, View<char> const raw_seq) -> void
 {
   /* convert string to upper case and replace U by T */
   assert(normalized.size() >= raw_seq.size());
-  auto const * normalize_map = chrmap_normalize();
   std::transform(raw_seq.begin(), raw_seq.end(), normalized.begin(),
-                 [normalize_map](char const nucleotide) -> char {
-                   return static_cast<char>(normalize_map[static_cast<unsigned char>(nucleotide)]);
+                 [](char const nucleotide) -> char {
+                   return normalize::map(nucleotide);
                  });
 }

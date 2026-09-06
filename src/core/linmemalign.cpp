@@ -64,6 +64,7 @@
 #include "utils/decimal_digits.hpp"  // decimal::Buffer, decimal::to_decimal
 #include "utils/fatal.hpp"
 #include "utils/maps.hpp"
+#include "utils/maps/four_bit.hpp"
 #include "utils/score_4bit.hpp"  // vsearch::score_4bit, SubstitutionScores, nucleotide_codes_4bit
 #include "utils/view.hpp"  // View<char>
 #include <algorithm>  // std::copy, std::max
@@ -71,6 +72,8 @@
 #include <cstdint>  // int64_t
 #include <iterator>  // std::next
 #include <limits>
+
+namespace four_bit = vsearch::maps::four_bit;
 // #include <vector>
 
 
@@ -273,7 +276,7 @@ auto LinearMemoryAligner::subst_score(char const lhs, char const rhs) -> int64_t
 {
   /* return substitution score for replacing char lhs (sequence a),
      with char rhs (sequence b) */
-  return scorematrix[(matrix_size * std::size_t{map_4bit(rhs)}) + map_4bit(lhs)];
+  return scorematrix[(matrix_size * std::size_t{four_bit::map(rhs)}) + four_bit::map(lhs)];
 }
 
 
@@ -453,14 +456,11 @@ auto LinearMemoryAligner::diff(int64_t const a_start,
       int64_t const I = a_len / 2;  // rename: median?
 
       /* Substitution scores for the two fill nests below, with the two
-         lookups subst_score performs hoisted to where each is invariant.
-         map_4bit is a cross-TU call vsearch cannot inline (no LTO), and
-         subst_score runs once per cell here, so the nests fetch the map
-         once and translate the A-side nucleotide once per row instead --
-         the same hoist reverse_complement uses. subst_score stays as the
+         lookups subst_score performs hoisted to where each is invariant:
+         subst_score runs once per cell, so the nests translate the A-side
+         nucleotide once per row instead. subst_score stays as the
          off-the-hot-path spelling; its cell is
          scorematrix[16 * b_code + a_code], which is what the nests index. */
-      auto const * const nucleotide_codes = chrmap_4bit();
 
       // Compute HH & EE in forward phase
       // Upper part
@@ -491,8 +491,7 @@ auto LinearMemoryAligner::diff(int64_t const a_start,
           HH[0] = h;
           auto f = int64_min;
 
-          auto const a_code = nucleotide_codes[static_cast<unsigned char>(
-              a_seq[static_cast<std::size_t>(a_start + i - 1)])];
+          auto const a_code = four_bit::map(a_seq[static_cast<std::size_t>(a_start + i - 1)]);
 
           for (int64_t j = 1; j <= b_len; j++)
             {
@@ -507,8 +506,7 @@ auto LinearMemoryAligner::diff(int64_t const a_start,
                   EE[jdx] = std::max(EE[jdx], HH[jdx] - go_t_i) - ge_t_i;
                 }
 
-              auto const b_code = nucleotide_codes[static_cast<unsigned char>(
-                  b_seq[static_cast<std::size_t>(b_start + j - 1)])];
+              auto const b_code = four_bit::map(b_seq[static_cast<std::size_t>(b_start + j - 1)]);
               h = p + scorematrix[(matrix_size * std::size_t{b_code}) + a_code];
 
               h = std::max(f, h);
@@ -546,8 +544,7 @@ auto LinearMemoryAligner::diff(int64_t const a_start,
           XX[0] = h;
           auto f = int64_min;
 
-          auto const a_code = nucleotide_codes[static_cast<unsigned char>(
-              a_seq[static_cast<std::size_t>(a_start + a_len - i)])];
+          auto const a_code = four_bit::map(a_seq[static_cast<std::size_t>(a_start + a_len - i)]);
 
           for (int64_t j = 1; j <= b_len; j++)
             {
@@ -562,8 +559,7 @@ auto LinearMemoryAligner::diff(int64_t const a_start,
                   YY[jdx] = std::max(YY[jdx], XX[jdx] - go_t_i) - ge_t_i;
                 }
 
-              auto const b_code = nucleotide_codes[static_cast<unsigned char>(
-                  b_seq[static_cast<std::size_t>(b_start + b_len - j)])];
+              auto const b_code = four_bit::map(b_seq[static_cast<std::size_t>(b_start + b_len - j)]);
               h = p + scorematrix[(matrix_size * std::size_t{b_code}) + a_code];
 
               h = std::max(f, h);
@@ -751,13 +747,13 @@ auto LinearMemoryAligner::alignstats(char const * cigar,
               auto const b_nuc = b_seq[static_cast<std::size_t>(b_pos)];
               nwscore += subst_score(a_nuc, b_nuc);
 
-              if (n_mismatch and ((map_4bit(a_nuc) == is_N) or
-                                     (map_4bit(b_nuc) == is_N)))
+              if (n_mismatch and ((four_bit::map(a_nuc) == is_N) or
+                                     (four_bit::map(b_nuc) == is_N)))
                 {
                   ++nwmismatches;
                 }
-              else if ((map_4bit(a_nuc) &
-                        map_4bit(b_nuc)) != 0U)
+              else if ((four_bit::map(a_nuc) &
+                        four_bit::map(b_nuc)) != 0U)
                 {
                   ++nwmatches;
                 }

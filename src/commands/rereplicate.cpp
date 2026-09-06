@@ -110,7 +110,7 @@ auto rereplicate(struct Parameters const & parameters) -> void
   auto const truncateatspace = not parameters.opt_notrunclabels;
   {
     Progress progress("Rereplicating", static_cast<uint64_t>(filesize), parameters);
-    while (input_handle->next(truncateatspace, chrmap_no_change()))
+    while (input_handle->next(truncateatspace, Mapping::none))
       {
         ++n_amplicons;
         auto abundance = input_handle->get_abundance_and_presence();

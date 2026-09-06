@@ -285,7 +285,7 @@ auto orient(struct Parameters const & parameters) -> void
 
     while (query_h->next(
                       (not parameters.opt_notrunclabels),
-                      chrmap_no_change()))
+                      Mapping::none))
       {
         auto const query_head = query_h->header_view();
         auto const query_sequence = query_h->sequence_view();

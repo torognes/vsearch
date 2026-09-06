@@ -254,7 +254,7 @@ auto fastq_eestats(struct Parameters const & parameters) -> void
 
   {
     Progress progress("Reading FASTQ file", filesize, parameters);
-    while (h->next(false, chrmap_upcase()))
+    while (h->next(false, Mapping::upcase))
       {
         ++seq_count;
 

@@ -99,10 +99,6 @@ namespace {
   };
 
 
-
-
-
-
   /* How to handle an input character in a FASTQ sequence: all IUPAC characters
      are valid, CR (^M) is silently stripped, LF is newline, the rest is fatal.
      One row per byte class (see core/fastx_char_class.hpp).
@@ -322,7 +318,7 @@ auto fastx_s::warn_if_offset_looks_wrong() -> void
 
 auto fastq_next(fastx_handle input_handle,
                 bool const truncateatspace,
-                const unsigned char * char_mapping) -> bool
+                Mapping const char_mapping) -> bool
 {
   input_handle->header_buffer.length = 0;
   input_handle->header_buffer.data()[0] = 0;
@@ -406,13 +402,13 @@ auto fastq_next(fastx_handle input_handle,
 
       /* copy to sequence buffer */
       auto const fragment = scan_line_fragment(input_handle);
-      /* The mapping is a compile-time fact at every caller (see maps.hpp), and
-         these are the only two tables in the tree, so the dispatch is
-         exhaustive -- the assert says so, because a third table would
-         otherwise take the pass-through path in silence. One pointer
-         comparison per line replaces a table load per accepted byte. */
-      assert((char_mapping == chrmap_no_change()) or (char_mapping == chrmap_upcase()));
-      if (char_mapping == chrmap_upcase())
+      /* The mapping is a compile-time fact at every caller (see maps.hpp),
+         so the filter is specialized once per line rather than reading a
+         table per accepted byte. Mapping has exactly two members, so this
+         dispatch is exhaustive by construction; it used to take a table
+         pointer, and an assert had to stand in for what the type now
+         guarantees. */
+      if (char_mapping == Mapping::upcase)
         {
           buffer_filter_extend<Mapping::upcase, false>(input_handle->sequence_buffer,
                                                        fragment.view,

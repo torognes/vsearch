@@ -64,7 +64,13 @@
 #include <cassert>  // assert
 
 
-/* Which of the two character maps a parser applies to the bases it accepts.
+/* What a parser needs to map a byte it has accepted, and nothing else: the
+   character maps themselves live one per header under utils/maps/, and a
+   translation unit includes the ones it names. Keeping them out of here is
+   what makes that split pay -- core/fastx.hpp includes this header for
+   Mapping, so anything left in it lands in most of the tree.
+
+   Which of the two character maps a parser applies to the bases it accepts.
    Passed as a template argument rather than as the table pointer it stands
    for, because every call site knows the answer at compile time: 22 of the 30
    fastx_s::next() calls name chrmap_no_change(), 7 name chrmap_upcase(), and
@@ -107,38 +113,3 @@ inline auto map_accepted_base(char const base) -> char {
 }
 
 
-auto chrmap_no_change() -> unsigned char const *;
-
-auto chrmap_normalize() -> unsigned char const *;
-
-auto chrmap_upcase() -> unsigned char const *;
-
-auto chrmap_complement() -> unsigned char const *;
-
-auto chrmap_2bit() -> unsigned int const *;
-
-auto chrmap_4bit() -> unsigned char const *;
-
-auto chrmap_mask_ambig() -> unsigned int const *;
-
-auto chrmap_mask_lower() -> unsigned int const *;
-
-auto map_uppercase(char nucleotide) -> char;
-
-auto map_2bit(char nucleotide) -> unsigned int;
-
-auto map_4bit(char nucleotide) -> unsigned char;
-
-auto map_complement(char nucleotide) -> char;
-
-auto map_mask_ambig(char nucleotide) -> unsigned int;
-
-auto map_mask_lower(char nucleotide) -> unsigned int;
-
-auto is_equivalent_4bit(char lhs, char rhs) -> bool;
-
-auto is_equivalent_4bit_rhs(char lhs, char rhs) -> bool;
-
-auto is_ambiguous_4bit(unsigned char nucleotide) -> bool;
-
-auto is_same_4bit(char lhs, char rhs) -> bool;

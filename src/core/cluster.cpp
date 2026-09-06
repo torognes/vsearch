@@ -101,7 +101,6 @@
 #include <vector>
 
 
-
 struct clusterinfo_s
 {
   int seqno;

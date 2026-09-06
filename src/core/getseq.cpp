@@ -534,7 +534,7 @@ auto getseq(struct Parameters const & parameters, GetseqMode const mode,
 
   {
     Progress progress("Extracting sequences", filesize, parameters);
-    while (h1->next(not parameters.opt_notrunclabels, chrmap_no_change()))
+    while (h1->next(not parameters.opt_notrunclabels, Mapping::none))
       {
         bool const match = matcher.matches(h1->header_view());
 

@@ -207,6 +207,14 @@ utils/kmer_hash_struct.hpp \
 utils/logfile.hpp \
 utils/make_unique.hpp \
 utils/maps.hpp \
+utils/maps/complement.hpp \
+utils/maps/mask_ambig.hpp \
+utils/maps/four_bit.hpp \
+utils/maps/mask_lower.hpp \
+utils/maps/normalize.hpp \
+utils/maps/upcase.hpp \
+utils/maps/two_bit.hpp \
+utils/maps/to_uchar.hpp \
 utils/median.hpp \
 utils/number_of_strands.hpp \
 utils/open_file.hpp \
@@ -394,7 +402,6 @@ commands/udbstats.cpp \
 core/udb.cpp \
 core/unique.cpp \
 utils/fatal.cpp \
-utils/maps.cpp \
 utils/cigar.cpp \
 utils/compare_strings_nocase.cpp \
 utils/open_file.cpp \
