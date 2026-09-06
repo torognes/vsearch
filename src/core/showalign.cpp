@@ -61,6 +61,7 @@
 #include "vsearch.hpp"
 #include "utils/cigar.hpp"
 #include "utils/maps.hpp"
+#include "utils/maps/complement.hpp"
 #include "utils/print_record.hpp"  // OutputRecord, fprint
 #include "utils/print_view.hpp"  // fprint
 #include "utils/view.hpp"
@@ -72,6 +73,8 @@
 #include <cstring>  // std::strlen
 #include <iterator>  // std::next
 #include <vector>
+
+namespace complement = vsearch::maps::complement;
 
 
 // anonymous namespace: limit visibility and usage to this translation unit
@@ -204,7 +207,7 @@ namespace {
   auto get_query_nucleotide(Alignment const & alignment, Position const & position) -> char {
     auto const nucleotide = alignment.query.sequence[static_cast<std::size_t>(position.query)];
     if (alignment.is_reverse_strand) {
-      return map_complement(nucleotide);
+      return complement::map(nucleotide);
     }
     return nucleotide;
   }

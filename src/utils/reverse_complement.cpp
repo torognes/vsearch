@@ -59,11 +59,13 @@
 */
 
 #include "reverse_complement.hpp"
-#include "maps.hpp"  // chrmap_complement
+#include "utils/maps/complement.hpp"  // vsearch::maps::complement
 #include "utils/span.hpp"
 #include "utils/view.hpp"
 #include <algorithm>  // std::transform
 #include <cassert>
+
+namespace complement = vsearch::maps::complement;
 
 
 auto reverse_complement(Span<char> const rc_seq, View<char> const seq) -> void
@@ -73,9 +75,8 @@ auto reverse_complement(Span<char> const rc_seq, View<char> const seq) -> void
      (identical to the length of seq). */
 
   assert(rc_seq.size() >= seq.size());
-  auto const * complement_map = chrmap_complement();
   std::transform(seq.rbegin(), seq.rend(), rc_seq.begin(),
-                 [complement_map](char const nucleotide) -> char {
-                   return static_cast<char>(complement_map[static_cast<unsigned char>(nucleotide)]);
+                 [](char const nucleotide) -> char {
+                   return complement::map(nucleotide);
                  });
 }

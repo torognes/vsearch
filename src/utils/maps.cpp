@@ -118,36 +118,6 @@ namespace {
     },};
 
 
-  constexpr std::array<unsigned char, 256> chrmap_complement_vector =
-    {{
-      /*
-
-        Map from ascii to ascii, complementary nucleotide
-
-        @   A   B   C   D   E   F   G   H   I   J   K   L   M   N   O
-        P   Q   R   S   T   U   V   W   X   Y   Z   [   \   ]   ^   _
-      */
-
-      'N','N','N','N','N','N','N','N','N','N','N','N','N','N','N','N',
-      'N','N','N','N','N','N','N','N','N','N','N','N','N','N','N','N',
-      'N','N','N','N','N','N','N','N','N','N','N','N','N','N','N','N',
-      'N','N','N','N','N','N','N','N','N','N','N','N','N','N','N','N',
-
-      'N','T','V','G','H','N','N','C','D','N','N','M','N','K','N','N',
-      'N','N','Y','S','A','A','B','W','N','R','N','N','N','N','N','N',
-      'N','t','v','g','h','N','N','c','d','N','N','m','N','k','n','N',
-      'N','N','y','s','a','a','b','w','N','r','N','N','N','N','N','N',
-
-      'N','N','N','N','N','N','N','N','N','N','N','N','N','N','N','N',
-      'N','N','N','N','N','N','N','N','N','N','N','N','N','N','N','N',
-      'N','N','N','N','N','N','N','N','N','N','N','N','N','N','N','N',
-      'N','N','N','N','N','N','N','N','N','N','N','N','N','N','N','N',
-
-      'N','N','N','N','N','N','N','N','N','N','N','N','N','N','N','N',
-      'N','N','N','N','N','N','N','N','N','N','N','N','N','N','N','N',
-      'N','N','N','N','N','N','N','N','N','N','N','N','N','N','N','N',
-      'N','N','N','N','N','N','N','N','N','N','N','N','N','N','N','N',
-    },};
 
 
 
@@ -258,11 +228,6 @@ auto chrmap_upcase() -> unsigned char const * {
 }
 
 
-auto chrmap_complement() -> unsigned char const * {
-  return chrmap_complement_vector.data();
-}
-
-
 auto chrmap_4bit() -> unsigned char const * {
   return chrmap_4bit_vector.data();
 }
@@ -275,11 +240,6 @@ auto map_uppercase(char const nucleotide) -> char {
 
 auto map_4bit(char const nucleotide) -> unsigned char {
   return chrmap_4bit_vector[to_uchar(nucleotide)];
-}
-
-
-auto map_complement(char const nucleotide) -> char {
-  return static_cast<char>(chrmap_complement_vector[to_uchar(nucleotide)]);
 }
 
 
