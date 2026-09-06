@@ -113,25 +113,13 @@ auto chrmap_upcase() -> unsigned char const *;
 
 auto chrmap_complement() -> unsigned char const *;
 
-auto chrmap_2bit() -> unsigned int const *;
-
 auto chrmap_4bit() -> unsigned char const *;
 
-auto chrmap_mask_ambig() -> unsigned int const *;
-
-auto chrmap_mask_lower() -> unsigned int const *;
-
 auto map_uppercase(char nucleotide) -> char;
-
-auto map_2bit(char nucleotide) -> unsigned int;
 
 auto map_4bit(char nucleotide) -> unsigned char;
 
 auto map_complement(char nucleotide) -> char;
-
-auto map_mask_ambig(char nucleotide) -> unsigned int;
-
-auto map_mask_lower(char nucleotide) -> unsigned int;
 
 auto is_equivalent_4bit(char lhs, char rhs) -> bool;
 

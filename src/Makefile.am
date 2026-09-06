@@ -207,7 +207,10 @@ utils/kmer_hash_struct.hpp \
 utils/logfile.hpp \
 utils/make_unique.hpp \
 utils/maps.hpp \
+utils/maps/mask_ambig.hpp \
+utils/maps/mask_lower.hpp \
 utils/maps/normalize.hpp \
+utils/maps/two_bit.hpp \
 utils/maps/to_uchar.hpp \
 utils/median.hpp \
 utils/number_of_strands.hpp \

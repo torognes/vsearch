@@ -61,12 +61,19 @@
 #include "core/unique.hpp"
 #include "utils/cityhash.hpp"  // hash_packed_kmer
 #include "core/mask.hpp"  // Masking
-#include "utils/maps.hpp"  // chrmap_2bit, chrmap_mask_lower, chrmap_mask_ambig
+#include "utils/maps/mask_ambig.hpp"
+#include "utils/maps/mask_lower.hpp"
+#include "utils/maps/two_bit.hpp"  // chrmap_2bit, chrmap_mask_lower, chrmap_mask_ambig
 #include "utils/hash_table_size.hpp"  // table_size_half
 #include "utils/grow_to_fit.hpp"  // vsearch::grow_to_fit
 #include <algorithm>  // std::min, std::fill, std::fill_n
 #include <cstddef>  // std::ptrdiff_t, std::size_t
 #include <cstdint>  // int64_t, uint64_t
+
+namespace maps = vsearch::maps;
+namespace mask_ambig = vsearch::maps::mask_ambig;
+namespace mask_lower = vsearch::maps::mask_lower;
+namespace two_bit = vsearch::maps::two_bit;
 
 
 /*
@@ -114,9 +121,11 @@ auto Uniquer::count_bitmap(int const wordlength,
      shorter than that primes it as far as it goes and yields no kmer */
   auto const primer_length = std::min(static_cast<std::size_t>(wordlength - 1), seq.size());
 
+  /* which masking table applies is a run-time choice, so this is one of
+     the few places that holds a raw map pointer rather than calling a
+     map(); to_uchar() below keeps the index cast in one place all the same */
   auto const * mask_map = (seqmask != Masking::none) ?
-    chrmap_mask_lower() : chrmap_mask_ambig();
-  auto const * two_bit_map = chrmap_2bit();
+    mask_lower::get_map().data() : mask_ambig::get_map().data();
 
   auto * const bitmap = bitmap_.data();
   auto * const list_data = list_.data();
@@ -124,10 +133,10 @@ auto Uniquer::count_bitmap(int const wordlength,
   for (auto const nucleotide : seq.first(primer_length))
     {
       bad <<= 2ULL;
-      bad |= mask_map[static_cast<unsigned char>(nucleotide)];
+      bad |= mask_map[maps::to_uchar(nucleotide)];
 
       kmer <<= 2ULL;
-      kmer |= two_bit_map[static_cast<unsigned char>(nucleotide)];
+      kmer |= two_bit::map(nucleotide);
     }
 
   auto unique = 0;
@@ -135,11 +144,11 @@ auto Uniquer::count_bitmap(int const wordlength,
   for (auto const nucleotide : seq.drop(primer_length))
     {
       bad <<= 2ULL;
-      bad |= mask_map[static_cast<unsigned char>(nucleotide)];
+      bad |= mask_map[maps::to_uchar(nucleotide)];
       bad &= mask;
 
       kmer <<= 2ULL;
-      kmer |= two_bit_map[static_cast<unsigned char>(nucleotide)];
+      kmer |= two_bit::map(nucleotide);
       kmer &= mask;
 
       if (bad == 0U)
@@ -193,9 +202,11 @@ auto Uniquer::count_stamps(int const wordlength,
   /* see count_bitmap: the leading wordlength - 1 bases only prime the kmer */
   auto const primer_length = std::min(static_cast<std::size_t>(wordlength - 1), seq.size());
 
+  /* which masking table applies is a run-time choice, so this is one of
+     the few places that holds a raw map pointer rather than calling a
+     map(); to_uchar() below keeps the index cast in one place all the same */
   auto const * mask_map = (seqmask != Masking::none) ?
-    chrmap_mask_lower() : chrmap_mask_ambig();
-  auto const * two_bit_map = chrmap_2bit();
+    mask_lower::get_map().data() : mask_ambig::get_map().data();
 
   auto * const stamps = stamp_of_kmer_.data();
   auto * const list_data = list_.data();
@@ -204,10 +215,10 @@ auto Uniquer::count_stamps(int const wordlength,
   for (auto const nucleotide : seq.first(primer_length))
     {
       bad <<= 2ULL;
-      bad |= mask_map[static_cast<unsigned char>(nucleotide)];
+      bad |= mask_map[maps::to_uchar(nucleotide)];
 
       kmer <<= 2ULL;
-      kmer |= two_bit_map[static_cast<unsigned char>(nucleotide)];
+      kmer |= two_bit::map(nucleotide);
     }
 
   auto unique = 0;
@@ -215,11 +226,11 @@ auto Uniquer::count_stamps(int const wordlength,
   for (auto const nucleotide : seq.drop(primer_length))
     {
       bad <<= 2ULL;
-      bad |= mask_map[static_cast<unsigned char>(nucleotide)];
+      bad |= mask_map[maps::to_uchar(nucleotide)];
       bad &= mask;
 
       kmer <<= 2ULL;
-      kmer |= two_bit_map[static_cast<unsigned char>(nucleotide)];
+      kmer |= two_bit::map(nucleotide);
       kmer &= mask;
 
       if ((bad == 0U) and (stamps[kmer] != epoch))
@@ -261,9 +272,11 @@ auto Uniquer::count_hash(int const wordlength,
   /* see count_bitmap: the leading wordlength - 1 bases only prime the kmer */
   auto const primer_length = std::min(static_cast<std::size_t>(wordlength - 1), seq.size());
 
+  /* which masking table applies is a run-time choice, so this is one of
+     the few places that holds a raw map pointer rather than calling a
+     map(); to_uchar() below keeps the index cast in one place all the same */
   auto const * mask_map = (seqmask != Masking::none) ?
-    chrmap_mask_lower() : chrmap_mask_ambig();
-  auto const * two_bit_map = chrmap_2bit();
+    mask_lower::get_map().data() : mask_ambig::get_map().data();
 
   auto * const hash = hash_.data();
   auto * const list_data = list_.data();
@@ -271,10 +284,10 @@ auto Uniquer::count_hash(int const wordlength,
   for (auto const nucleotide : seq.first(primer_length))
     {
       bad <<= 2ULL;
-      bad |= mask_map[static_cast<unsigned char>(nucleotide)];
+      bad |= mask_map[maps::to_uchar(nucleotide)];
 
       kmer <<= 2ULL;
-      kmer |= two_bit_map[static_cast<unsigned char>(nucleotide)];
+      kmer |= two_bit::map(nucleotide);
     }
 
   uint64_t unique = 0;
@@ -282,11 +295,11 @@ auto Uniquer::count_hash(int const wordlength,
   for (auto const nucleotide : seq.drop(primer_length))
     {
       bad <<= 2ULL;
-      bad |= mask_map[static_cast<unsigned char>(nucleotide)];
+      bad |= mask_map[maps::to_uchar(nucleotide)];
       bad &= mask;
 
       kmer <<= 2ULL;
-      kmer |= two_bit_map[static_cast<unsigned char>(nucleotide)];
+      kmer |= two_bit::map(nucleotide);
       kmer &= mask;
 
       if (bad == 0U)
