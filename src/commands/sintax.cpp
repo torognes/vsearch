@@ -113,6 +113,7 @@
 #include <cstdio>  // std::FILE, std::fprintf, std::size_t
 #include <cstring>  // std::memcpy
 #include <mutex>  // std::mutex, std::lock_guard, std::unique_lock
+#include <numeric>  // std::accumulate
 #include <vector>  // std::vector
 
 
@@ -489,17 +490,17 @@ auto sintax_search_topscores(struct searchinfo_s * searchinfo,
   best.seqno = 0;
   best.length = 0;
 
-  for (auto i = 0U; i < indexed_count; i++)
+  /* Nothing below the running best is read by the body: both branches
+     require count >= best.count, so the two random accesses that follow,
+     the tie handling and its --sintax_random draw are all wasted on a
+     lower count. best.count never decreases, so a sequence skipped here
+     could not have won later either. The sentinel best.count of 0 ties
+     rather than skips, which is what keeps the first sequence eligible
+     when no k-mer is shared at all. */
+  auto const consider = [&](unsigned int const i) -> void
     {
       count_t const count = counters[i];  /* widened from the byte counter */
-      /* Nothing below the running best is read by the body: both branches
-         require count >= best.count, so the two random accesses that follow,
-         the tie handling and its --sintax_random draw are all wasted on a
-         lower count. best.count never decreases, so a sequence skipped here
-         could not have won later either. The sentinel best.count of 0 ties
-         rather than skips, which is what keeps the first sequence eligible
-         when no k-mer is shared at all. */
-      if (count < best.count) { continue; }
+      if (count < best.count) { return; }
       auto const seqno = searchinfo->dbindex->getmapping(i);
       auto const length = static_cast<unsigned int>(searchinfo->db->getsequencelen(seqno));
 
@@ -509,7 +510,7 @@ auto sintax_search_topscores(struct searchinfo_s * searchinfo,
           best.seqno = seqno;
           best.length = length;
           tophit_count = 1;
-          continue;
+          return;
         }
 
       /* a tie: the only case the early-out above leaves */
@@ -522,7 +523,7 @@ auto sintax_search_topscores(struct searchinfo_s * searchinfo,
               best.seqno = seqno;
               best.length = length;
             }
-          continue;
+          return;
         }
 
       if (length < best.length)
@@ -534,7 +535,35 @@ auto sintax_search_topscores(struct searchinfo_s * searchinfo,
         {
           best.seqno = std::min(seqno, best.seqno);
         }
+    };
+
+  /* Skip whole blocks whose largest count is below the running best: none of
+     their sequences can pass the test consider() opens with. Written as a
+     branchless fold over a compile-time-constant width, which is the form GCC
+     auto-vectorizes into a horizontal maximum (a search such as std::any_of or
+     std::max_element is left scalar, having a data-dependent exit); the same
+     shape is used by offer_counted_sequences() in searchcore.
+
+     // C++17 refactoring: replace with std::reduce, which expresses this fold
+     // directly and takes an execution policy; it generates the same code today
+
+     Sequences that do pass are still visited in index order, so the tie rules
+     -- including the --sintax_random reservoir draw, which consumes the
+     generator -- see exactly the sequence they saw before. */
+  constexpr auto block_size = 16U;  /* one vector of byte counters */
+  auto const largest = [](unsigned char const acc, unsigned char const value) -> unsigned char {
+    return std::max(acc, value);
+  };
+  auto const blocks_end = indexed_count - (indexed_count % block_size);
+  for (auto i = 0U; i < blocks_end; i += block_size)
+    {
+      auto const block = counters.subspan(i, block_size);
+      auto const block_max = std::accumulate(block.cbegin(), block.cend(),
+                                             static_cast<unsigned char>(0), largest);
+      if (block_max < best.count) { continue; }
+      for (auto offset = 0U; offset < block_size; ++offset) { consider(i + offset); }
     }
+  for (auto i = blocks_end; i < indexed_count; ++i) { consider(i); }
 
   searchinfo->m.clear();
   if (best.count > 1) {
