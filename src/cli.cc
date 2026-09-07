@@ -4589,6 +4589,13 @@ namespace {
       case Command::cluster_unoise:
       case Command::fastq_mergepairs:
       case Command::fastx_mask:
+      /* Partially: only its masking phase is parallel (apply_masking ->
+         dust_all, the same work-stealing pool --fastx_mask and the database
+         side of --usearch_global already use). Reading, indexing and writing
+         the UDB stay serial, so the speed-up is bounded by the masking share
+         of the run, and past a handful of threads it is bounded instead by
+         dust_all's per-sequence mutex. */
+      case Command::makeudb_usearch:
       case Command::maskfasta:
       case Command::search_exact:
       case Command::sintax:
