@@ -140,6 +140,14 @@ struct analysis_res
   View<char> sequence;
   View<char> quality;
   double ee = -1.0;
+  /* the ;size= value, read once per record. analyse() needs it for
+     --minsize/--maxsize and every output annotation built below needs it
+     again; without this member header_get_size() re-scans the header and
+     re-runs std::strtoll() over the digits a second time for every record
+     written -- 40 000 calls for 20 000 records with two outputs open, and a
+     full header scan finding nothing when the input carries no ;size= at
+     all. 1 is what get_abundance() returns for a header without one. */
+  int64_t abundance = 1;
 };
 
 
@@ -265,6 +273,7 @@ auto analyse(fastx_handle input_handle, vsearch::QualityTable const & quality_ta
 
   /* filter by abundance */
   auto const abundance = input_handle->get_abundance();
+  res.abundance = abundance;
   if (abundance < parameters.opt_minsize)
     {
       res.discarded = true;
@@ -453,7 +462,7 @@ auto filter(bool const fastq_only, char const * filename, struct Parameters cons
             ++discarded;
 
             OutputAnnotations forward_annotations {
-              static_cast<uint64_t>(forward_handle->get_abundance()), discarded};
+              static_cast<uint64_t>(res1.abundance), discarded};
             forward_annotations.expected_error = res1.ee;
 
             if (parameters.opt_fastaout_discarded != nullptr)
@@ -479,7 +488,7 @@ auto filter(bool const fastq_only, char const * filename, struct Parameters cons
             if (reverse_handle != nullptr)
               {
                 OutputAnnotations reverse_annotations {
-                  static_cast<uint64_t>(reverse_handle->get_abundance()), discarded};
+                  static_cast<uint64_t>(res2.abundance), discarded};
                 reverse_annotations.expected_error = res2.ee;
 
                 if (parameters.opt_fastaout_discarded_rev != nullptr)
@@ -515,7 +524,7 @@ auto filter(bool const fastq_only, char const * filename, struct Parameters cons
               }
 
             OutputAnnotations forward_annotations {
-              static_cast<uint64_t>(forward_handle->get_abundance()), kept};
+              static_cast<uint64_t>(res1.abundance), kept};
             forward_annotations.expected_error = res1.ee;
 
             if (parameters.opt_fastaout != nullptr)
@@ -541,7 +550,7 @@ auto filter(bool const fastq_only, char const * filename, struct Parameters cons
             if (reverse_handle != nullptr)
               {
                 OutputAnnotations reverse_annotations {
-                  static_cast<uint64_t>(reverse_handle->get_abundance()), kept};
+                  static_cast<uint64_t>(res2.abundance), kept};
                 reverse_annotations.expected_error = res2.ee;
 
                 if (parameters.opt_fastaout_rev != nullptr)
