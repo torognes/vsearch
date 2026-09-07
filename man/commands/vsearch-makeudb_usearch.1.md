@@ -31,6 +31,19 @@ error and stops if *fastxfile* is empty, or if all of its sequences are
 discarded by `--minseqlength` (32 nucleotides by default for this
 command), since a UDB file recording no sequence cannot be read back.
 
+The UDB file holds one 32-bit counter per possible *k*-mer, whether or
+not the database contains that *k*-mer. Those 4^*wordlength* counters
+are 256 kB at the default word length of 8, but 1 GB at word length 14
+and 4 GB at 15, whatever the size of *fastxfile*, so raising
+`--wordlength` grows the output file as well as the memory needed to
+build it (see `--wordlength`).
+
+Of the work this command performs, only masking (`--dbmask dust`, the
+default) is distributed over several threads. Reading the input,
+building the *k*-mer index and writing the UDB file are single-threaded,
+so `--threads` shortens the masking step alone, and on short sequences
+it stops helping beyond a few threads.
+
 See [`vsearch-udb(5)`](../formats/vsearch-udb.5.md) for a description
 of the UDB file format.
 
@@ -73,10 +86,7 @@ of the UDB file format.
 
 #(./fragments/option_quiet.md)
 
-
-## ignored options
-
-#(./fragments/option_threads_not_multithreaded.md)
+#(./fragments/option_threads.md)
 
 
 # EXAMPLES
