@@ -77,6 +77,7 @@
 #include <cstdio>  // std::FILE, std::fprintf, std::snprintf, std::size_t
 #include <iterator>  // std::next
 #include <memory>  // std::unique_ptr
+#include <numeric>  // std::accumulate
 #include <string>  // std::string, std::to_string
 
 
@@ -243,6 +244,75 @@ auto buffer_filter_extend(FastxBuffer & dest_buffer,
   /* add zero after sequence */
   *q = 0;
   dest_buffer.length += static_cast<uint64_t>(q - d);
+}
+
+
+/* The lowest and the highest byte of a quality line, for the two questions
+   the caller asks about it: may the line be copied as it stands, and what
+   does the range tracking need to record.
+
+   std::accumulate over the range struct is the spelling that vectorizes here
+   (16-byte vectors on the x86-64 SSE2 baseline, aarch64 and ppc64le alike):
+   std::minmax_element carries the min and max *positions*, a loop-carried
+   dependency on iterators the vectorizer cannot model as a reduction, and
+   std::any_of has an early exit. core/mergepairs.cpp:quality_bounds() is the
+   same fold over its own local aggregate, for the same reason and with the
+   same finding recorded; the two could share one primitive.
+
+   An empty line folds to the empty (inverted) range, so seen() answers "no
+   symbol here" rather than reporting the sentinels as real symbols. */
+auto fold_quality_symbols(View<char> const line) -> QualitySymbolRange
+{
+  return std::accumulate(line.cbegin(), line.cend(), QualitySymbolRange{},
+                         [](QualitySymbolRange range, char const symbol) {
+                           range.observe(static_cast<unsigned char>(symbol));
+                           return range;
+                         });
+}
+
+
+/* Whether every byte of the line is one buffer_filter_extend() would have
+   copied through unchanged, so that the whole line can be appended at once.
+
+   quality_policy() above accepts exactly the printable bytes other than space
+   -- the contiguous range [lowest_printable_ascii, highest_printable_ascii] --
+   and rejects everything below it (control, blank, space) and above it (DEL
+   and the high half). The only two bytes it neither accepts nor rejects, LF
+   and CR, are 10 and 13, also below that range, and the caller has already
+   removed the ones a line may end with. So the question is a single range
+   test, and the fold above answers it for the line as a whole instead of one
+   table lookup and one branch per byte.
+
+   An empty line is not verbatim-copyable: there is nothing to copy, and
+   letting it through would append a range that was never observed. */
+auto is_verbatim_quality_line(QualitySymbolRange const range) -> bool
+{
+  return range.seen() and
+    (range.lowest >= lowest_printable_ascii) and
+    (range.highest <= highest_printable_ascii);
+}
+
+
+/* The bytes of a quality line that reach the buffer: the fragment without its
+   terminating LF, and without a CR immediately before it.
+
+   Both are bytes buffer_filter_extend() drops ('newline' and 'skip'), so
+   removing them here is the same transformation -- and it has to happen before
+   the fold, because CR is 13: left in, it puts every line of every DOS-format
+   file outside the accepted range, the fast path never fires, and the fold is
+   pure overhead. Measured on CRLF input: +2.7% on fastq_chars without this,
+   -10.1% with it. A CR anywhere else in the line still sends it to
+   buffer_filter_extend(), which strips it wherever it sits. */
+auto quality_line_body(Line_fragment const & fragment) -> View<char>
+{
+  auto const body = fragment.has_newline
+    ? fragment.view.first(fragment.view.size() - 1)
+    : fragment.view;
+  if (body.empty() or (body.back() != '\r'))
+    {
+      return body;
+    }
+  return body.first(body.size() - 1);
 }
 }  // anonymous namespace
 
@@ -535,7 +605,26 @@ auto fastq_next(fastx_handle input_handle,
       /* one branch per line fragment, not per byte: a command that neither
          checks the window nor is still feeding the offset sample never
          reaches the tracking instantiation (see fastx.hpp) */
-      if (input_handle->tracks_quality_range())
+      auto const body = quality_line_body(fragment);
+      auto const line_range = fold_quality_symbols(body);
+      if (is_verbatim_quality_line(line_range))
+        {
+          /* Nothing left to filter: the line is one append, and the two
+             extremes the fold already produced are all the tracking needs, in
+             place of an observe() per byte.
+
+             ok and illegal_char are deliberately left alone. A verbatim line
+             has no illegal byte to record, and ok can only be false here if a
+             previous fragment set it so -- which returns from this function
+             before another fragment is ever read. */
+          input_handle->quality_buffer.extend(body);
+          if (input_handle->tracks_quality_range())
+            {
+              input_handle->record_quality_range.observe(line_range.lowest);
+              input_handle->record_quality_range.observe(line_range.highest);
+            }
+        }
+      else if (input_handle->tracks_quality_range())
         {
           buffer_filter_extend<Mapping::none, true>(input_handle->quality_buffer,
                                                     fragment.view,
