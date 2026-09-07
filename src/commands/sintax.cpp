@@ -362,7 +362,7 @@ namespace {
    case on a big-endian target. */
 auto bit_expansion_table() -> std::array<std::uint64_t, 256> const &
 {
-  static std::array<std::uint64_t, 256> const table = [] {
+  static std::array<std::uint64_t, 256> const table = []() -> std::array<std::uint64_t, 256> {
     std::array<std::uint64_t, 256> built {{}};
     for (auto value = 0U; value < built.size(); ++value)
       {
@@ -434,7 +434,8 @@ auto increment_counters(Span<unsigned char> const counters,
   /* the sequences past the last whole bitmap byte, one at a time */
   for (auto index = whole_bytes * 8; index < total; ++index)
     {
-      counters[index] += static_cast<unsigned char>((bitmap[index / 8] >> (index % 8)) & 1U);
+      auto const bits = static_cast<unsigned int>(bitmap[index / 8]);
+      counters[index] += static_cast<unsigned char>((bits >> (index % 8)) & 1U);
     }
 }
 
@@ -515,11 +516,11 @@ auto sintax_search_topscores(struct searchinfo_s * searchinfo,
      could not have won later either. The sentinel best.count of 0 ties
      rather than skips, which is what keeps the first sequence eligible
      when no k-mer is shared at all. */
-  auto const consider = [&](unsigned int const i) -> void
+  auto const consider = [&](unsigned int const index) -> void
     {
-      count_t const count = counters[i];  /* widened from the byte counter */
+      count_t const count = counters[index];  /* widened from the byte counter */
       if (count < best.count) { return; }
-      auto const seqno = searchinfo->dbindex->getmapping(i);
+      auto const seqno = searchinfo->dbindex->getmapping(index);
       auto const length = static_cast<unsigned int>(searchinfo->db->getsequencelen(seqno));
 
       if (count > best.count)
@@ -577,15 +578,15 @@ auto sintax_search_topscores(struct searchinfo_s * searchinfo,
     {
       auto const slice_end = first_index + slice_length;
       auto const blocks_end = slice_end - (slice_length % block_size);
-      for (auto i = first_index; i < blocks_end; i += block_size)
+      for (auto start = first_index; start < blocks_end; start += block_size)
         {
-          auto const block = counters.subspan(i, block_size);
+          auto const block = counters.subspan(start, block_size);
           auto const block_max = std::accumulate(block.cbegin(), block.cend(),
                                                  static_cast<unsigned char>(0), largest);
           if (block_max < best.count) { continue; }
-          for (auto offset = 0U; offset < block_size; ++offset) { consider(i + offset); }
+          for (auto offset = 0U; offset < block_size; ++offset) { consider(start + offset); }
         }
-      for (auto i = blocks_end; i < slice_end; ++i) { consider(i); }
+      for (auto index = blocks_end; index < slice_end; ++index) { consider(index); }
     };
 
   /* Count and scan one slice of the database at a time rather than in one
