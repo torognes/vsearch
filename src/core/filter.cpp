@@ -240,18 +240,27 @@ auto analyse(fastx_handle input_handle, vsearch::QualityTable const & quality_ta
       res.discarded = true;
     }
 
-  /* filter by n's, over the kept part of the sequence: the reader has had a
-     sequence_view() since the streaming reader became a class, so the window
-     is a subspan rather than a raw get_sequence() + start */
-  auto const kept = input_handle->sequence_view()
-    .subspan(static_cast<std::size_t>(start), static_cast<std::size_t>(length));
-  auto const ncount = std::count_if(kept.begin(), kept.end(),
-                                    [](char const nucleotide) -> bool {
-                                      return (nucleotide == 'N') or (nucleotide == 'n');
-                                    });
-  if (ncount > parameters.opt_fastq_maxns)
+  /* filter by n's, over the kept part of the sequence -- but only when the
+     answer is not already known. --fastq_maxns defaults to INT64_MAX, and the
+     window bounds the count, so a threshold at least as large as the window
+     cannot be exceeded however many N's the window holds. Without the guard
+     this is a second full pass over every base of every record, feeding a
+     comparison no count can win: 4.6% of a default fastq_filter run. */
+  if (parameters.opt_fastq_maxns < length)
     {
-      res.discarded = true;
+      /* the reader has had a sequence_view() since the streaming reader became
+         a class, so the window is a subspan rather than a raw get_sequence() +
+         start */
+      auto const kept = input_handle->sequence_view()
+        .subspan(static_cast<std::size_t>(start), static_cast<std::size_t>(length));
+      auto const ncount = std::count_if(kept.begin(), kept.end(),
+                                        [](char const nucleotide) -> bool {
+                                          return (nucleotide == 'N') or (nucleotide == 'n');
+                                        });
+      if (ncount > parameters.opt_fastq_maxns)
+        {
+          res.discarded = true;
+        }
     }
 
   /* filter by abundance */
