@@ -184,7 +184,16 @@ auto header_fprint_strip(std::FILE * output_handle,
 
   /* sort */
 
-  /* by position in the header; the attribute names differ, so no two spans
+  /* Only when there is an order to establish. Nothing below reads past the
+     [0, nth_attribute) prefix, and collect() fills that prefix in order, so a
+     single found attribute is already in place and none at all is nothing to
+     place. std::sort over this array is not free: three elements instantiate
+     introsort's full machinery and cost ~93 instructions a call, which on the
+     common command line -- no --xsize, --sizeout, --eeout or --lengthout, so
+     every slot absent -- ran once per written record per output and measured
+     1.6% of a fastq_filter run.
+
+     by position in the header; the attribute names differ, so no two spans
      share a start and the order among equals never comes up */
 
   /* the whole array is sorted, not just its [0, nth_attribute) prefix, and the
@@ -194,12 +203,15 @@ auto header_fprint_strip(std::FILE * output_handle,
      found[16] is out of bounds (-Warray-bounds), even though nth_attribute is
      at most 3 by construction. A compile-time constant length folds that dead
      arm away. */
-  std::sort(found.begin(), found.end(),
-            [](Attribute_span const & lhs, Attribute_span const & rhs) -> bool
-            {
-              if (lhs.present != rhs.present) { return lhs.present; }
-              return lhs.start < rhs.start;
-            });
+  if (nth_attribute > 1)
+    {
+      std::sort(found.begin(), found.end(),
+                [](Attribute_span const & lhs, Attribute_span const & rhs) -> bool
+                {
+                  if (lhs.present != rhs.present) { return lhs.present; }
+                  return lhs.start < rhs.start;
+                });
+    }
 
   /* print */
 
