@@ -1,8 +1,7 @@
 `--uchimeout` *filename*
 : Write chimera detection results to *filename* using an 18-field,
-  tab-separated uchime-like format. Output row order may vary when
-  using multiple threads. Use `--uchimeout5` for a format compatible
-  with usearch version 5 and earlier. The 18 fields are:
+  tab-separated uchime-like format. Use `--uchimeout5` for a format
+  compatible with usearch version 5 and earlier. The 18 fields are:
 
     1.  score: higher score means a more likely chimeric alignment.
     2.  Q: query sequence label.

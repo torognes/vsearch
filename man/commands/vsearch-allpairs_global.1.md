@@ -27,7 +27,12 @@ section also apply.
 Masking is applied as specified with `--qmask` and `--hardmask`.
 
 At least one output option must be specified. This command is
-multi-threaded.
+multi-threaded: the pairs are distributed over the available threads, so
+the order of the entries written to `--alnout`, `--blast6out`,
+`--fastapairs`, `--matched`, `--notmatched`, `--qsegout`, `--samout`,
+`--tsegout`, `--uc` and `--userout` may vary from run to run when more
+than one thread is used. The results themselves do not depend on the
+thread count.
 
 To illustrate the comparisons performed on a three-sequence file:
 
