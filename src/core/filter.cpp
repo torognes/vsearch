@@ -311,6 +311,7 @@ auto analyse(fastx_handle input_handle, vsearch::QualityTable const & quality_ta
          start */
       auto const kept = input_handle->sequence_view()
         .subspan(static_cast<std::size_t>(start), static_cast<std::size_t>(length));
+      // both cases: this command reads with Mapping::none, so 'n' arrives unmapped
       auto const ncount = std::count_if(kept.begin(), kept.end(),
                                         [](char const nucleotide) -> bool {
                                           return (nucleotide == 'N') or (nucleotide == 'n');
