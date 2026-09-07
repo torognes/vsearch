@@ -75,8 +75,6 @@
 #include <cmath>  // std::pow, std::sqrt, std::round, std::log10, std::log2
 #include <cstddef>
 #include <cstdint>  // int64_t, uint64_t
-#include <limits>  // std::numeric_limits
-#include <numeric>  // std::accumulate
 #include <string>  // std::string
 #include <vector>
 
@@ -172,33 +170,12 @@ inline auto q_to_p(int const quality_symbol, struct Parameters const & parameter
    that runs only to prove that nothing is wrong.
 
    A value fold does vectorize, where the walk cannot, and it settles both
-   questions for the whole read at once. The spelling is load-bearing:
-   std::accumulate is the std algorithm that vectorizes here (16-byte vectors
-   on x86-64 SSE2, aarch64 and ppc64le alike), while std::minmax_element and
-   std::any_of stay scalar -- the first because it carries the min and max
-   *positions*, a loop-carried dependency on iterators the vectorizer cannot
-   model as a reduction, the second because of its early exit. Same finding as
-   DONE_20260905 in core/searchcore.cpp. */
-struct QualityBounds
-{
-  unsigned char lowest;
-  unsigned char highest;
-};
+   questions for the whole read at once. That fold is
+   fold_quality_symbols() in utils/quality_encoding.hpp, shared with the FASTQ
+   reader, which folds every quality line for the same kind of reason; the
+   spelling is load-bearing and the note there says why.
 
-
-inline auto quality_bounds(View<char> const quality) -> QualityBounds
-{
-  return std::accumulate(quality.cbegin(), quality.cend(),
-                         QualityBounds{std::numeric_limits<unsigned char>::max(), 0},
-                         [](QualityBounds const bounds, char const symbol) {
-                           auto const value = static_cast<unsigned char>(symbol);
-                           return QualityBounds{std::min(bounds.lowest, value),
-                                                std::max(bounds.highest, value)};
-                         });
-}
-
-
-/* True when no symbol of the read can trigger either early exit, so the walk
+   True when no symbol of the read can trigger either early exit, so the walk
    would run to its end with no effect at all.
 
    The fold is over unsigned char, which is what vectorizes on the SSE2
@@ -207,15 +184,16 @@ inline auto quality_bounds(View<char> const quality) -> QualityBounds
    [33, 126], so the fold is pinned to that range first: anything outside it
    -- which the FASTQ reader rejects, but a library caller supplies its own
    quality strings -- falls back to the walk, which reproduces get_qual()
-   symbol by symbol, asserts included. */
+   symbol by symbol, asserts included. An empty read has nothing to walk, and
+   the empty range the fold returns says so. */
 inline auto quality_walk_can_be_skipped(View<char> const quality,
                                         struct Parameters const & parameters) -> bool
 {
-  if (quality.empty())
+  auto const bounds = fold_quality_symbols(quality);
+  if (not bounds.seen())
     {
       return true;
     }
-  auto const bounds = quality_bounds(quality);
   if ((bounds.lowest < lowest_printable_ascii) or
       (bounds.highest > highest_printable_ascii))
     {

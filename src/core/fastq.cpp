@@ -77,7 +77,6 @@
 #include <cstdio>  // std::FILE, std::fprintf, std::snprintf, std::size_t
 #include <iterator>  // std::next
 #include <memory>  // std::unique_ptr
-#include <numeric>  // std::accumulate
 #include <string>  // std::string, std::to_string
 
 
@@ -247,30 +246,6 @@ auto buffer_filter_extend(FastxBuffer & dest_buffer,
 }
 
 
-/* The lowest and the highest byte of a quality line, for the two questions
-   the caller asks about it: may the line be copied as it stands, and what
-   does the range tracking need to record.
-
-   std::accumulate over the range struct is the spelling that vectorizes here
-   (16-byte vectors on the x86-64 SSE2 baseline, aarch64 and ppc64le alike):
-   std::minmax_element carries the min and max *positions*, a loop-carried
-   dependency on iterators the vectorizer cannot model as a reduction, and
-   std::any_of has an early exit. core/mergepairs.cpp:quality_bounds() is the
-   same fold over its own local aggregate, for the same reason and with the
-   same finding recorded; the two could share one primitive.
-
-   An empty line folds to the empty (inverted) range, so seen() answers "no
-   symbol here" rather than reporting the sentinels as real symbols. */
-auto fold_quality_symbols(View<char> const line) -> QualitySymbolRange
-{
-  return std::accumulate(line.cbegin(), line.cend(), QualitySymbolRange{},
-                         [](QualitySymbolRange range, char const symbol) {
-                           range.observe(static_cast<unsigned char>(symbol));
-                           return range;
-                         });
-}
-
-
 /* Whether every byte of the line is one buffer_filter_extend() would have
    copied through unchanged, so that the whole line can be appended at once.
 
@@ -280,8 +255,8 @@ auto fold_quality_symbols(View<char> const line) -> QualitySymbolRange
    and the high half). The only two bytes it neither accepts nor rejects, LF
    and CR, are 10 and 13, also below that range, and the caller has already
    removed the ones a line may end with. So the question is a single range
-   test, and the fold above answers it for the line as a whole instead of one
-   table lookup and one branch per byte.
+   test, and fold_quality_symbols() (utils/quality_encoding.hpp) answers it for
+   the line as a whole instead of one table lookup and one branch per byte.
 
    An empty line is not verbatim-copyable: there is nothing to copy, and
    letting it through would append a range that was never observed. */

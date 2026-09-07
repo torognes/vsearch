@@ -60,9 +60,11 @@
 
 #pragma once
 
+#include "view.hpp"  // View<char>
 #include <algorithm>  // std::min, std::max
 #include <cstdint>  // int64_t
 #include <limits>  // std::numeric_limits
+#include <numeric>  // std::accumulate
 
 /* FASTQ quality-score ASCII offsets: the byte value subtracted from a
    quality character to recover its Phred score. Two encodings are in use;
@@ -126,6 +128,30 @@ struct QualitySymbolRange {
   // false until the first symbol has been observed (FASTA input, empty file)
   constexpr auto seen() const noexcept -> bool { return lowest <= highest; }
 };
+
+
+/* The range of a whole quality string in one pass, for the callers that want
+   to settle a per-symbol question for the string as a whole: whether a FASTQ
+   line can be copied into the reader's buffer verbatim (core/fastq.cpp), and
+   whether a read's truncation walk can be skipped (core/mergepairs.cpp).
+
+   std::accumulate is the spelling that vectorizes here -- 16-byte vectors on
+   the x86-64 SSE2 baseline, and verified as umin/umax on aarch64 and
+   vminub/vmaxub on ppc64le. std::minmax_element does not: it carries the min
+   and max *positions*, a loop-carried dependency on iterators the vectorizer
+   cannot model as a reduction. std::any_of does not either, because of its
+   early exit. Same finding as DONE_20260905 in core/searchcore.cpp. Both call
+   sites had this fold written out locally, with that finding recorded twice.
+
+   An empty string folds to the empty (inverted) range, so seen() answers "no
+   symbol here" rather than reporting the sentinels as if they were observed. */
+inline auto fold_quality_symbols(View<char> const quality) -> QualitySymbolRange {
+  return std::accumulate(quality.cbegin(), quality.cend(), QualitySymbolRange{},
+                         [](QualitySymbolRange range, char const symbol) {
+                           range.observe(static_cast<unsigned char>(symbol));
+                           return range;
+                         });
+}
 
 
 /* The FASTQ quality encodings vsearch can distinguish, grouped by the ascii
