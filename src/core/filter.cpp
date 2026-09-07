@@ -100,30 +100,39 @@ namespace {
 }
 
 
-inline auto fastq_get_qual(char const quality_symbol, struct Parameters const & parameters,
-                           fastx_s const & input_handle) -> int
+/* --fastq_qmin/--fastq_qmax, per symbol, over the retained window only: the
+   strip/truncate options have already narrowed the record, and the stepwise
+   loop breaks at the --fastq_truncqual point. Keeping that (rather than
+   reading the parser's whole-record range) is a reviewed decision -- see
+   DONE_20260825_quality_range.md question B.
+
+   The window test spelled out here rather than called, and the report hoisted
+   out of the caller: this runs once per base, and classify_quality() is a
+   cross-TU call in core/quality_range.cpp that no LTO ever inlines. It is the
+   same pair of comparisons on the same two option fields; what remains per
+   base is a compare and a predicted branch. (Not check_quality_score() for
+   the same reason as before: quality_location() would otherwise be built for
+   every base instead of only for the base that fails.)
+
+   Both shapes of the quality loop call it, so the window and its report live
+   in one place. */
+inline auto check_quality_in_window(int const quality_score,
+                                    struct Parameters const & parameters,
+                                    fastx_s const & input_handle) -> void
 {
-  int const quality_score = quality_symbol - static_cast<int>(parameters.opt_fastq_ascii);
-
-  /* Per symbol, over the retained window only: the strip/truncate options
-     above have already narrowed the record, and the loop that calls this
-     breaks at the --fastq_truncqual point. Keeping that (rather than reading
-     the parser's whole-record range) is a reviewed decision -- see
-     DONE_20260825_quality_range.md question B.
-
-     The window test spelled out here rather than called, and the report
-     hoisted out of the caller: this runs once per base, and
-     classify_quality() is a cross-TU call in core/quality_range.cpp that no
-     LTO ever inlines. It is the same pair of comparisons on the same two
-     option fields; what remains per base is a compare and a predicted
-     branch. (Not check_quality_score() for the same reason as before:
-     quality_location() would otherwise be built for every base instead of
-     only for the base that fails.) */
   if ((quality_score < parameters.opt_fastq_qmin) or
       (quality_score > parameters.opt_fastq_qmax))
     {
       report_quality_out_of_range(quality_score, parameters, input_handle);
     }
+}
+
+
+inline auto fastq_get_qual(char const quality_symbol, struct Parameters const & parameters,
+                           fastx_s const & input_handle) -> int
+{
+  int const quality_score = quality_symbol - static_cast<int>(parameters.opt_fastq_ascii);
+  check_quality_in_window(quality_score, parameters, input_handle);
   return quality_score;
 }
 }  // anonymous namespace
@@ -152,7 +161,17 @@ struct analysis_res
 
 
 namespace {
-auto analyse(fastx_handle input_handle, vsearch::QualityTable const & quality_table, struct Parameters const & parameters) -> struct analysis_res
+/* Which shape the per-base quality loop below has. 'stepwise' is the loop as
+   it has always been: it can stop early, and it carries the state that
+   deciding so needs. 'fold' is the shape the loop collapses to when no
+   command-line value can make it stop -- the default command line, where the
+   loop's only remaining obligation is the running sum and the window test.
+   filter() decides which, once per run (see the predicate there). */
+enum struct QualityScan { fold, stepwise };
+
+
+auto analyse(fastx_handle input_handle, vsearch::QualityTable const & quality_table,
+             QualityScan const scan, struct Parameters const & parameters) -> struct analysis_res
 {
   auto const fastq_trunclen = static_cast<int>(parameters.opt_fastq_trunclen);
   auto const fastq_trunclen_keep = static_cast<int>(parameters.opt_fastq_trunclen_keep);
@@ -201,25 +220,56 @@ auto analyse(fastx_handle input_handle, vsearch::QualityTable const & quality_ta
       res.ee = 0.0;
       auto const quality_symbols = input_handle->quality_view()
         .subspan(static_cast<std::size_t>(start), static_cast<std::size_t>(length));
-      for (auto i = 0; i < length; ++i)
+      if (scan == QualityScan::fold)
         {
-          auto const quality_symbol = quality_symbols[static_cast<std::size_t>(i)];
-          auto const quality_score = fastq_get_qual(quality_symbol, parameters, *input_handle);
-          auto const expected_error = quality_table[quality_symbol];
-          res.ee += expected_error;
+          /* The loop with nothing in it but its two obligations: sum the
+             expected errors, and check each symbol against the window. It
+             cannot stop early, cannot shorten the window and cannot discard
+             the record -- filter()'s predicate is exactly the condition under
+             which each of those three is unreachable.
 
-          if ((quality_score <= parameters.opt_fastq_truncqual) or
-              (res.ee > parameters.opt_fastq_truncee) or
-              (res.ee > parameters.opt_fastq_truncee_rate * (i + 1)))
+             The terms are summed left to right, one at a time, which is what
+             the stepwise loop does: the result is therefore bit-for-bit the
+             one it produces, not merely close to it. (Splitting the
+             accumulator to break the dependency chain would be faster and
+             would not be; res.ee is compared against --fastq_maxee and
+             printed by --eeout, so a different order is visible.)
+
+             The accumulator is a local because res escapes through the return
+             value, so the compiler reloads and stores res.ee around every
+             iteration otherwise. */
+          auto sum = 0.0;
+          auto const ascii_offset = static_cast<int>(parameters.opt_fastq_ascii);
+          for (auto const quality_symbol : quality_symbols)
             {
-              res.ee -= expected_error;
-              length = i;
-              break;
+              check_quality_in_window(quality_symbol - ascii_offset, parameters,
+                                      *input_handle);
+              sum += quality_table[quality_symbol];
             }
-
-          if (quality_score < parameters.opt_fastq_minqual)
+          res.ee = sum;
+        }
+      else
+        {
+          for (auto i = 0; i < length; ++i)
             {
-              res.discarded = true;
+              auto const quality_symbol = quality_symbols[static_cast<std::size_t>(i)];
+              auto const quality_score = fastq_get_qual(quality_symbol, parameters, *input_handle);
+              auto const expected_error = quality_table[quality_symbol];
+              res.ee += expected_error;
+
+              if ((quality_score <= parameters.opt_fastq_truncqual) or
+                  (res.ee > parameters.opt_fastq_truncee) or
+                  (res.ee > parameters.opt_fastq_truncee_rate * (i + 1)))
+                {
+                  res.ee -= expected_error;
+                  length = i;
+                  break;
+                }
+
+              if (quality_score < parameters.opt_fastq_minqual)
+                {
+                  res.discarded = true;
+                }
             }
         }
 
@@ -436,6 +486,25 @@ auto filter(bool const fastq_only, char const * filename, struct Parameters cons
   vsearch::QualityTable const quality_table(static_cast<int>(parameters.opt_fastq_ascii),
                                             vsearch::ProbabilityCap::none);
 
+  /* Which shape analyse()'s per-base quality loop takes, decided here rather
+     than re-derived for every base of every record. Each conjunct is the
+     value at which the matching test in that loop can never fire:
+
+     - --fastq_truncqual at its LONG_MIN sentinel is below every score an int
+       can hold, so 'score <= truncqual' is unreachable;
+     - --fastq_truncee and --fastq_truncee_rate at DBL_MAX are above every
+       expected-error sum a finite run can reach (and rate * (i + 1) only
+       grows, to infinity, which no finite sum exceeds either);
+     - a --fastq_minqual no greater than --fastq_qmin cannot reject a score
+       that the window test has already accepted -- that is the subtle one,
+       and 0 <= 0 is why the default command line qualifies. */
+  auto const scan =
+    ((parameters.opt_fastq_truncqual == long_min) and
+     (parameters.opt_fastq_truncee >= dbl_max_local) and
+     (parameters.opt_fastq_truncee_rate >= dbl_max_local) and
+     (parameters.opt_fastq_minqual <= parameters.opt_fastq_qmin))
+    ? QualityScan::fold : QualityScan::stepwise;
+
   {
     Progress progress("Reading input file", filesize, parameters);
     while (forward_handle->next(false, Mapping::none))
@@ -449,10 +518,10 @@ auto filter(bool const fastq_only, char const * filename, struct Parameters cons
         res1.ee = 0.0;
         struct analysis_res res2;
 
-        res1 = analyse(forward_handle.get(), quality_table, parameters);
+        res1 = analyse(forward_handle.get(), quality_table, scan, parameters);
         if (reverse_handle != nullptr)
           {
-            res2 = analyse(reverse_handle.get(), quality_table, parameters);
+            res2 = analyse(reverse_handle.get(), quality_table, scan, parameters);
           }
 
         if (res1.discarded or res2.discarded)
