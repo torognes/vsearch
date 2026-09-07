@@ -78,10 +78,28 @@
 #include <cmath>  // std::signbit
 #include <cstdint>  // int64_t, uint64_t
 #include <cstdio>  // std::FILE
+#include <cstdlib>  // std::abort
 #include <limits>
 
 
 namespace {
+/* Everything the failing base needs, out of line, so that the base that
+   passes needs nothing but the two comparisons below. The verdict is still
+   classify_quality()'s and the text still quality_out_of_range_message()'s,
+   so the message, the first offender and the location are unchanged.
+
+   Not noexcept: fatal() throws VsearchError in a library session. */
+[[noreturn]] auto report_quality_out_of_range(int const quality_score,
+                                              struct Parameters const & parameters,
+                                              fastx_s const & input_handle) -> void
+{
+  auto const bound = vsearch::classify_quality(quality_score, parameters);
+  fatal(vsearch::quality_out_of_range_message(bound, quality_score, parameters,
+                                              input_handle.quality_location()));
+  std::abort();  // unreachable: fatal() exits or throws, and is not [[noreturn]]
+}
+
+
 inline auto fastq_get_qual(char const quality_symbol, struct Parameters const & parameters,
                            fastx_s const & input_handle) -> int
 {
@@ -93,14 +111,18 @@ inline auto fastq_get_qual(char const quality_symbol, struct Parameters const & 
      the parser's whole-record range) is a reviewed decision -- see
      DONE_20260825_quality_range.md question B.
 
-     classify then format, rather than check_quality_score(): this runs once
-     per base, and quality_location() would otherwise be built for every one
-     of them instead of only for the base that fails. */
-  auto const bound = vsearch::classify_quality(quality_score, parameters);
-  if (bound != vsearch::QualityBound::in_range)
+     The window test spelled out here rather than called, and the report
+     hoisted out of the caller: this runs once per base, and
+     classify_quality() is a cross-TU call in core/quality_range.cpp that no
+     LTO ever inlines. It is the same pair of comparisons on the same two
+     option fields; what remains per base is a compare and a predicted
+     branch. (Not check_quality_score() for the same reason as before:
+     quality_location() would otherwise be built for every base instead of
+     only for the base that fails.) */
+  if ((quality_score < parameters.opt_fastq_qmin) or
+      (quality_score > parameters.opt_fastq_qmax))
     {
-      fatal(vsearch::quality_out_of_range_message(bound, quality_score, parameters,
-                                                  input_handle.quality_location()));
+      report_quality_out_of_range(quality_score, parameters, input_handle);
     }
   return quality_score;
 }
