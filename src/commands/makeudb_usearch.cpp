@@ -65,8 +65,10 @@
 #include "core/dbindex.hpp"
 #include "utils/fatal.hpp"
 #include "utils/progress.hpp"
+#include "utils/span.hpp"  // make_span
 #include "utils/view.hpp"  // View, make_view
-#include <algorithm>  // std::max, std::fill_n
+#include <algorithm>  // std::max
+#include <cassert>
 #include <cstddef>  // std::size_t
 #include <cstdint>  // uint64_t
 #include <fstream>  // std::ofstream
@@ -235,15 +237,14 @@ auto makeudb_usearch(struct Parameters const & parameters) -> void
         if (dbindex.has_bitmap(i))
           {
             auto const & bitmap = dbindex.bitmap_of(i);
-            std::fill_n(buffer.begin(), dbindex.kmercount[i], 0U);
-            auto elements = 0U;
-            for (auto j = 0U; j < seqcount; j++)
-              {
-                if (bitmap.is_set(j))
-                  {
-                    buffer[elements++] = j;
-                  }
-              }
+            /* No pre-fill of the scratch buffer: kmercount[i] is incremented
+               once per add_sequence() call that sets a bit, and each of those
+               calls sets a different bit (the index element number, which
+               advances once per sequence), so the bitmap holds exactly
+               kmercount[i] bits and collect_set_bits writes over exactly the
+               entries a fill would have zeroed. The assert states that. */
+            auto const elements = bitmap.collect_set_bits(seqcount, make_span(buffer));
+            assert(elements == dbindex.kmercount[i]);
             pos += largewrite(out_stream, make_view(buffer).first(elements), pos, progress_bar);
           }
         else
