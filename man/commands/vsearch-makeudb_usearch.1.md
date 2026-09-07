@@ -38,11 +38,15 @@ and 4 GB at 15, whatever the size of *fastxfile*, so raising
 `--wordlength` grows the output file as well as the memory needed to
 build it (see `--wordlength`).
 
-Of the work this command performs, only masking (`--dbmask dust`, the
-default) is distributed over several threads. Reading the input,
-building the *k*-mer index and writing the UDB file are single-threaded,
-so `--threads` shortens the masking step alone, and on short sequences
-it stops helping beyond a few threads.
+Of the work this command performs, only DUST masking is distributed
+over several threads. Reading the input, building the *k*-mer index and
+writing the UDB file are single-threaded, and so is the letter
+replacement `--hardmask` asks for. `--threads` therefore shortens the
+masking step and nothing else: it helps with the default
+`--dbmask dust`, and has no measurable effect with `--dbmask none` or
+`--dbmask soft`. What it can save is bounded by the share of the run
+spent masking, which grows with the length of the sequences, and on
+short ones the gain stops increasing beyond a handful of threads.
 
 See [`vsearch-udb(5)`](../formats/vsearch-udb.5.md) for a description
 of the UDB file format.
