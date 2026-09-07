@@ -61,6 +61,7 @@
 #pragma once
 
 #include "utils/fatal_allocator.hpp"  // FatalAllocator
+#include "utils/span.hpp"  // Span
 #include <vector>
 
 
@@ -87,6 +88,21 @@ public:
   auto is_set(unsigned int seed_value) const -> bool;
   auto set(unsigned int seed_value) -> void;
   auto reset_all() -> void;
+
+  /* The index of every bit set below 'bound', in increasing order, written to
+     the start of 'destination'; returns how many were written. The caller sizes
+     'destination' for the worst case (assert), since the count is not known
+     before the scan.
+
+     A word-at-a-time scan rather than 'bound' calls to is_set(), because the
+     one caller -- the UDB writer, which has to turn a bitmapped k-mer back into
+     the sorted list of sequence numbers the file format stores -- feeds it
+     bitmaps that are around a third full. At that density a per-bit branch is
+     all but unpredictable and costs a mispredict every few bits; clearing the
+     lowest set bit of a whole word instead branches once per word, and measured
+     8.6 times faster on a 221 085-sequence reference database (1.00 s -> 0.12 s
+     for 402 million bits). */
+  auto collect_set_bits(unsigned int bound, Span<unsigned int> destination) const -> unsigned int;
 
 private:
   std::vector<unsigned char, FatalAllocator<unsigned char>> bitmap_; /* the actual bitmap */

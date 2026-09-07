@@ -59,7 +59,43 @@
 */
 
 #include "core/bitmap.hpp"
+#include "utils/span.hpp"  // Span
 #include <algorithm>  // std::fill
+#include <cassert>
+#include <cstddef>  // std::ptrdiff_t
+#include <cstdint>  // uint64_t
+#include <cstring>  // std::memcpy
+#include <iterator>  // std::next
+
+
+// anonymous namespace: limit visibility and usage to this translation unit
+namespace {
+
+  /* Number of trailing zero bits, i.e. the index of the lowest set bit.
+     Undefined for zero, as the standard function it stands in for is; the one
+     caller tests the word first.
+
+     C++20 refactoring: replace with std::countr_zero (<bit>).
+
+     The guarded-builtin shape is the one utils/os_byteswap.cpp already uses for
+     bswap_*: the builtin where the compiler provides it -- every compiler
+     vsearch is built with, mingw included -- and a portable loop otherwise, so
+     the file does not depend on a GNU extension being present. */
+  auto countr_zero(uint64_t const word) noexcept -> unsigned int
+  {
+#if defined(__GNUC__) || defined(__clang__)
+    return static_cast<unsigned int>(__builtin_ctzll(word));
+#else
+    auto count = 0U;
+    while (((word >> count) & 1ULL) == 0ULL)
+      {
+        ++count;
+      }
+    return count;
+#endif
+  }
+
+}  // end of anonymous namespace
 
 
 Bitmap::Bitmap(unsigned int const size)
@@ -101,4 +137,50 @@ auto Bitmap::set(unsigned int const seed_value) -> void
   constexpr auto mask_111 = 7U;
   constexpr auto divider = 3U;  // divide by 8
   bitmap_[seed_value >> divider] |= 1U << (seed_value & mask_111);
+}
+
+
+auto Bitmap::collect_set_bits(unsigned int const bound,
+                              Span<unsigned int> const destination) const -> unsigned int
+{
+  assert(destination.size() >= bound);
+  assert(bitmap_.size() * 8U >= bound);  // the bitmap has to cover the range asked for
+  constexpr auto bits_per_word = 64U;
+  constexpr auto bytes_per_word = 8U;
+
+  auto const * const bytes = bitmap_.data();
+  auto const whole_words = bound / bits_per_word;
+  auto found = 0U;
+
+  for (auto word_number = 0U; word_number < whole_words; ++word_number)
+    {
+      /* std::memcpy, not a cast of the byte pointer: reading eight unsigned
+         chars as one uint64_t through a punned pointer is what the aliasing
+         rules forbid, and the buffer carries no alignment guarantee either. It
+         compiles to a single load. */
+      uint64_t word = 0;
+      std::memcpy(&word,
+                  std::next(bytes, static_cast<std::ptrdiff_t>(bytes_per_word) * word_number),
+                  sizeof word);
+      auto const first_bit = bits_per_word * word_number;
+      while (word != 0)
+        {
+          destination[found] = first_bit + countr_zero(word);
+          ++found;
+          word &= word - 1;  // clear the lowest set bit
+        }
+    }
+
+  /* the bits past the last whole word: the buffer is a whole number of bytes,
+     not of 64-bit words, so the tail cannot be read the same way */
+  for (auto bit = bits_per_word * whole_words; bit < bound; ++bit)
+    {
+      if (is_set(bit))
+        {
+          destination[found] = bit;
+          ++found;
+        }
+    }
+
+  return found;
 }
