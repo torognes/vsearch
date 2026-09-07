@@ -30,7 +30,14 @@ prevent matches. By default only the *plus* strand is searched; use
 `--strand both` to also check the reverse complement.
 
 At least one output option must be specified. This command is
-multi-threaded.
+multi-threaded: the queries are distributed over the available threads,
+so the order of the entries written to `--alnout`, `--blast6out`,
+`--fastapairs`, `--matched`, `--notmatched`, `--qsegout`, `--samout`,
+`--tsegout`, `--uc` and `--userout` may vary from run to run when more
+than one thread is used. The `--biomout`, `--dbmatched`,
+`--dbnotmatched`, `--mothur_shared_out` and `--otutabout` tables are
+assembled after the search, or written in database order, and keep a
+stable order. The results themselves do not depend on the thread count.
 
 
 # OPTIONS

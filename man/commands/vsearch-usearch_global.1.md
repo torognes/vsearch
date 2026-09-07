@@ -34,7 +34,14 @@ also check the reverse complement. Masking is applied with `--qmask`
 (queries) and `--dbmask` (database).
 
 At least one output option must be specified. This command is
-multi-threaded.
+multi-threaded: the queries are distributed over the available threads,
+so the order of the entries written to `--alnout`, `--blast6out`,
+`--fastapairs`, `--lcaout`, `--matched`, `--notmatched`, `--qsegout`,
+`--samout`, `--tsegout`, `--uc` and `--userout` may vary from run to run
+when more than one thread is used. The `--biomout`, `--dbmatched`,
+`--dbnotmatched`, `--mothur_shared_out` and `--otutabout` tables are
+assembled after the search, or written in database order, and keep a
+stable order. The results themselves do not depend on the thread count.
 
 To illustrate a search at 97% identity:
 
