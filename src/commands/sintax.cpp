@@ -111,6 +111,7 @@
 #include <iterator>  // std::distance, std::next
 #include <cstdint>  // int64_t, uint64_t
 #include <cstdio>  // std::FILE, std::fprintf, std::size_t
+#include <cstring>  // std::memcpy
 #include <mutex>  // std::mutex, std::lock_guard, std::unique_lock
 #include <vector>  // std::vector
 
@@ -134,6 +135,12 @@ struct sintax_state_s
   struct Dbindex dbindex;  /* the k-mer index this run owns (RAII); si->dbindex points here */
   std::vector<searchinfo_s> si_plus;
   std::vector<searchinfo_s> si_minus;  /* empty unless --strand both */
+  /* One k-mer counter per indexed database sequence, per thread: a byte each,
+     because a bootstrap samples at most subset_size k-mers and each can raise
+     a given counter only once. One array per thread serves both strands --
+     they are searched one after the other for the same query, and each search
+     zeroes the array before it fills it. */
+  std::vector<std::vector<unsigned char>> counters;
   int tophits = 0;   /* the maximum number of hits to keep */
   int seqcount = 0;  /* number of database sequences */
   fastx_handle query_fastx_h = nullptr;
@@ -346,7 +353,93 @@ static auto sintax_analyse(struct sintax_state_s & state,
 
 
 namespace {
+
+/* Expansion table for the counter increment below: entry b holds, in the eight
+   bytes of a 64-bit word, the value of each of the eight bits of b, so that
+   byte k is (b >> k) & 1. Built through memcpy from a byte array, so the byte
+   order inside the word is the machine's own and the table needs no special
+   case on a big-endian target. */
+auto bit_expansion_table() -> std::array<std::uint64_t, 256> const &
+{
+  static std::array<std::uint64_t, 256> const table = [] {
+    std::array<std::uint64_t, 256> built {{}};
+    for (auto value = 0U; value < built.size(); ++value)
+      {
+        std::array<unsigned char, 8> bytes {{}};
+        for (auto bit = 0U; bit < bytes.size(); ++bit)
+          {
+            bytes[bit] = static_cast<unsigned char>((value >> bit) & 1U);
+          }
+        std::memcpy(&built[value], bytes.data(), sizeof(built[value]));
+      }
+    return built;
+  }();
+  return table;
+}
+
+
+/* Increment the counters selected by the 1-bits of a bitmap, eight at a time,
+   by adding one 64-bit word: the counters are bytes, so a word holds eight of
+   them and the expansion word above raises exactly the selected ones. No carry
+   can cross a byte boundary, because a bootstrap samples at most subset_size
+   (32) k-mers and each raises a given counter at most once, so the largest
+   byte value in play is 33.
+
+   That bound is the reason this lives here and not in arch/ beside
+   increment_counters_from_bitmap(): the shared kernel serves search and
+   cluster, whose counts need sixteen bits, and it is written four times over
+   because it is SIMD. This one is architecture-independent -- it measured
+   within 8 percentage points of hand-written SSSE3 intrinsics while compiling
+   unchanged on every target, and GCC vectorizes it to NEON on aarch64 of its
+   own accord.
+
+   Four words an iteration is deliberate: two leaves the dependent table loads
+   too little to hide behind, and eight spills the accumulators to the stack
+   and is slower than not unrolling at all.
+
+   The counters' own length is the bound. It cannot be taken from the bitmap:
+   a bitmap byte covers eight sequences, so its length would fix the count only
+   to a multiple of eight and could let the last iteration run past a run whose
+   length is not a multiple of eight. */
+auto increment_counters(Span<unsigned char> const counters,
+                        View<unsigned char> const bitmap) -> void
+{
+  auto const & table = bit_expansion_table();
+  auto const total = counters.size();
+  assert(bitmap.size() >= ((total + 7) / 8));
+
+  auto const whole_bytes = total / 8;
+  auto const grouped_bytes = whole_bytes - (whole_bytes % 4);
+
+  for (std::size_t byte = 0; byte < grouped_bytes; byte += 4)
+    {
+      std::array<std::uint64_t, 4> words {{}};
+      std::memcpy(words.data(), std::next(counters.data(), static_cast<std::ptrdiff_t>(byte * 8)), sizeof(words));
+      words[0] += table[bitmap[byte]];
+      words[1] += table[bitmap[byte + 1]];
+      words[2] += table[bitmap[byte + 2]];
+      words[3] += table[bitmap[byte + 3]];
+      std::memcpy(std::next(counters.data(), static_cast<std::ptrdiff_t>(byte * 8)), words.data(), sizeof(words));
+    }
+
+  for (auto byte = grouped_bytes; byte < whole_bytes; ++byte)
+    {
+      std::uint64_t word = 0;
+      std::memcpy(&word, std::next(counters.data(), static_cast<std::ptrdiff_t>(byte * 8)), sizeof(word));
+      word += table[bitmap[byte]];
+      std::memcpy(std::next(counters.data(), static_cast<std::ptrdiff_t>(byte * 8)), &word, sizeof(word));
+    }
+
+  /* the sequences past the last whole bitmap byte, one at a time */
+  for (auto index = whole_bytes * 8; index < total; ++index)
+    {
+      counters[index] += static_cast<unsigned char>((bitmap[index / 8] >> (index % 8)) & 1U);
+    }
+}
+
+
 auto sintax_search_topscores(struct searchinfo_s * searchinfo,
+                             Span<unsigned char> const kmer_counts,
                              SplitMix64 & rng,
                              struct Parameters const & parameters) -> void
 {
@@ -362,11 +455,13 @@ auto sintax_search_topscores(struct searchinfo_s * searchinfo,
 
   /* count kmer hits in the database sequences */
   unsigned int const indexed_count = searchinfo->dbindex->getcount();
-  auto const kmer_counts = make_span(searchinfo->kmers_v);
   assert(indexed_count <= kmer_counts.size());
+  auto const counters = kmer_counts.first(indexed_count);
+  /* one bit per indexed sequence, rounded up to whole bytes */
+  auto const bitmap_bytes = (static_cast<std::size_t>(indexed_count) + 7) / 8;
 
   /* zero counts */
-  std::fill_n(kmer_counts.begin(), indexed_count, count_t{0});
+  std::fill_n(counters.begin(), indexed_count, static_cast<unsigned char>(0));
 
   for (auto const kmer : searchinfo->kmersample)
     {
@@ -374,20 +469,7 @@ auto sintax_search_topscores(struct searchinfo_s * searchinfo,
 
       if (bitmap != nullptr)
         {
-#ifdef __x86_64__
-          if (parameters.runtime.ssse3_present != 0)
-            {
-              increment_counters_from_bitmap_ssse3(kmer_counts.data(),
-                                                   bitmap, indexed_count);
-            }
-          else
-            {
-              increment_counters_from_bitmap_sse2(kmer_counts.data(),
-                                                  bitmap, indexed_count);
-            }
-#else
-          increment_counters_from_bitmap(kmer_counts.data(), bitmap, indexed_count);
-#endif
+          increment_counters(counters, View<unsigned char>{bitmap, bitmap_bytes});
         }
       else
         {
@@ -395,7 +477,7 @@ auto sintax_search_topscores(struct searchinfo_s * searchinfo,
           auto const count = searchinfo->dbindex->getmatchcount(kmer);
           for (auto j = 0U; j < count; j++)
             {
-              kmer_counts[list[j]]++;
+              ++counters[list[j]];
             }
         }
     }
@@ -409,7 +491,7 @@ auto sintax_search_topscores(struct searchinfo_s * searchinfo,
 
   for (auto i = 0U; i < indexed_count; i++)
     {
-      count_t const count = kmer_counts[i];
+      count_t const count = counters[i];  /* widened from the byte counter */
       /* Nothing below the running best is read by the body: both branches
          require count >= best.count, so the two random accesses that follow,
          the tie handling and its --sintax_random draw are all wasted on a
@@ -540,7 +622,9 @@ static auto sintax_query(struct sintax_state_s & state, uint64_t const t) -> voi
 
               si->kmersample = make_view(kmersample_subset).first(static_cast<std::size_t>(subsamples));
 
-              sintax_search_topscores(si, rng, state.parameters);
+              sintax_search_topscores(si,
+                                      make_span(state.counters[static_cast<std::size_t>(t)]),
+                                      rng, state.parameters);
 
               if (! si->m.is_empty())
                 {
@@ -684,12 +768,9 @@ static auto sintax_thread_init(struct sintax_state_s const & state, struct searc
   si.dbindex = &state.dbindex;  /* searchcore reads the k-mer index through the si */
   si.db = &state.db;  /* searchcore reads the sequences through the si */
   /* si->uh (a Uniquer value member) is ready to use as default-constructed */
-  /* the kmer counts live in the searchinfo_s kmers_v vector (RAII), matching
-     search/cluster; the reserve headroom keeps the SIMD counter stores that
-     may run past the logical end in bounds. */
-  static constexpr auto overflow_padding = 16U;  // 16 * sizeof(count_t) = 32 bytes headroom
-  si.kmers_v.reserve(static_cast<size_t>(state.seqcount) + overflow_padding);
-  si.kmers_v.resize(static_cast<size_t>(state.seqcount));
+  /* the k-mer counters are owned by the state, one array per thread, not by
+     the searchinfo: sintax uses its own byte-wide counters rather than the
+     16-bit kmers_v that searchcore fills, and one array serves both strands */
   si.m = Minheap(state.tophits);
   si.qsize = 1;
   si.query_head = View<char>{nullptr, 0};
@@ -704,9 +785,9 @@ static auto sintax_thread_exit(struct searchinfo_s & searchinfo) -> void
   /* thread specific clean up */
   searchinfo.uh = Uniquer();
   searchinfo.m = Minheap();
-  /* the kmer counts, the query header and the query sequence live in the
-     searchinfo_s vectors (kmers_v/query_head_v/qsequence_v), which free
-     their own storage */
+  /* the query header and the query sequence live in the searchinfo_s vectors
+     (query_head_v/qsequence_v), which free their own storage; the k-mer
+     counters belong to the state */
 }
 
 
@@ -811,6 +892,10 @@ auto sintax(struct Parameters const & parameters) -> void
     {
       si_minus.resize(static_cast<std::size_t>(parameters.opt_threads));
     }
+
+  /* one counter array per thread, shared by the two strands */
+  state.counters.assign(static_cast<std::size_t>(parameters.opt_threads),
+                        std::vector<unsigned char>(static_cast<std::size_t>(seqcount)));
 
   /* run */
 
