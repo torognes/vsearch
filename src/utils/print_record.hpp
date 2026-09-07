@@ -112,9 +112,13 @@
 template <std::size_t Capacity = 256>
 class Record {
 public:
+  /* One byte of the buffer is written here rather than all of it. See the
+     member declaration for why the difference matters, and what this line is
+     doing. */
   explicit Record(std::FILE * const output_handle) noexcept
     : output_handle_ {output_handle} {
     assert(output_handle != nullptr);
+    buffer_.front() = '\0';
   }
 
   /* RAII: the record reaches the stream even on an early return, and there are
@@ -188,7 +192,32 @@ public:
 private:
   std::FILE * output_handle_ {};
   std::size_t used_ {};
-  std::array<char, Capacity> buffer_ {};
+  /* Deliberately not value-initialized, and the constructor writes its first
+     byte instead.
+
+     Only [0, used_) is ever read: put() writes before it counts, flush()
+     writes out exactly that prefix, and reserve() hands out room the caller
+     fills before commit() counts it. So a "{}" here zeroes bytes that have no
+     reader -- and it does so once per *record*, which is a memset of the whole
+     buffer for every record the process writes. That is not free where records
+     are numerous: on 300 000 folded FASTA records it cost the whole gain of
+     assembling them (a fastx_filter run went from -1.8 % to 0.0 % at
+     --fasta_width 80), and a wider buffer made it worse in proportion -- at
+     2048 bytes it turned this class into an 8.3 % regression, at 4096 a 15 %
+     one. It is invisible on the field-by-field writers, where a record is one
+     hit rather than one sequence (16.6 ms against 16.5 ms on a --blast6out
+     search, 10 runs).
+
+     The one byte is not decoration: cppcheck's uninitMemberVar reports a
+     member the constructor never touches, and src/ carries no
+     cppcheck-suppress comment anywhere -- so the checker is answered by
+     writing a byte rather than by silencing it. It also gives the buffer a
+     coherent starting state (an empty C string) for anyone reading it in a
+     debugger, at the cost of one store per record instead of Capacity of them.
+
+     Any member added below that is not a plain byte buffer needs its own
+     initializer: this declaration no longer initializes the whole object. */
+  std::array<char, Capacity> buffer_;
 };
 
 
