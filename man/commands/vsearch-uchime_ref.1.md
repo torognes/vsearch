@@ -29,7 +29,11 @@ parent sequences from the reference database.
 Chimeras can only be detected if their parents, or sufficiently close
 relatives, are present in the reference database. Unlike the *de
 novo* methods, `--uchime_ref` does not require abundance annotations.
-Multithreading is supported.
+Multithreading is supported: queries are distributed over the
+available threads, so the order of the entries written to
+`--borderline`, `--chimeras`, `--nonchimeras`, `--uchimealns` and
+`--uchimeout` may vary from run to run when more than one thread is
+used. The results themselves do not depend on the thread count.
 
 Both `--db` and at least one output option must be specified.
 
