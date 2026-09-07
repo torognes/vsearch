@@ -461,27 +461,45 @@ auto sintax_search_topscores(struct searchinfo_s * searchinfo,
   /* one bit per indexed sequence, rounded up to whole bytes */
   auto const bitmap_bytes = (static_cast<std::size_t>(indexed_count) + 7) / 8;
 
-  /* zero counts */
-  std::fill_n(counters.begin(), indexed_count, static_cast<unsigned char>(0));
-
-  for (auto const kmer : searchinfo->kmersample)
+  /* Zero one slice of the counters and run the whole k-mer sample against it.
+     A counter depends only on the k-mers that name its own sequence, so this
+     leaves the slice final and the caller may scan it before the next slice is
+     touched. */
+  auto const count_slice = [&](unsigned int const first_index,
+                               unsigned int const slice_length) -> void
     {
-      auto const * bitmap = searchinfo->dbindex->getbitmap(kmer);
+      auto const slice = counters.subspan(first_index, slice_length);
+      auto const slice_end = first_index + slice_length;
+      std::fill_n(slice.begin(), slice_length, static_cast<unsigned char>(0));
 
-      if (bitmap != nullptr)
+      for (auto const kmer : searchinfo->kmersample)
         {
-          increment_counters(counters, View<unsigned char>{bitmap, bitmap_bytes});
-        }
-      else
-        {
-          auto const * list = searchinfo->dbindex->getmatchlist(kmer);
-          auto const count = searchinfo->dbindex->getmatchcount(kmer);
-          for (auto j = 0U; j < count; j++)
+          auto const * bitmap = searchinfo->dbindex->getbitmap(kmer);
+
+          if (bitmap != nullptr)
             {
-              ++counters[list[j]];
+              /* one bit per indexed sequence, so a slice that starts on a
+                 multiple of eight starts on a whole byte of the bitmap */
+              auto const * const bits = std::next(bitmap, first_index / 8);
+              increment_counters(slice,
+                                 View<unsigned char>{bits, bitmap_bytes - (first_index / 8)});
+            }
+          else
+            {
+              /* Dbindex::add_sequence appends a k-mer's match list in index
+                 order, so the entries falling in this slice are contiguous */
+              auto const * const list = searchinfo->dbindex->getmatchlist(kmer);
+              auto const count = searchinfo->dbindex->getmatchcount(kmer);
+              auto const * const last = std::next(list, count);
+              auto const * const first_in_slice = std::lower_bound(list, last, first_index);
+              auto const * const end_of_slice = std::lower_bound(first_in_slice, last, slice_end);
+              for (auto const * entry = first_in_slice; entry != end_of_slice; entry = std::next(entry))
+                {
+                  ++counters[*entry];
+                }
             }
         }
-    }
+    };
 
   auto tophit_count = 0U;
 
@@ -554,16 +572,53 @@ auto sintax_search_topscores(struct searchinfo_s * searchinfo,
   auto const largest = [](unsigned char const acc, unsigned char const value) -> unsigned char {
     return std::max(acc, value);
   };
-  auto const blocks_end = indexed_count - (indexed_count % block_size);
-  for (auto i = 0U; i < blocks_end; i += block_size)
+  auto const scan_slice = [&](unsigned int const first_index,
+                              unsigned int const slice_length) -> void
     {
-      auto const block = counters.subspan(i, block_size);
-      auto const block_max = std::accumulate(block.cbegin(), block.cend(),
-                                             static_cast<unsigned char>(0), largest);
-      if (block_max < best.count) { continue; }
-      for (auto offset = 0U; offset < block_size; ++offset) { consider(i + offset); }
+      auto const slice_end = first_index + slice_length;
+      auto const blocks_end = slice_end - (slice_length % block_size);
+      for (auto i = first_index; i < blocks_end; i += block_size)
+        {
+          auto const block = counters.subspan(i, block_size);
+          auto const block_max = std::accumulate(block.cbegin(), block.cend(),
+                                                 static_cast<unsigned char>(0), largest);
+          if (block_max < best.count) { continue; }
+          for (auto offset = 0U; offset < block_size; ++offset) { consider(i + offset); }
+        }
+      for (auto i = blocks_end; i < slice_end; ++i) { consider(i); }
+    };
+
+  /* Count and scan one slice of the database at a time rather than in one
+     pass over the whole array. The counters are a byte per indexed sequence
+     and a bootstrap walks all of them three times -- zero, increment, scan --
+     a hundred times per query, so past a few million references the array
+     stops fitting a core's private cache and every thread streams from main
+     memory at once. A slice keeps that traffic in cache; without it, adding
+     threads eventually makes the command slower rather than faster.
+
+     Which cache level a slice reaches barely matters, because the point is
+     that it leaves main memory at all. The other end of the range does: every
+     slice repeats the walk over the k-mer sample, so a slice much smaller than
+     the database charges the bitmap lookups and the list bisections above once
+     per slice. sintax samples subset_size k-mers where a search samples an
+     order of magnitude more, so its floor sits lower than the 524288 of
+     search_topscores; measured, anything from 16384 to 262144 costs the same
+     wall clock and 262144 the least CPU. A reference of a quarter million
+     sequences or fewer -- which is most of them -- is a single slice and pays
+     nothing.
+
+     It has to be a multiple of the block width, so that a slice starts on a
+     block boundary, and of eight, so that it starts on a whole bitmap byte. */
+  constexpr auto slice_size = 262144U;
+  static_assert(slice_size % block_size == 0, "a slice must start on a block boundary");
+  static_assert(slice_size % 8 == 0, "a slice must start on a whole bitmap byte");
+
+  for (auto slice_start = 0U; slice_start < indexed_count; slice_start += slice_size)
+    {
+      auto const slice_length = std::min(slice_size, indexed_count - slice_start);
+      count_slice(slice_start, slice_length);
+      scan_slice(slice_start, slice_length);
     }
-  for (auto i = blocks_end; i < indexed_count; ++i) { consider(i); }
 
   searchinfo->m.clear();
   if (best.count > 1) {
