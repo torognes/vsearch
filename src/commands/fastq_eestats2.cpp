@@ -71,6 +71,7 @@
 #include "utils/maps.hpp"
 #include "utils/open_file.hpp"
 #include <algorithm>  // std::max, std::min
+#include <cassert>  // assert
 #include <cstdint>  // int64_t, uint64_t
 #include <cstdio>  // std::FILE, std::fprintf
 #include <initializer_list>
@@ -131,10 +132,14 @@ namespace {
       {
         int const len_cutoff = parameters.opt_length_cutoffs_shortest + (x * parameters.opt_length_cutoffs_increment);
 
-        if (len_cutoff > parameters.opt_length_cutoffs_longest)
-          {
-            break;
-          }
+        /* The largest cutoff this loop can build is
+           shortest + ((high - shortest) / increment) * increment, where high
+           is min(longest read, --length_cutoffs longest) -- at most high, and
+           so at most the configured longest. Option parsing has already
+           rejected shortest > longest, so the bound also holds when the reads
+           are all shorter than shortest and len_steps is 1. This was a
+           defensive break until 2026-09-08; no input could reach it. */
+        assert(len_cutoff <= parameters.opt_length_cutoffs_longest);
 
         fprint_integer(output_stream, len_cutoff, 6);
 

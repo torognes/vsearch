@@ -66,6 +66,7 @@
 #include "core/searchcore.hpp"  // struct hit, top_hits
 #include "core/showalign.hpp"
 #include "core/tax.hpp"  // TaxLevel, tax_levels, tax_split
+#include "utils/ascii_case.hpp"  // to_upper
 #include "utils/cigar.hpp"
 #include "utils/fatal.hpp"
 #include "utils/maps.hpp"
@@ -1048,7 +1049,10 @@ auto build_sam_strings(View<char> const alignment,
                       flag = true;
                     }
 
-                  md += targetseq[tpos];
+                  /* the SAMtags MD grammar is uppercase-only
+                     ([0-9]+(([A-Z]|\^[A-Z]+)[0-9]+)*), and the target may
+                     have been lowercased by masking */
+                  md += to_upper(targetseq[tpos]);
                   flag = false;
                 }
               ++qpos;
@@ -1085,7 +1089,8 @@ auto build_sam_strings(View<char> const alignment,
           md += '^';
           for (auto i = 0LL; i < run; ++i)
             {
-              md += targetseq[tpos];
+              /* uppercase for the same reason as the mismatch case above */
+              md += to_upper(targetseq[tpos]);
               ++tpos;
             }
           flag = false;

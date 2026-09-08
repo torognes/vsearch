@@ -4391,6 +4391,15 @@ namespace {
                and would break downstream parsing if left in. */
             optarg[std::strcspn(optarg, "; \t\r\n\v\f")] = '\0';
             parameters.opt_sample = optarg;
+            /* Nothing left to write means a bare ';sample=' in every
+               header, which --otutabout reads back as a column with no
+               name: say so rather than annotate silently. */
+            if (*parameters.opt_sample == '\0')
+              {
+                vsearch::warn("--sample is empty or starts with ';' or a blank "
+                              "character: headers will carry a bare ';sample=' "
+                              "annotation");
+              }
             break;
 
           case option_qsegout:
@@ -5100,6 +5109,17 @@ namespace {
     if ((command == Command::chimeras_denovo) and (not options_selected[option_alignwidth]))
       {
         parameters.opt_alignwidth = 60;
+      }
+
+    /* --xn weights the 'no' votes of the uchime scoring function, which
+       --chimeras_denovo never evaluates: it routes to eval_parents_long(),
+       where a called query is chimeric by construction. The option is
+       accepted for the four --uchime* commands only, and the log already
+       omits xn/dn/xa for this one. */
+    if ((command == Command::chimeras_denovo) and options_selected[option_xn])
+      {
+        vsearch::warn("Option --xn is ignored by --chimeras_denovo "
+                      "(it only affects the --uchime* commands)");
       }
   }
 
