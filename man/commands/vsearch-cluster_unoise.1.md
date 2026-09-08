@@ -277,9 +277,9 @@ parameters, and remove chimeras:
 
 ```sh
 vsearch \
-    --derep_fulllength reads.fasta \
+    --fastx_uniques reads.fasta \
     --sizeout \
-    --output derep.fasta
+    --fastaout derep.fasta
 
 vsearch \
     --cluster_unoise derep.fasta \
