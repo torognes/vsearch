@@ -111,7 +111,9 @@
 #include <iterator>  // std::distance, std::next
 #include <cstdint>  // int64_t, uint64_t
 #include <cstdio>  // std::FILE, std::fprintf, std::size_t
+#include <cstring>  // std::memcpy
 #include <mutex>  // std::mutex, std::lock_guard, std::unique_lock
+#include <numeric>  // std::accumulate
 #include <vector>  // std::vector
 
 
@@ -134,6 +136,12 @@ struct sintax_state_s
   struct Dbindex dbindex;  /* the k-mer index this run owns (RAII); si->dbindex points here */
   std::vector<searchinfo_s> si_plus;
   std::vector<searchinfo_s> si_minus;  /* empty unless --strand both */
+  /* One k-mer counter per indexed database sequence, per thread: a byte each,
+     because a bootstrap samples at most subset_size k-mers and each can raise
+     a given counter only once. One array per thread serves both strands --
+     they are searched one after the other for the same query, and each search
+     zeroes the array before it fills it. */
+  std::vector<std::vector<unsigned char>> counters;
   int tophits = 0;   /* the maximum number of hits to keep */
   int seqcount = 0;  /* number of database sequences */
   fastx_handle query_fastx_h = nullptr;
@@ -346,7 +354,413 @@ static auto sintax_analyse(struct sintax_state_s & state,
 
 
 namespace {
+
+/* Expansion table for the counter increment below: entry b holds the value of
+   each of the eight bits of b, byte k being (b >> k) & 1, ready to be copied
+   into the eight lanes of a 64-bit word.
+
+   Held as bytes rather than as a 64-bit word because the two are not equally
+   portable: a byte array has the same layout everywhere, while the bytes of a
+   uint64_t literal are ordered by the machine, so a word-valued table would
+   need a big-endian variant. Shaped like the character maps under
+   utils/maps/ -- a function-local static constexpr behind an inline accessor,
+   so it is constant-initialised into .rodata and carries no
+   thread-safe-static guard. */
+auto bit_expansion_table()
+  -> std::array<std::array<unsigned char, 8>, 256> const &
+{
+  static constexpr std::array<std::array<unsigned char, 8>, 256> table =
+    {{
+          {{0, 0, 0, 0, 0, 0, 0, 0}},
+          {{1, 0, 0, 0, 0, 0, 0, 0}},
+          {{0, 1, 0, 0, 0, 0, 0, 0}},
+          {{1, 1, 0, 0, 0, 0, 0, 0}},
+          {{0, 0, 1, 0, 0, 0, 0, 0}},
+          {{1, 0, 1, 0, 0, 0, 0, 0}},
+          {{0, 1, 1, 0, 0, 0, 0, 0}},
+          {{1, 1, 1, 0, 0, 0, 0, 0}},
+          {{0, 0, 0, 1, 0, 0, 0, 0}},
+          {{1, 0, 0, 1, 0, 0, 0, 0}},
+          {{0, 1, 0, 1, 0, 0, 0, 0}},
+          {{1, 1, 0, 1, 0, 0, 0, 0}},
+          {{0, 0, 1, 1, 0, 0, 0, 0}},
+          {{1, 0, 1, 1, 0, 0, 0, 0}},
+          {{0, 1, 1, 1, 0, 0, 0, 0}},
+          {{1, 1, 1, 1, 0, 0, 0, 0}},
+          {{0, 0, 0, 0, 1, 0, 0, 0}},
+          {{1, 0, 0, 0, 1, 0, 0, 0}},
+          {{0, 1, 0, 0, 1, 0, 0, 0}},
+          {{1, 1, 0, 0, 1, 0, 0, 0}},
+          {{0, 0, 1, 0, 1, 0, 0, 0}},
+          {{1, 0, 1, 0, 1, 0, 0, 0}},
+          {{0, 1, 1, 0, 1, 0, 0, 0}},
+          {{1, 1, 1, 0, 1, 0, 0, 0}},
+          {{0, 0, 0, 1, 1, 0, 0, 0}},
+          {{1, 0, 0, 1, 1, 0, 0, 0}},
+          {{0, 1, 0, 1, 1, 0, 0, 0}},
+          {{1, 1, 0, 1, 1, 0, 0, 0}},
+          {{0, 0, 1, 1, 1, 0, 0, 0}},
+          {{1, 0, 1, 1, 1, 0, 0, 0}},
+          {{0, 1, 1, 1, 1, 0, 0, 0}},
+          {{1, 1, 1, 1, 1, 0, 0, 0}},
+          {{0, 0, 0, 0, 0, 1, 0, 0}},
+          {{1, 0, 0, 0, 0, 1, 0, 0}},
+          {{0, 1, 0, 0, 0, 1, 0, 0}},
+          {{1, 1, 0, 0, 0, 1, 0, 0}},
+          {{0, 0, 1, 0, 0, 1, 0, 0}},
+          {{1, 0, 1, 0, 0, 1, 0, 0}},
+          {{0, 1, 1, 0, 0, 1, 0, 0}},
+          {{1, 1, 1, 0, 0, 1, 0, 0}},
+          {{0, 0, 0, 1, 0, 1, 0, 0}},
+          {{1, 0, 0, 1, 0, 1, 0, 0}},
+          {{0, 1, 0, 1, 0, 1, 0, 0}},
+          {{1, 1, 0, 1, 0, 1, 0, 0}},
+          {{0, 0, 1, 1, 0, 1, 0, 0}},
+          {{1, 0, 1, 1, 0, 1, 0, 0}},
+          {{0, 1, 1, 1, 0, 1, 0, 0}},
+          {{1, 1, 1, 1, 0, 1, 0, 0}},
+          {{0, 0, 0, 0, 1, 1, 0, 0}},
+          {{1, 0, 0, 0, 1, 1, 0, 0}},
+          {{0, 1, 0, 0, 1, 1, 0, 0}},
+          {{1, 1, 0, 0, 1, 1, 0, 0}},
+          {{0, 0, 1, 0, 1, 1, 0, 0}},
+          {{1, 0, 1, 0, 1, 1, 0, 0}},
+          {{0, 1, 1, 0, 1, 1, 0, 0}},
+          {{1, 1, 1, 0, 1, 1, 0, 0}},
+          {{0, 0, 0, 1, 1, 1, 0, 0}},
+          {{1, 0, 0, 1, 1, 1, 0, 0}},
+          {{0, 1, 0, 1, 1, 1, 0, 0}},
+          {{1, 1, 0, 1, 1, 1, 0, 0}},
+          {{0, 0, 1, 1, 1, 1, 0, 0}},
+          {{1, 0, 1, 1, 1, 1, 0, 0}},
+          {{0, 1, 1, 1, 1, 1, 0, 0}},
+          {{1, 1, 1, 1, 1, 1, 0, 0}},
+          {{0, 0, 0, 0, 0, 0, 1, 0}},
+          {{1, 0, 0, 0, 0, 0, 1, 0}},
+          {{0, 1, 0, 0, 0, 0, 1, 0}},
+          {{1, 1, 0, 0, 0, 0, 1, 0}},
+          {{0, 0, 1, 0, 0, 0, 1, 0}},
+          {{1, 0, 1, 0, 0, 0, 1, 0}},
+          {{0, 1, 1, 0, 0, 0, 1, 0}},
+          {{1, 1, 1, 0, 0, 0, 1, 0}},
+          {{0, 0, 0, 1, 0, 0, 1, 0}},
+          {{1, 0, 0, 1, 0, 0, 1, 0}},
+          {{0, 1, 0, 1, 0, 0, 1, 0}},
+          {{1, 1, 0, 1, 0, 0, 1, 0}},
+          {{0, 0, 1, 1, 0, 0, 1, 0}},
+          {{1, 0, 1, 1, 0, 0, 1, 0}},
+          {{0, 1, 1, 1, 0, 0, 1, 0}},
+          {{1, 1, 1, 1, 0, 0, 1, 0}},
+          {{0, 0, 0, 0, 1, 0, 1, 0}},
+          {{1, 0, 0, 0, 1, 0, 1, 0}},
+          {{0, 1, 0, 0, 1, 0, 1, 0}},
+          {{1, 1, 0, 0, 1, 0, 1, 0}},
+          {{0, 0, 1, 0, 1, 0, 1, 0}},
+          {{1, 0, 1, 0, 1, 0, 1, 0}},
+          {{0, 1, 1, 0, 1, 0, 1, 0}},
+          {{1, 1, 1, 0, 1, 0, 1, 0}},
+          {{0, 0, 0, 1, 1, 0, 1, 0}},
+          {{1, 0, 0, 1, 1, 0, 1, 0}},
+          {{0, 1, 0, 1, 1, 0, 1, 0}},
+          {{1, 1, 0, 1, 1, 0, 1, 0}},
+          {{0, 0, 1, 1, 1, 0, 1, 0}},
+          {{1, 0, 1, 1, 1, 0, 1, 0}},
+          {{0, 1, 1, 1, 1, 0, 1, 0}},
+          {{1, 1, 1, 1, 1, 0, 1, 0}},
+          {{0, 0, 0, 0, 0, 1, 1, 0}},
+          {{1, 0, 0, 0, 0, 1, 1, 0}},
+          {{0, 1, 0, 0, 0, 1, 1, 0}},
+          {{1, 1, 0, 0, 0, 1, 1, 0}},
+          {{0, 0, 1, 0, 0, 1, 1, 0}},
+          {{1, 0, 1, 0, 0, 1, 1, 0}},
+          {{0, 1, 1, 0, 0, 1, 1, 0}},
+          {{1, 1, 1, 0, 0, 1, 1, 0}},
+          {{0, 0, 0, 1, 0, 1, 1, 0}},
+          {{1, 0, 0, 1, 0, 1, 1, 0}},
+          {{0, 1, 0, 1, 0, 1, 1, 0}},
+          {{1, 1, 0, 1, 0, 1, 1, 0}},
+          {{0, 0, 1, 1, 0, 1, 1, 0}},
+          {{1, 0, 1, 1, 0, 1, 1, 0}},
+          {{0, 1, 1, 1, 0, 1, 1, 0}},
+          {{1, 1, 1, 1, 0, 1, 1, 0}},
+          {{0, 0, 0, 0, 1, 1, 1, 0}},
+          {{1, 0, 0, 0, 1, 1, 1, 0}},
+          {{0, 1, 0, 0, 1, 1, 1, 0}},
+          {{1, 1, 0, 0, 1, 1, 1, 0}},
+          {{0, 0, 1, 0, 1, 1, 1, 0}},
+          {{1, 0, 1, 0, 1, 1, 1, 0}},
+          {{0, 1, 1, 0, 1, 1, 1, 0}},
+          {{1, 1, 1, 0, 1, 1, 1, 0}},
+          {{0, 0, 0, 1, 1, 1, 1, 0}},
+          {{1, 0, 0, 1, 1, 1, 1, 0}},
+          {{0, 1, 0, 1, 1, 1, 1, 0}},
+          {{1, 1, 0, 1, 1, 1, 1, 0}},
+          {{0, 0, 1, 1, 1, 1, 1, 0}},
+          {{1, 0, 1, 1, 1, 1, 1, 0}},
+          {{0, 1, 1, 1, 1, 1, 1, 0}},
+          {{1, 1, 1, 1, 1, 1, 1, 0}},
+          {{0, 0, 0, 0, 0, 0, 0, 1}},
+          {{1, 0, 0, 0, 0, 0, 0, 1}},
+          {{0, 1, 0, 0, 0, 0, 0, 1}},
+          {{1, 1, 0, 0, 0, 0, 0, 1}},
+          {{0, 0, 1, 0, 0, 0, 0, 1}},
+          {{1, 0, 1, 0, 0, 0, 0, 1}},
+          {{0, 1, 1, 0, 0, 0, 0, 1}},
+          {{1, 1, 1, 0, 0, 0, 0, 1}},
+          {{0, 0, 0, 1, 0, 0, 0, 1}},
+          {{1, 0, 0, 1, 0, 0, 0, 1}},
+          {{0, 1, 0, 1, 0, 0, 0, 1}},
+          {{1, 1, 0, 1, 0, 0, 0, 1}},
+          {{0, 0, 1, 1, 0, 0, 0, 1}},
+          {{1, 0, 1, 1, 0, 0, 0, 1}},
+          {{0, 1, 1, 1, 0, 0, 0, 1}},
+          {{1, 1, 1, 1, 0, 0, 0, 1}},
+          {{0, 0, 0, 0, 1, 0, 0, 1}},
+          {{1, 0, 0, 0, 1, 0, 0, 1}},
+          {{0, 1, 0, 0, 1, 0, 0, 1}},
+          {{1, 1, 0, 0, 1, 0, 0, 1}},
+          {{0, 0, 1, 0, 1, 0, 0, 1}},
+          {{1, 0, 1, 0, 1, 0, 0, 1}},
+          {{0, 1, 1, 0, 1, 0, 0, 1}},
+          {{1, 1, 1, 0, 1, 0, 0, 1}},
+          {{0, 0, 0, 1, 1, 0, 0, 1}},
+          {{1, 0, 0, 1, 1, 0, 0, 1}},
+          {{0, 1, 0, 1, 1, 0, 0, 1}},
+          {{1, 1, 0, 1, 1, 0, 0, 1}},
+          {{0, 0, 1, 1, 1, 0, 0, 1}},
+          {{1, 0, 1, 1, 1, 0, 0, 1}},
+          {{0, 1, 1, 1, 1, 0, 0, 1}},
+          {{1, 1, 1, 1, 1, 0, 0, 1}},
+          {{0, 0, 0, 0, 0, 1, 0, 1}},
+          {{1, 0, 0, 0, 0, 1, 0, 1}},
+          {{0, 1, 0, 0, 0, 1, 0, 1}},
+          {{1, 1, 0, 0, 0, 1, 0, 1}},
+          {{0, 0, 1, 0, 0, 1, 0, 1}},
+          {{1, 0, 1, 0, 0, 1, 0, 1}},
+          {{0, 1, 1, 0, 0, 1, 0, 1}},
+          {{1, 1, 1, 0, 0, 1, 0, 1}},
+          {{0, 0, 0, 1, 0, 1, 0, 1}},
+          {{1, 0, 0, 1, 0, 1, 0, 1}},
+          {{0, 1, 0, 1, 0, 1, 0, 1}},
+          {{1, 1, 0, 1, 0, 1, 0, 1}},
+          {{0, 0, 1, 1, 0, 1, 0, 1}},
+          {{1, 0, 1, 1, 0, 1, 0, 1}},
+          {{0, 1, 1, 1, 0, 1, 0, 1}},
+          {{1, 1, 1, 1, 0, 1, 0, 1}},
+          {{0, 0, 0, 0, 1, 1, 0, 1}},
+          {{1, 0, 0, 0, 1, 1, 0, 1}},
+          {{0, 1, 0, 0, 1, 1, 0, 1}},
+          {{1, 1, 0, 0, 1, 1, 0, 1}},
+          {{0, 0, 1, 0, 1, 1, 0, 1}},
+          {{1, 0, 1, 0, 1, 1, 0, 1}},
+          {{0, 1, 1, 0, 1, 1, 0, 1}},
+          {{1, 1, 1, 0, 1, 1, 0, 1}},
+          {{0, 0, 0, 1, 1, 1, 0, 1}},
+          {{1, 0, 0, 1, 1, 1, 0, 1}},
+          {{0, 1, 0, 1, 1, 1, 0, 1}},
+          {{1, 1, 0, 1, 1, 1, 0, 1}},
+          {{0, 0, 1, 1, 1, 1, 0, 1}},
+          {{1, 0, 1, 1, 1, 1, 0, 1}},
+          {{0, 1, 1, 1, 1, 1, 0, 1}},
+          {{1, 1, 1, 1, 1, 1, 0, 1}},
+          {{0, 0, 0, 0, 0, 0, 1, 1}},
+          {{1, 0, 0, 0, 0, 0, 1, 1}},
+          {{0, 1, 0, 0, 0, 0, 1, 1}},
+          {{1, 1, 0, 0, 0, 0, 1, 1}},
+          {{0, 0, 1, 0, 0, 0, 1, 1}},
+          {{1, 0, 1, 0, 0, 0, 1, 1}},
+          {{0, 1, 1, 0, 0, 0, 1, 1}},
+          {{1, 1, 1, 0, 0, 0, 1, 1}},
+          {{0, 0, 0, 1, 0, 0, 1, 1}},
+          {{1, 0, 0, 1, 0, 0, 1, 1}},
+          {{0, 1, 0, 1, 0, 0, 1, 1}},
+          {{1, 1, 0, 1, 0, 0, 1, 1}},
+          {{0, 0, 1, 1, 0, 0, 1, 1}},
+          {{1, 0, 1, 1, 0, 0, 1, 1}},
+          {{0, 1, 1, 1, 0, 0, 1, 1}},
+          {{1, 1, 1, 1, 0, 0, 1, 1}},
+          {{0, 0, 0, 0, 1, 0, 1, 1}},
+          {{1, 0, 0, 0, 1, 0, 1, 1}},
+          {{0, 1, 0, 0, 1, 0, 1, 1}},
+          {{1, 1, 0, 0, 1, 0, 1, 1}},
+          {{0, 0, 1, 0, 1, 0, 1, 1}},
+          {{1, 0, 1, 0, 1, 0, 1, 1}},
+          {{0, 1, 1, 0, 1, 0, 1, 1}},
+          {{1, 1, 1, 0, 1, 0, 1, 1}},
+          {{0, 0, 0, 1, 1, 0, 1, 1}},
+          {{1, 0, 0, 1, 1, 0, 1, 1}},
+          {{0, 1, 0, 1, 1, 0, 1, 1}},
+          {{1, 1, 0, 1, 1, 0, 1, 1}},
+          {{0, 0, 1, 1, 1, 0, 1, 1}},
+          {{1, 0, 1, 1, 1, 0, 1, 1}},
+          {{0, 1, 1, 1, 1, 0, 1, 1}},
+          {{1, 1, 1, 1, 1, 0, 1, 1}},
+          {{0, 0, 0, 0, 0, 1, 1, 1}},
+          {{1, 0, 0, 0, 0, 1, 1, 1}},
+          {{0, 1, 0, 0, 0, 1, 1, 1}},
+          {{1, 1, 0, 0, 0, 1, 1, 1}},
+          {{0, 0, 1, 0, 0, 1, 1, 1}},
+          {{1, 0, 1, 0, 0, 1, 1, 1}},
+          {{0, 1, 1, 0, 0, 1, 1, 1}},
+          {{1, 1, 1, 0, 0, 1, 1, 1}},
+          {{0, 0, 0, 1, 0, 1, 1, 1}},
+          {{1, 0, 0, 1, 0, 1, 1, 1}},
+          {{0, 1, 0, 1, 0, 1, 1, 1}},
+          {{1, 1, 0, 1, 0, 1, 1, 1}},
+          {{0, 0, 1, 1, 0, 1, 1, 1}},
+          {{1, 0, 1, 1, 0, 1, 1, 1}},
+          {{0, 1, 1, 1, 0, 1, 1, 1}},
+          {{1, 1, 1, 1, 0, 1, 1, 1}},
+          {{0, 0, 0, 0, 1, 1, 1, 1}},
+          {{1, 0, 0, 0, 1, 1, 1, 1}},
+          {{0, 1, 0, 0, 1, 1, 1, 1}},
+          {{1, 1, 0, 0, 1, 1, 1, 1}},
+          {{0, 0, 1, 0, 1, 1, 1, 1}},
+          {{1, 0, 1, 0, 1, 1, 1, 1}},
+          {{0, 1, 1, 0, 1, 1, 1, 1}},
+          {{1, 1, 1, 0, 1, 1, 1, 1}},
+          {{0, 0, 0, 1, 1, 1, 1, 1}},
+          {{1, 0, 0, 1, 1, 1, 1, 1}},
+          {{0, 1, 0, 1, 1, 1, 1, 1}},
+          {{1, 1, 0, 1, 1, 1, 1, 1}},
+          {{0, 0, 1, 1, 1, 1, 1, 1}},
+          {{1, 0, 1, 1, 1, 1, 1, 1}},
+          {{0, 1, 1, 1, 1, 1, 1, 1}},
+          {{1, 1, 1, 1, 1, 1, 1, 1}},
+    },};
+  return table;
+}
+
+
+/* One byte counter per bit of a bitmap byte, and four words to an iteration
+   of the loop below -- named here because both numbers appear as extents at
+   the call sites. */
+constexpr auto counters_per_bitmap_byte = std::size_t{8};
+constexpr auto word_bytes = sizeof(std::uint64_t);
+constexpr auto group_bytes = 4 * word_bytes;
+
+
+/* A run of byte counters read into, or written from, 64-bit words. memcpy is
+   how a uint64_t crosses to an unsigned char buffer without an aliasing
+   violation or an alignment assumption -- a counter run starts wherever its
+   slice does -- and none of these compiles to a call. Each takes the exact
+   run it works on, so the extent is checked rather than trusted, and the
+   offset arithmetic stays in subspan() where it is checked too.
+
+   The group pair moves four words at once, and that is not merely tidier than
+   four uses of the single pair: it is what lets the additions between them
+   happen in registers. Split into four load-add-store pairs the compiler has
+   to assume each store may alias the next load, because unsigned char aliases
+   everything, and it stops overlapping them -- measured 3.2 % slower despite
+   issuing 1.6 % fewer instructions. The single pair is for the leftover words
+   only, where there is nothing to overlap. */
+auto load_words(View<unsigned char> const bytes) -> std::array<std::uint64_t, 4>
+{
+  std::array<std::uint64_t, 4> words {{}};
+  assert(bytes.size() == sizeof(words));
+  std::memcpy(words.data(), bytes.data(), sizeof(words));
+  return words;
+}
+
+
+auto store_words(Span<unsigned char> const bytes,
+                 std::array<std::uint64_t, 4> const & words) -> void
+{
+  assert(bytes.size() == sizeof(words));
+  std::memcpy(bytes.data(), words.data(), sizeof(words));
+}
+
+
+auto load_word(View<unsigned char> const bytes) -> std::uint64_t
+{
+  std::uint64_t word = 0;
+  assert(bytes.size() == sizeof(word));
+  std::memcpy(&word, bytes.data(), sizeof(word));
+  return word;
+}
+
+
+auto store_word(Span<unsigned char> const bytes, std::uint64_t const word) -> void
+{
+  assert(bytes.size() == sizeof(word));
+  std::memcpy(bytes.data(), &word, sizeof(word));
+}
+
+
+/* the eight lanes of one expansion table entry, as a word ready to add */
+auto expansion_word(unsigned char const bits) -> std::uint64_t
+{
+  std::uint64_t word = 0;
+  std::memcpy(&word, bit_expansion_table()[bits].data(), sizeof(word));
+  return word;
+}
+
+
+/* Increment the counters selected by the 1-bits of a bitmap, eight at a time,
+   by adding one 64-bit word: the counters are bytes, so a word holds eight of
+   them and the expansion word above raises exactly the selected ones. No carry
+   can cross a byte boundary, because a bootstrap samples at most subset_size
+   (32) k-mers and each raises a given counter at most once, so the largest
+   byte value in play is 33.
+
+   That bound is the reason this lives here and not in arch/ beside
+   increment_counters_from_bitmap(): the shared kernel serves search and
+   cluster, whose counts need sixteen bits, and it is written four times over
+   because it is SIMD. This one is architecture-independent -- it measured
+   within 8 percentage points of hand-written SSSE3 intrinsics while compiling
+   unchanged on every target, and GCC vectorizes it to NEON on aarch64 of its
+   own accord.
+
+   Four words an iteration is deliberate: two leaves the dependent table loads
+   too little to hide behind, and eight spills the accumulators to the stack
+   and is slower than not unrolling at all.
+
+   The counters' own length is the bound. It cannot be taken from the bitmap:
+   a bitmap byte covers eight sequences, so its length would fix the count only
+   to a multiple of eight and could let the last iteration run past a run whose
+   length is not a multiple of eight. */
+auto increment_counters(Span<unsigned char> const counters,
+                        View<unsigned char> const bitmap) -> void
+{
+  auto const total = counters.size();
+  assert(bitmap.size() >= ((total + 7) / counters_per_bitmap_byte));
+
+  auto const readable = View<unsigned char>{counters};
+  auto const whole_bytes = total / counters_per_bitmap_byte;
+  auto const grouped_bytes = whole_bytes - (whole_bytes % 4);
+
+  for (std::size_t byte = 0; byte < grouped_bytes; byte += 4)
+    {
+      auto const offset = byte * counters_per_bitmap_byte;
+      auto words = load_words(readable.subspan(offset, group_bytes));
+      /* in registers: faster than std::transform, std::valarray or a SIMD add */
+      words[0] += expansion_word(bitmap[byte]);
+      words[1] += expansion_word(bitmap[byte + 1]);
+      words[2] += expansion_word(bitmap[byte + 2]);
+      words[3] += expansion_word(bitmap[byte + 3]);
+      store_words(counters.subspan(offset, group_bytes), words);
+    }
+
+  /* the last one to three whole bitmap bytes */
+  for (auto byte = grouped_bytes; byte < whole_bytes; ++byte)
+    {
+      auto const offset = byte * counters_per_bitmap_byte;
+      auto const word = load_word(readable.subspan(offset, word_bytes))
+                        + expansion_word(bitmap[byte]);
+      store_word(counters.subspan(offset, word_bytes), word);
+    }
+
+  /* the sequences past the last whole bitmap byte, one at a time */
+  for (auto index = whole_bytes * counters_per_bitmap_byte; index < total; ++index)
+    {
+      auto const bits = static_cast<unsigned int>(bitmap[index / counters_per_bitmap_byte]);
+      counters[index] += static_cast<unsigned char>((bits >> (index % counters_per_bitmap_byte)) & 1U);
+    }
+}
+
+
 auto sintax_search_topscores(struct searchinfo_s * searchinfo,
+                             Span<unsigned char> const kmer_counts,
                              SplitMix64 & rng,
                              struct Parameters const & parameters) -> void
 {
@@ -362,43 +776,50 @@ auto sintax_search_topscores(struct searchinfo_s * searchinfo,
 
   /* count kmer hits in the database sequences */
   unsigned int const indexed_count = searchinfo->dbindex->getcount();
-  auto const kmer_counts = make_span(searchinfo->kmers_v);
   assert(indexed_count <= kmer_counts.size());
+  auto const counters = kmer_counts.first(indexed_count);
+  /* one bit per indexed sequence, rounded up to whole bytes */
+  auto const bitmap_bytes = (static_cast<std::size_t>(indexed_count) + 7) / 8;
 
-  /* zero counts */
-  std::fill_n(kmer_counts.begin(), indexed_count, count_t{0});
-
-  for (auto const kmer : searchinfo->kmersample)
+  /* Zero one slice of the counters and run the whole k-mer sample against it.
+     A counter depends only on the k-mers that name its own sequence, so this
+     leaves the slice final and the caller may scan it before the next slice is
+     touched. */
+  auto const count_slice = [&](unsigned int const first_index,
+                               unsigned int const slice_length) -> void
     {
-      auto const * bitmap = searchinfo->dbindex->getbitmap(kmer);
+      auto const slice = counters.subspan(first_index, slice_length);
+      auto const slice_end = first_index + slice_length;
+      std::fill_n(slice.begin(), slice_length, static_cast<unsigned char>(0));
 
-      if (bitmap != nullptr)
+      for (auto const kmer : searchinfo->kmersample)
         {
-#ifdef __x86_64__
-          if (parameters.runtime.ssse3_present != 0)
+          auto const * bitmap = searchinfo->dbindex->getbitmap(kmer);
+
+          if (bitmap != nullptr)
             {
-              increment_counters_from_bitmap_ssse3(kmer_counts.data(),
-                                                   bitmap, indexed_count);
+              /* one bit per indexed sequence, so a slice that starts on a
+                 multiple of eight starts on a whole byte of the bitmap */
+              auto const bits = View<unsigned char>{bitmap, bitmap_bytes};
+              increment_counters(slice,
+                                 bits.drop(first_index / counters_per_bitmap_byte));
             }
           else
             {
-              increment_counters_from_bitmap_sse2(kmer_counts.data(),
-                                                  bitmap, indexed_count);
-            }
-#else
-          increment_counters_from_bitmap(kmer_counts.data(), bitmap, indexed_count);
-#endif
-        }
-      else
-        {
-          auto const * list = searchinfo->dbindex->getmatchlist(kmer);
-          auto const count = searchinfo->dbindex->getmatchcount(kmer);
-          for (auto j = 0U; j < count; j++)
-            {
-              kmer_counts[list[j]]++;
+              /* Dbindex::add_sequence appends a k-mer's match list in index
+                 order, so the entries falling in this slice are contiguous */
+              auto const * const list = searchinfo->dbindex->getmatchlist(kmer);
+              auto const count = searchinfo->dbindex->getmatchcount(kmer);
+              auto const * const last = std::next(list, count);
+              auto const * const first_in_slice = std::lower_bound(list, last, first_index);
+              auto const * const end_of_slice = std::lower_bound(first_in_slice, last, slice_end);
+              for (auto const * entry = first_in_slice; entry != end_of_slice; entry = std::next(entry))
+                {
+                  ++counters[*entry];
+                }
             }
         }
-    }
+    };
 
   auto tophit_count = 0U;
 
@@ -407,18 +828,18 @@ auto sintax_search_topscores(struct searchinfo_s * searchinfo,
   best.seqno = 0;
   best.length = 0;
 
-  for (auto i = 0U; i < indexed_count; i++)
+  /* Nothing below the running best is read by the body: both branches
+     require count >= best.count, so the two random accesses that follow,
+     the tie handling and its --sintax_random draw are all wasted on a
+     lower count. best.count never decreases, so a sequence skipped here
+     could not have won later either. The sentinel best.count of 0 ties
+     rather than skips, which is what keeps the first sequence eligible
+     when no k-mer is shared at all. */
+  auto const consider = [&](unsigned int const index) -> void
     {
-      count_t const count = kmer_counts[i];
-      /* Nothing below the running best is read by the body: both branches
-         require count >= best.count, so the two random accesses that follow,
-         the tie handling and its --sintax_random draw are all wasted on a
-         lower count. best.count never decreases, so a sequence skipped here
-         could not have won later either. The sentinel best.count of 0 ties
-         rather than skips, which is what keeps the first sequence eligible
-         when no k-mer is shared at all. */
-      if (count < best.count) { continue; }
-      auto const seqno = searchinfo->dbindex->getmapping(i);
+      count_t const count = counters[index];  /* widened from the byte counter */
+      if (count < best.count) { return; }
+      auto const seqno = searchinfo->dbindex->getmapping(index);
       auto const length = static_cast<unsigned int>(searchinfo->db->getsequencelen(seqno));
 
       if (count > best.count)
@@ -427,7 +848,7 @@ auto sintax_search_topscores(struct searchinfo_s * searchinfo,
           best.seqno = seqno;
           best.length = length;
           tophit_count = 1;
-          continue;
+          return;
         }
 
       /* a tie: the only case the early-out above leaves */
@@ -440,7 +861,7 @@ auto sintax_search_topscores(struct searchinfo_s * searchinfo,
               best.seqno = seqno;
               best.length = length;
             }
-          continue;
+          return;
         }
 
       if (length < best.length)
@@ -452,6 +873,71 @@ auto sintax_search_topscores(struct searchinfo_s * searchinfo,
         {
           best.seqno = std::min(seqno, best.seqno);
         }
+    };
+
+  /* Skip whole blocks whose largest count is below the running best: none of
+     their sequences can pass the test consider() opens with. Written as a
+     branchless fold over a compile-time-constant width, which is the form GCC
+     auto-vectorizes into a horizontal maximum (a search such as std::any_of or
+     std::max_element is left scalar, having a data-dependent exit); the same
+     shape is used by offer_counted_sequences() in searchcore.
+
+     // C++17 refactoring: replace with std::reduce, which expresses this fold
+     // directly and takes an execution policy; it generates the same code today
+
+     Sequences that do pass are still visited in index order, so the tie rules
+     -- including the --sintax_random reservoir draw, which consumes the
+     generator -- see exactly the sequence they saw before. */
+  constexpr auto block_size = 16U;  /* one vector of byte counters */
+  auto const largest = [](unsigned char const acc, unsigned char const value) -> unsigned char {
+    return std::max(acc, value);
+  };
+  auto const scan_slice = [&](unsigned int const first_index,
+                              unsigned int const slice_length) -> void
+    {
+      auto const slice_end = first_index + slice_length;
+      auto const blocks_end = slice_end - (slice_length % block_size);
+      for (auto start = first_index; start < blocks_end; start += block_size)
+        {
+          auto const block = counters.subspan(start, block_size);
+          auto const block_max = std::accumulate(block.cbegin(), block.cend(),
+                                                 static_cast<unsigned char>(0), largest);
+          if (block_max < best.count) { continue; }
+          for (auto offset = 0U; offset < block_size; ++offset) { consider(start + offset); }
+        }
+      for (auto index = blocks_end; index < slice_end; ++index) { consider(index); }
+    };
+
+  /* Count and scan one slice of the database at a time rather than in one
+     pass over the whole array. The counters are a byte per indexed sequence
+     and a bootstrap walks all of them three times -- zero, increment, scan --
+     a hundred times per query, so past a few million references the array
+     stops fitting a core's private cache and every thread streams from main
+     memory at once. A slice keeps that traffic in cache; without it, adding
+     threads eventually makes the command slower rather than faster.
+
+     Which cache level a slice reaches barely matters, because the point is
+     that it leaves main memory at all. The other end of the range does: every
+     slice repeats the walk over the k-mer sample, so a slice much smaller than
+     the database charges the bitmap lookups and the list bisections above once
+     per slice. sintax samples subset_size k-mers where a search samples an
+     order of magnitude more, so its floor sits lower than the 524288 of
+     search_topscores; measured, anything from 16384 to 262144 costs the same
+     wall clock and 262144 the least CPU. A reference of a quarter million
+     sequences or fewer -- which is most of them -- is a single slice and pays
+     nothing.
+
+     It has to be a multiple of the block width, so that a slice starts on a
+     block boundary, and of eight, so that it starts on a whole bitmap byte. */
+  constexpr auto slice_size = 262144U;
+  static_assert(slice_size % block_size == 0, "a slice must start on a block boundary");
+  static_assert(slice_size % 8 == 0, "a slice must start on a whole bitmap byte");
+
+  for (auto slice_start = 0U; slice_start < indexed_count; slice_start += slice_size)
+    {
+      auto const slice_length = std::min(slice_size, indexed_count - slice_start);
+      count_slice(slice_start, slice_length);
+      scan_slice(slice_start, slice_length);
     }
 
   searchinfo->m.clear();
@@ -540,7 +1026,9 @@ static auto sintax_query(struct sintax_state_s & state, uint64_t const t) -> voi
 
               si->kmersample = make_view(kmersample_subset).first(static_cast<std::size_t>(subsamples));
 
-              sintax_search_topscores(si, rng, state.parameters);
+              sintax_search_topscores(si,
+                                      make_span(state.counters[static_cast<std::size_t>(t)]),
+                                      rng, state.parameters);
 
               if (! si->m.is_empty())
                 {
@@ -684,12 +1172,9 @@ static auto sintax_thread_init(struct sintax_state_s const & state, struct searc
   si.dbindex = &state.dbindex;  /* searchcore reads the k-mer index through the si */
   si.db = &state.db;  /* searchcore reads the sequences through the si */
   /* si->uh (a Uniquer value member) is ready to use as default-constructed */
-  /* the kmer counts live in the searchinfo_s kmers_v vector (RAII), matching
-     search/cluster; the reserve headroom keeps the SIMD counter stores that
-     may run past the logical end in bounds. */
-  static constexpr auto overflow_padding = 16U;  // 16 * sizeof(count_t) = 32 bytes headroom
-  si.kmers_v.reserve(static_cast<size_t>(state.seqcount) + overflow_padding);
-  si.kmers_v.resize(static_cast<size_t>(state.seqcount));
+  /* the k-mer counters are owned by the state, one array per thread, not by
+     the searchinfo: sintax uses its own byte-wide counters rather than the
+     16-bit kmers_v that searchcore fills, and one array serves both strands */
   si.m = Minheap(state.tophits);
   si.qsize = 1;
   si.query_head = View<char>{nullptr, 0};
@@ -704,9 +1189,9 @@ static auto sintax_thread_exit(struct searchinfo_s & searchinfo) -> void
   /* thread specific clean up */
   searchinfo.uh = Uniquer();
   searchinfo.m = Minheap();
-  /* the kmer counts, the query header and the query sequence live in the
-     searchinfo_s vectors (kmers_v/query_head_v/qsequence_v), which free
-     their own storage */
+  /* the query header and the query sequence live in the searchinfo_s vectors
+     (query_head_v/qsequence_v), which free their own storage; the k-mer
+     counters belong to the state */
 }
 
 
@@ -811,6 +1296,10 @@ auto sintax(struct Parameters const & parameters) -> void
     {
       si_minus.resize(static_cast<std::size_t>(parameters.opt_threads));
     }
+
+  /* one counter array per thread, shared by the two strands */
+  state.counters.assign(static_cast<std::size_t>(parameters.opt_threads),
+                        std::vector<unsigned char>(static_cast<std::size_t>(seqcount)));
 
   /* run */
 
