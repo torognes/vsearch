@@ -106,7 +106,9 @@ public:
   auto open(uint64_t maxelements) -> void;
   auto clear() -> void;
 
-  auto add(View<char> seq, uint64_t seqno, struct Database const & db) -> void;
+  /* insertion needs no Database: it looks at the occupancy bitmap only, never
+     at the sequence stored in a slot it walks past (see the body) */
+  auto add(View<char> seq, uint64_t seqno) -> void;
   auto add_all(struct Database const & db, struct Parameters const & parameters) -> void;
 
   auto search_first(View<char> seq,
