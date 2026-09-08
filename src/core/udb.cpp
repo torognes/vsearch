@@ -344,8 +344,15 @@ auto udb_read(const char * filename,
     /* The index is built at the UDB file's own word length. Publish it as the
        effective index width (read by the query-k-mer extractors) rather than
        mutating the opt_wordlength config global (E1); warn when it overrides the
-       configured value. */
-    if (udb_wordlength != static_cast<unsigned int>(parameters.opt_wordlength))
+       configured value.
+
+       Only a search session has a configured value to override: --wordlength
+       is not among the options --udb2fasta, --udbstats or --udbinfo accept
+       (they reject it), so opt_wordlength is there the hardcoded default of 8
+       and the warning told the user that a setting they could not have made
+       had been adjusted -- on every UDB not built at word length 8. */
+    if ((usage == UdbUse::search)
+        and (udb_wordlength != static_cast<unsigned int>(parameters.opt_wordlength)))
       {
         vsearch::warn("Wordlength adjusted to " + decimal::to_text(udb_wordlength)
                       + " as indicated in UDB file");
