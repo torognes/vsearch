@@ -6,4 +6,6 @@
   (space, tab, newline, carriage return, vertical tab or form feed),
   so such characters should not be used in *string*. Other
   characters (alphabetical, numerical and punctuations) are
-  accepted.
+  accepted. When nothing is left after truncation --- an empty
+  *string*, or one starting with ';' or a blank character --- vsearch
+  issues a warning and writes a bare `;sample=` annotation.

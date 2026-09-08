@@ -4391,6 +4391,15 @@ namespace {
                and would break downstream parsing if left in. */
             optarg[std::strcspn(optarg, "; \t\r\n\v\f")] = '\0';
             parameters.opt_sample = optarg;
+            /* Nothing left to write means a bare ';sample=' in every
+               header, which --otutabout reads back as a column with no
+               name: say so rather than annotate silently. */
+            if (*parameters.opt_sample == '\0')
+              {
+                vsearch::warn("--sample is empty or starts with ';' or a blank "
+                              "character: headers will carry a bare ';sample=' "
+                              "annotation");
+              }
             break;
 
           case option_qsegout:
