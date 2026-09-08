@@ -87,13 +87,17 @@ namespace {
   using wordfreq_t = struct wordfreq;
 
 
-  auto wc_compare(wordfreq_t const & lhs, wordfreq_t const & rhs) -> bool
+  /* The order the report's word rows are in. It used to be implied rather than
+     stated: wc_compare() sorted the whole table by count ascending and by
+     k-mer descending among equal counts, and the printing loop then walked the
+     result backwards, which is this. */
+  auto ranks_above(wordfreq_t const & lhs, wordfreq_t const & rhs) -> bool
   {
     if (lhs.count != rhs.count)
       {
-        return lhs.count < rhs.count;
+        return lhs.count > rhs.count;
       }
-    return lhs.kmer > rhs.kmer;
+    return lhs.kmer < rhs.kmer;
   }
 
   /* How many word rows the report prints (the row loop breaks after i == 10),
@@ -135,24 +139,76 @@ auto udbstats(struct Parameters const & parameters) -> void
      published from this UDB file's header (which may differ from the configured
      parameters.opt_wordlength); read it, not the config (E1). */
 
-  /* analyze word counts */
-
-  std::vector<wordfreq_t> freqtable(dbindex.hashsize);
-
-  for (auto i = 0U; i < dbindex.hashsize; i++)
-    {
-      freqtable[i].kmer = i;
-      freqtable[i].count = dbindex.kmercount[i];
-    }
-
-  std::sort(freqtable.begin(), freqtable.end(), wc_compare);
-
-  auto const wcmax = freqtable[dbindex.hashsize-1].count;
-  auto const wcmedian = ( freqtable[(dbindex.hashsize / 2) - 1].count +
-                            freqtable[dbindex.hashsize / 2].count ) / 2;
-
   auto const seqcount = static_cast<unsigned int>(db.getsequencecount());
   auto const nt = db.getnucleotidecount();
+
+  /* analyze word counts
+
+     Everything reported below is a property of one distribution -- how many
+     k-mer slots hold each count -- plus the highest-ranking slots: Max size is
+     its largest value, Median size its two central ones, the Size lo / Size hi
+     table its totals over doubling buckets, and the word rows the eleven slots
+     that rank above all others. So the counts are summarised into that
+     distribution in a single pass, rather than materialised as 4^wordlength
+     {k-mer, count} pairs and sorted. A count is a number of database sequences
+     (udb_read() rejects a larger one), so the distribution has seqcount + 1
+     cells however wide the index is, and every figure taken from it is exact.
+
+     What that removes, at word length 13: an 8-bytes-per-slot table (537 MB)
+     and the sort of it, which was 74 % of the run's instructions at word
+     length 10 and 37 % at the default 8. */
+
+  std::vector<uint64_t> histogram(static_cast<std::size_t>(seqcount) + 1, 0);
+
+  std::vector<wordfreq_t> top;  /* the reported rows, kept in report order */
+  top.reserve(reported_rows);
+
+  for (auto kmer = 0U; kmer < dbindex.hashsize; ++kmer)
+    {
+      auto const count = dbindex.kmercount[kmer];
+      assert(count <= seqcount);  /* checked when the UDB was read */
+      ++histogram[count];
+
+      /* Strictly greater, so among equal counts the k-mer seen first -- the
+         smallest -- keeps its place, which is the order the printing loop used
+         to get by reading the sorted table from its far end. */
+      if ((top.size() < reported_rows) or (count > top.back().count))
+        {
+          wordfreq_t const candidate {kmer, count};
+          auto const where = std::upper_bound(top.begin(), top.end(), candidate, ranks_above);
+          top.insert(where, candidate);
+          if (top.size() > reported_rows)
+            {
+              top.pop_back();
+            }
+        }
+    }
+
+  assert(top.size() == std::min<std::size_t>(reported_rows, dbindex.hashsize));
+
+  /* Max size, and the k-mer the report names beside it: the largest count, and
+     the smallest k-mer holding it -- the first reported row, by construction. */
+  auto const wcmax = top.front().count;
+  auto const wcmax_kmer = top.front().kmer;
+
+  /* the two central counts, as the sorted table gave them: the (hashsize/2)-th
+     and (hashsize/2 + 1)-th smallest */
+  auto const count_at_rank = [&histogram](uint64_t const rank) -> unsigned int
+  {
+    uint64_t seen = 0;
+    for (std::size_t count = 0; count < histogram.size(); ++count)
+      {
+        seen += histogram[count];
+        if (seen >= rank)
+          {
+            return static_cast<unsigned int>(count);
+          }
+      }
+    assert(false);  /* the ranks asked for are below hashsize */
+    return 0U;
+  };
+  auto const wcmedian = (count_at_rank(dbindex.hashsize / 2)
+                         + count_at_rank((dbindex.hashsize / 2) + 1)) / 2;
 
   /* show stats */
 
@@ -202,17 +258,17 @@ auto udbstats(struct Parameters const & parameters) -> void
          walked in k-mer order, so the requests are sorted by k-mer first and
          the results land back in row order. */
 
-      std::vector<unsigned int> row_entries(reported_rows * reported_entries_per_row, 0U);
-      std::vector<std::size_t> row_shown(reported_rows, 0);
+      std::vector<unsigned int> row_entries(top.size() * reported_entries_per_row, 0U);
+      std::vector<std::size_t> row_shown(top.size(), 0);
       {
         std::vector<std::size_t> by_kmer;
         by_kmer.reserve(reported_rows);
-        for (std::size_t row = 0; row < reported_rows; ++row)
+        for (std::size_t row = 0; row < top.size(); ++row)
           {
             by_kmer.push_back(row);
           }
-        auto const kmer_of_row = [&freqtable, &dbindex](std::size_t const row) -> unsigned int
-        { return freqtable[dbindex.hashsize - 1 - row].kmer; };
+        auto const kmer_of_row = [&top](std::size_t const row) -> unsigned int
+        { return top[row].kmer; };
         std::sort(by_kmer.begin(), by_kmer.end(),
                   [&kmer_of_row](std::size_t const lhs, std::size_t const rhs) -> bool
                   { return kmer_of_row(lhs) < kmer_of_row(rhs); });
@@ -240,9 +296,9 @@ auto udbstats(struct Parameters const & parameters) -> void
         assert(next == by_kmer.size());
       }
 
-      for (auto i = 0U; i < dbindex.hashsize; i++)
+      for (std::size_t i = 0; i < top.size(); ++i)
         {
-          fprint_integer(parameters.fp_log, freqtable[dbindex.hashsize - 1 - i].kmer, 10);
+          fprint_integer(parameters.fp_log, top[i].kmer, 10);
           fprint(parameters.fp_log, "  ");
 
           /* pad the k-mer column out to 12 characters */
@@ -251,12 +307,12 @@ auto udbstats(struct Parameters const & parameters) -> void
             std::max(12 - static_cast<int>(dbindex.wordlength), 0));
           fprint(parameters.fp_log, View<char>{twelve_spaces, padding});
 
-          fprint_kmer(parameters.fp_log, dbindex.wordlength, freqtable[dbindex.hashsize - 1 - i].kmer);
+          fprint_kmer(parameters.fp_log, dbindex.wordlength, top[i].kmer);
 
           fprint(parameters.fp_log, "  ");
           fprint_integer(parameters.fp_log, 0U, 10);
           fprint(parameters.fp_log, "  ");
-          fprint_integer(parameters.fp_log, freqtable[dbindex.hashsize - 1 - i].count, 10);
+          fprint_integer(parameters.fp_log, top[i].count, 10);
 
           fprint(parameters.fp_log, ' ');
 
@@ -267,17 +323,12 @@ auto udbstats(struct Parameters const & parameters) -> void
             }
 
 
-          if (freqtable[dbindex.hashsize-1-i].count > reported_entries_per_row)
+          if (top[i].count > reported_entries_per_row)
             {
               fprint(parameters.fp_log, "...");
             }
 
           fprint(parameters.fp_log, '\n');
-
-          if (i + 1 == reported_rows)
-            {
-              break;
-            }
         }
 
       fprint(parameters.fp_log, "\n\n");
@@ -294,7 +345,7 @@ auto udbstats(struct Parameters const & parameters) -> void
       fprint(parameters.fp_log, "Max size    ");
       fprint_integer(parameters.fp_log, wcmax);
       fprint(parameters.fp_log, " (");
-      fprint_kmer(parameters.fp_log, dbindex.wordlength, freqtable[dbindex.hashsize - 1].kmer);
+      fprint_kmer(parameters.fp_log, dbindex.wordlength, wcmax_kmer);
       fprint(parameters.fp_log, ")\n\n");
 
       fprint(parameters.fp_log, "   Size lo     Size hi  Total size   Nr. Words     Pct  TotPct\n");
@@ -309,16 +360,18 @@ auto udbstats(struct Parameters const & parameters) -> void
       while (size_lo < seqcount)
         {
 
-          auto count = 0;
-          auto size = 0U;
-          while ((x < dbindex.hashsize) and (freqtable[x].count <= size_hi))
+          /* the slots whose count falls in this bucket, read straight off the
+             distribution: x is the lowest count not yet reported */
+          uint64_t count = 0;
+          uint64_t size = 0;
+          for (auto value = x; value <= size_hi; ++value)
             {
-              count++;
-              size += freqtable[x].count;
-              x++;
+              count += histogram[value];
+              size += value * histogram[value];
             }
+          x = size_hi + 1;
 
-          auto const pct = 100.0 * count / dbindex.hashsize;
+          auto const pct = 100.0 * static_cast<double>(count) / dbindex.hashsize;
           totpct += pct;
 
           if (size_lo < size_hi)
@@ -336,25 +389,25 @@ auto udbstats(struct Parameters const & parameters) -> void
           if (size >= 10000)
             {
               fprint(parameters.fp_log, "  ");
-              std::fprintf(parameters.fp_log, "%9.1f", size * 0.001);
+              std::fprintf(parameters.fp_log, "%9.1f", static_cast<double>(size) * 0.001);
               fprint(parameters.fp_log, 'k');
             }
           else
             {
               fprint(parameters.fp_log, "  ");
-              std::fprintf(parameters.fp_log, "%10.1f", size * 1.0);
+              std::fprintf(parameters.fp_log, "%10.1f", static_cast<double>(size));
             }
 
           if (count >= 10000)
             {
               fprint(parameters.fp_log, "  ");
-              std::fprintf(parameters.fp_log, "%9.1f", count * 0.001);
+              std::fprintf(parameters.fp_log, "%9.1f", static_cast<double>(count) * 0.001);
               fprint(parameters.fp_log, 'k');
             }
           else
             {
               fprint(parameters.fp_log, "  ");
-              std::fprintf(parameters.fp_log, "%10.1f", count * 1.0);
+              std::fprintf(parameters.fp_log, "%10.1f", static_cast<double>(count));
             }
 
           fprint(parameters.fp_log, "  ");
