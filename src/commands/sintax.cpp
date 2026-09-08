@@ -627,36 +627,63 @@ auto bit_expansion_table()
           {{1, 0, 1, 1, 1, 1, 1, 1}},
           {{0, 1, 1, 1, 1, 1, 1, 1}},
           {{1, 1, 1, 1, 1, 1, 1, 1}},
-    }};
+    },};
   return table;
 }
 
 
-/* The four 64-bit words covering thirty-two byte counters, read and written
-   in one go. memcpy is how a uint64_t crosses to an unsigned char buffer
-   without an aliasing violation or an alignment assumption -- a counter run
-   starts wherever its slice does -- and both calls compile to a pair of
-   16-byte moves, not to a call.
+/* One byte counter per bit of a bitmap byte, and four words to an iteration
+   of the loop below -- named here because both numbers appear as extents at
+   the call sites. */
+constexpr auto counters_per_bitmap_byte = std::size_t{8};
+constexpr auto word_bytes = sizeof(std::uint64_t);
+constexpr auto group_bytes = 4 * word_bytes;
 
-   Reading and writing the four together is not merely tidier than four
-   separate word accesses: it is what lets the additions between them happen
-   in registers. Split into four load-add-store pairs the compiler has to
-   assume each store may alias the next load, because unsigned char aliases
+
+/* A run of byte counters read into, or written from, 64-bit words. memcpy is
+   how a uint64_t crosses to an unsigned char buffer without an aliasing
+   violation or an alignment assumption -- a counter run starts wherever its
+   slice does -- and none of these compiles to a call. Each takes the exact
+   run it works on, so the extent is checked rather than trusted, and the
+   offset arithmetic stays in subspan() where it is checked too.
+
+   The group pair moves four words at once, and that is not merely tidier than
+   four uses of the single pair: it is what lets the additions between them
+   happen in registers. Split into four load-add-store pairs the compiler has
+   to assume each store may alias the next load, because unsigned char aliases
    everything, and it stops overlapping them -- measured 3.2 % slower despite
-   issuing 1.6 % fewer instructions. */
-auto load_words(View<unsigned char> const bytes, std::size_t const offset)
-  -> std::array<std::uint64_t, 4>
+   issuing 1.6 % fewer instructions. The single pair is for the leftover words
+   only, where there is nothing to overlap. */
+auto load_words(View<unsigned char> const bytes) -> std::array<std::uint64_t, 4>
 {
   std::array<std::uint64_t, 4> words {{}};
-  std::memcpy(words.data(), std::next(bytes.data(), static_cast<std::ptrdiff_t>(offset)), sizeof(words));
+  assert(bytes.size() == sizeof(words));
+  std::memcpy(words.data(), bytes.data(), sizeof(words));
   return words;
 }
 
 
-auto store_words(Span<unsigned char> const bytes, std::size_t const offset,
+auto store_words(Span<unsigned char> const bytes,
                  std::array<std::uint64_t, 4> const & words) -> void
 {
-  std::memcpy(std::next(bytes.data(), static_cast<std::ptrdiff_t>(offset)), words.data(), sizeof(words));
+  assert(bytes.size() == sizeof(words));
+  std::memcpy(bytes.data(), words.data(), sizeof(words));
+}
+
+
+auto load_word(View<unsigned char> const bytes) -> std::uint64_t
+{
+  std::uint64_t word = 0;
+  assert(bytes.size() == sizeof(word));
+  std::memcpy(&word, bytes.data(), sizeof(word));
+  return word;
+}
+
+
+auto store_word(Span<unsigned char> const bytes, std::uint64_t const word) -> void
+{
+  assert(bytes.size() == sizeof(word));
+  std::memcpy(bytes.data(), &word, sizeof(word));
 }
 
 
@@ -696,38 +723,37 @@ auto increment_counters(Span<unsigned char> const counters,
                         View<unsigned char> const bitmap) -> void
 {
   auto const total = counters.size();
-  assert(bitmap.size() >= ((total + 7) / 8));
+  assert(bitmap.size() >= ((total + 7) / counters_per_bitmap_byte));
 
   auto const readable = View<unsigned char>{counters};
-  auto const whole_bytes = total / 8;
+  auto const whole_bytes = total / counters_per_bitmap_byte;
   auto const grouped_bytes = whole_bytes - (whole_bytes % 4);
 
   for (std::size_t byte = 0; byte < grouped_bytes; byte += 4)
     {
-      auto const offset = byte * 8;
-      auto words = load_words(readable, offset);
+      auto const offset = byte * counters_per_bitmap_byte;
+      auto words = load_words(readable.subspan(offset, group_bytes));
       words[0] += expansion_word(bitmap[byte]);
       words[1] += expansion_word(bitmap[byte + 1]);
       words[2] += expansion_word(bitmap[byte + 2]);
       words[3] += expansion_word(bitmap[byte + 3]);
-      store_words(counters, offset, words);
+      store_words(counters.subspan(offset, group_bytes), words);
     }
 
   /* the last one to three whole bitmap bytes */
   for (auto byte = grouped_bytes; byte < whole_bytes; ++byte)
     {
-      auto const offset = byte * 8;
-      std::uint64_t word = 0;
-      std::memcpy(&word, std::next(counters.data(), static_cast<std::ptrdiff_t>(offset)), sizeof(word));
-      word += expansion_word(bitmap[byte]);
-      std::memcpy(std::next(counters.data(), static_cast<std::ptrdiff_t>(offset)), &word, sizeof(word));
+      auto const offset = byte * counters_per_bitmap_byte;
+      auto const word = load_word(readable.subspan(offset, word_bytes))
+                        + expansion_word(bitmap[byte]);
+      store_word(counters.subspan(offset, word_bytes), word);
     }
 
   /* the sequences past the last whole bitmap byte, one at a time */
-  for (auto index = whole_bytes * 8; index < total; ++index)
+  for (auto index = whole_bytes * counters_per_bitmap_byte; index < total; ++index)
     {
-      auto const bits = static_cast<unsigned int>(bitmap[index / 8]);
-      counters[index] += static_cast<unsigned char>((bits >> (index % 8)) & 1U);
+      auto const bits = static_cast<unsigned int>(bitmap[index / counters_per_bitmap_byte]);
+      counters[index] += static_cast<unsigned char>((bits >> (index % counters_per_bitmap_byte)) & 1U);
     }
 }
 
@@ -773,9 +799,9 @@ auto sintax_search_topscores(struct searchinfo_s * searchinfo,
             {
               /* one bit per indexed sequence, so a slice that starts on a
                  multiple of eight starts on a whole byte of the bitmap */
-              auto const * const bits = std::next(bitmap, first_index / 8);
+              auto const bits = View<unsigned char>{bitmap, bitmap_bytes};
               increment_counters(slice,
-                                 View<unsigned char>{bits, bitmap_bytes - (first_index / 8)});
+                                 bits.drop(first_index / counters_per_bitmap_byte));
             }
           else
             {
