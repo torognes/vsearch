@@ -733,6 +733,7 @@ auto increment_counters(Span<unsigned char> const counters,
     {
       auto const offset = byte * counters_per_bitmap_byte;
       auto words = load_words(readable.subspan(offset, group_bytes));
+      /* in registers: faster than std::transform, std::valarray or a SIMD add */
       words[0] += expansion_word(bitmap[byte]);
       words[1] += expansion_word(bitmap[byte + 1]);
       words[2] += expansion_word(bitmap[byte + 2]);
