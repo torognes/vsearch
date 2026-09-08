@@ -5,7 +5,7 @@
 # NAME
 
 vsearch \-\-derep_fulllength --- merge strictly identical fasta
-sequences
+sequences (deprecated)
 
 
 # SYNOPSIS
@@ -14,6 +14,14 @@ sequences
 
 
 # DESCRIPTION
+
+**This command is deprecated. Use `--fastx_uniques` instead** (see
+[`vsearch-fastx_uniques(1)`](./vsearch-fastx_uniques.1.md)), which
+accepts both fasta and fastq input. Two differences matter when
+migrating: `--fastx_uniques` writes fasta with `--fastaout` (not
+`--output`), and its default `--minseqlength` is 1, not 32, so
+sequences shorter than 32 nucleotides are retained unless
+`--minseqlength 32` is set explicitly.
 
 The vsearch command `--derep_fulllength` groups strictly identical
 sequences from *fastafile* and writes the unique sequences to

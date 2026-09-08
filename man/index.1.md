@@ -97,10 +97,11 @@ system-wide.
 : Merge strictly identical fasta or fastq sequences.
 
 **[`vsearch-derep_fulllength(1)`](./commands/vsearch-derep_fulllength.1.md)**
-: Merge strictly identical fasta or fastq sequences (fasta-only output).
+: Merge strictly identical fasta sequences (deprecated;
+  use `--fastx_uniques`).
 
 **[`vsearch-derep_id(1)`](./commands/vsearch-derep_id.1.md)**
-: Merge identical fasta or fastq sequences sharing the same label.
+: Merge identical fasta sequences sharing the same label.
 
 **[`vsearch-derep_prefix(1)`](./commands/vsearch-derep_prefix.1.md)**
 : Merge fasta or fastq sequences with identical prefixes.
