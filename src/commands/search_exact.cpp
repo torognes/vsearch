@@ -252,8 +252,9 @@ auto search_exact_output_results(struct search_exact_state_s & state,
                                  View<char> const qsequence_rc,
                                  int64_t const qsize) -> void
 {
+  /* the caller holds mutex_output for the whole of this, and for the statistics
+     and the progress update that follow it */
   struct Parameters const & parameters = state.parameters;
-  std::lock_guard<std::mutex> const lock(state.mutex_output);
   auto const qseqlen = static_cast<int>(qsequence.size());
 
   /* show results: the hits --maxhits keeps, of which the per-hit writers below
@@ -443,7 +444,12 @@ auto search_exact_output_results(struct search_exact_state_s & state,
     }
 }
 
-auto search_exact_query(uint64_t const t, struct search_exact_state_s & state) -> int
+/* Search both strands of the query the thread has claimed and collect its hits.
+   Writes nothing and takes no lock: the caller reports the result under the one
+   critical section it holds. */
+auto search_exact_query(uint64_t const t,
+                        struct search_exact_state_s & state,
+                        std::vector<struct hit> & hits) -> void
 {
   struct Parameters const & parameters = state.parameters;
   std::array<struct searchinfo_s *, 2> const strands
@@ -458,27 +464,11 @@ auto search_exact_query(uint64_t const t, struct search_exact_state_s & state) -
       search_exact_onequery(si, state.dbhash);
     }
 
-  std::vector<struct hit> hits;
-
   search_joinhits(&state.si_plus[t],
                   parameters.opt_strand ? &state.si_minus[t] : nullptr,
                   hits);
 
-  auto const qsequence = View<char>{state.si_plus[t].qsequence};
-  auto const qsequence_rc = parameters.opt_strand
-    ? View<char>{state.si_minus[t].qsequence}
-    : View<char>{};
-
-  search_exact_output_results(state,
-                              hits,
-                              state.si_plus[t].query_head,
-                              qsequence,
-                              qsequence_rc,
-                              state.si_plus[t].qsize);
-
   /* alignment strings (hit.nwalignment) are std::string and free themselves */
-
-  return static_cast<int>(hits.size());
 }
 
 auto search_exact_thread_run(uint64_t const t, struct search_exact_state_s & state) -> void
@@ -540,16 +530,30 @@ auto search_exact_thread_run(uint64_t const t, struct search_exact_state_s & sta
         state.si_minus[t].qsequence = make_span(state.si_minus[t].qsequence_v).first(state.si_plus[t].qsequence.size());
       }
 
-    int const match = search_exact_query(t, state);
+    std::vector<struct hit> hits;
+    search_exact_query(t, state, hits);
 
-    /* lock mutex for update of global data and output */
+    /* One critical section per query, not two. The output writers used to take
+       mutex_output and release it, and the statistics below took it again
+       immediately after -- two acquisitions around ~520 ns of work, which is
+       what made the command slower with every thread added. Nothing between the
+       two needed the lock released. */
     std::lock_guard<std::mutex> const output_lock(state.mutex_output);
+
+    search_exact_output_results(state,
+                                hits,
+                                state.si_plus[t].query_head,
+                                View<char>{state.si_plus[t].qsequence},
+                                parameters.opt_strand
+                                  ? View<char>{state.si_minus[t].qsequence}
+                                  : View<char>{},
+                                state.si_plus[t].qsize);
 
     /* update stats */
     state.queries++;
     state.queries_abundance += static_cast<uint64_t>(qsize);
 
-    if (match != 0)
+    if (not hits.empty())
       {
         state.qmatches++;
         state.qmatches_abundance += static_cast<uint64_t>(qsize);
