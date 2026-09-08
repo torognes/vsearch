@@ -389,10 +389,18 @@ auto udb_read(const char * filename,
         dbindex.kmercount.clear();
         dbindex.kmercount.shrink_to_fit();
         pos += udb_stream_section(in_stream, dbindex.hashsize, pos, progress_bar,
-                                  [&dbindex](Span<unsigned int> const block) -> void
+                                  [&dbindex, seqcount](Span<unsigned int> const block) -> void
                                   {
                                     for (auto const count : block)
                                       {
+                                        /* A word count is a number of
+                                           database sequences; see the loop
+                                           below for why a larger value cannot
+                                           describe a valid word list. */
+                                        if (count > seqcount)
+                                          {
+                                            fatal("Invalid UDB file");
+                                          }
                                         dbindex.indexsize =
                                           udb_checked_add(dbindex.indexsize, count);
                                       }
@@ -405,6 +413,18 @@ auto udb_read(const char * filename,
 
         for (uint64_t i = 0; i < dbindex.hashsize; i++)
           {
+            /* A word count is a number of database sequences: both index
+               builders add a given sequence at most once per k-mer (its
+               distinct k-mers come from Uniquer), so a count above seqcount
+               cannot describe a valid word list, whatever wrote the file. The
+               word list's own entries are already checked against seqcount
+               further down; this is the same property one level up, and it is
+               what lets --udbstats treat the counts as a distribution over
+               0..seqcount rather than over an unbounded range. */
+            if (dbindex.kmercount[i] > seqcount)
+              {
+                fatal("Invalid UDB file");
+              }
             if (usage == UdbUse::search)
               {
                 dbindex.kmerhash.push_back(dbindex.indexsize);
