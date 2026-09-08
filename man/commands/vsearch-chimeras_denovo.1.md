@@ -165,7 +165,7 @@ model. Modify with caution.
 
 #(./fragments/option_xn.md)
 : Ignored by `--chimeras_denovo`: only the UCHIME scoring function
-  reads this weight.
+  reads this weight (a warning is printed when the option is given).
 
 
 # EXAMPLES

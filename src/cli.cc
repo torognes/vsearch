@@ -5110,6 +5110,17 @@ namespace {
       {
         parameters.opt_alignwidth = 60;
       }
+
+    /* --xn weights the 'no' votes of the uchime scoring function, which
+       --chimeras_denovo never evaluates: it routes to eval_parents_long(),
+       where a called query is chimeric by construction. The option is
+       accepted for the four --uchime* commands only, and the log already
+       omits xn/dn/xa for this one. */
+    if ((command == Command::chimeras_denovo) and options_selected[option_xn])
+      {
+        vsearch::warn("Option --xn is ignored by --chimeras_denovo "
+                      "(it only affects the --uchime* commands)");
+      }
   }
 
   /* Apply the generic sentinel fixups and the command-specific defaults
