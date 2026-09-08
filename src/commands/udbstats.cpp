@@ -106,6 +106,20 @@ auto udbstats(struct Parameters const & parameters) -> void
 
   udb_read(parameters.input_filename, UdbUse::metadata, dbindex, db, parameters);
 
+  /* Every line this command reports goes to the log file (documented in
+     man/commands/vsearch-udbstats.1.md), so without --log there is nothing to
+     produce: the analysis below builds a table of 4^wordlength entries and
+     sorts it, and then prints none of it. Returning here leaves the loading
+     summary udb_read() already wrote on stderr as the whole output, which is
+     what such a run produces today. */
+
+  if (parameters.fp_log == nullptr)
+    {
+      dbindex.clear();
+      db.clear();
+      return;
+    }
+
   /* dbindex.wordlength below is the effective index width that udb_read() just
      published from this UDB file's header (which may differ from the configured
      parameters.opt_wordlength); read it, not the config (E1). */
