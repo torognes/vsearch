@@ -100,10 +100,11 @@ auto udb_read(const char * filename,
 
    Every value is checked against `seqcount` here, not only when the file was
    loaded, so a file rewritten in between cannot put an out-of-range sequence
-   number into the report. `wordlength` and `seqcount` are the ones udb_read()
-   published, not the session's configuration. */
+   number into the report. The section's position comes from the index
+   udb_read() just filled, not from the session's configuration -- so the word
+   length used to find it is the file's own. */
 auto udb_read_word_entries(const char * filename,
-                           unsigned int wordlength,
+                           struct Dbindex const & dbindex,
                            unsigned int seqcount,
                            uint64_t first,
                            Span<unsigned int> entries) -> void;

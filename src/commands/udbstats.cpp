@@ -67,6 +67,7 @@
 #include "utils/span.hpp"  // make_span
 #include "utils/view.hpp"
 #include <algorithm>  // std::max, std::min, std::sort
+#include <array>
 #include <cassert>  // assert
 #include <cmath>  // std::lround
 #include <cstddef>  // std::size_t
@@ -78,13 +79,32 @@
 // anonymous namespace: limit visibility and usage to this translation unit
 namespace {
 
+  /* How many word rows the report prints, and how many of each row's matching
+     sequence numbers it shows before the ellipsis. Named because the word list
+     is no longer held in memory: these two numbers are exactly how much of it
+     has to be fetched. */
+  constexpr auto reported_rows = std::size_t{11};
+  constexpr auto reported_entries_per_row = std::size_t{8};
+
+
+  /* One row of the report's word table: which k-mer, how many sequences it
+     matches, and the first few of them. The three used to be three parallel
+     vectors indexed by row number in step. */
   struct wordfreq
   {
     unsigned int kmer;
     unsigned int count;
+    std::array<unsigned int, reported_entries_per_row> entries;
+    std::size_t shown;
   };
 
   using wordfreq_t = struct wordfreq;
+
+
+  auto make_row(unsigned int const kmer, unsigned int const count) -> wordfreq_t
+  {
+    return wordfreq_t{kmer, count, {{}}, 0};
+  }
 
 
   /* The order the report's word rows are in. It used to be implied rather than
@@ -99,13 +119,6 @@ namespace {
       }
     return lhs.kmer < rhs.kmer;
   }
-
-  /* How many word rows the report prints (the row loop breaks after i == 10),
-     and how many of each row's matching sequence numbers it shows before the
-     ellipsis. Named because the word list is no longer held in memory: these
-     two numbers are exactly how much of it has to be fetched. */
-  constexpr auto reported_rows = std::size_t{11};
-  constexpr auto reported_entries_per_row = std::size_t{8};
 
 }  // end of anonymous namespace
 
@@ -163,18 +176,31 @@ auto udbstats(struct Parameters const & parameters) -> void
   std::vector<wordfreq_t> top;  /* the reported rows, kept in report order */
   top.reserve(reported_rows);
 
+  /* Max size, and the k-mer the report names beside it. Tracked here rather
+     than read back off the first reported row: they are the same value, and a
+     scalar cannot be read out of an empty container. */
+  auto wcmax = 0U;
+  auto wcmax_kmer = 0U;
+
   for (auto kmer = 0U; kmer < dbindex.hashsize; ++kmer)
     {
       auto const count = dbindex.kmercount[kmer];
       assert(count <= seqcount);  /* checked when the UDB was read */
       ++histogram[count];
 
-      /* Strictly greater, so among equal counts the k-mer seen first -- the
-         smallest -- keeps its place, which is the order the printing loop used
-         to get by reading the sorted table from its far end. */
+      /* Strictly greater in both tests below, so among equal counts the k-mer
+         seen first -- the smallest -- keeps its place, which is the order the
+         printing loop used to get by reading the sorted table from its far
+         end. */
+      if (count > wcmax)
+        {
+          wcmax = count;
+          wcmax_kmer = kmer;
+        }
+
       if ((top.size() < reported_rows) or (count > top.back().count))
         {
-          wordfreq_t const candidate {kmer, count};
+          auto const candidate = make_row(kmer, count);
           auto const where = std::upper_bound(top.begin(), top.end(), candidate, ranks_above);
           top.insert(where, candidate);
           if (top.size() > reported_rows)
@@ -185,11 +211,8 @@ auto udbstats(struct Parameters const & parameters) -> void
     }
 
   assert(top.size() == std::min<std::size_t>(reported_rows, dbindex.hashsize));
-
-  /* Max size, and the k-mer the report names beside it: the largest count, and
-     the smallest k-mer holding it -- the first reported row, by construction. */
-  auto const wcmax = top.front().count;
-  auto const wcmax_kmer = top.front().kmer;
+  /* the two derivations of the same fact agree */
+  assert(top.empty() or ((top.front().count == wcmax) and (top.front().kmer == wcmax_kmer)));
 
   /* the two central counts, as the sorted table gave them: the (hashsize/2)-th
      and (hashsize/2 + 1)-th smallest */
@@ -254,51 +277,41 @@ auto udbstats(struct Parameters const & parameters) -> void
          keep the word list (UdbUse::word_stats) nor the per-k-mer offset
          table, so both are recovered here for these rows alone: the offsets by
          one pass over the counts, and the entries by reading the file at those
-         offsets. The rows are visited in report order, but the counts must be
-         walked in k-mer order, so the requests are sorted by k-mer first and
-         the results land back in row order. */
+         offsets. The rows are in report order, so they are visited in k-mer
+         order through a sorted list of their positions. */
 
-      std::vector<unsigned int> row_entries(top.size() * reported_entries_per_row, 0U);
-      std::vector<std::size_t> row_shown(top.size(), 0);
       {
-        std::vector<std::size_t> by_kmer;
-        by_kmer.reserve(reported_rows);
+        std::vector<std::size_t> in_kmer_order;
+        in_kmer_order.reserve(top.size());
         for (std::size_t row = 0; row < top.size(); ++row)
           {
-            by_kmer.push_back(row);
+            in_kmer_order.push_back(row);
           }
-        auto const kmer_of_row = [&top](std::size_t const row) -> unsigned int
-        { return top[row].kmer; };
-        std::sort(by_kmer.begin(), by_kmer.end(),
-                  [&kmer_of_row](std::size_t const lhs, std::size_t const rhs) -> bool
-                  { return kmer_of_row(lhs) < kmer_of_row(rhs); });
+        std::sort(in_kmer_order.begin(), in_kmer_order.end(),
+                  [&top](std::size_t const lhs, std::size_t const rhs) -> bool
+                  { return top[lhs].kmer < top[rhs].kmer; });
 
-        uint64_t running = 0;
-        std::size_t next = 0;
-        for (auto kmer = 0U; (kmer < dbindex.hashsize) and (next < by_kmer.size()); ++kmer)
+        uint64_t first_entry = 0;
+        auto next = in_kmer_order.cbegin();
+        for (auto kmer = 0U; (kmer < dbindex.hashsize) and (next != in_kmer_order.cend()); ++kmer)
           {
-            while ((next < by_kmer.size()) and (kmer_of_row(by_kmer[next]) == kmer))
+            while ((next != in_kmer_order.cend()) and (top[*next].kmer == kmer))
               {
-                auto const row = by_kmer[next];
-                auto const count = static_cast<std::size_t>(dbindex.kmercount[kmer]);
-                row_shown[row] = std::min(count, reported_entries_per_row);
-                udb_read_word_entries(parameters.input_filename,
-                                      dbindex.wordlength,
-                                      seqcount,
-                                      running,
-                                      make_span(row_entries)
-                                        .subspan(row * reported_entries_per_row,
-                                                 row_shown[row]));
+                auto & row = top[*next];
+                row.shown = std::min<std::size_t>(row.count, reported_entries_per_row);
+                udb_read_word_entries(parameters.input_filename, dbindex, seqcount,
+                                      first_entry,
+                                      make_span(row.entries).first(row.shown));
                 ++next;
               }
-            running += dbindex.kmercount[kmer];
+            first_entry += dbindex.kmercount[kmer];
           }
-        assert(next == by_kmer.size());
+        assert(next == in_kmer_order.cend());
       }
 
-      for (std::size_t i = 0; i < top.size(); ++i)
+      for (auto const & row : top)
         {
-          fprint_integer(parameters.fp_log, top[i].kmer, 10);
+          fprint_integer(parameters.fp_log, row.kmer, 10);
           fprint(parameters.fp_log, "  ");
 
           /* pad the k-mer column out to 12 characters */
@@ -307,23 +320,23 @@ auto udbstats(struct Parameters const & parameters) -> void
             std::max(12 - static_cast<int>(dbindex.wordlength), 0));
           fprint(parameters.fp_log, View<char>{twelve_spaces, padding});
 
-          fprint_kmer(parameters.fp_log, dbindex.wordlength, top[i].kmer);
+          fprint_kmer(parameters.fp_log, dbindex.wordlength, row.kmer);
 
           fprint(parameters.fp_log, "  ");
           fprint_integer(parameters.fp_log, 0U, 10);
           fprint(parameters.fp_log, "  ");
-          fprint_integer(parameters.fp_log, top[i].count, 10);
+          fprint_integer(parameters.fp_log, row.count, 10);
 
           fprint(parameters.fp_log, ' ');
 
-          for (std::size_t j = 0; j < row_shown[i]; ++j)
+          for (auto const entry : make_view(row.entries).first(row.shown))
             {
               fprint(parameters.fp_log, ' ');
-              fprint_integer(parameters.fp_log, row_entries[(i * reported_entries_per_row) + j]);
+              fprint_integer(parameters.fp_log, entry);
             }
 
 
-          if (top[i].count > reported_entries_per_row)
+          if (row.count > reported_entries_per_row)
             {
               fprint(parameters.fp_log, "...");
             }

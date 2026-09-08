@@ -224,6 +224,18 @@ namespace {
   }
 
 
+  /* A run of 4-byte fields in the file: how many there are, and the byte
+     offset the first one starts at. Named because both are uint64_t, and a
+     call site that swapped them would read a plausible number of fields from
+     the wrong place -- the same class of mistake largeread()'s Span parameter
+     removed for lengths. */
+  struct FieldRun
+  {
+    uint64_t entries;
+    uint64_t file_offset;
+  };
+
+
   /* Read a section of 4-byte values through a scratch buffer, handing each
      block to `inspect` and keeping none of it.
 
@@ -238,25 +250,25 @@ namespace {
      larger than the section, so a small database does not trade a 10 MB table
      for a 16 MB scratch buffer. */
   template <typename Inspect>
-  auto udb_stream_section(std::istream & input, uint64_t const entries,
-                          uint64_t const offset, Progress & progress_bar,
+  auto udb_stream_section(std::istream & input, FieldRun const run,
+                          Progress & progress_bar,
                           Inspect inspect) -> uint64_t
   {
     auto const block_entries = static_cast<std::size_t>(
-      std::min<uint64_t>(blocksize / sizeof(unsigned int), entries));
+      std::min<uint64_t>(blocksize / sizeof(unsigned int), run.entries));
     std::vector<unsigned int> block(block_entries);
-    auto position = offset;
+    auto position = run.file_offset;
 
-    for (uint64_t done = 0; done < entries; done += block_entries)
+    for (uint64_t done = 0; done < run.entries; done += block_entries)
       {
         auto const wanted = static_cast<std::size_t>(
-          std::min<uint64_t>(block_entries, entries - done));
+          std::min<uint64_t>(block_entries, run.entries - done));
         auto const chunk = make_span(block).first(wanted);
         position += largeread(input, chunk, position, progress_bar);
         inspect(chunk);
       }
 
-    return position - offset;
+    return position - run.file_offset;
   }
 
 
@@ -395,7 +407,7 @@ auto udb_read(const char * filename,
            of the file begins. So they are read for the total and dropped. */
         dbindex.kmercount.clear();
         dbindex.kmercount.shrink_to_fit();
-        pos += udb_stream_section(in_stream, dbindex.hashsize, pos, progress_bar,
+        pos += udb_stream_section(in_stream, FieldRun{dbindex.hashsize, pos}, progress_bar,
                                   [&dbindex, seqcount](Span<unsigned int> const block) -> void
                                   {
                                     for (auto const count : block)
@@ -498,7 +510,7 @@ auto udb_read(const char * filename,
       {
         dbindex.kmerindex.clear();
         dbindex.kmerindex.shrink_to_fit();
-        pos += udb_stream_section(in_stream, dbindex.indexsize, pos, progress_bar,
+        pos += udb_stream_section(in_stream, FieldRun{dbindex.indexsize, pos}, progress_bar,
                                   [seqcount](Span<unsigned int> const block) -> void
                                   {
                                     for (auto const entry : block)
@@ -719,7 +731,7 @@ auto udb_read(const char * filename,
      writes the stored value instead of overwriting it with 1. */
 
   auto const parse_abundances =
-    (usage == UdbUse::search) or (parameters.opt_sizein != 0);
+    (usage == UdbUse::search) or parameters.opt_sizein;
 
   if (parse_abundances)
     {
@@ -771,13 +783,14 @@ auto udb_read(const char * filename,
 
 
 auto udb_read_word_entries(const char * filename,
-                           unsigned int const wordlength,
+                           struct Dbindex const & dbindex,
                            unsigned int const seqcount,
                            uint64_t const first,
                            Span<unsigned int> const entries) -> void
 {
-  assert(wordlength >= 3);
-  assert(wordlength <= 15);
+  assert(dbindex.wordlength >= 3);
+  assert(dbindex.wordlength <= 15);
+  assert(dbindex.hashsize == (1U << (2 * dbindex.wordlength)));
 
   if (entries.empty())
     {
@@ -796,7 +809,7 @@ auto udb_read_word_entries(const char * filename,
      than as a literal so it stays tied to the layout above it. */
   auto const header_fields = uint64_t{50};
   auto const signature_fields = uint64_t{1};
-  auto const slots = uint64_t{1} << (2U * wordlength);
+  auto const slots = uint64_t{dbindex.hashsize};
   auto const field = uint64_t{sizeof(unsigned int)};
   auto const offset = field * (header_fields + slots + signature_fields + first);
 
