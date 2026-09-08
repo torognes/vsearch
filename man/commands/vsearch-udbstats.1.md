@@ -21,6 +21,24 @@ generic loading summary appears on the standard error). The report
 gives the distribution of word frequencies across the indexed
 sequences in the database.
 
+The report has four parts: a header (word length, number of index
+slots, DBAccel), overall totals (database size in nucleotides, number
+of indexed words, and the median and mean number of sequences per
+word), a table of the eleven most frequent words giving each word's
+index and sequence form, its number of matching sequences (Size) and
+the first eight of them (Row), and a histogram binning the index slots
+by how many sequences they match, in buckets that double in width.
+
+Several reported fields are USEARCH header fields vsearch does not use,
+and are constants rather than measurements: Word ones repeats the word
+length, Spaced, Hashed, Coded and Stepped are always `No`, the Cap
+column is always `0`, and Lower is always `0` (masking is not recorded
+in a UDB file, so Upper and Total both equal the nucleotide count).
+
+Note that the number of index slots is 4 raised to the power of the
+word length, so the cost of this command is set by the word length
+rather than by the size of the database.
+
 See [`vsearch-udb(5)`](../formats/vsearch-udb.5.md) for a description
 of the UDB file format.
 
@@ -52,11 +70,13 @@ of the UDB file format.
 
 # EXAMPLES
 
-Report word statistics for a UDB database:
+Report word statistics for a UDB database (the report needs `--log`;
+without it the command prints only the loading summary):
 
 ```sh
 vsearch \
-    --udbstats db.udb
+    --udbstats db.udb \
+    --log stats.log
 ```
 
 
