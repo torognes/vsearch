@@ -64,9 +64,13 @@
 #include "core/udb.hpp"
 #include "core/dbindex.hpp"
 #include "utils/print_view.hpp"  // fprint
+#include "utils/span.hpp"  // make_span
 #include "utils/view.hpp"
 #include <algorithm>  // std::max, std::min, std::sort
+#include <cassert>  // assert
 #include <cmath>  // std::lround
+#include <cstddef>  // std::size_t
+#include <cstdint>  // uint64_t
 #include <cstdio>  // std::fprintf
 #include <vector>
 
@@ -92,6 +96,13 @@ namespace {
     return lhs.kmer > rhs.kmer;
   }
 
+  /* How many word rows the report prints (the row loop breaks after i == 10),
+     and how many of each row's matching sequence numbers it shows before the
+     ellipsis. Named because the word list is no longer held in memory: these
+     two numbers are exactly how much of it has to be fetched. */
+  constexpr auto reported_rows = std::size_t{11};
+  constexpr auto reported_entries_per_row = std::size_t{8};
+
 }  // end of anonymous namespace
 
 
@@ -104,7 +115,7 @@ auto udbstats(struct Parameters const & parameters) -> void
 
   /* read UDB file */
 
-  udb_read(parameters.input_filename, UdbUse::metadata, dbindex, db, parameters);
+  udb_read(parameters.input_filename, UdbUse::word_stats, dbindex, db, parameters);
 
   /* Every line this command reports goes to the log file (documented in
      man/commands/vsearch-udbstats.1.md), so without --log there is nothing to
@@ -183,6 +194,52 @@ auto udbstats(struct Parameters const & parameters) -> void
       fprint(parameters.fp_log, "     iWord         sWord         Cap        Size  Row\n");
       fprint(parameters.fp_log, "----------  ------------  ----------  ----------  ---\n");
 
+      /* The matching sequence numbers the rows below show. udb_read() did not
+         keep the word list (UdbUse::word_stats) nor the per-k-mer offset
+         table, so both are recovered here for these rows alone: the offsets by
+         one pass over the counts, and the entries by reading the file at those
+         offsets. The rows are visited in report order, but the counts must be
+         walked in k-mer order, so the requests are sorted by k-mer first and
+         the results land back in row order. */
+
+      std::vector<unsigned int> row_entries(reported_rows * reported_entries_per_row, 0U);
+      std::vector<std::size_t> row_shown(reported_rows, 0);
+      {
+        std::vector<std::size_t> by_kmer;
+        by_kmer.reserve(reported_rows);
+        for (std::size_t row = 0; row < reported_rows; ++row)
+          {
+            by_kmer.push_back(row);
+          }
+        auto const kmer_of_row = [&freqtable, &dbindex](std::size_t const row) -> unsigned int
+        { return freqtable[dbindex.hashsize - 1 - row].kmer; };
+        std::sort(by_kmer.begin(), by_kmer.end(),
+                  [&kmer_of_row](std::size_t const lhs, std::size_t const rhs) -> bool
+                  { return kmer_of_row(lhs) < kmer_of_row(rhs); });
+
+        uint64_t running = 0;
+        std::size_t next = 0;
+        for (auto kmer = 0U; (kmer < dbindex.hashsize) and (next < by_kmer.size()); ++kmer)
+          {
+            while ((next < by_kmer.size()) and (kmer_of_row(by_kmer[next]) == kmer))
+              {
+                auto const row = by_kmer[next];
+                auto const count = static_cast<std::size_t>(dbindex.kmercount[kmer]);
+                row_shown[row] = std::min(count, reported_entries_per_row);
+                udb_read_word_entries(parameters.input_filename,
+                                      dbindex.wordlength,
+                                      seqcount,
+                                      running,
+                                      make_span(row_entries)
+                                        .subspan(row * reported_entries_per_row,
+                                                 row_shown[row]));
+                ++next;
+              }
+            running += dbindex.kmercount[kmer];
+          }
+        assert(next == by_kmer.size());
+      }
+
       for (auto i = 0U; i < dbindex.hashsize; i++)
         {
           fprint_integer(parameters.fp_log, freqtable[dbindex.hashsize - 1 - i].kmer, 10);
@@ -203,26 +260,21 @@ auto udbstats(struct Parameters const & parameters) -> void
 
           fprint(parameters.fp_log, ' ');
 
-          for (auto j = 0U; j < freqtable[dbindex.hashsize - 1 - i].count; j++)
+          for (std::size_t j = 0; j < row_shown[i]; ++j)
             {
               fprint(parameters.fp_log, ' ');
-              fprint_integer(parameters.fp_log, dbindex.kmerindex[dbindex.kmerhash[freqtable[dbindex.hashsize - 1 - i].kmer] + j]);
-
-              if (j == 7)
-                {
-                  break;
-                }
+              fprint_integer(parameters.fp_log, row_entries[(i * reported_entries_per_row) + j]);
             }
 
 
-          if (freqtable[dbindex.hashsize-1-i].count > 8)
+          if (freqtable[dbindex.hashsize-1-i].count > reported_entries_per_row)
             {
               fprint(parameters.fp_log, "...");
             }
 
           fprint(parameters.fp_log, '\n');
 
-          if (i == 10)
+          if (i + 1 == reported_rows)
             {
               break;
             }

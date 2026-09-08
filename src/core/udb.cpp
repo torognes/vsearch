@@ -224,6 +224,42 @@ namespace {
   }
 
 
+  /* Read a section of 4-byte values through a scratch buffer, handing each
+     block to `inspect` and keeping none of it.
+
+     Every value in the k-mer sections is read for one of two reasons: because
+     the session will use it, or because reading it is what proves the file is
+     intact. A reporting session has only the second reason, and holding a
+     section it will not use costs 4 bytes per entry -- 1.22 GB of word list
+     for a 221 085-sequence reference, 268 MB of word counts at word length 13.
+
+     The buffer is one largeread() block at most, so the progress bar advances
+     at the same byte offsets it would with the whole section in memory, and no
+     larger than the section, so a small database does not trade a 10 MB table
+     for a 16 MB scratch buffer. */
+  template <typename Inspect>
+  auto udb_stream_section(std::istream & input, uint64_t const entries,
+                          uint64_t const offset, Progress & progress_bar,
+                          Inspect inspect) -> uint64_t
+  {
+    auto const block_entries = static_cast<std::size_t>(
+      std::min<uint64_t>(blocksize / sizeof(unsigned int), entries));
+    std::vector<unsigned int> block(block_entries);
+    auto position = offset;
+
+    for (uint64_t done = 0; done < entries; done += block_entries)
+      {
+        auto const wanted = static_cast<std::size_t>(
+          std::min<uint64_t>(block_entries, entries - done));
+        auto const chunk = make_span(block).first(wanted);
+        position += largeread(input, chunk, position, progress_bar);
+        inspect(chunk);
+      }
+
+    return position - offset;
+  }
+
+
 }  // end of anonymous namespace
 
 
@@ -319,7 +355,6 @@ auto udb_read(const char * filename,
     /* word match counts */
 
     dbindex.hashsize = 1U << (2 * udb_wordlength);
-    dbindex.kmercount.resize(dbindex.hashsize);
     /* The k-mer -> bitmap lookup is one 4-byte slot per k-mer, allocated and
        zeroed here but filled only by the bitmap loop further down, which runs
        for UdbUse::search alone. A reporting session never asks a k-mer whether
@@ -333,21 +368,55 @@ auto udb_read(const char * filename,
       }
     /* filled by push_back into reserved space below, not resized here: the loop
        writes every entry, so value-initialising them first is 8 bytes per slot
-       of zeros nobody reads */
+       of zeros nobody reads. Only search walks the whole offset table; the
+       report needs a handful of its entries and recovers those from the counts,
+       so it reserves nothing (537 MB at word length 13). */
     dbindex.kmerhash.clear();
-    dbindex.kmerhash.reserve(dbindex.hashsize);
+    if (usage == UdbUse::search)
+      {
+        dbindex.kmerhash.reserve(dbindex.hashsize);
+      }
 
-    pos += largeread(in_stream, make_span(dbindex.kmercount).first(dbindex.hashsize), pos, progress_bar);
+    /* word counts */
 
     dbindex.indexsize = 0;
-    for (uint64_t i = 0; i < dbindex.hashsize; i++)
+
+    if (usage == UdbUse::sequences)
       {
-        dbindex.kmerhash.push_back(dbindex.indexsize);
-        dbindex.indexsize = udb_checked_add(dbindex.indexsize, dbindex.kmercount[i]);
+        /* The counts say nothing this session will report, but their sum is the
+           length of the word list, which is what says where the sequence half
+           of the file begins. So they are read for the total and dropped. */
+        dbindex.kmercount.clear();
+        dbindex.kmercount.shrink_to_fit();
+        pos += udb_stream_section(in_stream, dbindex.hashsize, pos, progress_bar,
+                                  [&dbindex](Span<unsigned int> const block) -> void
+                                  {
+                                    for (auto const count : block)
+                                      {
+                                        dbindex.indexsize =
+                                          udb_checked_add(dbindex.indexsize, count);
+                                      }
+                                  });
       }
-    /* one entry per slot: size() counts what the loop wrote, so this checks it
-       covered every slot (this path stores no end marker, unlike prepare) */
-    assert(dbindex.kmerhash.size() == dbindex.hashsize);
+    else
+      {
+        dbindex.kmercount.resize(dbindex.hashsize);
+        pos += largeread(in_stream, make_span(dbindex.kmercount).first(dbindex.hashsize), pos, progress_bar);
+
+        for (uint64_t i = 0; i < dbindex.hashsize; i++)
+          {
+            if (usage == UdbUse::search)
+              {
+                dbindex.kmerhash.push_back(dbindex.indexsize);
+              }
+            dbindex.indexsize = udb_checked_add(dbindex.indexsize, dbindex.kmercount[i]);
+          }
+        /* one entry per slot: size() counts what the loop wrote, so this checks
+           it covered every slot (this path stores no end marker, unlike
+           prepare) */
+        assert((usage != UdbUse::search)
+               or (dbindex.kmerhash.size() == dbindex.hashsize));
+      }
 
     /* The word-list section stores 4 bytes per index entry, so a file can
        hold at most filesize/4 entries; a larger total means the kmercount[]
@@ -369,22 +438,50 @@ auto udb_read(const char * filename,
 
     /* sequence numbers for word matches */
 
-    dbindex.kmerindex.resize(dbindex.indexsize);
-
-    pos += largeread(in_stream, make_span(dbindex.kmerindex).first(dbindex.indexsize), pos, progress_bar);
-
     /* Every entry is a sequence number used both as a bit offset in the
        per-word bitmaps (Bitmap::set writes bitmap[value >> 3], no bounds
        check) and as an index into seqindex/dbindex_map during search. A
        value >= seqcount is therefore an out-of-bounds write or read, so
-       reject it here rather than at use. */
+       reject it here rather than at use.
 
-    for (uint64_t i = 0; i < dbindex.indexsize; i++)
+       Search needs the entries afterwards and keeps them. A reporting session
+       does not: it validates them as they stream past and holds none, which is
+       4 bytes per entry it no longer allocates -- 1.22 GB for a
+       221 085-sequence reference at word length 8, where this section is 78 %
+       of the file. The check is kept in both cases because it is a property of
+       the file, not of what this session means to do with it: a truncated or
+       rewritten word list is rejected by --udb2fasta and --udbstats exactly
+       where it is rejected today. */
+
+    if (usage == UdbUse::search)
       {
-        if (dbindex.kmerindex[i] >= seqcount)
+        dbindex.kmerindex.resize(dbindex.indexsize);
+
+        pos += largeread(in_stream, make_span(dbindex.kmerindex).first(dbindex.indexsize), pos, progress_bar);
+
+        for (uint64_t i = 0; i < dbindex.indexsize; i++)
           {
-            fatal("Invalid UDB file");
+            if (dbindex.kmerindex[i] >= seqcount)
+              {
+                fatal("Invalid UDB file");
+              }
           }
+      }
+    else
+      {
+        dbindex.kmerindex.clear();
+        dbindex.kmerindex.shrink_to_fit();
+        pos += udb_stream_section(in_stream, dbindex.indexsize, pos, progress_bar,
+                                  [seqcount](Span<unsigned int> const block) -> void
+                                  {
+                                    for (auto const entry : block)
+                                      {
+                                        if (entry >= seqcount)
+                                          {
+                                            fatal("Invalid UDB file");
+                                          }
+                                      }
+                                  });
       }
 
     /* new header */
@@ -628,5 +725,58 @@ auto udb_read(const char * filename,
     {
       print_database_size(parameters.fp_log, db);
       fprint(parameters.fp_log, '\n');
+    }
+}
+
+
+auto udb_read_word_entries(const char * filename,
+                           unsigned int const wordlength,
+                           unsigned int const seqcount,
+                           uint64_t const first,
+                           Span<unsigned int> const entries) -> void
+{
+  assert(wordlength >= 3);
+  assert(wordlength <= 15);
+
+  if (entries.empty())
+    {
+      return;
+    }
+
+  std::ifstream in_stream(filename, std::ios::binary);
+  if (not in_stream)
+    {
+      fatal("Unable to open UDB file for reading");
+    }
+
+  /* Where entry number `first` sits: the 50-field header, then one count per
+     k-mer slot, then the section signature, then the word list itself -- all of
+     them 4-byte fields (see the static_assert in udb_read). Spelled out rather
+     than as a literal so it stays tied to the layout above it. */
+  auto const header_fields = uint64_t{50};
+  auto const signature_fields = uint64_t{1};
+  auto const slots = uint64_t{1} << (2U * wordlength);
+  auto const field = uint64_t{sizeof(unsigned int)};
+  auto const offset = field * (header_fields + slots + signature_fields + first);
+
+  in_stream.seekg(static_cast<std::streamoff>(offset));
+  if (not in_stream)
+    {
+      fatal("Unable to read from UDB file or invalid UDB file");
+    }
+
+  auto const bytes = entries.as_writable_bytes();
+  in_stream.read(bytes.data(), static_cast<std::streamsize>(bytes.size()));
+  if (static_cast<std::size_t>(in_stream.gcount()) != bytes.size())
+    {
+      fatal("Unable to read from UDB file or invalid UDB file");
+    }
+
+  for (auto const entry : entries)
+    {
+      if (entry >= seqcount)
+        {
+          fatal("Invalid UDB file");
+        }
     }
 }
