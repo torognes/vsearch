@@ -108,6 +108,12 @@ struct search_exact_state_s
 
   std::vector<searchinfo_s> si_plus;
   std::vector<searchinfo_s> si_minus;  /* empty unless --strand both */
+  /* one normalization scratch buffer per thread, reused across queries and
+     across the two strands (they are searched one after the other by the same
+     thread). search_exact_onequery() used to build a fresh vector per query and
+     per strand, which zero-initializes storage that string_normalize() then
+     overwrites in full. Sized alongside si_plus. */
+  std::vector<std::vector<char>> normalize_scratch;
 
   /* set once before the worker pool runs, then read-only: no synchronization needed */
   int seqcount = 0; /* number of database sequences */
@@ -226,18 +232,22 @@ auto add_hit(struct searchinfo_s * si, uint64_t const seqno) -> void
     }
 }
 
-auto search_exact_onequery(struct searchinfo_s * si, struct Dbhash const & dbhash) -> void
+auto search_exact_onequery(struct searchinfo_s * si,
+                           struct Dbhash const & dbhash,
+                           std::vector<char> & scratch) -> void
 {
   dbhash_search_info_s info;
 
-  auto const seqlen = si->qsequence.size();
-  std::vector<char> normalized(seqlen);
-  string_normalize(make_span(normalized),
-                   View<char>{si->qsequence});
+  /* both sides of the comparison are normalized before hashing, which is why
+     the masking options cannot change which matches are found. scratch is the
+     caller's per-thread buffer, so a query no longer than the previous one
+     allocates nothing at all. */
+  vsearch::grow_to_fit(scratch, si->qsequence.size());
+  auto const normalized = normalize_into(scratch, View<char>{si->qsequence});
 
   si->hit_count = 0;
 
-  int64_t ret = dbhash.search_first(make_view(normalized).first(seqlen), info, *si->db);
+  int64_t ret = dbhash.search_first(normalized, info, *si->db);
   while (ret >= 0)
     {
       add_hit(si, static_cast<uint64_t>(ret));
@@ -461,7 +471,7 @@ auto search_exact_query(uint64_t const t,
       apply_masking(si->qsequence, parameters.opt_qmask, parameters);
 
       /* perform search */
-      search_exact_onequery(si, state.dbhash);
+      search_exact_onequery(si, state.dbhash, state.normalize_scratch[t]);
     }
 
   search_joinhits(&state.si_plus[t],
@@ -738,6 +748,7 @@ auto search_exact(struct Parameters const & parameters) -> void
 
   /* allocate memory for thread info */
   state.si_plus.resize(static_cast<std::size_t>(parameters.opt_threads));
+  state.normalize_scratch.resize(static_cast<std::size_t>(parameters.opt_threads));
   if (parameters.opt_strand)
     {
       state.si_minus.resize(static_cast<std::size_t>(parameters.opt_threads));
