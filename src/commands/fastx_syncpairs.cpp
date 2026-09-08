@@ -302,8 +302,25 @@ namespace {
   }
 
 
+  // The abundance an output of this command could print. Asking the reader
+  // for it means scanning the header for a ";size=" annotation
+  // (header_find_attribute(), ~375 instructions a record and 5.6% of the run
+  // when done for every record of both files), and the value reaches an
+  // output through exactly two places, both in fprint_header_annotations()
+  // and both gated on --sizeout. Since the CLI rejects --sizeout, --xsize and
+  // --relabel* for fastx_syncpairs, the parse currently cannot reach a single
+  // byte of any output; gating on the option rather than hard-coding the
+  // fallback keeps that true, and honest, if the option table ever changes.
+  // 1 is what get_abundance() itself returns when the annotation is absent.
+  auto printable_abundance(fastx_handle handle,
+                           struct Parameters const & parameters) -> int64_t {
+    return parameters.opt_sizeout ? handle->get_abundance() : 1;
+  }
+
+
   auto store_record(fastx_handle handle, bool const is_fastq,
-                    std::size_t const key_length) -> read_record {
+                    std::size_t const key_length,
+                    struct Parameters const & parameters) -> read_record {
     read_record record;
     auto const stored = handle->record();
     record.header.assign(stored.header.begin(), stored.header.end());
@@ -311,7 +328,7 @@ namespace {
     if (is_fastq) {
       record.quality.assign(stored.quality.begin(), stored.quality.end());
     }
-    record.abundance = handle->get_abundance();
+    record.abundance = printable_abundance(handle, parameters);
     record.key_length = key_length;
     return record;
   }
@@ -362,7 +379,7 @@ namespace {
       if (not index.insert(key, position, records)) {
         fatal("Duplicate read label in reverse file");
       }
-      records.push_back(store_record(reverse_handle, is_fastq, key.size()));
+      records.push_back(store_record(reverse_handle, is_fastq, key.size(), parameters));
       progress.update(reverse_handle->get_position());
     }
   }
@@ -438,7 +455,7 @@ auto fastx_syncpairs(struct Parameters const & parameters) -> void
       auto const position = reverse_index.find(key, reverse_records);
       if (position == KeyIndex::npos()) {
         write_record(outfiles.orphans_fwd, forward_handle->record(),
-                     OutputAnnotations{static_cast<uint64_t>(forward_handle->get_abundance()),
+                     OutputAnnotations{static_cast<uint64_t>(printable_abundance(forward_handle.get(), parameters)),
                                        static_cast<int64_t>(orphans_fwd + 1)},
                      parameters);
         ++orphans_fwd;
@@ -454,7 +471,7 @@ auto fastx_syncpairs(struct Parameters const & parameters) -> void
         reverse_used[position] = true;
         ++pairs;
         write_record(outfiles.synced_fwd, forward_handle->record(),
-                     OutputAnnotations{static_cast<uint64_t>(forward_handle->get_abundance()),
+                     OutputAnnotations{static_cast<uint64_t>(printable_abundance(forward_handle.get(), parameters)),
                                        static_cast<int64_t>(pairs)},
                      parameters);
         write_record(outfiles.synced_rev, reverse_records[position],
