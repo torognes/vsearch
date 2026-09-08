@@ -700,7 +700,21 @@ auto udb_read(const char * filename,
 
   /* get abundances and longest header */
 
-  if (usage == UdbUse::search)
+  /* Search reads the abundances through db.getabundance() and gates their use
+     on --sizein at each site (see msa.cpp, cluster.cpp, derep.cpp), so its
+     parse is unconditional as before.
+
+     --udb2fasta (UdbUse::sequences) parses them only when asked. A UDB stores
+     headers verbatim, so the annotation is there to be read, but reading it is
+     what --sizein means throughout vsearch -- without it an input's abundances
+     are not read and every sequence counts as one. So --sizeout alone still
+     writes size=1, matching every other command, and --sizein --sizeout now
+     writes the stored value instead of overwriting it with 1. */
+
+  auto const parse_abundances =
+    (usage == UdbUse::search) or (parameters.opt_sizein != 0);
+
+  if (parse_abundances)
     {
       {
         Progress progress("Parsing abundances", seqcount, parameters);
