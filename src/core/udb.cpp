@@ -320,7 +320,17 @@ auto udb_read(const char * filename,
 
     dbindex.hashsize = 1U << (2 * udb_wordlength);
     dbindex.kmercount.resize(dbindex.hashsize);
-    dbindex.bitmap_slots_reset(dbindex.hashsize);
+    /* The k-mer -> bitmap lookup is one 4-byte slot per k-mer, allocated and
+       zeroed here but filled only by the bitmap loop further down, which runs
+       for UdbUse::search alone. A reporting session never asks a k-mer whether
+       it has a bitmap, so it can leave the table empty rather than pay 4 bytes
+       per slot for it -- 268 MB at word length 13. has_bitmap() asserts the
+       k-mer is in range, so a session that starts reading it after all says so
+       in a debug build rather than reading out of bounds. */
+    if (usage == UdbUse::search)
+      {
+        dbindex.bitmap_slots_reset(dbindex.hashsize);
+      }
     /* filled by push_back into reserved space below, not resized here: the loop
        writes every entry, so value-initialising them first is 8 bytes per slot
        of zeros nobody reads */
