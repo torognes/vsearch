@@ -29,6 +29,19 @@ with soft masking, which replaces masked residues with `N` and does
 prevent matches. By default only the *plus* strand is searched; use
 `--strand both` to also check the reverse complement.
 
+Since masking cannot change the results, it can be switched off with
+`--dbmask none --qmask none`, and that is usually worth doing: the
+whole database is masked before the first query is read, and masking
+accounts for half to two thirds of the total run time. The outputs
+that report labels and numbers only --- `--biomout`, `--blast6out`,
+`--mothur_shared_out`, `--otutabout`, `--uc`, and `--userout` when it
+requests neither the `qrow` nor the `trow` field --- are then
+byte-for-byte identical. The outputs that echo sequences differ only
+in the case of the sequences they print. Note that a masked database
+cannot be reused from one run to the next: unlike `--usearch_global`,
+this command does not accept a UDB database (see
+[`vsearch-makeudb_usearch(1)`](./vsearch-makeudb_usearch.1.md)).
+
 At least one output option must be specified. This command is
 multi-threaded: the queries are distributed over the available threads,
 so the order of the entries written to `--alnout`, `--blast6out`,
@@ -215,6 +228,20 @@ vsearch \
     --search_exact reads.fasta \
     --db otus.fasta \
     --otutabout otu_table.tsv \
+    --threads 8
+```
+
+The same run with masking switched off. `--otutabout` reports labels
+and counts, so the table is byte-for-byte the same, and the run is
+roughly twice as fast:
+
+```sh
+vsearch \
+    --search_exact reads.fasta \
+    --db otus.fasta \
+    --otutabout otu_table.tsv \
+    --qmask none \
+    --dbmask none \
     --threads 8
 ```
 

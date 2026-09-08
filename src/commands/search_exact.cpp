@@ -76,6 +76,7 @@
 #include "core/otutable.hpp"
 #include "utils/fatal.hpp"
 #include "utils/fatal_allocator.hpp"  // FatalAllocator
+#include "utils/grow_to_fit.hpp"  // vsearch::grow_to_fit
 #include "utils/maps.hpp"
 #include "utils/number_of_strands.hpp"
 #include "utils/open_file.hpp"
@@ -107,9 +108,14 @@ struct search_exact_state_s
 
   std::vector<searchinfo_s> si_plus;
   std::vector<searchinfo_s> si_minus;  /* empty unless --strand both */
+  /* one normalization scratch buffer per thread, reused across queries and
+     across the two strands (they are searched one after the other by the same
+     thread). search_exact_onequery() used to build a fresh vector per query and
+     per strand, which zero-initializes storage that string_normalize() then
+     overwrites in full. Sized alongside si_plus. */
+  std::vector<std::vector<char>> normalize_scratch;
 
   /* set once before the worker pool runs, then read-only: no synchronization needed */
-  int tophits = 0; /* the maximum number of hits to keep */
   int seqcount = 0; /* number of database sequences */
   fastx_handle query_fastx_h = nullptr;
 
@@ -154,6 +160,27 @@ auto add_hit(struct searchinfo_s * si, uint64_t const seqno) -> void
 {
   if (search_acceptable_unaligned(*si, static_cast<int>(seqno)))
     {
+      /* Grow on demand instead of having the per-thread init reserve one hit
+         slot per database sequence up front. The worst case (a query matching
+         every database record) is unchanged, but it is now paid by the run that
+         actually meets it rather than by every run: the eager reservation was
+         184 bytes x records x strands x threads, all of it touched by resize(),
+         which came to 3752 MB against a 219 092-sequence database at
+         --strand both --threads 24 where 61 MB suffices.
+
+         hits_v is the high-water-mark buffer grow_to_fit() is named for: it is
+         reused across queries and hit_count is reset per query, so it never
+         shrinks and a query with few hits does no work here. Asking for one
+         element rather than a geometric step is deliberate -- resize() past
+         capacity already grows the capacity geometrically, so the amortised
+         cost is the same and the growth policy stays the vector's rather than
+         being restated here.
+
+         hp is taken after the grow: a reallocation moves the elements, and a
+         pointer read before it would dangle. */
+      vsearch::grow_to_fit(si->hits_v,
+                           static_cast<std::size_t>(si->hit_count) + 1);
+
       /* the whole buffer, not make_hits_span()'s live prefix: this appends at
          the fill position, one past the last hit of the query so far */
       struct hit * const hp = &make_span(si->hits_v)[static_cast<std::size_t>(si->hit_count)];
@@ -205,18 +232,22 @@ auto add_hit(struct searchinfo_s * si, uint64_t const seqno) -> void
     }
 }
 
-auto search_exact_onequery(struct searchinfo_s * si, struct Dbhash const & dbhash) -> void
+auto search_exact_onequery(struct searchinfo_s * si,
+                           struct Dbhash const & dbhash,
+                           std::vector<char> & scratch) -> void
 {
   dbhash_search_info_s info;
 
-  auto const seqlen = si->qsequence.size();
-  std::vector<char> normalized(seqlen);
-  string_normalize(make_span(normalized),
-                   View<char>{si->qsequence});
+  /* both sides of the comparison are normalized before hashing, which is why
+     the masking options cannot change which matches are found. scratch is the
+     caller's per-thread buffer, so a query no longer than the previous one
+     allocates nothing at all. */
+  vsearch::grow_to_fit(scratch, si->qsequence.size());
+  auto const normalized = normalize_into(scratch, View<char>{si->qsequence});
 
   si->hit_count = 0;
 
-  int64_t ret = dbhash.search_first(make_view(normalized).first(seqlen), info, *si->db);
+  int64_t ret = dbhash.search_first(normalized, info, *si->db);
   while (ret >= 0)
     {
       add_hit(si, static_cast<uint64_t>(ret));
@@ -231,8 +262,9 @@ auto search_exact_output_results(struct search_exact_state_s & state,
                                  View<char> const qsequence_rc,
                                  int64_t const qsize) -> void
 {
+  /* the caller holds mutex_output for the whole of this, and for the statistics
+     and the progress update that follow it */
   struct Parameters const & parameters = state.parameters;
-  std::lock_guard<std::mutex> const lock(state.mutex_output);
   auto const qseqlen = static_cast<int>(qsequence.size());
 
   /* show results: the hits --maxhits keeps, of which the per-hit writers below
@@ -422,7 +454,12 @@ auto search_exact_output_results(struct search_exact_state_s & state,
     }
 }
 
-auto search_exact_query(uint64_t const t, struct search_exact_state_s & state) -> int
+/* Search both strands of the query the thread has claimed and collect its hits.
+   Writes nothing and takes no lock: the caller reports the result under the one
+   critical section it holds. */
+auto search_exact_query(uint64_t const t,
+                        struct search_exact_state_s & state,
+                        std::vector<struct hit> & hits) -> void
 {
   struct Parameters const & parameters = state.parameters;
   std::array<struct searchinfo_s *, 2> const strands
@@ -434,30 +471,14 @@ auto search_exact_query(uint64_t const t, struct search_exact_state_s & state) -
       apply_masking(si->qsequence, parameters.opt_qmask, parameters);
 
       /* perform search */
-      search_exact_onequery(si, state.dbhash);
+      search_exact_onequery(si, state.dbhash, state.normalize_scratch[t]);
     }
-
-  std::vector<struct hit> hits;
 
   search_joinhits(&state.si_plus[t],
                   parameters.opt_strand ? &state.si_minus[t] : nullptr,
                   hits);
 
-  auto const qsequence = View<char>{state.si_plus[t].qsequence};
-  auto const qsequence_rc = parameters.opt_strand
-    ? View<char>{state.si_minus[t].qsequence}
-    : View<char>{};
-
-  search_exact_output_results(state,
-                              hits,
-                              state.si_plus[t].query_head,
-                              qsequence,
-                              qsequence_rc,
-                              state.si_plus[t].qsize);
-
   /* alignment strings (hit.nwalignment) are std::string and free themselves */
-
-  return static_cast<int>(hits.size());
 }
 
 auto search_exact_thread_run(uint64_t const t, struct search_exact_state_s & state) -> void
@@ -519,16 +540,30 @@ auto search_exact_thread_run(uint64_t const t, struct search_exact_state_s & sta
         state.si_minus[t].qsequence = make_span(state.si_minus[t].qsequence_v).first(state.si_plus[t].qsequence.size());
       }
 
-    int const match = search_exact_query(t, state);
+    std::vector<struct hit> hits;
+    search_exact_query(t, state, hits);
 
-    /* lock mutex for update of global data and output */
+    /* One critical section per query, not two. The output writers used to take
+       mutex_output and release it, and the statistics below took it again
+       immediately after -- two acquisitions around ~520 ns of work, which is
+       what made the command slower with every thread added. Nothing between the
+       two needed the lock released. */
     std::lock_guard<std::mutex> const output_lock(state.mutex_output);
+
+    search_exact_output_results(state,
+                                hits,
+                                state.si_plus[t].query_head,
+                                View<char>{state.si_plus[t].qsequence},
+                                parameters.opt_strand
+                                  ? View<char>{state.si_minus[t].qsequence}
+                                  : View<char>{},
+                                state.si_plus[t].qsize);
 
     /* update stats */
     state.queries++;
     state.queries_abundance += static_cast<uint64_t>(qsize);
 
-    if (match != 0)
+    if (not hits.empty())
       {
         state.qmatches++;
         state.qmatches_abundance += static_cast<uint64_t>(qsize);
@@ -541,13 +576,19 @@ auto search_exact_thread_run(uint64_t const t, struct search_exact_state_s & sta
   run_worker_loop(state.mutex_input, has_work_to_claim, process_query);
 }
 
-auto search_exact_thread_init(struct searchinfo_s & si, struct Parameters const & parameters, int const tophits) -> void
+auto search_exact_thread_init(struct searchinfo_s & si, struct Parameters const & parameters) -> void
 {
   /* thread specific initialiation */
   si.parameters = &parameters;  /* searchcore reads config through the si (E1) */
+  /* Uniquer and Minheap are the kmer-candidate machinery of the approximate
+     searches; --search_exact has neither a kmer phase nor a candidate heap, so
+     nothing here ever touches them. They are assigned anyway, for lifecycle
+     symmetry with the other commands' thread inits, and it is free: both
+     default-construct to empty vectors that grow only when used. */
   si.uh = Uniquer();
   si.m = Minheap();
-  si.hits_v.resize(static_cast<std::size_t>(tophits * number_of_strands(parameters.opt_strand)));
+  /* si.hits_v is deliberately not sized here: add_hit() grows it as the hits
+     of a query arrive */
   si.qsize = 1;
   si.query_head = View<char>{nullptr, 0};
   si.qsequence = Span<char>{};
@@ -578,11 +619,11 @@ auto search_exact_thread_worker_run(struct search_exact_state_s & state) -> void
   /* init per-thread search state before the workers start */
   for (std::size_t t = 0; t < state.si_plus.size(); ++t)
     {
-      search_exact_thread_init(state.si_plus[t], effective, state.tophits);
+      search_exact_thread_init(state.si_plus[t], effective);
       state.si_plus[t].db = &state.db;  /* searchcore reads the sequences through the si */
       if (not state.si_minus.empty())
         {
-          search_exact_thread_init(state.si_minus[t], effective, state.tophits);
+          search_exact_thread_init(state.si_minus[t], effective);
           state.si_minus[t].db = &state.db;
         }
     }
@@ -622,9 +663,6 @@ auto search_exact_prep(struct search_exact_state_s & state) -> void
   // memory-intensive: the entire database is now held in memory
 
   state.seqcount = static_cast<int>(state.db.getsequencecount());
-
-  /* tophits = the maximum number of hits we need to store */
-  state.tophits = state.seqcount;
 
   state.dbmatched.assign(static_cast<size_t>(state.seqcount), 0);
 
@@ -710,6 +748,7 @@ auto search_exact(struct Parameters const & parameters) -> void
 
   /* allocate memory for thread info */
   state.si_plus.resize(static_cast<std::size_t>(parameters.opt_threads));
+  state.normalize_scratch.resize(static_cast<std::size_t>(parameters.opt_threads));
   if (parameters.opt_strand)
     {
       state.si_minus.resize(static_cast<std::size_t>(parameters.opt_threads));
