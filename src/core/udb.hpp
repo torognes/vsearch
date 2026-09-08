@@ -60,15 +60,26 @@
 
 #pragma once
 
+#include "utils/span.hpp"  // Span
+#include <cstdint>  // uint64_t
+
 /* What the caller wants out of a UDB file. This replaced two adjacent bool
    parameters, create_bitmaps and parse_abundances, that every one of the six
    callers set together: true for the four commands that go on to search the
    index, false for the two that only report on the file. Two same-typed
    neighbours that must never disagree are exactly the shape a caller can swap
    by mistake, so the one fact they carried between them is now one value. */
+/* What the caller intends to do with the file, which decides how much of the
+   k-mer index is kept. The k-mer sections are 72 % to 99 % of a UDB file, so
+   the difference is not a detail: a word length 13 database costs 1.07 GB of
+   dense tables to load for search and 21 MB to convert to fasta. Every value
+   reads and validates the whole file either way -- what varies is what
+   survives the read. */
 enum struct UdbUse : unsigned char {
-  search,    /* build the k-mer bitmaps and parse the ;size= annotations */
-  metadata,  /* skip both: the caller only reports on the file */
+  search,     /* the whole index, the bitmaps, and the ;size= annotations */
+  word_stats, /* the word counts, for reporting on them; no bitmaps, no
+                 abundances, and no per-k-mer offset table */
+  sequences,  /* no k-mer data at all: the sequences and their headers */
 };
 
 auto udb_detect_isudb(const char * filename) -> bool;
@@ -77,3 +88,23 @@ auto udb_read(const char * filename,
               struct Dbindex & dbindex,
               struct Database & db,
               struct Parameters const & parameters) -> void;
+
+/* Fill `entries` from the word list, starting at entry number `first`.
+
+   For a UdbUse::word_stats caller, which does not hold that section: the whole
+   word list is 4 bytes per index entry and can be a gigabyte, while the report
+   shows at most eight entries for each of eleven k-mers. So it is fetched on
+   demand rather than kept, by reopening the file and seeking -- the same way
+   udb_detect_isudb() and --udbinfo already read a UDB independently of
+   udb_read().
+
+   Every value is checked against `seqcount` here, not only when the file was
+   loaded, so a file rewritten in between cannot put an out-of-range sequence
+   number into the report. The section's position comes from the index
+   udb_read() just filled, not from the session's configuration -- so the word
+   length used to find it is the file's own. */
+auto udb_read_word_entries(const char * filename,
+                           struct Dbindex const & dbindex,
+                           unsigned int seqcount,
+                           uint64_t first,
+                           Span<unsigned int> entries) -> void;

@@ -23,9 +23,11 @@ Both `--udb2fasta` and `--output` must be specified.
 Headers are stored verbatim in UDB files, so `size=integer`
 annotations present in the original input survive the round trip as
 plain header text (and are honoured by search commands reading the
-UDB). `--udb2fasta` itself does not parse them, however: `--sizeout`
-emits `size=1` for every entry, and `--xsize` strips the stored
-annotations.
+UDB). Turning them back into abundances requires `--sizein`, as it does
+everywhere else in vsearch: `--sizein --sizeout` writes the stored
+abundance, while `--sizeout` on its own writes `size=1` for every entry,
+because without `--sizein` no input abundance is read and each sequence
+counts as one. `--xsize` strips the stored annotations.
 
 Note also that `--makeudb_usearch` masks sequences before storing them
 (`--dbmask dust` by default), so the round trip returns the masked
@@ -75,7 +77,7 @@ of the UDB file format.
 
 #(./fragments/option_sizein.md)
 
-#(./fragments/option_sizeout.md)
+#(./fragments/option_sizeout_udb2fasta.md)
 
 #(./fragments/option_xee.md)
 
