@@ -72,7 +72,8 @@
 #include "utils/maps.hpp"  // Mapping::none
 #include "utils/open_file.hpp"
 #include "utils/view.hpp"  // View<char>
-#include <algorithm>  // std::equal, std::find_if
+#include <algorithm>  // std::equal, std::find_if, std::max
+#include <cassert>  // assert
 #include <cstddef>  // std::size_t
 #include <cstdint>  // int64_t, uint64_t
 #include <cstdio>  // std::FILE
@@ -110,13 +111,171 @@ namespace {
     output_pair orphans_rev;
   };
 
-  // a single read kept in memory while indexing the reverse file
+  // a single read kept in memory while indexing the reverse file: where its
+  // bytes are in the store's arena, and how they are divided
   struct read_record {
-    std::string header;
-    std::string sequence;
-    std::string quality;  // empty when the input is in fasta format
+    uint32_t chunk = 0;  // which of the store's chunks holds the bytes
+    uint32_t offset = 0;  // where the record starts inside that chunk
+    uint32_t header_len = 0;
+    uint32_t sequence_len = 0;
+    uint32_t quality_len = 0;  // 0 when the input is in fasta format
+    uint32_t key_length = 0;  // the matching key is a prefix of the header
     int64_t abundance = 1;
-    std::size_t key_length = 0;  // the matching key is a prefix of the header
+  };
+
+
+  // Size of one arena chunk (see RecordStore below). Big enough that the
+  // per-chunk waste is immaterial, small enough that overshooting the last
+  // one costs nothing worth counting.
+  //
+  // At namespace scope rather than a static constexpr member of RecordStore
+  // because std::max() binds it by reference, which odr-uses it: a C++11
+  // static constexpr member would then need an out-of-class definition.
+  // C++17 refactoring: static constexpr members are implicitly inline, so
+  // this can move inside the class.
+  constexpr std::size_t arena_chunk_size = 8UL * 1024 * 1024;
+  static_assert(arena_chunk_size <= std::numeric_limits<uint32_t>::max(),
+                "a record's offset within its chunk is a 32-bit field");
+
+  // The reverse reads kept in memory: one fixed-size descriptor each, and
+  // their bytes end to end in a chunked arena, header first.
+  //
+  // The three std::strings a record used to be were three separate
+  // allocations, all past the small-string threshold at typical read lengths
+  // (a ~50-byte header, a 200 nt sequence, a 200-byte quality line), so a
+  // single record's own three fields sat in three unrelated places and half a
+  // million reverse reads cost one and a half million mallocs. Locality
+  // matters more here than it usually would, because the forward pass visits
+  // the stored records in FORWARD file order, which is unrelated to the order
+  // they were stored in: an out-of-order reverse file -- the input this
+  // command exists for -- makes every one of those lookups a random access,
+  // and a fully shuffled reverse file cost 30% more than an already
+  // synchronized one for that reason alone.
+  //
+  // Chunks, rather than one buffer for the whole file. A single buffer has to
+  // be sized in advance and the only figure available is the input file's own
+  // size, which is the *compressed* size for a gzip input -- about nine times
+  // short on the measured input. It then doubles repeatedly, copying
+  // everything stored so far each time, and ends up holding nearly twice the
+  // bytes it needs: 448 MB peak against 256 MB for the chunked form, and
+  // slower than the three separate strings on exactly the input that matters
+  // most. Chunks take the estimate out of the problem: nothing is ever
+  // copied, the overshoot is bounded by one chunk instead of by the total,
+  // and the peak no longer depends on how well the input happened to
+  // compress.
+  //
+  // A record never straddles a chunk boundary, so a chunk's trailing bytes go
+  // unused -- at most one record's worth against 8 MB. Because a record is
+  // located by a chunk index rather than by arithmetic over one buffer,
+  // chunks may differ in size, which is what lets a record too big for an
+  // empty chunk have a chunk of its own.
+  class RecordStore {
+  public:
+    // Store the record the handle is currently on. Its matching key is the
+    // first key.size() bytes of its header, and its abundance is whatever the
+    // caller decided an output could print (see printable_abundance).
+    auto add(fastx_handle handle, bool const is_fastq,
+             View<char> const key, int64_t const abundance) -> void {
+      auto const stored = handle->record();
+      assert(key.size() <= stored.header.size());
+      auto const quality_size =
+        is_fastq ? stored.quality.size() : std::size_t{0};
+      // a std::size_t deliberately: each of the three lengths fits a 32-bit
+      // field, but their sum need not, so the span is never narrowed
+      auto const span =
+        stored.header.size() + stored.sequence.size() + quality_size;
+
+      open_chunk_for(span);
+      read_record record;
+      record.chunk = to_field(chunks_.size() - 1);
+      record.offset = to_field(chunks_.back().size());
+      append(stored.header);
+      append(stored.sequence);
+      if (is_fastq) {
+        append(stored.quality);
+      }
+      room_ -= span;
+
+      record.header_len = to_field(stored.header.size());
+      record.sequence_len = to_field(stored.sequence.size());
+      record.quality_len = to_field(quality_size);
+      record.key_length = to_field(key.size());
+      record.abundance = abundance;
+      records_.push_back(record);
+    }
+
+    auto size() const -> std::size_t { return records_.size(); }
+
+    // the stored record's three fields, as views over its chunk
+    auto seq_record(std::size_t const index) const -> SeqRecord {
+      auto const & record = records_[at(index)];
+      auto const bytes = record_bytes(record);
+      return SeqRecord{bytes.first(record.header_len),
+                       bytes.subspan(record.header_len, record.sequence_len),
+                       bytes.last(record.quality_len),};
+    }
+
+    // the bytes a hash match is verified against: the header sits at the
+    // start of the record's span, and the matching key is a prefix of it
+    auto key(std::size_t const index) const -> View<char> {
+      auto const & record = records_[at(index)];
+      return record_bytes(record).first(record.key_length);
+    }
+
+    auto abundance(std::size_t const index) const -> int64_t {
+      return records_[at(index)].abundance;
+    }
+
+  private:
+    // Narrow a byte count to a descriptor field. Every count narrowed here is
+    // already bounded: fastx_filter_header() and
+    // fastx_filter_sequence_length() reject a header or a sequence longer
+    // than INT_MAX minus the buffer headroom, fatally, at the single point
+    // every FASTA/FASTQ read passes through, and a FASTQ quality line is
+    // exactly as long as its sequence. An offset is bounded by arena_chunk_size:
+    // only the first record of a chunk may exceed that size, and it exhausts
+    // its chunk, so every non-zero offset is an offset into an ordinary one.
+    static auto to_field(std::size_t const count) -> uint32_t {
+      assert(count <= std::numeric_limits<uint32_t>::max());
+      return static_cast<uint32_t>(count);
+    }
+
+    // an index into records_, checked
+    auto at(std::size_t const index) const -> std::size_t {
+      assert(index < records_.size());
+      return index;
+    }
+
+    // Make room for a record of 'span' bytes, opening a chunk when the
+    // current one cannot hold the whole of it. room_ starts at zero, so the
+    // first record always opens one and append() always has a chunk to write
+    // to; the emptiness test is what keeps that true for a zero-byte record.
+    auto open_chunk_for(std::size_t const span) -> void {
+      if ((not chunks_.empty()) and (span <= room_)) {
+        return;
+      }
+      chunks_.emplace_back();
+      room_ = std::max(span, arena_chunk_size);
+      chunks_.back().reserve(room_);
+    }
+
+    // never reallocates: open_chunk_for() reserved the whole record
+    auto append(View<char> const bytes) -> void {
+      chunks_.back().insert(chunks_.back().end(), bytes.begin(), bytes.end());
+    }
+
+    auto record_bytes(read_record const & record) const -> View<char> {
+      assert(record.chunk < chunks_.size());
+      // widened before the sum, for the reason given at 'span' above
+      auto const span = static_cast<std::size_t>(record.header_len)
+        + record.sequence_len + record.quality_len;
+      // subspan() asserts that the span is inside the chunk
+      return make_view(chunks_[record.chunk]).subspan(record.offset, span);
+    }
+
+    std::vector<read_record> records_;
+    std::vector<std::vector<char>> chunks_;
+    std::size_t room_ = 0;  // bytes still free in the current chunk
   };
 
   // Positions of the reverse reads, keyed by their matching key: a flat
@@ -134,15 +293,15 @@ namespace {
     }
 
     // index the key of the record about to be stored at 'position' in
-    // 'records'; false when an equal key is already indexed (a duplicate
+    // 'store'; false when an equal key is already indexed (a duplicate
     // read label)
     auto insert(View<char> const key, std::size_t const position,
-                std::vector<read_record> const & records) -> bool {
+                RecordStore const & store) -> bool {
       grow_if_needed();
       auto const hash = hash_cityhash64(key);
       auto slot_number = static_cast<std::size_t>(hash) & mask();
       while (slots_[slot_number].position_plus_one != 0) {
-        if (matches(slots_[slot_number], hash, key, records)) {
+        if (matches(slots_[slot_number], hash, key, store)) {
           return false;
         }
         slot_number = (slot_number + 1) & mask();
@@ -153,13 +312,13 @@ namespace {
       return true;
     }
 
-    // position in 'records' of the reverse record with an equal key, or npos()
+    // position in 'store' of the reverse record with an equal key, or npos()
     auto find(View<char> const key,
-              std::vector<read_record> const & records) const -> std::size_t {
+              RecordStore const & store) const -> std::size_t {
       auto const hash = hash_cityhash64(key);
       auto slot_number = static_cast<std::size_t>(hash) & mask();
       while (slots_[slot_number].position_plus_one != 0) {
-        if (matches(slots_[slot_number], hash, key, records)) {
+        if (matches(slots_[slot_number], hash, key, store)) {
           return slots_[slot_number].position_plus_one - 1;
         }
         slot_number = (slot_number + 1) & mask();
@@ -179,13 +338,13 @@ namespace {
 
     static auto matches(Slot const & slot, uint64_t const hash,
                         View<char> const key,
-                        std::vector<read_record> const & records) -> bool {
+                        RecordStore const & store) -> bool {
       if (slot.hash != hash) {
         return false;
       }
-      auto const & record = records[slot.position_plus_one - 1];
-      return (record.key_length == key.size()) and
-        std::equal(key.begin(), key.end(), record.header.begin());
+      auto const stored_key = store.key(slot.position_plus_one - 1);
+      return (stored_key.size() == key.size()) and
+        std::equal(key.begin(), key.end(), stored_key.begin());
     }
 
     auto grow_if_needed() -> void {
@@ -302,18 +461,19 @@ namespace {
   }
 
 
-  auto store_record(fastx_handle handle, bool const is_fastq,
-                    std::size_t const key_length) -> read_record {
-    read_record record;
-    auto const stored = handle->record();
-    record.header.assign(stored.header.begin(), stored.header.end());
-    record.sequence.assign(stored.sequence.begin(), stored.sequence.end());
-    if (is_fastq) {
-      record.quality.assign(stored.quality.begin(), stored.quality.end());
-    }
-    record.abundance = handle->get_abundance();
-    record.key_length = key_length;
-    return record;
+  // The abundance an output of this command could print. Asking the reader
+  // for it means scanning the header for a ";size=" annotation
+  // (header_find_attribute(), ~375 instructions a record and 5.6% of the run
+  // when done for every record of both files), and the value reaches an
+  // output through exactly two places, both in fprint_header_annotations()
+  // and both gated on --sizeout. Since the CLI rejects --sizeout, --xsize and
+  // --relabel* for fastx_syncpairs, the parse currently cannot reach a single
+  // byte of any output; gating on the option rather than hard-coding the
+  // fallback keeps that true, and honest, if the option table ever changes.
+  // 1 is what get_abundance() itself returns when the annotation is absent.
+  auto printable_abundance(fastx_handle handle,
+                           struct Parameters const & parameters) -> int64_t {
+    return parameters.opt_sizeout ? handle->get_abundance() : 1;
   }
 
 
@@ -334,15 +494,16 @@ namespace {
   }
 
 
-  auto write_record(output_pair const & destination,
-                    read_record const & record,
+  // write a stored reverse read, by position: its bytes live in the store, so
+  // a descriptor on its own cannot name them
+  auto write_stored(output_pair const & destination,
+                    RecordStore const & store,
+                    std::size_t const position,
                     int64_t const ordinal,
                     struct Parameters const & parameters) -> void {
-    write_record(destination,
-                 SeqRecord{make_view(record.header),
-                           make_view(record.sequence),
-                           make_view(record.quality),},
-                 OutputAnnotations{static_cast<uint64_t>(record.abundance), ordinal},
+    write_record(destination, store.seq_record(position),
+                 OutputAnnotations{static_cast<uint64_t>(store.abundance(position)),
+                                   ordinal},
                  parameters);
   }
 
@@ -352,17 +513,18 @@ namespace {
   auto index_reverse(fastx_handle reverse_handle,
                      bool const is_fastq,
                      std::string const & separators,
-                     std::vector<read_record> & records,
+                     RecordStore & store,
                      KeyIndex & index,
                      struct Parameters const & parameters) -> void {
     Progress progress("Indexing reverse reads", reverse_handle->get_size(), parameters);
     while (reverse_handle->next(false, Mapping::none)) {
       auto const key = matching_key(reverse_handle->header_view(), separators);
-      auto const position = records.size();
-      if (not index.insert(key, position, records)) {
+      auto const position = store.size();
+      if (not index.insert(key, position, store)) {
         fatal("Duplicate read label in reverse file");
       }
-      records.push_back(store_record(reverse_handle, is_fastq, key.size()));
+      store.add(reverse_handle, is_fastq, key,
+                printable_abundance(reverse_handle, parameters));
       progress.update(reverse_handle->get_position());
     }
   }
@@ -421,7 +583,7 @@ auto fastx_syncpairs(struct Parameters const & parameters) -> void
 
   /* index the reverse file (read once, kept in memory) */
 
-  std::vector<read_record> reverse_records;
+  RecordStore reverse_records;
   KeyIndex reverse_index;
   index_reverse(reverse_handle.get(), is_fastq, separators, reverse_records, reverse_index, parameters);
 
@@ -438,7 +600,7 @@ auto fastx_syncpairs(struct Parameters const & parameters) -> void
       auto const position = reverse_index.find(key, reverse_records);
       if (position == KeyIndex::npos()) {
         write_record(outfiles.orphans_fwd, forward_handle->record(),
-                     OutputAnnotations{static_cast<uint64_t>(forward_handle->get_abundance()),
+                     OutputAnnotations{static_cast<uint64_t>(printable_abundance(forward_handle.get(), parameters)),
                                        static_cast<int64_t>(orphans_fwd + 1)},
                      parameters);
         ++orphans_fwd;
@@ -454,10 +616,10 @@ auto fastx_syncpairs(struct Parameters const & parameters) -> void
         reverse_used[position] = true;
         ++pairs;
         write_record(outfiles.synced_fwd, forward_handle->record(),
-                     OutputAnnotations{static_cast<uint64_t>(forward_handle->get_abundance()),
+                     OutputAnnotations{static_cast<uint64_t>(printable_abundance(forward_handle.get(), parameters)),
                                        static_cast<int64_t>(pairs)},
                      parameters);
-        write_record(outfiles.synced_rev, reverse_records[position],
+        write_stored(outfiles.synced_rev, reverse_records, position,
                      static_cast<int64_t>(pairs), parameters);
       }
       progress.update(forward_handle->get_position());
@@ -469,7 +631,7 @@ auto fastx_syncpairs(struct Parameters const & parameters) -> void
   uint64_t orphans_rev = 0;
   for (std::size_t position = 0; position < reverse_records.size(); ++position) {
     if (not reverse_used[position]) {
-      write_record(outfiles.orphans_rev, reverse_records[position],
+      write_stored(outfiles.orphans_rev, reverse_records, position,
                    static_cast<int64_t>(orphans_rev + 1), parameters);
       ++orphans_rev;
     }
