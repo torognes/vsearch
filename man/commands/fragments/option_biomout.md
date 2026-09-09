@@ -11,3 +11,9 @@
   filling the table, whether or not `--sizein` is given (unlike the
   `--uc` cluster summaries, which count each sequence as 1 without
   `--sizein`).
+  OTU identifiers must be unique: two OTUs sharing the same identifier
+  are reported as a single observation, and their abundances are
+  summed. When clustering, a relabelling option (`--relabel`,
+  `--relabel_self`, `--relabel_md5` or `--relabel_sha1`) guarantees
+  unique identifiers; when searching, the database itself must have
+  unique headers.
