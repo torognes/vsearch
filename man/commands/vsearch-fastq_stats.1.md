@@ -131,7 +131,7 @@ Positions in reads are sorted in increasing order.
 ## Effect of expected error and length filtering (table 4)
 
 Positions in reads are sorted in decreasing order, starting with the
-first read length (L) with a cummulated expected error smaller or
+first read length (L) with a cumulative expected error smaller or
 equal to 1.0. The next four columns indicate the number of reads that
 would be retained by the command
 [`vsearch-fastq_filter(1)`](./commands/vsearch-fastq_filter.1.md) if
