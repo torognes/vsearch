@@ -12,3 +12,8 @@
      sequence length)].
   4. BLAST definition, equivalent to `--iddef 1` for global pairwise
      alignments.
+
+  In all five definitions, a column holding an ambiguous symbol is a
+  matching column whenever the two symbols share at least one of the
+  nucleotides they represent; an N is thus a match against anything,
+  unless `--n_mismatch` is given.

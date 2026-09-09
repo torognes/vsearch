@@ -48,8 +48,18 @@ The gap symbol '-' is listed for completeness only: vsearch *writes*
 it in alignment outputs, but never accepts it in input sequences
 (a fatal error in both fasta and fastq files).
 
+How these symbols behave when two sequences are compared is a separate
+matter, described in
+[`vsearch-pairwise_alignment_parameters(7)`](./vsearch-pairwise_alignment_parameters.7.md):
+in short, a column holding an ambiguous symbol scores zero, and counts
+as a matching column whenever the two symbols share at least one of
+the nucleotides they represent. An N therefore matches anything, which
+is why a query can align to a run of Ns with 100% identity; the option
+`--n_mismatch` counts such columns as mismatches instead.
+
 # SEE ALSO
 
+[`vsearch-pairwise_alignment_parameters(7)`](./vsearch-pairwise_alignment_parameters.7.md),
 [`vsearch-fasta(5)`](../formats/vsearch-fasta.5.md),
 [`vsearch-fastq(5)`](../formats/vsearch-fastq.5.md)
 
