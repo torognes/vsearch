@@ -61,7 +61,42 @@ also any of MRVHDN. When showing alignments (for example with the
 output option `--alnout`) matches involving ambiguous symbols will be
 shown with a plus character (+) between them while exact matches
 between non-ambiguous symbols will be shown with a vertical bar
-character (|).
+character (|). Here too, `--n_mismatch` is an exception: a column
+holding an N is then counted as a mismatch rather than as a match, and
+is shown with a blank character.
+
+
+## Alignments involving Ns
+
+Since an N stands for any of the four nucleotides, the default rules
+above make every column holding an N a free match: it neither helps
+nor hurts the score (zero), and it counts as a matching column when
+the identity percentage is computed. A query aligned end-to-end over a
+run of Ns is therefore reported at 100% identity, even though not a
+single known nucleotide was compared. Reference databases assembled
+from public repositories do contain such runs, and the resulting hits
+are usually unwanted.
+
+Note that the *k*-mer pre-filter is not what lets these hits through:
+words containing an ambiguous symbol are never indexed, so a run of Ns
+yields no word at all (a sequence made only of Ns cannot be selected as
+a target, and vsearch warns about it). The pair is selected on words
+shared elsewhere in the target, and it is the global alignment that
+then slides the query into the run of Ns, because those columns cost
+nothing while gaps do.
+
+The option `--n_mismatch` changes that rule: any column where at least
+one of the two symbols is an N, N against N included, is scored as a
+mismatch and counted as a mismatch. The other ambiguous symbols
+(BDHKMRSVWY) are not affected and keep the default behaviour described
+above. There is currently no third option to exclude columns holding
+an N from the identity computation altogether.
+
+Ns are not always inherited from the input: `--hardmask` replaces
+masked regions with Ns, so masked regions stop being compared and
+become free matches. With the default (soft) masking, masked regions
+keep their nucleotides, in lowercase, and are compared as usual;
+`--n_mismatch` has no effect on them.
 
 
 ## Gaps
@@ -191,6 +226,11 @@ used when applying the `--id` threshold:
 Note that the `--iddef` choice has no effect on the score or selection
 of the optimal pairwise alignment. The identity is computed from the
 alignment after the fact.
+
+What counts as a matching column is the same for all five definitions,
+and follows the rules given above: a column holding an ambiguous symbol
+matches whenever the two symbols share at least one of the nucleotides
+they represent, unless `--n_mismatch` is given.
 
 
 # SEE ALSO

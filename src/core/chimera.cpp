@@ -2079,6 +2079,7 @@ static auto query_init(struct searchinfo_s * search_info, int const tophits,
                                  parameters.opt_gap_extension_target_interior,
                                  parameters.opt_gap_extension_query_right,
                                  parameters.opt_gap_extension_target_right,
+                                 // always false: no chimera command accepts --n_mismatch
                                  parameters.opt_n_mismatch));
   search_info->m = Minheap(tophits);
 }
@@ -2154,6 +2155,7 @@ auto chimera_thread_init(struct chimera_info_s * ci, int const tophits,
                         parameters.opt_gap_extension_target_interior,
                         parameters.opt_gap_extension_query_right,
                         parameters.opt_gap_extension_target_right,
+                        // always false: no chimera command accepts --n_mismatch
                         parameters.opt_n_mismatch);
 }
 
