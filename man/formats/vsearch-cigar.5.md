@@ -67,7 +67,10 @@ Consecutive columns of the same operation type are grouped into a
 single run. The number of columns in a run is written as a decimal
 integer immediately before the operation letter, without leading
 zeros. A run-length of 1 is implicit and omitted: vsearch writes `M`,
-not `1M`, and `MID` rather than `1M1I1D`. Run-lengths are positive and
+not `1M`, and `MID` rather than `1M1I1D`. The `--samout` output is the
+exception: its CIGAR field always carries an explicit run-length, as
+the SAM specification requires (see
+[`vsearch-sam(5)`](./vsearch-sam.5.md)). Run-lengths are positive and
 bounded by the alignment length; there is no maximum total length for
 a CIGAR string.
 
@@ -113,7 +116,7 @@ The following alignment of an 8-nt query against a 9-nt target
 query:     ACGT--TACG
 target:    AC-TGGTTCG
 alignment: MMDMIIMMMM
-cigar:     2M1D1M2I4M
+cigar:     2MDM2I4M
 ```
 
 contains, from left to right:
@@ -125,9 +128,15 @@ contains, from left to right:
 - 4 columns with matching residues (`TACG` / `TTCG`).
 
 Without run-length encoding, the alignment reads `MMDMIIMMMM`, after
-encoding it reads `2M1D1M2I4M`. Note that `M` does not distinguish
-matches from mismatches; a mismatching column is encoded with the same
-operation letter.
+encoding it reads `2MDM2I4M`: the lone deletion and the lone match
+that follows it are runs of 1, so they carry no digit. Note that `M`
+does not distinguish matches from mismatches; a mismatching column is
+encoded with the same operation letter.
+
+The `--samout` output would spell that same alignment `2M1I1M2D4M`:
+run-lengths are explicit there, and the insertions and deletions are
+swapped, since a SAM record describes the target modifications needed
+to equal the query.
 
 
 # SEE ALSO
