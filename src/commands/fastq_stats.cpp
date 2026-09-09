@@ -70,6 +70,7 @@
 #include <algorithm>  // std::max, std::min, std::find_if, std::transform, std::minmax_element, std::for_each
 #include <cassert>
 #include <cmath>  // std::pow
+#include <cstddef>  // std::ptrdiff_t
 #include <cstdint>  // int64_t, uint64_t
 #include <cstdio>  // std::fprintf, std::size_t
 #include <functional>  // std::plus
@@ -328,11 +329,18 @@ namespace {
     auto read_count_is_null = [](std::array<uint64_t, 4> const & read_counts) -> bool {
       return read_counts.front() == 0;
     };
-    auto const iterator = std::find_if(ee_length_table.cbegin(), ee_length_table.cend(), read_count_is_null);
-    if (iterator == ee_length_table.end()) {
-      return stats.len_max;
-    }
-    return static_cast<uint64_t>(std::distance(ee_length_table.begin(), iterator));
+    /* the search stops at position len_max, as the report loop did before
+       the refactoring: the tables are allocated in blocks of at least 512
+       positions, so every row past len_max is padding that the scan never
+       recorded. Position len_max is one of them, so it is always null and
+       the search always succeeds. */
+    assert(stats.len_max < ee_length_table.size());
+    auto const last_position =
+      std::next(ee_length_table.cbegin(),
+                static_cast<std::ptrdiff_t>(stats.len_max) + 1);
+    auto const iterator = std::find_if(ee_length_table.cbegin(), last_position, read_count_is_null);
+    assert(iterator != last_position);
+    return static_cast<uint64_t>(std::distance(ee_length_table.cbegin(), iterator));
   }
 
 
