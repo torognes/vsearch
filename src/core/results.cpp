@@ -1116,18 +1116,15 @@ auto results_show_samheader(std::FILE * output_handle,
     {
       fprint(output_handle, "@HD\tVN:1.0\tSO:unsorted\tGO:query\n");
 
-      std::array<char, len_hex_dig_md5> md5hex;
       for (uint64_t i = 0; i < db.getsequencecount(); ++i)
         {
-          get_hex_seq_digest_md5(md5hex, db.sequence_view(i));
+          auto const md5hex = get_hex_seq_digest_md5(db.sequence_view(i));
           fprint(output_handle, "@SQ\tSN:");
           fprint(output_handle, db.header_view(i));
           fprint(output_handle, "\tLN:");
           fprint_integer(output_handle, db.getsequencelen(i));
           fprint(output_handle, "\tM5:");
-          /* size() - 1: the array's last byte is the '\0' the hex writer
-             appends, which is not part of the digest */
-          fprint(output_handle, make_view(md5hex).first(md5hex.size() - 1));
+          fprint(output_handle, make_view(md5hex));
           fprint(output_handle, "\tUR:file:");
           std::fputs(dbname, output_handle);
           fprint(output_handle, '\n');

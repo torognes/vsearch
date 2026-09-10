@@ -420,15 +420,13 @@ auto relabel_otu(int const clusterno, View<char> const sequence, struct Paramete
     }
   if (parameters.opt_relabel_sha1)
     {
-      std::array<char, len_hex_dig_sha1> digest {{}};
-      get_hex_seq_digest_sha1(digest, sequence);
-      return {digest.data()};
+      auto const digest = get_hex_seq_digest_sha1(sequence);
+      return {digest.begin(), digest.end()};
     }
   if (parameters.opt_relabel_md5)
     {
-      std::array<char, len_hex_dig_md5> digest {{}};
-      get_hex_seq_digest_md5(digest, sequence);
-      return {digest.data()};
+      auto const digest = get_hex_seq_digest_md5(sequence);
+      return {digest.begin(), digest.end()};
     }
   return {};
 }
