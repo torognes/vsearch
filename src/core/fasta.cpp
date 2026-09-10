@@ -66,7 +66,7 @@
 #include "core/fastx.hpp"
 #include "core/fastx_char_class.hpp"  // vsearch::CharClass, class_of
 #include "core/illegal_character.hpp"  // vsearch::illegal_character_message
-#include "utils/base_mapping.hpp"  // Mapping, map_accepted_base, chrmap_*
+#include "utils/base_mapping.hpp"  // Mapping, map_accepted_base
 #include "utils/fatal.hpp"
 #include "utils/print_record.hpp"  // OutputRecord, fprint
 #include "utils/print_view.hpp"  // fprint
