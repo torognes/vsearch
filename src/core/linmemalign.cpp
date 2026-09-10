@@ -63,7 +63,6 @@
 #include "utils/cigar.hpp"  // find_runlength_of_leftmost_operation
 #include "utils/decimal_digits.hpp"  // decimal::Buffer, decimal::to_decimal
 #include "utils/fatal.hpp"
-#include "utils/maps.hpp"
 #include "utils/maps/four_bit.hpp"
 #include "utils/score_4bit.hpp"  // vsearch::score_4bit, SubstitutionScores, nucleotide_codes_4bit
 #include "utils/view.hpp"  // View<char>

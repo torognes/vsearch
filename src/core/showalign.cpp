@@ -60,7 +60,6 @@
 
 #include "vsearch.hpp"
 #include "utils/cigar.hpp"
-#include "utils/maps.hpp"
 #include "utils/maps/four_bit.hpp"
 #include "utils/maps/complement.hpp"
 #include "utils/print_record.hpp"  // OutputRecord, fprint

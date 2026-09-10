@@ -65,7 +65,6 @@
 #include "parameters.hpp"  // QualityOrigin, fastq_output_offset, resolve_fastq_qmaxout
 #include "utils/fatal.hpp"
 #include "utils/kmer_hash_struct.hpp"
-#include "utils/maps.hpp"
 #include "utils/maps/complement.hpp"
 #include "utils/quality_encoding.hpp"  // lowest_printable_ascii, highest_printable_ascii
 #include "utils/view.hpp"  // View<char>
