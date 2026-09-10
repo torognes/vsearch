@@ -65,8 +65,8 @@
 #include "core/attributes.hpp"  // struct OutputAnnotations
 #include "core/fasta.hpp"
 #include "core/fastx.hpp"
+#include "utils/base_mapping.hpp"
 #include "utils/fatal.hpp"
-#include "utils/maps.hpp"
 #include "utils/maps/four_bit.hpp"
 #include "utils/open_file.hpp"
 #include "utils/print_view.hpp"  // fprint

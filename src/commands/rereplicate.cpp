@@ -64,7 +64,7 @@
 #include "core/fasta.hpp"
 #include "utils/print_view.hpp"  // fprint
 #include "utils/progress.hpp"
-#include "utils/maps.hpp"
+#include "utils/base_mapping.hpp"
 #include "utils/open_file.hpp"
 #include "utils/warn.hpp"  // vsearch::warn
 #include <cstdio>  // std::FILE

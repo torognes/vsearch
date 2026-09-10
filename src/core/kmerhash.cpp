@@ -60,7 +60,6 @@
 
 #include "core/kmerhash.hpp"
 #include "utils/kmer_hash_struct.hpp"
-#include "utils/maps.hpp"
 #include "utils/maps/complement.hpp"
 #include "utils/maps/mask_ambig.hpp"
 #include "utils/maps/two_bit.hpp"

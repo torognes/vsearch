@@ -66,8 +66,8 @@
 #include "core/fastx.hpp"
 #include "core/fastx_char_class.hpp"  // vsearch::CharClass, class_of
 #include "core/illegal_character.hpp"  // vsearch::illegal_character_message
+#include "utils/base_mapping.hpp"  // Mapping, map_accepted_base
 #include "utils/fatal.hpp"
-#include "utils/maps.hpp"  // Mapping, map_accepted_base, chrmap_*
 #include "utils/print_record.hpp"  // OutputRecord, fprint
 #include "utils/print_view.hpp"  // fprint
 #include <algorithm>  // std::min
@@ -312,11 +312,12 @@ auto fasta_next(fastx_handle input_handle,
   ++input_handle->seqno;
 
   fastx_filter_header(input_handle, truncateatspace);
-  /* The mapping is a compile-time fact at every caller (see maps.hpp), so
-     the parser is specialized once per record rather than reading a table
-     per accepted byte. Mapping has exactly two members, so this dispatch
-     is exhaustive by construction; it used to take a table pointer, and an
-     assert had to stand in for what the type now guarantees. */
+  /* The mapping is a compile-time fact at every caller (see
+     base_mapping.hpp), so the parser is specialized once per record rather
+     than reading a table per accepted byte. Mapping has exactly two
+     members, so this dispatch is exhaustive by construction; it used to
+     take a table pointer, and an assert had to stand in for what the type
+     now guarantees. */
   if (char_mapping == Mapping::upcase)
     {
       fasta_filter_sequence<Mapping::upcase>(input_handle);

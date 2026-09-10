@@ -70,11 +70,14 @@
    what makes that split pay -- core/fastx.hpp includes this header for
    Mapping, so anything left in it lands in most of the tree.
 
-   Which of the two character maps a parser applies to the bases it accepts.
-   Passed as a template argument rather than as the table pointer it stands
-   for, because every call site knows the answer at compile time: 22 of the 30
-   fastx_s::next() calls name chrmap_no_change(), 7 name chrmap_upcase(), and
-   Database::read() chooses between them from its own literal argument. */
+   Which of the two mappings a parser applies to the bases it accepts. An
+   enum rather than the 256-byte table pointer fastx_s::next() used to take,
+   because every call site knows the answer at compile time -- which is what
+   lets the value reach map_accepted_base() as a template argument, where the
+   branch on it folds away. 23 of the 31 next() calls name Mapping::none and
+   7 name Mapping::upcase; the one that names neither, Database::read(),
+   picks with a ternary on an int parameter that all 16 of its own callers
+   pass as a literal 0 or 1. */
 enum struct Mapping : unsigned char {
   none,    /* the accepted byte is written through unchanged */
   upcase,  /* ... after ASCII case folding */
@@ -87,8 +90,8 @@ enum struct Mapping : unsigned char {
 
    - the FASTA and FASTQ sequence accept sets are the same 32 IUPAC letters
      (ABCDGHKMNRSTUVWY and their lowercase, verified byte-for-byte), and on
-     that set chrmap_no_change() is the identity and chrmap_upcase() is plain
-     ASCII case folding;
+     that set the pass-through map was the identity and the upcase map was
+     plain ASCII case folding;
    - the FASTQ quality accept set is bytes 33 to 126, and the map it used was
      the identity on all 256 values, so Mapping::none covers it too.
 

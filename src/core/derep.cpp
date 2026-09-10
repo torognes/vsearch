@@ -71,9 +71,9 @@
 #include "core/fastq.hpp"  // fastq_print_general
 #include "core/fastx.hpp"  // fastx_open, fastx_next, fastx_get_*
 #include "core/quality_range.hpp"  // vsearch::check_quality_score
+#include "utils/base_mapping.hpp"
 #include "utils/fatal.hpp"
 #include "utils/grow_to_fit.hpp"  // vsearch::grow_to_fit
-#include "utils/maps.hpp"
 #include "utils/maps/four_bit.hpp"
 #include "utils/median.hpp"
 #include "utils/open_file.hpp"
@@ -154,11 +154,11 @@ namespace {
     against a window running past the end of the longer -- and reported them
     identical, merging a record into the wrong cluster.
 
-    The comparison folds through chrmap_4bit rather than comparing raw bytes:
-    the CLI stores each representative exactly as it was read (see the output,
-    which preserves the case of the first occurrence), while the incoming
-    sequence has been normalized, so this compares normalized against raw and
-    must be blind to case and to U versus T.
+    The comparison folds through four_bit::is_same() rather than comparing raw
+    bytes: the CLI stores each representative exactly as it was read (see the
+    output, which preserves the case of the first occurrence), while the
+    incoming sequence has been normalized, so this compares normalized against
+    raw and must be blind to case and to U versus T.
   */
   auto holds_another_record(struct bucket const & candidate,
                             uint64_t const hash,

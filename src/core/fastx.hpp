@@ -62,8 +62,8 @@
 
 #include "core/quality_range.hpp"  // QualityLocation
 #include "core/seq_record.hpp"  // SeqRecord (returned by fastx_record)
+#include "utils/base_mapping.hpp"  // Mapping
 #include "utils/fatal_allocator.hpp"  // FatalAllocator
-#include "utils/maps.hpp"  // Mapping
 #include "utils/quality_encoding.hpp"  // QualitySymbolRange, sanger_ascii_offset
 #include "utils/span.hpp"  // Span
 #include "utils/view.hpp"  // View

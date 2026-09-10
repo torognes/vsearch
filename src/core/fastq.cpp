@@ -65,8 +65,8 @@
 #include "core/fastx.hpp"
 #include "core/fastx_char_class.hpp"  // vsearch::CharClass, class_of
 #include "core/illegal_character.hpp"  // vsearch::illegal_character_message
+#include "utils/base_mapping.hpp"  // Mapping, map_accepted_base
 #include "utils/fatal.hpp"
-#include "utils/maps.hpp"  // Mapping, map_accepted_base, chrmap_*
 #include "utils/print_view.hpp"  // fprint
 #include "utils/quality_encoding.hpp"  // classify_encoding, is_phred64, offset_of
 #include "utils/warn.hpp"  // vsearch::warn
@@ -447,12 +447,12 @@ auto fastq_next(fastx_handle input_handle,
 
       /* copy to sequence buffer */
       auto const fragment = scan_line_fragment(input_handle);
-      /* The mapping is a compile-time fact at every caller (see maps.hpp),
-         so the filter is specialized once per line rather than reading a
-         table per accepted byte. Mapping has exactly two members, so this
-         dispatch is exhaustive by construction; it used to take a table
-         pointer, and an assert had to stand in for what the type now
-         guarantees. */
+      /* The mapping is a compile-time fact at every caller (see
+         base_mapping.hpp), so the filter is specialized once per line
+         rather than reading a table per accepted byte. Mapping has exactly
+         two members, so this dispatch is exhaustive by construction; it
+         used to take a table pointer, and an assert had to stand in for
+         what the type now guarantees. */
       if (char_mapping == Mapping::upcase)
         {
           buffer_filter_extend<Mapping::upcase, false>(input_handle->sequence_buffer,

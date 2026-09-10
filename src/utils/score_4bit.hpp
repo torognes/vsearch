@@ -60,7 +60,6 @@
 
 #pragma once
 
-#include "utils/maps.hpp"
 #include "utils/maps/four_bit.hpp"  // is_ambiguous_4bit
 #include <array>
 #include <cassert>
@@ -79,15 +78,15 @@
 namespace vsearch
 {
 
-  /* The sixteen 4-bit nucleotide codes (utils/maps.hpp): 1, 2, 4 and 8 are
-     A, C, G and T/U, 0 maps no accepted nucleotide, and the rest are the
-     ambiguity combinations up to N = 15. Code n sits at index n, so a fill
-     iterating this list can use its loop variable as a cell index too --
-     and since the elements are born unsigned char, no call site needs a
-     cast to feed them to score_4bit(). The values cannot be pinned by a
-     static_assert, because std::array::operator[] is not constexpr at
-     C++11 (libc++ enforces that); what each fill does pin is its matrix
-     dimension against this list's size(), which is constexpr. */
+  /* The sixteen 4-bit nucleotide codes (utils/maps/four_bit.hpp): 1, 2, 4
+     and 8 are A, C, G and T/U, 0 maps no accepted nucleotide, and the rest
+     are the ambiguity combinations up to N = 15. Code n sits at index n,
+     so a fill iterating this list can use its loop variable as a cell
+     index too -- and since the elements are born unsigned char, no call
+     site needs a cast to feed them to score_4bit(). The values cannot be
+     pinned by a static_assert, because std::array::operator[] is not
+     constexpr at C++11 (libc++ enforces that); what each fill does pin is
+     its matrix dimension against this list's size(), which is constexpr. */
   constexpr std::array<unsigned char, 16> nucleotide_codes_4bit =
     {{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15}};
 

@@ -94,8 +94,8 @@
 #include "core/tax.hpp"  // TaxLevel, tax_levels, tax_split
 #include "core/udb.hpp"
 #include "core/unique.hpp"
+#include "utils/base_mapping.hpp"
 #include "utils/fatal.hpp"
-#include "utils/maps.hpp"
 #include "utils/number_of_strands.hpp"
 #include "utils/open_file.hpp"
 #include "utils/taxonomic_fields.h"
