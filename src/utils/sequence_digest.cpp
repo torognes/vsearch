@@ -130,8 +130,8 @@ auto MD5(void * data, unsigned long const len, unsigned char * digest) -> void
 
 auto get_hex_seq_digest_sha1(View<char> const seq) -> std::array<char, len_hex_dig_sha1>
 {
-  /* Save hexadecimal representation of the SHA1 hash of the sequence.
-     The string array digest must be large enough (len_hex_dig_sha1).
+  /* Returns the hexadecimal representation of the SHA1 hash of the sequence,
+     as exactly len_hex_dig_sha1 characters.
      First normalize string by uppercasing it and replacing U's with T's.
 
      The hash always runs on this private, per-call `normalized` copy, never
@@ -156,8 +156,8 @@ auto get_hex_seq_digest_sha1(View<char> const seq) -> std::array<char, len_hex_d
 
 auto get_hex_seq_digest_md5(View<char> const seq) -> std::array<char, len_hex_dig_md5>
 {
-  /* Save hexadecimal representation of the MD5 hash of the sequence.
-     The string array digest must be large enough (len_hex_dig_md5).
+  /* Returns the hexadecimal representation of the MD5 hash of the sequence,
+     as exactly len_hex_dig_md5 characters.
      First normalize string by uppercasing it and replacing U's with T's.
 
      As with get_hex_seq_digest_sha1 above, the hash runs on this private,
