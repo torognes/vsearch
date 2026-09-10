@@ -1118,13 +1118,12 @@ auto results_show_samheader(std::FILE * output_handle,
 
       for (uint64_t i = 0; i < db.getsequencecount(); ++i)
         {
-          auto const md5hex = get_hex_seq_digest_md5(db.sequence_view(i));
           fprint(output_handle, "@SQ\tSN:");
           fprint(output_handle, db.header_view(i));
           fprint(output_handle, "\tLN:");
           fprint_integer(output_handle, db.getsequencelen(i));
           fprint(output_handle, "\tM5:");
-          fprint(output_handle, make_view(md5hex));
+          fprint_seq_digest_md5(output_handle, db.sequence_view(i));
           fprint(output_handle, "\tUR:file:");
           std::fputs(dbname, output_handle);
           fprint(output_handle, '\n');
