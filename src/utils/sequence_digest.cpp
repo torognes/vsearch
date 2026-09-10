@@ -75,12 +75,6 @@
 
 namespace {
 
-constexpr auto drop_lower_nibble = 4U;
-constexpr auto mask_upper_nibble = 15U;
-constexpr std::array<char, 16> hexdigits =
-  {{'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'}};
-
-
 // Two hexadecimal characters per digest byte, most significant nibble first.
 // Templated on the digest length so that MD5 and SHA-1 share one encoder and
 // the output size is still fixed at compile time.
@@ -88,6 +82,11 @@ template <std::size_t digest_length>
 auto to_hexadecimal(std::array<unsigned char, digest_length> const & digest)
   -> std::array<char, 2 * digest_length>
 {
+  constexpr auto drop_lower_nibble = 4U;
+  constexpr auto mask_upper_nibble = 15U;
+  static constexpr std::array<char, 16> hexdigits =
+    {{'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'}};
+
   std::array<char, 2 * digest_length> hex {{}};
   auto hex_cursor = hex.begin();
   for (auto const & element: digest) {
