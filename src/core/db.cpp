@@ -64,8 +64,8 @@
 #include "core/discarded_message.hpp"  // vsearch::print_discarded
 #include "core/buffer_headroom.hpp"  // buffer_headroom
 #include "core/fastx.hpp"
+#include "utils/base_mapping.hpp"
 #include "utils/fatal.hpp"  // fatal
-#include "utils/maps.hpp"
 #include "utils/print_view.hpp"  // fprint
 #include "utils/progress.hpp"
 #include "utils/view.hpp"

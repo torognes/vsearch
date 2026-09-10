@@ -69,7 +69,6 @@
 #include "utils/ascii_case.hpp"  // to_upper
 #include "utils/cigar.hpp"
 #include "utils/fatal.hpp"
-#include "utils/maps.hpp"
 #include "utils/maps/four_bit.hpp"
 #include "utils/view.hpp"
 #include "utils/taxonomic_fields.h"

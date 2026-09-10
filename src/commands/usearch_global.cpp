@@ -75,9 +75,9 @@
 #include "core/mask.hpp"
 #include "core/otutable.hpp"
 #include "core/udb.hpp"
+#include "utils/base_mapping.hpp"
 #include "utils/fatal.hpp"
 #include "utils/fatal_allocator.hpp"  // FatalAllocator
-#include "utils/maps.hpp"
 #include "utils/number_of_strands.hpp"
 #include "utils/open_file.hpp"
 #include "utils/print_view.hpp"  // fprint

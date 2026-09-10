@@ -77,11 +77,11 @@
 #include "core/udb.hpp"
 #include "core/unique.hpp"
 #include "utils/ascii_case.hpp"  // to_lower
+#include "utils/base_mapping.hpp"
 #include "utils/cigar.hpp"
 #include "utils/fatal.hpp"
 #include "utils/grow_to_fit.hpp"  // vsearch::grow_to_fit
 #include "utils/make_unique.hpp"  // make_unique
-#include "utils/maps.hpp"
 #include "utils/maps/four_bit.hpp"
 #include "utils/open_file.hpp"
 #include "utils/span.hpp"

@@ -63,7 +63,7 @@
 #include "core/attributes.hpp"  // struct OutputAnnotations
 #include "core/fasta.hpp"
 #include "core/fastq.hpp"
-#include "utils/maps.hpp"
+#include "utils/base_mapping.hpp"
 #include "utils/open_file.hpp"
 #include "utils/progress.hpp"
 #include "utils/view.hpp"  // make_view

@@ -68,8 +68,8 @@
 #include "utils/cityhash.hpp"  // hash_cityhash64
 #include "utils/print_view.hpp"  // fprint
 #include "utils/progress.hpp"
+#include "utils/base_mapping.hpp"  // Mapping::none
 #include "utils/fatal.hpp"
-#include "utils/maps.hpp"  // Mapping::none
 #include "utils/open_file.hpp"
 #include "utils/view.hpp"  // View<char>
 #include <algorithm>  // std::equal, std::find_if, std::max

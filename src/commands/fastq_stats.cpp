@@ -63,8 +63,8 @@
 #include "core/quality_range.hpp"  // vsearch::check_quality_score
 #include "utils/print_view.hpp"  // fprint
 #include "utils/progress.hpp"
+#include "utils/base_mapping.hpp"
 #include "utils/fatal.hpp"
-#include "utils/maps.hpp"
 #include "utils/view.hpp"
 #include <array>
 #include <algorithm>  // std::max, std::min, std::find_if, std::transform, std::minmax_element, std::for_each

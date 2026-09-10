@@ -63,7 +63,7 @@
 #include "core/mask.hpp"  // Masking
 #include "utils/maps/mask_ambig.hpp"
 #include "utils/maps/mask_lower.hpp"
-#include "utils/maps/two_bit.hpp"  // chrmap_2bit, chrmap_mask_lower, chrmap_mask_ambig
+#include "utils/maps/two_bit.hpp"  // two_bit::map
 #include "utils/hash_table_size.hpp"  // table_size_half
 #include "utils/grow_to_fit.hpp"  // vsearch::grow_to_fit
 #include <algorithm>  // std::min, std::fill, std::fill_n

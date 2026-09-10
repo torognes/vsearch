@@ -72,9 +72,9 @@
 #include "core/mask.hpp"
 #include "core/udb.hpp"
 #include "core/unique.hpp"
+#include "utils/base_mapping.hpp"
 #include "utils/fatal.hpp"
 #include "utils/grow_to_fit.hpp"  // vsearch::grow_to_fit
-#include "utils/maps.hpp"
 #include "utils/open_file.hpp"
 #include "utils/reverse_complement.hpp"
 #include "utils/print_view.hpp"  // fprint

@@ -63,12 +63,12 @@
 #include "core/db.hpp"
 #include "utils/fatal_allocator.hpp"  // FatalAllocator
 #include "utils/grow_to_fit.hpp"  // vsearch::grow_to_fit
-#include "utils/maps.hpp"
 #include "utils/maps/four_bit.hpp"
 #include "utils/score_4bit.hpp"  // vsearch::score_4bit, SubstitutionScores, nucleotide_codes_4bit
 #include "utils/view.hpp"  // View<char>
 #include <algorithm>  // std::min, std::max
 #include <array>
+#include <cassert>  // assert
 #include <cstddef>  // std::size_t
 #include <cstdint>  // int64_t, uint64_t
 #include <cstdio>  // std::snprintf

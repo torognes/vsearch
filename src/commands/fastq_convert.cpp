@@ -65,8 +65,8 @@
 #include "core/fastx.hpp"  // fastx_s, byte_range
 #include "core/quality_range.hpp"  // vsearch::check_quality_score
 #include "utils/progress.hpp"
+#include "utils/base_mapping.hpp"
 #include "utils/fatal.hpp"
-#include "utils/maps.hpp"
 #include "utils/open_file.hpp"
 #include "utils/view.hpp"
 #include <algorithm>  // std::max, std::min, std::transform

@@ -67,8 +67,8 @@
 #include "core/fastx.hpp"
 #include "utils/print_view.hpp"  // fprint
 #include "utils/progress.hpp"
+#include "utils/base_mapping.hpp"
 #include "utils/fatal.hpp"
-#include "utils/maps.hpp"
 #include "core/quality_range.hpp"  // vsearch::classify_quality, quality_out_of_range_message
 #include "utils/open_file.hpp"
 #include "utils/quality_table.hpp"  // vsearch::QualityTable

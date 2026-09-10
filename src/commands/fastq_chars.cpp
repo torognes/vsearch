@@ -60,9 +60,9 @@
 
 #include "vsearch.hpp"
 #include "core/fastq.hpp"
+#include "utils/base_mapping.hpp"
 #include "utils/print_view.hpp"  // fprint
 #include "utils/progress.hpp"
-#include "utils/maps.hpp"
 #include "utils/quality_encoding.hpp"  // sanger_ascii_offset, solexa_ascii_offset
 #include "utils/view.hpp"
 #include <algorithm>  // std::find_if
