@@ -67,14 +67,17 @@
 
 constexpr auto md5_digest_length = 16;
 constexpr auto sha1_digest_length = 20;
-constexpr auto len_hex_dig_md5 = (2 * md5_digest_length) + 1;
-constexpr auto len_hex_dig_sha1 = (2 * sha1_digest_length) + 1;
+constexpr auto len_hex_dig_md5 = 2 * md5_digest_length;
+constexpr auto len_hex_dig_sha1 = 2 * sha1_digest_length;
 
-/* The output buffer is the whole fixed-size array rather than a Span over it:
-   every caller passes exactly one of these, so a wrong-sized buffer is now a
-   compile error instead of the run-time assertion it used to be. */
-auto get_hex_seq_digest_sha1(std::array<char, len_hex_dig_sha1> & hex, View<char> seq) -> void;
-auto get_hex_seq_digest_md5(std::array<char, len_hex_dig_md5> & hex, View<char> seq) -> void;
+/* The hexadecimal digest is returned by value rather than written through an
+   output parameter: it is a small, fixed-size, trivially copyable array that
+   the compiler builds straight into the caller's slot, so the callers keep the
+   compile-time size guarantee without having to declare and zero a buffer
+   first. The array holds the digest and nothing else -- there is no trailing
+   '\0', so its whole extent can be printed or copied. */
+auto get_hex_seq_digest_sha1(View<char> seq) -> std::array<char, len_hex_dig_sha1>;
+auto get_hex_seq_digest_md5(View<char> seq) -> std::array<char, len_hex_dig_md5>;
 
 auto fprint_seq_digest_sha1(std::FILE * output_handle, View<char> seq) -> void;
 auto fprint_seq_digest_md5(std::FILE * output_handle, View<char> seq) -> void;

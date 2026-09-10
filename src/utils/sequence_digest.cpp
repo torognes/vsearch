@@ -66,18 +66,46 @@
 #include "utils/view.hpp"
 #include "vendored/md5.h"  // MD5_CTX, MD5_Init, MD5_Update, MD5_Final
 #include "vendored/sha1.h"  // SHA1_CTX, SHA1_Init, SHA1_Update, SHA1_Final
+#include <algorithm>  // std::copy
 #include <array>  // std::array
+#include <cstddef>  // std::size_t
 #include <cstdio>  // std::FILE, std::fputs
-#include <iterator>  // std::advance
 #include <vector>  // std::vector
 
 
 namespace {
 
-constexpr auto drop_lower_nibble = 4U;
-constexpr auto mask_upper_nibble = 15U;
-constexpr std::array<char, 16> hexdigits =
-  {{'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'}};
+constexpr auto characters_per_byte = 2;
+
+// One byte as its two hexadecimal characters, most significant nibble first.
+auto to_hexadecimal(unsigned char const byte) -> std::array<char, characters_per_byte>
+{
+  constexpr auto drop_lower_nibble = 4U;
+  constexpr auto mask_upper_nibble = 15U;
+  static constexpr std::array<char, 16> hexdigits =
+    {{'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'}};
+
+  return {{hexdigits[byte >> drop_lower_nibble], hexdigits[byte & mask_upper_nibble]}};
+}
+
+
+// A whole digest, two hexadecimal characters per byte. Templated on the
+// digest length so that MD5 and SHA-1 share one encoder and the output size
+// is still fixed at compile time.
+template <std::size_t digest_length>
+auto to_hexadecimal(std::array<unsigned char, digest_length> const & digest)
+  -> std::array<char, characters_per_byte * digest_length>
+{
+  std::array<char, characters_per_byte * digest_length> hex {{}};
+  auto hex_cursor = hex.begin();
+  for (auto const & element: digest) {
+    auto const characters = to_hexadecimal(element);
+    // std::copy returns the position just past what it wrote, which is where
+    // the next byte's characters go: that is what advances the cursor here
+    hex_cursor = std::copy(characters.cbegin(), characters.cend(), hex_cursor);
+  }
+  return hex;
+}
 
 
 auto SHA1(unsigned char const * data, unsigned long const len, unsigned char * digest) -> void
@@ -108,10 +136,10 @@ auto MD5(void * data, unsigned long const len, unsigned char * digest) -> void
 }  // namespace
 
 
-auto get_hex_seq_digest_sha1(std::array<char, len_hex_dig_sha1> & hex, View<char> const seq) -> void
+auto get_hex_seq_digest_sha1(View<char> const seq) -> std::array<char, len_hex_dig_sha1>
 {
-  /* Save hexadecimal representation of the SHA1 hash of the sequence.
-     The string array digest must be large enough (len_hex_dig_sha1).
+  /* Returns the hexadecimal representation of the SHA1 hash of the sequence,
+     as exactly len_hex_dig_sha1 characters.
      First normalize string by uppercasing it and replacing U's with T's.
 
      The hash always runs on this private, per-call `normalized` copy, never
@@ -130,21 +158,14 @@ auto get_hex_seq_digest_sha1(std::array<char, len_hex_dig_sha1> & hex, View<char
        seq.size(),
        digest.data());
 
-  auto hex_cursor = hex.begin();
-  for (auto const & element: digest) {
-    *hex_cursor = hexdigits[element >> drop_lower_nibble];
-    std::advance(hex_cursor, 1);
-    *hex_cursor = hexdigits[element & mask_upper_nibble];
-    std::advance(hex_cursor, 1);
-  }
-  *hex_cursor = '\0';
+  return to_hexadecimal(digest);
 }
 
 
-auto get_hex_seq_digest_md5(std::array<char, len_hex_dig_md5> & hex, View<char> const seq) -> void
+auto get_hex_seq_digest_md5(View<char> const seq) -> std::array<char, len_hex_dig_md5>
 {
-  /* Save hexadecimal representation of the MD5 hash of the sequence.
-     The string array digest must be large enough (len_hex_dig_md5).
+  /* Returns the hexadecimal representation of the MD5 hash of the sequence,
+     as exactly len_hex_dig_md5 characters.
      First normalize string by uppercasing it and replacing U's with T's.
 
      As with get_hex_seq_digest_sha1 above, the hash runs on this private,
@@ -158,32 +179,19 @@ auto get_hex_seq_digest_md5(std::array<char, len_hex_dig_md5> & hex, View<char> 
 
   MD5(normalized.data(), seq.size(), digest.data());
 
-  auto hex_cursor = hex.begin();
-  for (auto const & element: digest) {
-    *hex_cursor = hexdigits[element >> drop_lower_nibble];
-    std::advance(hex_cursor, 1);
-    *hex_cursor = hexdigits[element & mask_upper_nibble];
-    std::advance(hex_cursor, 1);
-  }
-  *hex_cursor = '\0';
+  return to_hexadecimal(digest);
 }
 
 
 auto fprint_seq_digest_sha1(std::FILE * output_handle, View<char> const seq) -> void
 {
-  std::array<char, len_hex_dig_sha1> hex_digest {{}};
-  get_hex_seq_digest_sha1(hex_digest, seq);
-  /* size() - 1: the last byte is the '\0' the writer above appends, and is
-     not part of the digest */
-  fprint(output_handle, make_view(hex_digest).first(hex_digest.size() - 1));
+  auto const hex_digest = get_hex_seq_digest_sha1(seq);
+  fprint(output_handle, make_view(hex_digest));
 }
 
 
 auto fprint_seq_digest_md5(std::FILE * output_handle, View<char> const seq) -> void
 {
-  std::array<char, len_hex_dig_md5> hex_digest {{}};
-  get_hex_seq_digest_md5(hex_digest, seq);
-  /* size() - 1: the last byte is the '\0' the writer above appends, and is
-     not part of the digest */
-  fprint(output_handle, make_view(hex_digest).first(hex_digest.size() - 1));
+  auto const hex_digest = get_hex_seq_digest_md5(seq);
+  fprint(output_handle, make_view(hex_digest));
 }
