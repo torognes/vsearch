@@ -66,34 +66,43 @@
 #include "utils/view.hpp"
 #include "vendored/md5.h"  // MD5_CTX, MD5_Init, MD5_Update, MD5_Final
 #include "vendored/sha1.h"  // SHA1_CTX, SHA1_Init, SHA1_Update, SHA1_Final
+#include <algorithm>  // std::copy
 #include <array>  // std::array
 #include <cstddef>  // std::size_t
 #include <cstdio>  // std::FILE, std::fputs
-#include <iterator>  // std::advance
 #include <vector>  // std::vector
 
 
 namespace {
 
-// Two hexadecimal characters per digest byte, most significant nibble first.
-// Templated on the digest length so that MD5 and SHA-1 share one encoder and
-// the output size is still fixed at compile time.
-template <std::size_t digest_length>
-auto to_hexadecimal(std::array<unsigned char, digest_length> const & digest)
-  -> std::array<char, 2 * digest_length>
+constexpr auto characters_per_byte = 2;
+
+// One byte as its two hexadecimal characters, most significant nibble first.
+auto to_hexadecimal(unsigned char const byte) -> std::array<char, characters_per_byte>
 {
   constexpr auto drop_lower_nibble = 4U;
   constexpr auto mask_upper_nibble = 15U;
   static constexpr std::array<char, 16> hexdigits =
     {{'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'}};
 
-  std::array<char, 2 * digest_length> hex {{}};
+  return {{hexdigits[byte >> drop_lower_nibble], hexdigits[byte & mask_upper_nibble]}};
+}
+
+
+// A whole digest, two hexadecimal characters per byte. Templated on the
+// digest length so that MD5 and SHA-1 share one encoder and the output size
+// is still fixed at compile time.
+template <std::size_t digest_length>
+auto to_hexadecimal(std::array<unsigned char, digest_length> const & digest)
+  -> std::array<char, characters_per_byte * digest_length>
+{
+  std::array<char, characters_per_byte * digest_length> hex {{}};
   auto hex_cursor = hex.begin();
   for (auto const & element: digest) {
-    *hex_cursor = hexdigits[element >> drop_lower_nibble];
-    std::advance(hex_cursor, 1);
-    *hex_cursor = hexdigits[element & mask_upper_nibble];
-    std::advance(hex_cursor, 1);
+    auto const characters = to_hexadecimal(element);
+    // std::copy returns the position just past what it wrote, which is where
+    // the next byte's characters go: that is what advances the cursor here
+    hex_cursor = std::copy(characters.cbegin(), characters.cend(), hex_cursor);
   }
   return hex;
 }
