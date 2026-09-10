@@ -74,9 +74,9 @@
 #include "utils/print_view.hpp"  // fprint
 #include "utils/progress.hpp"
 #include "utils/ascii_case.hpp"  // is_alnum, to_upper
+#include "utils/base_mapping.hpp"
 #include "utils/compare_strings_nocase.hpp"
 #include "utils/fatal.hpp"
-#include "utils/maps.hpp"
 #include "utils/open_file.hpp"
 #include "utils/view.hpp"
 #include "utils/warn.hpp"  // vsearch::warn

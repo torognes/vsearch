@@ -191,6 +191,7 @@ commands/udbstats.hpp \
 core/udb.hpp \
 core/unique.hpp \
 utils/ascii_case.hpp \
+utils/base_mapping.hpp \
 utils/cigar.hpp \
 utils/cigar_operations.hpp \
 utils/cityhash.hpp \
@@ -206,7 +207,6 @@ utils/header_attribute.hpp \
 utils/kmer_hash_struct.hpp \
 utils/logfile.hpp \
 utils/make_unique.hpp \
-utils/maps.hpp \
 utils/maps/complement.hpp \
 utils/maps/mask_ambig.hpp \
 utils/maps/four_bit.hpp \

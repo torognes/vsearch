@@ -67,8 +67,8 @@
 #include "vsearch.hpp"
 #include "utils/print_view.hpp"  // fprint
 #include "utils/progress.hpp"
+#include "utils/base_mapping.hpp"
 #include "utils/fatal.hpp"
-#include "utils/maps.hpp"
 #include "utils/open_file.hpp"
 #include <algorithm>  // std::max, std::min
 #include <cassert>  // assert

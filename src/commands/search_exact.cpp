@@ -74,10 +74,10 @@
 #include "utils/progress.hpp"
 #include "core/mask.hpp"
 #include "core/otutable.hpp"
+#include "utils/base_mapping.hpp"
 #include "utils/fatal.hpp"
 #include "utils/fatal_allocator.hpp"  // FatalAllocator
 #include "utils/grow_to_fit.hpp"  // vsearch::grow_to_fit
-#include "utils/maps.hpp"
 #include "utils/number_of_strands.hpp"
 #include "utils/open_file.hpp"
 #include "utils/print_view.hpp"  // fprint

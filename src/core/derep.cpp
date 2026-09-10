@@ -71,9 +71,9 @@
 #include "core/fastq.hpp"  // fastq_print_general
 #include "core/fastx.hpp"  // fastx_open, fastx_next, fastx_get_*
 #include "core/quality_range.hpp"  // vsearch::check_quality_score
+#include "utils/base_mapping.hpp"
 #include "utils/fatal.hpp"
 #include "utils/grow_to_fit.hpp"  // vsearch::grow_to_fit
-#include "utils/maps.hpp"
 #include "utils/maps/four_bit.hpp"
 #include "utils/median.hpp"
 #include "utils/open_file.hpp"

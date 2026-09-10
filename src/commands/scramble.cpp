@@ -68,9 +68,9 @@
 #include "core/fastq.hpp"
 #include "core/fastx.hpp"
 #include "utils/progress.hpp"
+#include "utils/base_mapping.hpp"
 #include "utils/fatal.hpp"
 #include "utils/grow_to_fit.hpp"  // vsearch::grow_to_fit
-#include "utils/maps.hpp"
 #include "utils/open_file.hpp"
 #include "utils/hash_table_size.hpp"  // vsearch::table_size_half
 #include "utils/random.hpp"
