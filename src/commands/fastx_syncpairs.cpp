@@ -61,8 +61,7 @@
 #include "vsearch.hpp"
 #include <memory>  // std::unique_ptr
 #include "core/attributes.hpp"  // struct OutputAnnotations
-#include "core/fasta.hpp"  // fasta_print_general
-#include "core/fastq.hpp"  // fastq_print_general
+#include "core/print_pair.hpp"  // vsearch::OutputPair, vsearch::write_record
 #include "core/fastx.hpp"  // fastx_handle
 #include "core/seq_record.hpp"  // struct SeqRecord
 #include "utils/cityhash.hpp"  // hash_cityhash64
@@ -92,23 +91,14 @@ namespace {
   // is always treated as a separator, regardless of this set.
   char const * const default_read_separators = "/";
 
-  struct output_file {
-    char * name = nullptr;
-    OutputFileHandle handle;
-  };
-
-  // a destination for a category of reads (synced or orphaned), which may
-  // be written in fasta and/or fastq format depending on user options
-  struct output_pair {
-    output_file fasta;
-    output_file fastq;
-  };
-
+  // one vsearch::OutputPair per category of reads (synced or orphaned), each
+  // of which may be written in fasta and/or fastq format depending on user
+  // options
   struct output_files {
-    output_pair synced_fwd;
-    output_pair synced_rev;
-    output_pair orphans_fwd;
-    output_pair orphans_rev;
+    vsearch::OutputPair synced_fwd;
+    vsearch::OutputPair synced_rev;
+    vsearch::OutputPair orphans_fwd;
+    vsearch::OutputPair orphans_rev;
   };
 
   // a single read kept in memory while indexing the reverse file: where its
@@ -398,11 +388,8 @@ namespace {
   }
 
 
-  auto open_output(char * name, char const * option) -> output_file {
-    output_file outfile;
-    outfile.name = name;
-    outfile.handle = open_optional_output_file(name, OutputOption{option});
-    return outfile;
+  auto open_output(char * name, char const * option) -> OutputFileHandle {
+    return open_optional_output_file(name, OutputOption{option});
   }
 
 
@@ -427,8 +414,8 @@ namespace {
        utils/open_file.hpp). */
     for (auto * pair : {& outfiles.synced_fwd, & outfiles.synced_rev,
                         & outfiles.orphans_fwd, & outfiles.orphans_rev,}) {
-      pair->fasta.handle.reset();
-      pair->fastq.handle.reset();
+      pair->fasta.reset();
+      pair->fastq.reset();
     }
   }
 
@@ -477,33 +464,17 @@ namespace {
   }
 
 
-  // write a record straight from its views (a reader's record() or a stored
-  // record's fields), so a forward read needs no intermediate copy
-  auto write_record(output_pair const & destination,
-                    SeqRecord const & record,
-                    OutputAnnotations const & annotations,
-                    struct Parameters const & parameters) -> void {
-    if (destination.fastq.handle != nullptr) {
-      fastq_print_general(destination.fastq.handle.get(),
-                          record, annotations, parameters);
-    }
-    if (destination.fasta.handle != nullptr) {
-      fasta_print_general(destination.fasta.handle.get(), record, annotations, parameters);
-    }
-  }
-
-
   // write a stored reverse read, by position: its bytes live in the store, so
   // a descriptor on its own cannot name them
-  auto write_stored(output_pair const & destination,
+  auto write_stored(vsearch::OutputPair const & destination,
                     RecordStore const & store,
                     std::size_t const position,
                     int64_t const ordinal,
                     struct Parameters const & parameters) -> void {
-    write_record(destination, store.seq_record(position),
-                 OutputAnnotations{static_cast<uint64_t>(store.abundance(position)),
-                                   ordinal},
-                 parameters);
+    vsearch::write_record(destination, store.seq_record(position),
+                          OutputAnnotations{static_cast<uint64_t>(store.abundance(position)),
+                                            ordinal},
+                          parameters);
   }
 
 
@@ -598,10 +569,10 @@ auto fastx_syncpairs(struct Parameters const & parameters) -> void
       auto const key = matching_key(forward_handle->header_view(), separators);
       auto const position = reverse_index.find(key, reverse_records);
       if (position == KeyIndex::npos()) {
-        write_record(outfiles.orphans_fwd, forward_handle->record(),
-                     OutputAnnotations{static_cast<uint64_t>(printable_abundance(forward_handle.get(), parameters)),
-                                       static_cast<int64_t>(orphans_fwd + 1)},
-                     parameters);
+        vsearch::write_record(outfiles.orphans_fwd, forward_handle->record(),
+                              OutputAnnotations{static_cast<uint64_t>(printable_abundance(forward_handle.get(), parameters)),
+                                                static_cast<int64_t>(orphans_fwd + 1)},
+                              parameters);
         ++orphans_fwd;
       }
       else {
@@ -614,10 +585,10 @@ auto fastx_syncpairs(struct Parameters const & parameters) -> void
         }
         reverse_used[position] = true;
         ++pairs;
-        write_record(outfiles.synced_fwd, forward_handle->record(),
-                     OutputAnnotations{static_cast<uint64_t>(printable_abundance(forward_handle.get(), parameters)),
-                                       static_cast<int64_t>(pairs)},
-                     parameters);
+        vsearch::write_record(outfiles.synced_fwd, forward_handle->record(),
+                              OutputAnnotations{static_cast<uint64_t>(printable_abundance(forward_handle.get(), parameters)),
+                                                static_cast<int64_t>(pairs)},
+                              parameters);
         write_stored(outfiles.synced_rev, reverse_records, position,
                      static_cast<int64_t>(pairs), parameters);
       }
