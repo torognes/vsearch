@@ -88,7 +88,6 @@ auto fasta_print(std::FILE * output_handle,
                  struct Parameters const & parameters) -> void;
 
 auto fasta_print_general(std::FILE * output_handle,
-                         char const * prefix,
                          View<char> seq,
                          View<char> header,
                          OutputAnnotations const & annotations,
@@ -100,10 +99,26 @@ auto fasta_print_general(std::FILE * output_handle,
    often display a computed abundance rather than the record's own. The record
    comes from Database::record() or a reader's record(). */
 auto fasta_print_general(std::FILE * output_handle,
-                         char const * prefix,
                          SeqRecord const & record,
                          OutputAnnotations const & annotations,
                          struct Parameters const & parameters) -> void;
+
+/* As fasta_print_general above, but emits 'prefix' -- literal, NUL-terminated
+   text -- between the '>' and the header. Only the three --msaout/--consout/
+   --profile writers in core/msa.cpp need it ("*" marks a centroid row,
+   "centroid=" labels a consensus header), so the prefix stays out of the
+   general entry point that the other ~46 call sites use.
+
+   The prefix is emitted *outside* the relabel branch of
+   fprint_header_annotations(), so it precedes a substituted label rather than
+   being replaced by it: --consout --relabel LBL writes ">centroid=LBL1;...".
+   That is why the prefix cannot simply be folded into the header view. */
+auto fasta_print_prefixed(std::FILE * output_handle,
+                          char const * prefix,
+                          View<char> seq,
+                          View<char> header,
+                          OutputAnnotations const & annotations,
+                          struct Parameters const & parameters) -> void;
 
 auto fasta_print_db(std::FILE * output_handle,
                     uint64_t seqno,

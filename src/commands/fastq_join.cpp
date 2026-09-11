@@ -265,7 +265,6 @@ auto fastq_join(struct Parameters const & parameters) -> void
         if (parameters.opt_fastaout != nullptr)
           {
             fasta_print_general(outfiles.fasta.handle.get(),
-                                nullptr,
                                 make_view(final_sequence).first(needed),
                                 infiles.forward.handle->header_view(),
                                 OutputAnnotations{abundance,

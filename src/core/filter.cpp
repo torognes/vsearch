@@ -538,7 +538,6 @@ auto filter(bool const fastq_only, char const * filename, struct Parameters cons
             if (parameters.opt_fastaout_discarded != nullptr)
               {
                 fasta_print_general(fp_fastaout_discarded.get(),
-                                    nullptr,
                                     res1.sequence,
                                     forward_handle->header_view(),
                                     forward_annotations,
@@ -564,7 +563,6 @@ auto filter(bool const fastq_only, char const * filename, struct Parameters cons
                 if (parameters.opt_fastaout_discarded_rev != nullptr)
                   {
                     fasta_print_general(fp_fastaout_discarded_rev.get(),
-                                        nullptr,
                                         res2.sequence,
                                         reverse_handle->header_view(),
                                         reverse_annotations,
@@ -600,7 +598,6 @@ auto filter(bool const fastq_only, char const * filename, struct Parameters cons
             if (parameters.opt_fastaout != nullptr)
               {
                 fasta_print_general(fp_fastaout.get(),
-                                    nullptr,
                                     res1.sequence,
                                     forward_handle->header_view(),
                                     forward_annotations,
@@ -626,7 +623,6 @@ auto filter(bool const fastq_only, char const * filename, struct Parameters cons
                 if (parameters.opt_fastaout_rev != nullptr)
                   {
                     fasta_print_general(fp_fastaout_rev.get(),
-                                        nullptr,
                                         res2.sequence,
                                         reverse_handle->header_view(),
                                         reverse_annotations,

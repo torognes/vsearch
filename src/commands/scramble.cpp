@@ -472,7 +472,6 @@ auto scramble(struct Parameters const & parameters) -> void
         if (parameters.opt_fastaout != nullptr)
           {
             fasta_print_general(fastaout_handle.get(),
-                                nullptr,
                                 make_view(seq_buffer).first(length),
                                 header,
                                 OutputAnnotations{abundance, count},

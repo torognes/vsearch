@@ -539,7 +539,6 @@ auto cluster_core_results_hit(struct cluster_cli_state_s & state,
   if (state.parameters.opt_matched != nullptr)
     {
       fasta_print_general(state.fp_matched,
-                          nullptr,
                           qsequence,
                           query_head,
                           OutputAnnotations{static_cast<uint64_t>(qsize), state.count_matched},
@@ -607,7 +606,6 @@ auto cluster_core_results_nohit(struct cluster_cli_state_s & state,
   if (state.parameters.opt_notmatched != nullptr)
     {
       fasta_print_general(state.fp_notmatched,
-                          nullptr,
                           qsequence,
                           query_head,
                           OutputAnnotations{static_cast<uint64_t>(qsize), state.count_notmatched},
@@ -1449,7 +1447,6 @@ auto cluster(char const * dbname, ClusterMode const mode,
                 annotations.clusterid = parameters.opt_clusterout_id ? clusterno : -1;
                 annotations.centroid_size = state.db.getabundance(static_cast<uint64_t>(seqno));
                 fasta_print_general(fp_centroids,
-                                    nullptr,
                                     state.db.record(static_cast<uint64_t>(seqno)),
                                     annotations,
                                     parameters);

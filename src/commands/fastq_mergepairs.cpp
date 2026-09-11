@@ -324,7 +324,6 @@ auto keep(struct mergepairs_cli_state_s & state, merge_data_t const & a_read_pai
   if (state.parameters.opt_fastaout != nullptr)
     {
       fasta_print_general(state.fp_fastaout,
-                          nullptr,
                           make_view(a_read_pair.merged_sequence).first(static_cast<std::size_t>(a_read_pair.merged_length)),
                           make_view(a_read_pair.fwd_header).first(static_cast<std::size_t>(a_read_pair.fwd_header_length)),
                           merged_annotations,
@@ -442,7 +441,6 @@ auto discard(struct mergepairs_cli_state_s & state, merge_data_t const & a_read_
   if (state.parameters.opt_fastaout_notmerged_fwd != nullptr)
     {
       fasta_print_general(state.fp_fastaout_notmerged_fwd,
-                          nullptr,
                           make_view(a_read_pair.fwd_sequence).first(static_cast<std::size_t>(a_read_pair.fwd_length)),
                           make_view(a_read_pair.fwd_header).first(static_cast<std::size_t>(a_read_pair.fwd_header_length)),
                           OutputAnnotations{static_cast<uint64_t>(a_read_pair.fwd_abundance), state.notmerged},
@@ -452,7 +450,6 @@ auto discard(struct mergepairs_cli_state_s & state, merge_data_t const & a_read_
   if (state.parameters.opt_fastaout_notmerged_rev != nullptr)
     {
       fasta_print_general(state.fp_fastaout_notmerged_rev,
-                          nullptr,
                           make_view(a_read_pair.rev_sequence).first(static_cast<std::size_t>(a_read_pair.rev_length)),
                           make_view(a_read_pair.rev_header).first(static_cast<std::size_t>(a_read_pair.rev_header_length)),
                           OutputAnnotations{static_cast<uint64_t>(a_read_pair.rev_abundance), state.notmerged},

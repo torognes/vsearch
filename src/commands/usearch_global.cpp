@@ -336,7 +336,6 @@ static auto search_output_results(struct search_cli_state_s & state,
       if (state.parameters.opt_matched != nullptr)
         {
           fasta_print_general(state.fp_matched.get(),
-                              nullptr,
                               qsequence,
                               query_head,
                               OutputAnnotations{static_cast<uint64_t>(qsize), state.count_matched},
@@ -349,7 +348,6 @@ static auto search_output_results(struct search_cli_state_s & state,
       if (state.parameters.opt_notmatched != nullptr)
         {
           fasta_print_general(state.fp_notmatched.get(),
-                              nullptr,
                               qsequence,
                               query_head,
                               OutputAnnotations{static_cast<uint64_t>(qsize), state.count_notmatched},
@@ -714,7 +712,6 @@ auto usearch_global(struct Parameters const & parameters) -> void
               if (parameters.opt_dbmatched != nullptr)
                 {
                   fasta_print_general(fp_dbmatched.get(),
-                                      nullptr,
                                       state.db.record(static_cast<uint64_t>(i)),
                                       OutputAnnotations{dbmatched[static_cast<std::size_t>(i)],
                                                         count_dbmatched},
@@ -727,7 +724,6 @@ auto usearch_global(struct Parameters const & parameters) -> void
               if (parameters.opt_dbnotmatched != nullptr)
                 {
                   fasta_print_general(fp_dbnotmatched.get(),
-                                      nullptr,
                                       state.db.record(static_cast<uint64_t>(i)),
                                       OutputAnnotations{state.db.getabundance(static_cast<uint64_t>(i)),
                                                         count_dbnotmatched},

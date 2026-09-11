@@ -181,7 +181,6 @@ namespace {
                     int const length,
                     int & ordinal) -> void {
       fasta_print_general(destination.handle.get(),
-                          nullptr,
                           source.subspan(static_cast<std::size_t>(start),
                                          static_cast<std::size_t>(length)),
                           input_handle->header_view(),
@@ -257,7 +256,6 @@ namespace {
     if ((local_matches == 0) and (fastaout.discarded.forward.name != nullptr))
       {
         fasta_print_general(fastaout.discarded.forward.handle.get(),
-                            nullptr,
                             input_handle->record(),
                             OutputAnnotations{abundance,
                                               ++counters.fragment_discarded_no},

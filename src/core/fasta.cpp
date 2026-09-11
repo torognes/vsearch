@@ -386,12 +386,16 @@ auto fasta_print(std::FILE * output_handle, View<char> const header,
 }
 
 
-auto fasta_print_general(std::FILE * output_handle,
-                         char const * prefix,
-                         View<char> const seq,
-                         View<char> const header,
-                         OutputAnnotations const & annotations,
-                         struct Parameters const & parameters) -> void
+namespace {
+/* The one body behind fasta_print_general() and fasta_print_prefixed(). Both
+   callers below pass a compile-time constant for 'prefix', so the test folds
+   away and the general path carries no prefix machinery. */
+auto fasta_print_body(std::FILE * output_handle,
+                      char const * prefix,
+                      View<char> const seq,
+                      View<char> const header,
+                      OutputAnnotations const & annotations,
+                      struct Parameters const & parameters) -> void
 {
   OutputRecord record {output_handle};
   fprint(record, '>');
@@ -413,16 +417,36 @@ auto fasta_print_general(std::FILE * output_handle,
   fasta_print_sequence(record, seq, seq.size(),
                        static_cast<int>(parameters.opt_fasta_width));
 }
+}  // anonymous namespace
 
 
 auto fasta_print_general(std::FILE * output_handle,
-                         char const * prefix,
+                         View<char> const seq,
+                         View<char> const header,
+                         OutputAnnotations const & annotations,
+                         struct Parameters const & parameters) -> void
+{
+  fasta_print_body(output_handle, nullptr, seq, header, annotations, parameters);
+}
+
+
+auto fasta_print_prefixed(std::FILE * output_handle,
+                          char const * const prefix,
+                          View<char> const seq,
+                          View<char> const header,
+                          OutputAnnotations const & annotations,
+                          struct Parameters const & parameters) -> void
+{
+  fasta_print_body(output_handle, prefix, seq, header, annotations, parameters);
+}
+
+
+auto fasta_print_general(std::FILE * output_handle,
                          SeqRecord const & record,
                          OutputAnnotations const & annotations,
                          struct Parameters const & parameters) -> void
 {
   fasta_print_general(output_handle,
-                      prefix,
                       record.sequence,
                       record.header,
                       annotations,
@@ -442,7 +466,6 @@ auto fasta_print_db_relabel(std::FILE * output_handle,
                             struct Parameters const & parameters) -> void
 {
   fasta_print_general(output_handle,
-                      nullptr,
                       db.record(seqno),
                       OutputAnnotations{db.getabundance(seqno), static_cast<int64_t>(ordinal)},
                       parameters);
@@ -454,7 +477,6 @@ auto fasta_print_db(std::FILE * output_handle, uint64_t const seqno,
                     struct Parameters const & parameters) -> void
 {
   fasta_print_general(output_handle,
-                      nullptr,
                       db.record(seqno),
                       OutputAnnotations{db.getabundance(seqno), 0},
                       parameters);

@@ -181,7 +181,6 @@ auto fastx_mask(struct Parameters const & parameters) -> void
             if (parameters.opt_fastaout != nullptr)
               {
                 fasta_print_general(fp_fastaout.get(),
-                                    nullptr,
                                     db.record(i),
                                     OutputAnnotations{db.getabundance(i), kept},
                                     parameters);

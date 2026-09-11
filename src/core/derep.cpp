@@ -419,7 +419,6 @@ namespace {
             {
               ++relabel_count;
               fasta_print_general(fp_fastaout,
-                                  nullptr,
                                   make_view(cluster.seq),
                                   make_view(cluster.header),
                                   OutputAnnotations{static_cast<uint64_t>(size), relabel_count},

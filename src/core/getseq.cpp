@@ -570,7 +570,6 @@ auto getseq(struct Parameters const & parameters, GetseqMode const mode,
             if (parameters.opt_fastaout != nullptr)
               {
                 fasta_print_general(fastaout_handle.get(),
-                                    nullptr,
                                     sequence,
                                     h1->header_view(),
                                     OutputAnnotations{static_cast<uint64_t>(h1->get_abundance()), kept},
@@ -598,7 +597,6 @@ auto getseq(struct Parameters const & parameters, GetseqMode const mode,
             if (parameters.opt_notmatched != nullptr)
               {
                 fasta_print_general(notmatched_handle.get(),
-                                    nullptr,
                                     h1->record(),
                                     OutputAnnotations{static_cast<uint64_t>(h1->get_abundance()), discarded},
                                     parameters);

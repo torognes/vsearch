@@ -347,7 +347,6 @@ auto orient(struct Parameters const & parameters) -> void
             if (parameters.opt_fastaout != nullptr)
               {
                 fasta_print_general(fastaout_handle.get(),
-                                    nullptr,
                                     query_h->record(),
                                     OutputAnnotations{static_cast<uint64_t>(qsize), qmatches},
                                     parameters);
@@ -388,7 +387,6 @@ auto orient(struct Parameters const & parameters) -> void
             if (parameters.opt_fastaout != nullptr)
               {
                 fasta_print_general(fastaout_handle.get(),
-                                    nullptr,
                                     rc_sequence,
                                     query_head,
                                     OutputAnnotations{static_cast<uint64_t>(qsize), qmatches},
@@ -433,7 +431,6 @@ auto orient(struct Parameters const & parameters) -> void
                 else
                   {
                     fasta_print_general(notmatched_handle.get(),
-                                        nullptr,
                                         query_h->record(),
                                         OutputAnnotations{static_cast<uint64_t>(qsize), notmatched},
                                         parameters);

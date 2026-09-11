@@ -205,7 +205,6 @@ auto results_show_fastapairs_one(std::FILE * output_handle,
                                  make_view(hit.nwalignment),
                                  hit.nwalignmentlength);
   fasta_print_general(output_handle,
-                      nullptr,
                       internal_window(qrow, hit),
                       query_head,
                       OutputAnnotations{},
@@ -216,7 +215,6 @@ auto results_show_fastapairs_one(std::FILE * output_handle,
                                  make_view(hit.nwalignment),
                                  hit.nwalignmentlength);
   fasta_print_general(output_handle,
-                      nullptr,
                       internal_window(trow, hit),
                       db.header_view(target),
                       OutputAnnotations{},
@@ -240,7 +238,6 @@ auto results_show_qsegout_one(std::FILE * output_handle,
                                   static_cast<std::size_t>(qseglen));
 
   fasta_print_general(output_handle,
-                      nullptr,
                       qseg,
                       query_head,
                       OutputAnnotations{},
@@ -261,7 +258,6 @@ auto results_show_tsegout_one(std::FILE * output_handle,
                                             static_cast<std::size_t>(tseglen));
 
   fasta_print_general(output_handle,
-                      nullptr,
                       tseg,
                       db.header_view(target),
                       OutputAnnotations{},

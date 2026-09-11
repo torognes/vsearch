@@ -262,12 +262,12 @@ auto print_header_and_sequence(std::FILE * fp_msaout, char const * header_prefix
   // header_prefix == "*" or "", resulting in ">*header" or ">header"
   if (fp_msaout == nullptr) { return ; }
 
-  fasta_print_general(fp_msaout,
-                      header_prefix,
-                      make_view(aln_v).first(aln_v.size() - 1),
-                      db.header_view(static_cast<uint64_t>(target_seqno)),
-                      OutputAnnotations{db.getabundance(static_cast<uint64_t>(target_seqno)), 0},
-                      parameters);
+  fasta_print_prefixed(fp_msaout,
+                       header_prefix,
+                       make_view(aln_v).first(aln_v.size() - 1),
+                       db.header_view(static_cast<uint64_t>(target_seqno)),
+                       OutputAnnotations{db.getabundance(static_cast<uint64_t>(target_seqno)), 0},
+                       parameters);
 }
 
 
@@ -537,12 +537,12 @@ auto print_consensus_sequence(std::FILE *fp_consout, std::vector<char> const & c
   OutputAnnotations annotations {static_cast<uint64_t>(totalabundance), cluster + 1};
   annotations.clustersize = target_count;
   annotations.clusterid = parameters.opt_clusterout_id ? cluster : -1;
-  fasta_print_general(fp_consout,
-                      "centroid=",
-                      make_view(cons_v).first(cons_v.size() - 1),  // exclude the '\0' terminator slot
-                      db.header_view(static_cast<uint64_t>(centroid_seqno)),
-                      annotations,
-                      parameters);
+  fasta_print_prefixed(fp_consout,
+                       "centroid=",
+                       make_view(cons_v).first(cons_v.size() - 1),  // exclude the '\0' terminator slot
+                       db.header_view(static_cast<uint64_t>(centroid_seqno)),
+                       annotations,
+                       parameters);
 }
 
 
@@ -561,12 +561,12 @@ auto print_alignment_profile(std::FILE *fp_profile, std::vector<char> &aln_v,
   OutputAnnotations annotations {static_cast<uint64_t>(totalabundance), cluster + 1};
   annotations.clustersize = target_count;
   annotations.clusterid = parameters.opt_clusterout_id ? cluster : -1;
-  fasta_print_general(fp_profile,
-                      "centroid=",
-                      View<char>{},  // the profile output carries no centroid sequence
-                      db.header_view(static_cast<uint64_t>(centroid_seqno)),
-                      annotations,
-                      parameters);
+  fasta_print_prefixed(fp_profile,
+                       "centroid=",
+                       View<char>{},  // the profile output carries no centroid sequence
+                       db.header_view(static_cast<uint64_t>(centroid_seqno)),
+                       annotations,
+                       parameters);
 
   aln_v.pop_back(); // remove last element ('\0')
   auto counter = 0;

@@ -488,8 +488,7 @@ namespace {
                           record, annotations, parameters);
     }
     if (destination.fasta.handle != nullptr) {
-      fasta_print_general(destination.fasta.handle.get(),
-                          nullptr, record, annotations, parameters);
+      fasta_print_general(destination.fasta.handle.get(), record, annotations, parameters);
     }
   }
 

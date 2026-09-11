@@ -2424,7 +2424,6 @@ static auto chimera_thread_core(struct chimera_cli_state_s & state,
         if (state.parameters.opt_chimeras != nullptr)
           {
             fasta_print_general(state.fp_chimeras,
-                                nullptr,
                                 ci->query(),
                                 ci->query_head,
                                 query_annotations(state.chimera_count),
@@ -2441,7 +2440,6 @@ static auto chimera_thread_core(struct chimera_cli_state_s & state,
         if (state.parameters.opt_borderline != nullptr)
           {
             fasta_print_general(state.fp_borderline,
-                                nullptr,
                                 ci->query(),
                                 ci->query_head,
                                 query_annotations(state.borderline_count),
@@ -2480,7 +2478,6 @@ static auto chimera_thread_core(struct chimera_cli_state_s & state,
         if (state.parameters.opt_nonchimeras != nullptr)
           {
             fasta_print_general(state.fp_nonchimeras,
-                                nullptr,
                                 ci->query(),
                                 ci->query_head,
                                 query_annotations(state.nonchimera_count),
