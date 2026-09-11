@@ -71,7 +71,7 @@
      arch/x86_64/SSSE3/   - SSSE3 intrinsics  -> _ssse3 variant
      arch/aarch64/        - NEON
      arch/ppc64le/        - AltiVec
-     arch/simde/          - SSE2 intrinsics via SIMDE (portable fallback)
+     arch/generic/        - plain C++11, no intrinsics (portable fallback)
    On x86_64 both the _sse2 and _ssse3 variants are built and chosen at runtime
    by cpu_features_detect(); every other target builds a single plain-named
    variant. */
