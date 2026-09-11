@@ -65,7 +65,7 @@
 #if defined(_MSC_VER) || defined(_WIN32)
 
 #include <cstdint>  // uint16_t, uint32_t, uint64_t
-#include <stdlib.h>
+#include <cstdlib>  // _byteswap_ushort, _byteswap_ulong, _byteswap_uint64
 
 auto bswap_16(uint16_t const bsx) noexcept -> uint16_t {
   return _byteswap_ushort(bsx);
@@ -99,29 +99,17 @@ auto bswap_64(uint64_t const bsx) noexcept -> uint64_t {
 }
 
 
-#elif defined(__FreeBSD__)
+#elif defined(__FreeBSD__) || defined(__NetBSD__)
 
+// FreeBSD and NetBSD spell the three functions the same way and differ only
+// in which header supplies them.
 #include <cstdint>  // uint16_t, uint32_t, uint64_t
-#include <sys/endian.h>
-
-auto bswap_16(uint16_t const bsx) noexcept -> uint16_t {
-  return bswap16(bsx);
-}
-
-auto bswap_32(uint32_t const bsx) noexcept -> uint32_t {
-  return bswap32(bsx);
-}
-
-auto bswap_64(uint64_t const bsx) noexcept -> uint64_t {
-  return bswap64(bsx);
-}
-
-
-#elif defined(__NetBSD__)
-
-#include <cstdint>  // uint16_t, uint32_t, uint64_t
+#if defined(__FreeBSD__)
+#include <sys/endian.h>  // bswap16, bswap32, bswap64
+#else
 #include <sys/types.h>
-#include <machine/bswap.h>
+#include <machine/bswap.h>  // bswap16, bswap32, bswap64
+#endif
 
 auto bswap_16(uint16_t const bsx) noexcept -> uint16_t {
   return bswap16(bsx);
@@ -145,11 +133,17 @@ auto bswap_64(uint64_t const bsx) noexcept -> uint64_t {
 // being present.
 #include <cstdint>  // uint16_t, uint32_t, uint64_t
 
+#if ! (defined(__GNUC__) || defined(__clang__))
+// the fallback moves whole byte lanes, so every shift distance below is a
+// multiple of this
+static constexpr auto bits_per_byte = 8U;
+#endif
+
 auto bswap_16(uint16_t const bsx) noexcept -> uint16_t {
 #if defined(__GNUC__) || defined(__clang__)
   return __builtin_bswap16(bsx);
 #else
-  return static_cast<uint16_t>((bsx >> 8U) | (bsx << 8U));
+  return static_cast<uint16_t>((bsx >> bits_per_byte) | (bsx << bits_per_byte));
 #endif
 }
 
@@ -157,10 +151,10 @@ auto bswap_32(uint32_t const bsx) noexcept -> uint32_t {
 #if defined(__GNUC__) || defined(__clang__)
   return __builtin_bswap32(bsx);
 #else
-  return ((bsx & UINT32_C(0x000000FF)) << 24U) |
-         ((bsx & UINT32_C(0x0000FF00)) << 8U)  |
-         ((bsx & UINT32_C(0x00FF0000)) >> 8U)  |
-         ((bsx & UINT32_C(0xFF000000)) >> 24U);
+  return ((bsx & UINT32_C(0x000000FF)) << (3U * bits_per_byte)) |
+         ((bsx & UINT32_C(0x0000FF00)) << (1U * bits_per_byte)) |
+         ((bsx & UINT32_C(0x00FF0000)) >> (1U * bits_per_byte)) |
+         ((bsx & UINT32_C(0xFF000000)) >> (3U * bits_per_byte));
 #endif
 }
 
@@ -168,14 +162,14 @@ auto bswap_64(uint64_t const bsx) noexcept -> uint64_t {
 #if defined(__GNUC__) || defined(__clang__)
   return __builtin_bswap64(bsx);
 #else
-  return ((bsx & UINT64_C(0x00000000000000FF)) << 56U) |
-         ((bsx & UINT64_C(0x000000000000FF00)) << 40U) |
-         ((bsx & UINT64_C(0x0000000000FF0000)) << 24U) |
-         ((bsx & UINT64_C(0x00000000FF000000)) << 8U)  |
-         ((bsx & UINT64_C(0x000000FF00000000)) >> 8U)  |
-         ((bsx & UINT64_C(0x0000FF0000000000)) >> 24U) |
-         ((bsx & UINT64_C(0x00FF000000000000)) >> 40U) |
-         ((bsx & UINT64_C(0xFF00000000000000)) >> 56U);
+  return ((bsx & UINT64_C(0x00000000000000FF)) << (7U * bits_per_byte)) |
+         ((bsx & UINT64_C(0x000000000000FF00)) << (5U * bits_per_byte)) |
+         ((bsx & UINT64_C(0x0000000000FF0000)) << (3U * bits_per_byte)) |
+         ((bsx & UINT64_C(0x00000000FF000000)) << (1U * bits_per_byte)) |
+         ((bsx & UINT64_C(0x000000FF00000000)) >> (1U * bits_per_byte)) |
+         ((bsx & UINT64_C(0x0000FF0000000000)) >> (3U * bits_per_byte)) |
+         ((bsx & UINT64_C(0x00FF000000000000)) >> (5U * bits_per_byte)) |
+         ((bsx & UINT64_C(0xFF00000000000000)) >> (7U * bits_per_byte));
 #endif
 }
 
