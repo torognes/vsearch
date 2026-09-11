@@ -394,23 +394,26 @@ auto convert_quality_scores(std::vector<char> & quality_scores,
 }
 
 
-auto compute_padding_length(uint32_t const section_length) -> uint32_t {
+/* constexpr, and therefore written as a single return statement: a C++11
+   constexpr function body may contain nothing else, and constexpr is what
+   makes the static_asserts below compile-time checks rather than comments. */
+constexpr auto compute_padding_length(uint32_t const section_length) -> uint32_t {
   // padding_length = section_length rounded up to the next value divisible by 8.
-  auto const remainder = section_length & max_padding_length;
-  return remainder == 0 ? 0U : memory_alignment - remainder;
+  return (section_length & max_padding_length) == 0
+           ? 0U
+           : memory_alignment - (section_length & max_padding_length);
 }
-// refactoring: C++14 tests
-// static_assert(compute_index_padding(0) == 0U, "error: wrong padding value (expect 0)");
-// static_assert(compute_index_padding(7) == 1U, "error: wrong padding value (expect 1)");
-// static_assert(compute_index_padding(8) == 0U, "error: wrong padding value (expect 0)");
-// static_assert(compute_index_padding(9) == 7U, "error: wrong padding value (expect 7)");
-// static_assert(compute_index_padding(87) == 1U, "error: wrong padding value (expect 1)");
-// static_assert(compute_index_padding(88) == 0U, "error: wrong padding value (expect 0)");
-// static_assert(compute_index_padding(89) == 7U, "error: wrong padding value (expect 7)");
-// static_assert(compute_index_padding(111) == 1U, "error: wrong padding value (expect 1)");
-// static_assert(compute_index_padding(112) == 0U, "error: wrong padding value (expect 0)");
-// static_assert(compute_index_padding(113) == 7U, "error: wrong padding value (expect 7)");
-// static_assert(compute_index_padding(std::numeric_limits<uint32_t>::max()) == 1U, "error: wrong padding value (expect 1)");
+static_assert(compute_padding_length(0) == 0U, "error: wrong padding value (expect 0)");
+static_assert(compute_padding_length(7) == 1U, "error: wrong padding value (expect 1)");
+static_assert(compute_padding_length(8) == 0U, "error: wrong padding value (expect 0)");
+static_assert(compute_padding_length(9) == 7U, "error: wrong padding value (expect 7)");
+static_assert(compute_padding_length(87) == 1U, "error: wrong padding value (expect 1)");
+static_assert(compute_padding_length(88) == 0U, "error: wrong padding value (expect 0)");
+static_assert(compute_padding_length(89) == 7U, "error: wrong padding value (expect 7)");
+static_assert(compute_padding_length(111) == 1U, "error: wrong padding value (expect 1)");
+static_assert(compute_padding_length(112) == 0U, "error: wrong padding value (expect 0)");
+static_assert(compute_padding_length(113) == 7U, "error: wrong padding value (expect 7)");
+static_assert(compute_padding_length(std::numeric_limits<uint32_t>::max()) == 1U, "error: wrong padding value (expect 1)");
 
 
 auto check_for_additional_tail_data(std::FILE * sff_handle) -> void {
