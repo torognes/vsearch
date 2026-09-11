@@ -570,10 +570,20 @@ auto getseq(struct Parameters const & parameters, GetseqMode const mode,
             auto const window_length = static_cast<std::size_t>(length);
             auto const sequence = h1->sequence_view().subspan(window_start, window_length);
 
+            /* the quality view stays behind the --fastqout test: for a FASTA
+               input quality_view() is empty and the subspan would assert. A
+               FASTQ destination implies FASTQ input, which the "Cannot write
+               FASTQ output from FASTA input" check above guarantees. */
+            View<char> quality;
+            if (matched.fastq != nullptr)
+              {
+                quality = h1->quality_view().subspan(window_start, window_length);
+              }
+
             vsearch::write_record(matched,
                                   sequence,
                                   h1->header_view(),
-                                  h1->quality_view().subspan(window_start, window_length),
+                                  quality,
                                   OutputAnnotations{static_cast<uint64_t>(h1->get_abundance()), kept},
                                   parameters);
           }
