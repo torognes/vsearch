@@ -161,6 +161,26 @@ namespace {
                      return four_bit::map(symbol);
                    });
 
+    /* Every fragment below is written the same way: the record's own header and
+       abundance, and the fragment's ordinal within its output file. Only the
+       destination, the fragment and the counter differ.
+       The offsets stay signed: rc_start is walked backwards from seq_length and
+       the intermediate rc_length is only known to be positive after the guard
+       at each call site, so std::size_t would be the wrong type for them. */
+    auto emit = [&](struct a_file const & destination,
+                    View<char> const source,
+                    int const start,
+                    int const length,
+                    int & ordinal) -> void {
+      fasta_print_general(destination.handle.get(),
+                          nullptr,
+                          source.subspan(static_cast<std::size_t>(start),
+                                         static_cast<std::size_t>(length)),
+                          input_handle->header_view(),
+                          OutputAnnotations{abundance, ++ordinal},
+                          parameters);
+    };
+
     int64_t local_matches = 0;
     int frag_start = 0;
     int frag_length = seq_length;
@@ -188,26 +208,14 @@ namespace {
 
         if ((frag_length > 0) and (fastaout.cut.forward.name != nullptr))
           {
-            fasta_print_general(fastaout.cut.forward.handle.get(),
-                                nullptr,
-                                sequence.subspan(static_cast<std::size_t>(frag_start),
-                                                 static_cast<std::size_t>(frag_length)),
-                                input_handle->header_view(),
-                                OutputAnnotations{abundance,
-                                                  ++counters.fragment_no},
-                                parameters);
+            emit(fastaout.cut.forward, sequence, frag_start, frag_length,
+                 counters.fragment_no);
           }
 
         if ((rc_length > 0) and (fastaout.cut.reverse.name != nullptr))
           {
-            fasta_print_general(fastaout.cut.reverse.handle.get(),
-                                nullptr,
-                                rc_sequence.subspan(static_cast<std::size_t>(rc_start),
-                                                    static_cast<std::size_t>(rc_length)),
-                                input_handle->header_view(),
-                                OutputAnnotations{abundance,
-                                                  ++counters.fragment_rev_no},
-                                parameters);
+            emit(fastaout.cut.reverse, rc_sequence, rc_start, rc_length,
+                 counters.fragment_rev_no);
           }
 
         frag_start += frag_length;
@@ -223,26 +231,14 @@ namespace {
 
     if ((local_matches > 0) and (frag_length > 0) and (fastaout.cut.forward.name != nullptr))
       {
-        fasta_print_general(fastaout.cut.forward.handle.get(),
-                            nullptr,
-                            sequence.subspan(static_cast<std::size_t>(frag_start),
-                                             static_cast<std::size_t>(frag_length)),
-                            input_handle->header_view(),
-                            OutputAnnotations{abundance,
-                                              ++counters.fragment_no},
-                            parameters);
+        emit(fastaout.cut.forward, sequence, frag_start, frag_length,
+             counters.fragment_no);
       }
 
     if ((local_matches > 0) and (rc_length > 0) and (fastaout.cut.reverse.name != nullptr))
       {
-        fasta_print_general(fastaout.cut.reverse.handle.get(),
-                            nullptr,
-                            rc_sequence.subspan(static_cast<std::size_t>(rc_start),
-                                                static_cast<std::size_t>(rc_length)),
-                            input_handle->header_view(),
-                            OutputAnnotations{abundance,
-                                              ++counters.fragment_rev_no},
-                            parameters);
+        emit(fastaout.cut.reverse, rc_sequence, rc_start, rc_length,
+             counters.fragment_rev_no);
       }
 
     if (local_matches == 0)
@@ -262,13 +258,9 @@ namespace {
 
     if ((local_matches == 0) and (fastaout.discarded.reverse.name != nullptr))
       {
-        fasta_print_general(fastaout.discarded.reverse.handle.get(),
-                            nullptr,
-                            rc_sequence,
-                            input_handle->header_view(),
-                            OutputAnnotations{abundance,
-                                              ++counters.fragment_discarded_rev_no},
-                            parameters);
+        /* the whole reverse complement, uncut */
+        emit(fastaout.discarded.reverse, rc_sequence, 0, seq_length,
+             counters.fragment_discarded_rev_no);
       }
 
     counters.matches += local_matches;
