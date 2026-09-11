@@ -60,6 +60,8 @@
 
 #pragma once
 
+#include <climits>  // CHAR_BIT
+
 /* increment_counters_from_bitmap: increment the 16-bit k-mer counters
    selected by the 1-bits of a bitmap (the search/sintax/cluster hot path).
    The SIMD implementation is architecture-specific and lives in one backend
@@ -74,6 +76,13 @@
    variant. */
 
 using count_t = unsigned short;
+
+/* Every backend consumes the bitmap sixteen bits at a time: two bytes in, and
+   the sixteen counters those bits select out (two 128-bit vectors of eight
+   16-bit counters each). A run of totalbits counters therefore takes
+   (totalbits + counters_per_round - 1) / counters_per_round rounds. */
+constexpr auto counters_per_round = 16U;
+constexpr auto bytes_per_round = counters_per_round / CHAR_BIT;
 
 
 #ifdef __x86_64__

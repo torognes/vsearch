@@ -62,41 +62,47 @@
 #include "arch/intrinsics.hpp"
 #include "vsearch.hpp"
 #include <cstring>  // std::memcpy
+#include <iterator>  // std::next
 
 
 // ppc64le backend: AltiVec/VSX intrinsics (altivec.h, via arch/intrinsics.hpp). Single
 // plain-named variant (no runtime dispatch off x86).
-void increment_counters_from_bitmap(count_t * counters,
+auto increment_counters_from_bitmap(count_t * counters,
                                     unsigned char const * bitmap,
-                                    unsigned int const totalbits)
+                                    unsigned int const totalbits) -> void
 {
-  const __vector unsigned char c1 =
+  __vector unsigned char const shuffle_pattern =
     { 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0 };
-  const __vector unsigned char c2 =
+  __vector unsigned char const bit_selectors =
     { 0xfe, 0xfd, 0xfb, 0xf7, 0xef, 0xdf, 0xbf, 0x7f,
       0xfe, 0xfd, 0xfb, 0xf7, 0xef, 0xdf, 0xbf, 0x7f };
-  const __vector unsigned char c3 =
+  __vector unsigned char const all_ones =
     { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
       0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff };
 
-  unsigned short const * p = reinterpret_cast<unsigned short const *>(bitmap);
-  __vector signed short * q = reinterpret_cast<__vector signed short *>(counters);
-  const auto r = (totalbits + 15) / 16;
+  auto const * bits = reinterpret_cast<unsigned short const *>(bitmap);
+  auto * counter_vector = reinterpret_cast<__vector signed short *>(counters);
+  auto const rounds = (totalbits + counters_per_round - 1) / counters_per_round;
 
-  for (auto j = 0U; j < r; j++)
+  for (auto round = 0U; round < rounds; round++)
     {
-      __vector unsigned char r0;
+      __vector unsigned char bit_word;
 
-      std::memcpy(&r0, p, 2);
-      ++p;
-      __vector unsigned char r1 = vec_perm(r0, r0, c1);
-      __vector unsigned char r2 = vec_or(r1, c2);
-      __vector __bool char r3 = vec_cmpeq(r2, c3);
-      __vector signed short r4 = (__vector signed short) vec_unpackl(r3);
-      __vector signed short r5 = (__vector signed short) vec_unpackh(r3);
-      *q = vec_subs(*q, r4);
-      ++q;
-      *q = vec_subs(*q, r5);
-      ++q;
+      std::memcpy(&bit_word, bits, bytes_per_round);
+      bits = std::next(bits);
+      __vector unsigned char const spread = vec_perm(bit_word, bit_word, shuffle_pattern);
+      __vector unsigned char const selected = vec_or(spread, bit_selectors);
+      __vector __bool char const mask = vec_cmpeq(selected, all_ones);
+      /* vec_unpack* widen the boolean mask to __vector __bool short; the two
+         casts below only reinterpret those bits as signed counters, so they
+         are reinterpret_cast and not static_cast -- AltiVec vector types of
+         different element type have no conversion for static_cast to perform,
+         and GCC rejects it outright */
+      auto const mask_low = reinterpret_cast<__vector signed short>(vec_unpackl(mask));
+      auto const mask_high = reinterpret_cast<__vector signed short>(vec_unpackh(mask));
+      *counter_vector = vec_subs(*counter_vector, mask_low);
+      counter_vector = std::next(counter_vector);
+      *counter_vector = vec_subs(*counter_vector, mask_high);
+      counter_vector = std::next(counter_vector);
     }
 }
