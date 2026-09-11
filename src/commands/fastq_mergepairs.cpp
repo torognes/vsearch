@@ -66,7 +66,7 @@
 #include "commands/fastq_mergepairs.hpp"
 #include "core/mergepairs_internal.hpp"
 #include "core/attributes.hpp"  // struct OutputAnnotations
-#include "core/fasta.hpp"
+#include "core/print_pair.hpp"  // vsearch::OutputPair, vsearch::write_record
 #include "core/fastq.hpp"
 #include "core/fastx.hpp"
 #include "utils/base_mapping.hpp"
@@ -209,12 +209,13 @@ struct mergepairs_cli_state_s
      polls and reports after join. */
   MergeAbort abort;
 
-  std::FILE * fp_fastqout = nullptr;
-  std::FILE * fp_fastaout = nullptr;
-  std::FILE * fp_fastqout_notmerged_fwd = nullptr;
-  std::FILE * fp_fastqout_notmerged_rev = nullptr;
-  std::FILE * fp_fastaout_notmerged_fwd = nullptr;
-  std::FILE * fp_fastaout_notmerged_rev = nullptr;
+  /* one destination pair per category of read; the state is a single
+     per-invocation object threaded by reference, so the handles live here
+     rather than being aliased as raw std::FILE * from the caller's locals */
+  vsearch::OutputPair merged_out;
+  vsearch::OutputPair notmerged_fwd_out;
+  vsearch::OutputPair notmerged_rev_out;
+
   std::FILE * fp_eetabbedout = nullptr;
 
   std::unique_ptr<fastx_s> fastq_fwd;
@@ -311,25 +312,12 @@ auto keep(struct mergepairs_cli_state_s & state, merge_data_t const & a_read_pai
     static_cast<uint64_t>(a_read_pair.fwd_abundance), state.merged};
   merged_annotations.expected_error = a_read_pair.ee_merged;
 
-  if (state.parameters.opt_fastqout != nullptr)
-    {
-      fastq_print_general(state.fp_fastqout,
-                          make_view(a_read_pair.merged_sequence).first(static_cast<std::size_t>(a_read_pair.merged_length)),
-                          make_view(a_read_pair.fwd_header).first(static_cast<std::size_t>(a_read_pair.fwd_header_length)),
-                          make_view(a_read_pair.merged_quality_v).first(static_cast<std::size_t>(a_read_pair.merged_length)),
-                          merged_annotations,
-                          state.parameters);
-    }
-
-  if (state.parameters.opt_fastaout != nullptr)
-    {
-      fasta_print_general(state.fp_fastaout,
-                          nullptr,
-                          make_view(a_read_pair.merged_sequence).first(static_cast<std::size_t>(a_read_pair.merged_length)),
-                          make_view(a_read_pair.fwd_header).first(static_cast<std::size_t>(a_read_pair.fwd_header_length)),
-                          merged_annotations,
-                          state.parameters);
-    }
+  vsearch::write_record(state.merged_out,
+                        make_view(a_read_pair.merged_sequence).first(static_cast<std::size_t>(a_read_pair.merged_length)),
+                        make_view(a_read_pair.fwd_header).first(static_cast<std::size_t>(a_read_pair.fwd_header_length)),
+                        make_view(a_read_pair.merged_quality_v).first(static_cast<std::size_t>(a_read_pair.merged_length)),
+                        merged_annotations,
+                        state.parameters);
 
   if (state.parameters.opt_eetabbedout != nullptr)
     {
@@ -419,44 +407,31 @@ auto discard(struct mergepairs_cli_state_s & state, merge_data_t const & a_read_
 
   ++state.notmerged;
 
-  if (state.parameters.opt_fastqout_notmerged_fwd != nullptr)
+  /* both formats of the forward read, then both of the reverse. The four used
+     to go out grouped by format instead (both FASTQ, then both FASTA); nothing
+     depends on that, and only outputs pointed at one shared file could see the
+     difference.
+
+     wanted() because none of these outputs is on by default: without the test
+     each not-merged pair would build six views for nobody. */
+  if (state.notmerged_fwd_out.wanted())
     {
-      fastq_print_general(state.fp_fastqout_notmerged_fwd,
-                          make_view(a_read_pair.fwd_sequence).first(static_cast<std::size_t>(a_read_pair.fwd_length)),
-                          make_view(a_read_pair.fwd_header).first(static_cast<std::size_t>(a_read_pair.fwd_header_length)),
-                          make_view(a_read_pair.fwd_quality).first(static_cast<std::size_t>(a_read_pair.fwd_length)),
-                          OutputAnnotations{static_cast<uint64_t>(a_read_pair.fwd_abundance), state.notmerged},
-                          state.parameters);
+      vsearch::write_record(state.notmerged_fwd_out,
+                            make_view(a_read_pair.fwd_sequence).first(static_cast<std::size_t>(a_read_pair.fwd_length)),
+                            make_view(a_read_pair.fwd_header).first(static_cast<std::size_t>(a_read_pair.fwd_header_length)),
+                            make_view(a_read_pair.fwd_quality).first(static_cast<std::size_t>(a_read_pair.fwd_length)),
+                            OutputAnnotations{static_cast<uint64_t>(a_read_pair.fwd_abundance), state.notmerged},
+                            state.parameters);
     }
 
-  if (state.parameters.opt_fastqout_notmerged_rev != nullptr)
+  if (state.notmerged_rev_out.wanted())
     {
-      fastq_print_general(state.fp_fastqout_notmerged_rev,
-                          make_view(a_read_pair.rev_sequence).first(static_cast<std::size_t>(a_read_pair.rev_length)),
-                          make_view(a_read_pair.rev_header).first(static_cast<std::size_t>(a_read_pair.rev_header_length)),
-                          make_view(a_read_pair.rev_quality).first(static_cast<std::size_t>(a_read_pair.rev_length)),
-                          OutputAnnotations{static_cast<uint64_t>(a_read_pair.rev_abundance), state.notmerged},
-                          state.parameters);
-    }
-
-  if (state.parameters.opt_fastaout_notmerged_fwd != nullptr)
-    {
-      fasta_print_general(state.fp_fastaout_notmerged_fwd,
-                          nullptr,
-                          make_view(a_read_pair.fwd_sequence).first(static_cast<std::size_t>(a_read_pair.fwd_length)),
-                          make_view(a_read_pair.fwd_header).first(static_cast<std::size_t>(a_read_pair.fwd_header_length)),
-                          OutputAnnotations{static_cast<uint64_t>(a_read_pair.fwd_abundance), state.notmerged},
-                          state.parameters);
-    }
-
-  if (state.parameters.opt_fastaout_notmerged_rev != nullptr)
-    {
-      fasta_print_general(state.fp_fastaout_notmerged_rev,
-                          nullptr,
-                          make_view(a_read_pair.rev_sequence).first(static_cast<std::size_t>(a_read_pair.rev_length)),
-                          make_view(a_read_pair.rev_header).first(static_cast<std::size_t>(a_read_pair.rev_header_length)),
-                          OutputAnnotations{static_cast<uint64_t>(a_read_pair.rev_abundance), state.notmerged},
-                          state.parameters);
+      vsearch::write_record(state.notmerged_rev_out,
+                            make_view(a_read_pair.rev_sequence).first(static_cast<std::size_t>(a_read_pair.rev_length)),
+                            make_view(a_read_pair.rev_header).first(static_cast<std::size_t>(a_read_pair.rev_header_length)),
+                            make_view(a_read_pair.rev_quality).first(static_cast<std::size_t>(a_read_pair.rev_length)),
+                            OutputAnnotations{static_cast<uint64_t>(a_read_pair.rev_abundance), state.notmerged},
+                            state.parameters);
     }
 }
 
@@ -1013,12 +988,6 @@ auto fastq_mergepairs(struct Parameters const & parameters) -> void
   struct mergepairs_cli_state_s state(parameters);
   auto & fastq_fwd = state.fastq_fwd;
   auto & fastq_rev = state.fastq_rev;
-  auto & fp_fastqout = state.fp_fastqout;
-  auto & fp_fastaout = state.fp_fastaout;
-  auto & fp_fastqout_notmerged_fwd = state.fp_fastqout_notmerged_fwd;
-  auto & fp_fastqout_notmerged_rev = state.fp_fastqout_notmerged_rev;
-  auto & fp_fastaout_notmerged_fwd = state.fp_fastaout_notmerged_fwd;
-  auto & fp_fastaout_notmerged_rev = state.fp_fastaout_notmerged_rev;
   auto & fp_eetabbedout = state.fp_eetabbedout;
 
   /* fatal error if specified overlap is too small */
@@ -1039,18 +1008,12 @@ auto fastq_mergepairs(struct Parameters const & parameters) -> void
 
   /* open output files */
 
-  OutputFileHandle fastqout_handle = open_optional_output_file(parameters.opt_fastqout, OutputOption{"--fastqout"});
-  fp_fastqout = fastqout_handle.get();
-  OutputFileHandle fastaout_handle = open_optional_output_file(parameters.opt_fastaout, OutputOption{"--fastaout"});
-  fp_fastaout = fastaout_handle.get();
-  OutputFileHandle fastqout_notmerged_fwd_handle = open_optional_output_file(parameters.opt_fastqout_notmerged_fwd, OutputOption{"--fastqout_notmerged_fwd"});
-  fp_fastqout_notmerged_fwd = fastqout_notmerged_fwd_handle.get();
-  OutputFileHandle fastqout_notmerged_rev_handle = open_optional_output_file(parameters.opt_fastqout_notmerged_rev, OutputOption{"--fastqout_notmerged_rev"});
-  fp_fastqout_notmerged_rev = fastqout_notmerged_rev_handle.get();
-  OutputFileHandle fastaout_notmerged_fwd_handle = open_optional_output_file(parameters.opt_fastaout_notmerged_fwd, OutputOption{"--fastaout_notmerged_fwd"});
-  fp_fastaout_notmerged_fwd = fastaout_notmerged_fwd_handle.get();
-  OutputFileHandle fastaout_notmerged_rev_handle = open_optional_output_file(parameters.opt_fastaout_notmerged_rev, OutputOption{"--fastaout_notmerged_rev"});
-  fp_fastaout_notmerged_rev = fastaout_notmerged_rev_handle.get();
+  state.merged_out.fastq = open_optional_output_file(parameters.opt_fastqout, OutputOption{"--fastqout"});
+  state.merged_out.fasta = open_optional_output_file(parameters.opt_fastaout, OutputOption{"--fastaout"});
+  state.notmerged_fwd_out.fastq = open_optional_output_file(parameters.opt_fastqout_notmerged_fwd, OutputOption{"--fastqout_notmerged_fwd"});
+  state.notmerged_rev_out.fastq = open_optional_output_file(parameters.opt_fastqout_notmerged_rev, OutputOption{"--fastqout_notmerged_rev"});
+  state.notmerged_fwd_out.fasta = open_optional_output_file(parameters.opt_fastaout_notmerged_fwd, OutputOption{"--fastaout_notmerged_fwd"});
+  state.notmerged_rev_out.fasta = open_optional_output_file(parameters.opt_fastaout_notmerged_rev, OutputOption{"--fastaout_notmerged_rev"});
   OutputFileHandle eetabbedout_handle = open_optional_output_file(parameters.opt_eetabbedout, OutputOption{"--eetabbedout"});
   fp_eetabbedout = eetabbedout_handle.get();
 
@@ -1096,12 +1059,12 @@ auto fastq_mergepairs(struct Parameters const & parameters) -> void
   /* reset() is a no-op on an empty handle, so unopened outputs need
      no guard. */
   eetabbedout_handle.reset();
-  fastaout_notmerged_rev_handle.reset();
-  fastaout_notmerged_fwd_handle.reset();
-  fastqout_notmerged_rev_handle.reset();
-  fastqout_notmerged_fwd_handle.reset();
-  fastaout_handle.reset();
-  fastqout_handle.reset();
+  state.notmerged_rev_out.fasta.reset();
+  state.notmerged_fwd_out.fasta.reset();
+  state.notmerged_rev_out.fastq.reset();
+  state.notmerged_fwd_out.fastq.reset();
+  state.merged_out.fasta.reset();
+  state.merged_out.fastq.reset();
 
   fastq_rev->report_stripped_warning(parameters);
   fastq_rev = nullptr;

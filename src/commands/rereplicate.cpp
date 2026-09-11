@@ -124,7 +124,6 @@ auto rereplicate(struct Parameters const & parameters) -> void
           {
             ++n_reads;
             fasta_print_general(output_handle.get(),
-                                nullptr,
                                 input_handle->record(),
                                 OutputAnnotations{1, n_reads},
                                 parameters);

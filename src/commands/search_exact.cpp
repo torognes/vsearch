@@ -425,7 +425,6 @@ auto search_exact_output_results(struct search_exact_state_s & state,
       if (parameters.opt_matched != nullptr)
         {
           fasta_print_general(state.fp_matched,
-                              nullptr,
                               qsequence,
                               query_head,
                               OutputAnnotations{static_cast<uint64_t>(qsize), state.count_matched},
@@ -438,7 +437,6 @@ auto search_exact_output_results(struct search_exact_state_s & state,
       if (parameters.opt_notmatched != nullptr)
         {
           fasta_print_general(state.fp_notmatched,
-                              nullptr,
                               qsequence,
                               query_head,
                               OutputAnnotations{static_cast<uint64_t>(qsize), state.count_notmatched},
@@ -827,7 +825,6 @@ auto search_exact(struct Parameters const & parameters) -> void
               if (parameters.opt_dbmatched != nullptr)
                 {
                   fasta_print_general(state.fp_dbmatched,
-                                      nullptr,
                                       state.db.record(static_cast<uint64_t>(i)),
                                       OutputAnnotations{state.dbmatched[static_cast<std::size_t>(i)],
                                                         count_dbmatched},
@@ -840,7 +837,6 @@ auto search_exact(struct Parameters const & parameters) -> void
               if (parameters.opt_dbnotmatched != nullptr)
                 {
                   fasta_print_general(state.fp_dbnotmatched,
-                                      nullptr,
                                       state.db.record(static_cast<uint64_t>(i)),
                                       OutputAnnotations{0, count_dbnotmatched},
                                       parameters);

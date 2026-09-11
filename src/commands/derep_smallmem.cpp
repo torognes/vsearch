@@ -469,7 +469,6 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
               {
                 ++selected;
                 fasta_print_general(output_handle.get(),
-                                    nullptr,
                                     sequence,
                                     h2->header_view(),
                                     OutputAnnotations{static_cast<uint64_t>(size),

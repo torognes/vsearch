@@ -317,7 +317,6 @@ static auto allpairs_output_results(struct allpairs_state_s & state,
       if (state.parameters.opt_matched != nullptr)
         {
           fasta_print_general(state.fp_matched,
-                              nullptr,
                               qsequence,
                               query_head,
                               OutputAnnotations{0, state.count_matched},
@@ -330,7 +329,6 @@ static auto allpairs_output_results(struct allpairs_state_s & state,
       if (state.parameters.opt_notmatched != nullptr)
         {
           fasta_print_general(state.fp_notmatched,
-                              nullptr,
                               qsequence,
                               query_head,
                               OutputAnnotations{0, state.count_notmatched},

@@ -424,7 +424,6 @@ auto derep_prefix(struct Parameters const & parameters) -> void
               {
                 ++relabel_count;
                 fasta_print_general(output_handle.get(),
-                                    nullptr,
                                     db.record(bp.seqno_first),
                                     OutputAnnotations{static_cast<uint64_t>(size), relabel_count},
                                     parameters);

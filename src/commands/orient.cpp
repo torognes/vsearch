@@ -66,8 +66,7 @@
 #include "core/attributes.hpp"  // struct OutputAnnotations
 #include "core/db.hpp"
 #include "core/dbindex.hpp"
-#include "core/fasta.hpp"
-#include "core/fastq.hpp"
+#include "core/print_pair.hpp"  // vsearch::OutputPair, vsearch::write_record
 #include "core/fastx.hpp"
 #include "core/mask.hpp"
 #include "core/udb.hpp"
@@ -203,9 +202,7 @@ auto report_orient(std::FILE * output_stream,
 auto orient(struct Parameters const & parameters) -> void
 {
   std::unique_ptr<fastx_s> query_h;
-  // refactoring: use struct, like in subsample
-  OutputFileHandle fastaout_handle;
-  OutputFileHandle fastqout_handle;
+  vsearch::OutputPair oriented;
   OutputFileHandle tabbedout_handle;
   OutputFileHandle notmatched_handle;
   std::FILE * fp_tabbedout = nullptr;
@@ -234,7 +231,7 @@ auto orient(struct Parameters const & parameters) -> void
 
   /* open output files */
 
-  fastaout_handle = open_optional_output_file(parameters.opt_fastaout, OutputOption{"--fastaout"});
+  oriented.fasta = open_optional_output_file(parameters.opt_fastaout, OutputOption{"--fastaout"});
 
   if (parameters.opt_fastqout != nullptr)
     {
@@ -243,7 +240,7 @@ auto orient(struct Parameters const & parameters) -> void
           fatal("Cannot write FASTQ output with FASTA input");
         }
 
-      fastqout_handle = open_optional_output_file(parameters.opt_fastqout, OutputOption{"--fastqout"});
+      oriented.fastq = open_optional_output_file(parameters.opt_fastqout, OutputOption{"--fastqout"});
     }
 
   notmatched_handle = open_optional_output_file(parameters.opt_notmatched, OutputOption{"--notmatched"});
@@ -344,22 +341,10 @@ auto orient(struct Parameters const & parameters) -> void
             ++matches_fwd;
             ++qmatches;
 
-            if (parameters.opt_fastaout != nullptr)
-              {
-                fasta_print_general(fastaout_handle.get(),
-                                    nullptr,
-                                    query_h->record(),
-                                    OutputAnnotations{static_cast<uint64_t>(qsize), qmatches},
-                                    parameters);
-              }
-
-            if (parameters.opt_fastqout != nullptr)
-              {
-                fastq_print_general(fastqout_handle.get(),
-                                    query_h->record(),
-                                    OutputAnnotations{static_cast<uint64_t>(qsize), qmatches},
-                                    parameters);
-              }
+            vsearch::write_record(oriented,
+                                  query_h->record(),
+                                  OutputAnnotations{static_cast<uint64_t>(qsize), qmatches},
+                                  parameters);
           }
         else if ((count_rev >= min_count) and (count_rev >= min_factor * count_fwd))
           {
@@ -385,34 +370,27 @@ auto orient(struct Parameters const & parameters) -> void
             reverse_complement(make_span(qseq_rev).first(query_sequence.size()), query_sequence);
             auto const rc_sequence = make_view(qseq_rev).first(query_sequence.size());
 
-            if (parameters.opt_fastaout != nullptr)
+            /* reverse quality scores, and the view over them: both stay behind
+               the --fastqout test. Without a FASTQ destination query_qual_rev
+               was never grown (see the is_fastq_input() test above), so the
+               view would assert -- and a FASTQ destination implies FASTQ
+               input, which is what the earlier "Cannot write FASTQ output with
+               FASTA input" check guarantees. */
+            View<char> rc_quality;
+            if (oriented.fastq != nullptr)
               {
-                fasta_print_general(fastaout_handle.get(),
-                                    nullptr,
-                                    rc_sequence,
-                                    query_head,
-                                    OutputAnnotations{static_cast<uint64_t>(qsize), qmatches},
-                                    parameters);
+                // copy query string in reverse order
+                std::reverse_copy(query_qual_fwd.cbegin(), query_qual_fwd.cend(),
+                                  query_qual_rev.begin());
+                rc_quality = make_view(query_qual_rev).first(query_sequence.size());
               }
 
-            if (parameters.opt_fastqout != nullptr)
-              {
-                /* reverse quality scores */
-
-                if (query_h->is_fastq_input())
-                  {
-                    // copy query string in reverse order
-                    std::reverse_copy(query_qual_fwd.cbegin(), query_qual_fwd.cend(),
-                                      query_qual_rev.begin());
-                  }
-
-                fastq_print_general(fastqout_handle.get(),
-                                    rc_sequence,
-                                    query_head,
-                                    make_view(query_qual_rev).first(query_sequence.size()),
-                                    OutputAnnotations{static_cast<uint64_t>(qsize), qmatches},
-                                    parameters);
-              }
+            vsearch::write_record(oriented,
+                                  rc_sequence,
+                                  query_head,
+                                  rc_quality,
+                                  OutputAnnotations{static_cast<uint64_t>(qsize), qmatches},
+                                  parameters);
           }
         else
           {
@@ -433,7 +411,6 @@ auto orient(struct Parameters const & parameters) -> void
                 else
                   {
                     fasta_print_general(notmatched_handle.get(),
-                                        nullptr,
                                         query_h->record(),
                                         OutputAnnotations{static_cast<uint64_t>(qsize), notmatched},
                                         parameters);
@@ -475,8 +452,8 @@ auto orient(struct Parameters const & parameters) -> void
      a no-op on an empty handle, so unopened outputs need no guard. */
   tabbedout_handle.reset();
   notmatched_handle.reset();
-  fastqout_handle.reset();
-  fastaout_handle.reset();
+  oriented.fastq.reset();
+  oriented.fasta.reset();
 
   query_h->report_stripped_warning(parameters);
 

@@ -62,8 +62,7 @@
 #include "commands/fastx_mask.hpp"
 #include "core/attributes.hpp"  // struct OutputAnnotations
 #include "core/db.hpp"
-#include "core/fasta.hpp"
-#include "core/fastq.hpp"
+#include "core/print_pair.hpp"  // vsearch::OutputPair, vsearch::write_record
 #include "core/mask.hpp"
 #include "utils/ascii_case.hpp"  // is_upper
 #include "utils/fatal.hpp"
@@ -122,14 +121,16 @@ auto fastx_mask(struct Parameters const & parameters) -> void
     fatal("Specify output files for masking with --fastaout and/or --fastqout");
   }
 
-  auto fp_fastaout = open_optional_output_file(parameters.opt_fastaout, OutputOption{"--fastaout"});
-  auto fp_fastqout = open_optional_output_file(parameters.opt_fastqout, OutputOption{"--fastqout"});
+  vsearch::OutputPair const destination {
+    open_optional_output_file(parameters.opt_fastaout, OutputOption{"--fastaout"}),
+    open_optional_output_file(parameters.opt_fastqout, OutputOption{"--fastqout"})
+  };
 
   Database db;
   db.read(parameters.input_filename, 0, parameters);
   // memory-intensive: the entire database is now held in memory
 
-  if ((fp_fastqout != nullptr) && ! db.is_fastq())
+  if ((destination.fastq != nullptr) && ! db.is_fastq())
     {
       fatal("Cannot write FASTQ output with a FASTA input file, lacking quality scores");
     }
@@ -178,22 +179,10 @@ auto fastx_mask(struct Parameters const & parameters) -> void
           {
             ++kept;
 
-            if (parameters.opt_fastaout != nullptr)
-              {
-                fasta_print_general(fp_fastaout.get(),
-                                    nullptr,
-                                    db.record(i),
-                                    OutputAnnotations{db.getabundance(i), kept},
-                                    parameters);
-              }
-
-            if (parameters.opt_fastqout != nullptr)
-              {
-                fastq_print_general(fp_fastqout.get(),
-                                    db.record(i),
-                                    OutputAnnotations{db.getabundance(i), kept},
-                                    parameters);
-              }
+            vsearch::write_record(destination,
+                                  db.record(i),
+                                  OutputAnnotations{db.getabundance(i), kept},
+                                  parameters);
           }
 
         progress.update(i);

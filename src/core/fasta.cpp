@@ -387,7 +387,6 @@ auto fasta_print(std::FILE * output_handle, View<char> const header,
 
 
 auto fasta_print_general(std::FILE * output_handle,
-                         char const * prefix,
                          View<char> const seq,
                          View<char> const header,
                          OutputAnnotations const & annotations,
@@ -396,15 +395,46 @@ auto fasta_print_general(std::FILE * output_handle,
   OutputRecord record {output_handle};
   fprint(record, '>');
 
+  /* the annotation chain reaches the stream through record.stream(), which
+     flushes first so the record stays in order: it ends in a helper that emits
+     a header in chunks (see the note in utils/print_record.hpp). Everything
+     after it is buffered. */
+  fprint_header_annotations(record.stream(), seq, header, annotations, parameters);
+
+  fprint(record, '\n');
+
+  fasta_print_sequence(record, seq, seq.size(),
+                       static_cast<int>(parameters.opt_fasta_width));
+}
+
+
+/* Deliberately a second copy of the body above, rather than both calling one
+   shared helper. With 50 call sites reaching fasta_print_general(), the
+   forwarding call that factoring costs is not free: GCC keeps a body with two
+   callers out of line -- `inline` and an anonymous namespace do not change
+   that -- so every record paid 12 instructions on top of the 69 the body
+   itself takes, +22,000 Ir on a 2000-record --fastx_filter run under
+   callgrind. Ten duplicated lines buy that back; keep the two in step. */
+auto fasta_print_prefixed(std::FILE * output_handle,
+                          char const * const prefix,
+                          View<char> const seq,
+                          View<char> const header,
+                          OutputAnnotations const & annotations,
+                          struct Parameters const & parameters) -> void
+{
+  /* the three --msaout/--consout/--profile writers all pass a literal; an
+     absent prefix is spelled fasta_print_general() */
+  assert(prefix != nullptr);
+
+  OutputRecord record {output_handle};
+  fprint(record, '>');
+
   /* prefix and annotations both reach the stream through record.stream(),
      which flushes first so the record stays in order: the prefix is a
      NUL-terminated char const * whose length only std::fputs knows, and the
      annotation chain ends in a helper that emits a header in chunks (see the
      note in utils/print_record.hpp). Everything after them is buffered. */
-  if (prefix != nullptr)
-    {
-      std::fputs(prefix, record.stream());
-    }
+  std::fputs(prefix, record.stream());
 
   fprint_header_annotations(record.stream(), seq, header, annotations, parameters);
 
@@ -416,13 +446,11 @@ auto fasta_print_general(std::FILE * output_handle,
 
 
 auto fasta_print_general(std::FILE * output_handle,
-                         char const * prefix,
                          SeqRecord const & record,
                          OutputAnnotations const & annotations,
                          struct Parameters const & parameters) -> void
 {
   fasta_print_general(output_handle,
-                      prefix,
                       record.sequence,
                       record.header,
                       annotations,
@@ -442,7 +470,6 @@ auto fasta_print_db_relabel(std::FILE * output_handle,
                             struct Parameters const & parameters) -> void
 {
   fasta_print_general(output_handle,
-                      nullptr,
                       db.record(seqno),
                       OutputAnnotations{db.getabundance(seqno), static_cast<int64_t>(ordinal)},
                       parameters);
@@ -454,7 +481,6 @@ auto fasta_print_db(std::FILE * output_handle, uint64_t const seqno,
                     struct Parameters const & parameters) -> void
 {
   fasta_print_general(output_handle,
-                      nullptr,
                       db.record(seqno),
                       OutputAnnotations{db.getabundance(seqno), 0},
                       parameters);

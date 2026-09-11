@@ -336,7 +336,6 @@ auto writing_fasta_output(std::vector<uint64_t> const & deck,
       }
       ++amplicons_printed;
       fasta_print_general(fasta_file.handle.get(),
-                          nullptr,
                           db.record(counter),
                           OutputAnnotations{new_abundance, amplicons_printed},
                           parameters);

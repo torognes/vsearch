@@ -217,7 +217,8 @@ am__libcpu_a_SOURCES_DIST = arch/generic/increment_counters.cpp \
 	core/kmerhash.hpp core/linmemalign.hpp commands/fastx_mask.hpp \
 	commands/maskfasta.hpp core/mask.hpp vendored/md5.h \
 	core/minheap.hpp core/msa.hpp commands/orient.hpp \
-	core/otutable.hpp commands/rereplicate.hpp \
+	core/otutable.hpp core/print_pair.hpp \
+	commands/rereplicate.hpp \
 	core/query_record.hpp core/results.hpp commands/scramble.hpp \
 	commands/usearch_global.hpp core/search.hpp \
 	core/search_internal.hpp core/searchcore.hpp \
@@ -297,7 +298,8 @@ am__libcpu_pic_a_SOURCES_DIST = arch/generic/increment_counters.cpp \
 	core/kmerhash.hpp core/linmemalign.hpp commands/fastx_mask.hpp \
 	commands/maskfasta.hpp core/mask.hpp vendored/md5.h \
 	core/minheap.hpp core/msa.hpp commands/orient.hpp \
-	core/otutable.hpp commands/rereplicate.hpp \
+	core/otutable.hpp core/print_pair.hpp \
+	commands/rereplicate.hpp \
 	core/query_record.hpp core/results.hpp commands/scramble.hpp \
 	commands/usearch_global.hpp core/search.hpp \
 	core/search_internal.hpp core/searchcore.hpp \
@@ -376,7 +378,8 @@ am__libcpu_sse2_a_SOURCES_DIST =  \
 	core/kmerhash.hpp core/linmemalign.hpp commands/fastx_mask.hpp \
 	commands/maskfasta.hpp core/mask.hpp vendored/md5.h \
 	core/minheap.hpp core/msa.hpp commands/orient.hpp \
-	core/otutable.hpp commands/rereplicate.hpp \
+	core/otutable.hpp core/print_pair.hpp \
+	commands/rereplicate.hpp \
 	core/query_record.hpp core/results.hpp commands/scramble.hpp \
 	commands/usearch_global.hpp core/search.hpp \
 	core/search_internal.hpp core/searchcore.hpp \
@@ -449,7 +452,8 @@ am__libcpu_sse2_pic_a_SOURCES_DIST =  \
 	core/kmerhash.hpp core/linmemalign.hpp commands/fastx_mask.hpp \
 	commands/maskfasta.hpp core/mask.hpp vendored/md5.h \
 	core/minheap.hpp core/msa.hpp commands/orient.hpp \
-	core/otutable.hpp commands/rereplicate.hpp \
+	core/otutable.hpp core/print_pair.hpp \
+	commands/rereplicate.hpp \
 	core/query_record.hpp core/results.hpp commands/scramble.hpp \
 	commands/usearch_global.hpp core/search.hpp \
 	core/search_internal.hpp core/searchcore.hpp \
@@ -522,7 +526,8 @@ am__libcpu_ssse3_a_SOURCES_DIST =  \
 	core/kmerhash.hpp core/linmemalign.hpp commands/fastx_mask.hpp \
 	commands/maskfasta.hpp core/mask.hpp vendored/md5.h \
 	core/minheap.hpp core/msa.hpp commands/orient.hpp \
-	core/otutable.hpp commands/rereplicate.hpp \
+	core/otutable.hpp core/print_pair.hpp \
+	commands/rereplicate.hpp \
 	core/query_record.hpp core/results.hpp commands/scramble.hpp \
 	commands/usearch_global.hpp core/search.hpp \
 	core/search_internal.hpp core/searchcore.hpp \
@@ -595,7 +600,8 @@ am__libcpu_ssse3_pic_a_SOURCES_DIST =  \
 	core/kmerhash.hpp core/linmemalign.hpp commands/fastx_mask.hpp \
 	commands/maskfasta.hpp core/mask.hpp vendored/md5.h \
 	core/minheap.hpp core/msa.hpp commands/orient.hpp \
-	core/otutable.hpp commands/rereplicate.hpp \
+	core/otutable.hpp core/print_pair.hpp \
+	commands/rereplicate.hpp \
 	core/query_record.hpp core/results.hpp commands/scramble.hpp \
 	commands/usearch_global.hpp core/search.hpp \
 	core/search_internal.hpp core/searchcore.hpp \
@@ -667,7 +673,8 @@ am__libvsearch_core_a_SOURCES_DIST = core/align_simd.hpp \
 	core/kmerhash.hpp core/linmemalign.hpp commands/fastx_mask.hpp \
 	commands/maskfasta.hpp core/mask.hpp vendored/md5.h \
 	core/minheap.hpp core/msa.hpp commands/orient.hpp \
-	core/otutable.hpp commands/rereplicate.hpp \
+	core/otutable.hpp core/print_pair.hpp \
+	commands/rereplicate.hpp \
 	core/query_record.hpp core/results.hpp commands/scramble.hpp \
 	commands/usearch_global.hpp core/search.hpp \
 	core/search_internal.hpp core/searchcore.hpp \
@@ -909,7 +916,8 @@ am____top_builddir__bin_vsearch_SOURCES_DIST = core/align_simd.hpp \
 	core/kmerhash.hpp core/linmemalign.hpp commands/fastx_mask.hpp \
 	commands/maskfasta.hpp core/mask.hpp vendored/md5.h \
 	core/minheap.hpp core/msa.hpp commands/orient.hpp \
-	core/otutable.hpp commands/rereplicate.hpp \
+	core/otutable.hpp core/print_pair.hpp \
+	commands/rereplicate.hpp \
 	core/query_record.hpp core/results.hpp commands/scramble.hpp \
 	commands/usearch_global.hpp core/search.hpp \
 	core/search_internal.hpp core/searchcore.hpp \
@@ -1588,6 +1596,7 @@ core/minheap.hpp \
 core/msa.hpp \
 commands/orient.hpp \
 core/otutable.hpp \
+core/print_pair.hpp \
 commands/rereplicate.hpp \
 core/query_record.hpp \
 core/results.hpp \
