@@ -77,6 +77,7 @@
 #include "utils/reverse_complement.hpp"
 #include "utils/string_normalize.hpp"
 #include <algorithm>  // std::min, std::max
+#include <cassert>
 #include <cstddef>  // std::size_t
 #include <cstdint>  // int64_t, uint64_t
 #include <cstdio>  // std::fprintf
@@ -202,6 +203,47 @@ inline auto next_bucket(uint64_t const prev_bucket, uint64_t const htsize) -> ui
 }
 
 
+/*
+  The bucket holding this hash, or the free bucket where it belongs: linear
+  probing from hash2bucket(), stepping with next_bucket().
+
+  Sequences are matched by their 128-bit CityHash alone -- there is no
+  byte-wise comparison here (unlike derep_fulllength and derep_prefix), a
+  deliberate memory tradeoff. A 128-bit hash collision would merge two
+  distinct sequences, but the probability only approaches 50% near
+  2^64 (~1.8e19) sequences.
+*/
+inline auto find_bucket(std::vector<struct sm_bucket> & hashtable,
+                        uint128 const hash) -> struct sm_bucket &
+{
+  auto const htsize = hashtable.size();
+  auto index = hash2bucket(hash, htsize);
+  /* the one raw pointer left in the probe, walking in step with the index so
+     that the bucket's address does not have to be recomputed on return; it
+     used to be four, one per copy of this loop */
+  auto * bucket = &hashtable[index];
+  while (is_occupied(*bucket) and (hash != bucket->hash))
+    {
+      index = next_bucket(index, htsize);
+      bucket = &hashtable[index];
+    }
+  return *bucket;
+}
+
+
+/* the table is grown before it passes this fill rate */
+constexpr auto max_fill_rate_percent = uint64_t{95};
+constexpr auto percent_scale = uint64_t{100};
+
+
+/* Whether adding one more cluster would take the table past its fill-rate cap.
+   Written as a cross-multiplication so that it stays integer arithmetic. */
+inline auto is_too_full(uint64_t const clusters, std::size_t const table_size) -> bool
+{
+  return percent_scale * (clusters + 1) > max_fill_rate_percent * table_size;
+}
+
+
 auto rehash_smallmem(std::vector<struct sm_bucket> & hashtable) -> void
 {
   /* allocate new hash table, 50% larger */
@@ -213,12 +255,11 @@ auto rehash_smallmem(std::vector<struct sm_bucket> & hashtable) -> void
     {
       if (is_occupied(old_bucket))
         {
-          auto k = hash2bucket(old_bucket.hash, new_hashtablesize);
-          while (is_occupied(new_hashtable[k]))
-            {
-              k = next_bucket(k, new_hashtablesize);
-            }
-          new_hashtable[k] = old_bucket;
+          auto & new_bucket = find_bucket(new_hashtable, old_bucket.hash);
+          /* the table holds one bucket per distinct hash, so find_bucket can
+             only have stopped on a free one */
+          assert(not is_occupied(new_bucket));
+          new_bucket = old_bucket;
         }
     }
 
@@ -251,7 +292,8 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
 
   /* allocate initial hashtable with 1024 buckets */
 
-  std::vector<struct sm_bucket> hashtable(1024);
+  static constexpr auto initial_bucket_count = std::size_t{1024};
+  std::vector<struct sm_bucket> hashtable(initial_bucket_count);
 
   // memory-intensive: the hash table has been allocated
 
@@ -297,7 +339,7 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
             vsearch::grow_to_fit(rc_seq_up, static_cast<size_t>(seqlen));
           }
 
-        if (100 * (stats.clusters + 1) > 95 * hashtable.size())
+        if (is_too_full(stats.clusters, hashtable.size()))
           {
             // keep hash table fill rate at max 95% */
             rehash_smallmem(hashtable);
@@ -307,26 +349,10 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
         /* normalize sequence: uppercase and replace U by T  */
         auto const seq_up_v = normalize_into(seq_up, sequence);
 
-        /*
-          Find a free bucket, or the bucket holding this sequence. Sequences
-          are matched by their 128-bit CityHash alone — there is no byte-wise
-          comparison here (unlike derep_fulllength and derep_prefix), a
-          deliberate memory tradeoff. A 128-bit hash collision would merge two
-          distinct sequences, but the probability only approaches 50% near
-          2^64 (~1.8e19) sequences.
-        */
-
         auto const hash = hash_function(seq_up_v);
-        auto j =  hash2bucket(hash, hashtable.size());
-        auto * bp = &hashtable[j];
+        auto * bucket = &find_bucket(hashtable, hash);
 
-        while (is_occupied(*bp) and (hash != bp->hash))
-          {
-            j = next_bucket(j, hashtable.size());
-            bp = &hashtable[j];
-          }
-
-        if (parameters.opt_strand and not is_occupied(*bp))
+        if (parameters.opt_strand and not is_occupied(*bucket))
           {
             /* no match on plus strand */
             /* check minus strand as well */
@@ -337,19 +363,11 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
                records do */
             reverse_complement(make_span(rc_seq_up).first(static_cast<std::size_t>(seqlen)), seq_up_v);
             auto const rc_hash = hash_function(make_view(rc_seq_up).first(static_cast<std::size_t>(seqlen)));
-            auto k =  hash2bucket(rc_hash, hashtable.size());
-            auto * rc_bp = &hashtable[k];
+            auto & rc_bucket = find_bucket(hashtable, rc_hash);
 
-            while (is_occupied(*rc_bp) and (rc_hash != rc_bp->hash))
+            if (is_occupied(rc_bucket))
               {
-                k = next_bucket(k, hashtable.size());
-                rc_bp = &hashtable[k];
-              }
-
-            if (is_occupied(*rc_bp))
-              {
-                bp = rc_bp;
-                j = k;  // cppcheck: 'j' is assigned a value that is never used
+                bucket = &rc_bucket;
               }
           }
 
@@ -357,20 +375,20 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
         int64_t const ab = parameters.opt_sizein ? abundance : 1;
         stats.sumsize += ab;
 
-        if (is_occupied(*bp))
+        if (is_occupied(*bucket))
           {
             /* at least one identical sequence already */
-            bp->size += static_cast<uint64_t>(ab);
+            bucket->size += static_cast<uint64_t>(ab);
           }
         else
           {
             /* no identical sequences yet */
-            bp->size = static_cast<uint64_t>(ab);
-            bp->hash = hash;
+            bucket->size = static_cast<uint64_t>(ab);
+            bucket->hash = hash;
             ++stats.clusters;
           }
 
-        stats.maxsize = std::max(bp->size, stats.maxsize);
+        stats.maxsize = std::max(bucket->size, stats.maxsize);
 
         ++stats.sequencecount;
         progress.update(h->get_position());
@@ -420,16 +438,9 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
         auto const seq_up_v = normalize_into(seq_up, sequence);
 
         auto const hash = hash_function(seq_up_v);
-        auto j =  hash2bucket(hash, hashtable.size());
-        auto * bp = &hashtable[j];
+        auto * bucket = &find_bucket(hashtable, hash);
 
-        while (is_occupied(*bp) and (hash != bp->hash))
-          {
-            j = next_bucket(j, hashtable.size());
-            bp = &hashtable[j];
-          }
-
-        if (parameters.opt_strand and not is_occupied(*bp))
+        if (parameters.opt_strand and not is_occupied(*bucket))
           {
             /* no match on plus strand */
             /* check minus strand as well */
@@ -440,23 +451,15 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
                records do */
             reverse_complement(make_span(rc_seq_up).first(static_cast<std::size_t>(seqlen)), seq_up_v);
             auto const rc_hash = hash_function(make_view(rc_seq_up).first(static_cast<std::size_t>(seqlen)));
-            auto k =  hash2bucket(rc_hash, hashtable.size());
-            auto * rc_bp = &hashtable[k];
+            auto & rc_bucket = find_bucket(hashtable, rc_hash);
 
-            while (is_occupied(*rc_bp) and (rc_hash != rc_bp->hash))
+            if (is_occupied(rc_bucket))
               {
-                k = next_bucket(k, hashtable.size());
-                rc_bp = &hashtable[k];
-              }
-
-            if (is_occupied(*rc_bp))
-              {
-                bp = rc_bp;
-                j = k;  // cppcheck: 'j' is assigned a value that is never used
+                bucket = &rc_bucket;
               }
           }
 
-        auto const size = static_cast<int64_t>(bp->size);
+        auto const size = static_cast<int64_t>(bucket->size);
 
         if (size > 0)
           {
@@ -473,7 +476,7 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
                                                       static_cast<int64_t>(selected)},
                                     parameters);
               }
-            bp->size = static_cast<uint64_t>(-1);
+            bucket->size = static_cast<uint64_t>(-1);
           }
 
         progress.update(h2->get_position());
