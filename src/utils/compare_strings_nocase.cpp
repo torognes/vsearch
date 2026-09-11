@@ -80,40 +80,31 @@ namespace {
 
 auto contains_substring(View<char> const haystack, View<char> const needle) -> bool {
   // case insensitive
-  auto const * const hit = std::search(haystack.begin(), haystack.end(),
-                                 needle.begin(), needle.end(),
-                                 compare_chars);
+  auto const hit = std::search(haystack.begin(), haystack.end(),
+                               needle.begin(), needle.end(),
+                               compare_chars);
   return (hit != haystack.end());
 }
 
 
-auto are_same_string(View<char> const haystack, std::vector<char> const & needle) -> bool {
+/* the View/View overload is where the comparison semantics live; the other two
+   only convert their arguments and delegate */
+auto are_same_string(View<char> const lhs, View<char> const rhs) -> bool {
   // case insensitive
-  if (haystack.size() != needle.size()) {
+  if (lhs.size() != rhs.size()) {
     return false;
   }
-  return std::equal(haystack.begin(), haystack.end(),
-                    needle.begin(), compare_chars);
+  return std::equal(lhs.begin(), lhs.end(),
+                    rhs.begin(), compare_chars);
 }
 
 
-auto are_same_string(View<char> const haystack, View<char> const needle) -> bool {
-  // case insensitive
-  if (haystack.size() != needle.size()) {
-    return false;
-  }
-  return std::equal(haystack.begin(), haystack.end(),
-                    needle.begin(), compare_chars);
+auto are_same_string(View<char> const lhs, std::vector<char> const & rhs) -> bool {
+  return are_same_string(lhs, make_view(rhs));
 }
 
 
-auto are_same_string(char const * haystack_str, char const * needle_str) -> bool {
-  // case insensitive
-  auto const haystack = View<char>{haystack_str, std::strlen(haystack_str)};
-  auto const needle = View<char>{needle_str, std::strlen(needle_str)};
-  if (haystack.size() != needle.size()) {
-    return false;
-  }
-  return std::equal(haystack.begin(), haystack.end(),
-                    needle.begin(), compare_chars);
+auto are_same_string(char const * const lhs, char const * const rhs) -> bool {
+  return are_same_string(View<char>{lhs, std::strlen(lhs)},
+                         View<char>{rhs, std::strlen(rhs)});
 }

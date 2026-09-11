@@ -66,8 +66,10 @@
 
 auto contains_substring(View<char> haystack, View<char> needle) -> bool;
 
-auto are_same_string(View<char> haystack, std::vector<char> const & needle) -> bool;
+/* symmetric equality test: lhs/rhs rather than haystack/needle, which belong
+   to contains_substring above and would imply an asymmetry this does not have */
+auto are_same_string(View<char> lhs, View<char> rhs) -> bool;
 
-auto are_same_string(View<char> haystack, View<char> needle) -> bool;
+auto are_same_string(View<char> lhs, std::vector<char> const & rhs) -> bool;
 
-auto are_same_string(char const * haystack_str, char const * needle_str) -> bool;
+auto are_same_string(char const * lhs, char const * rhs) -> bool;
