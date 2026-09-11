@@ -67,8 +67,7 @@
 #include <cstddef>
 #include <memory>  // std::unique_ptr
 #include "core/attributes.hpp"  // struct OutputAnnotations
-#include "core/fasta.hpp"
-#include "core/fastq.hpp"
+#include "core/print_pair.hpp"  // vsearch::OutputPair, vsearch::write_record
 #include "core/fastx.hpp"
 #include "os/system.hpp"  // xstat_t, xfstat, S_ISFIFO
 #include "utils/print_view.hpp"  // fprint
@@ -522,10 +521,14 @@ auto getseq(struct Parameters const & parameters, GetseqMode const mode,
 
   uint64_t const filesize = h1->get_size();
 
-  auto fastaout_handle = open_optional_output_file(parameters.opt_fastaout, OutputOption{"--fastaout"});
-  auto fastqout_handle = open_optional_output_file(parameters.opt_fastqout, OutputOption{"--fastqout"});
-  auto notmatched_handle = open_optional_output_file(parameters.opt_notmatched, OutputOption{"--notmatched"});
-  auto notmatchedfq_handle = open_optional_output_file(parameters.opt_notmatchedfq, OutputOption{"--notmatchedfq"});
+  vsearch::OutputPair matched {
+    open_optional_output_file(parameters.opt_fastaout, OutputOption{"--fastaout"}),
+    open_optional_output_file(parameters.opt_fastqout, OutputOption{"--fastqout"})
+  };
+  vsearch::OutputPair notmatched {
+    open_optional_output_file(parameters.opt_notmatched, OutputOption{"--notmatched"}),
+    open_optional_output_file(parameters.opt_notmatchedfq, OutputOption{"--notmatchedfq"})
+  };
 
   int64_t kept = 0;
   int64_t discarded = 0;
@@ -567,24 +570,12 @@ auto getseq(struct Parameters const & parameters, GetseqMode const mode,
             auto const window_length = static_cast<std::size_t>(length);
             auto const sequence = h1->sequence_view().subspan(window_start, window_length);
 
-            if (parameters.opt_fastaout != nullptr)
-              {
-                fasta_print_general(fastaout_handle.get(),
-                                    sequence,
-                                    h1->header_view(),
-                                    OutputAnnotations{static_cast<uint64_t>(h1->get_abundance()), kept},
-                                    parameters);
-              }
-
-            if (parameters.opt_fastqout != nullptr)
-              {
-                fastq_print_general(fastqout_handle.get(),
-                                    sequence,
-                                    h1->header_view(),
-                                    h1->quality_view().subspan(window_start, window_length),
-                                    OutputAnnotations{static_cast<uint64_t>(h1->get_abundance()), kept},
-                                    parameters);
-              }
+            vsearch::write_record(matched,
+                                  sequence,
+                                  h1->header_view(),
+                                  h1->quality_view().subspan(window_start, window_length),
+                                  OutputAnnotations{static_cast<uint64_t>(h1->get_abundance()), kept},
+                                  parameters);
           }
         else
           {
@@ -594,21 +585,10 @@ auto getseq(struct Parameters const & parameters, GetseqMode const mode,
 
             ++discarded;
 
-            if (parameters.opt_notmatched != nullptr)
-              {
-                fasta_print_general(notmatched_handle.get(),
-                                    h1->record(),
-                                    OutputAnnotations{static_cast<uint64_t>(h1->get_abundance()), discarded},
-                                    parameters);
-              }
-
-            if (parameters.opt_notmatchedfq != nullptr)
-              {
-                fastq_print_general(notmatchedfq_handle.get(),
-                                    h1->record(),
-                                    OutputAnnotations{static_cast<uint64_t>(h1->get_abundance()), discarded},
-                                    parameters);
-              }
+            vsearch::write_record(notmatched,
+                                  h1->record(),
+                                  OutputAnnotations{static_cast<uint64_t>(h1->get_abundance()), discarded},
+                                  parameters);
           }
 
         progress.update(h1->get_position());
@@ -631,10 +611,10 @@ auto getseq(struct Parameters const & parameters, GetseqMode const mode,
      four is not significant: outputs naming the same target share one
      std::FILE (see utils/open_file.hpp). reset() is a no-op on an empty
      handle, so unopened outputs need no guard. */
-  fastaout_handle.reset();
-  fastqout_handle.reset();
-  notmatched_handle.reset();
-  notmatchedfq_handle.reset();
+  matched.fasta.reset();
+  matched.fastq.reset();
+  notmatched.fasta.reset();
+  notmatched.fastq.reset();
 
   h1->report_stripped_warning(parameters);
 }

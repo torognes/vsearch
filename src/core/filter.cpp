@@ -62,8 +62,7 @@
 #include "vsearch.hpp"
 #include <memory>  // std::unique_ptr
 #include "core/attributes.hpp"  // struct OutputAnnotations
-#include "core/fasta.hpp"
-#include "core/fastq.hpp"
+#include "core/print_pair.hpp"  // vsearch::OutputPair, vsearch::write_record
 #include "core/fastx.hpp"
 #include "utils/print_view.hpp"  // fprint
 #include "utils/progress.hpp"
@@ -456,27 +455,23 @@ auto filter(bool const fastq_only, char const * filename, struct Parameters cons
         }
     }
 
-  OutputFileHandle fp_fastaout;
-  OutputFileHandle fp_fastqout;
-  OutputFileHandle fp_fastaout_discarded;
-  OutputFileHandle fp_fastqout_discarded;
+  /* one destination pair per category: kept or discarded, forward or reverse */
+  vsearch::OutputPair kept_fwd;
+  vsearch::OutputPair kept_rev;
+  vsearch::OutputPair discarded_fwd;
+  vsearch::OutputPair discarded_rev;
 
-  OutputFileHandle fp_fastaout_rev;
-  OutputFileHandle fp_fastqout_rev;
-  OutputFileHandle fp_fastaout_discarded_rev;
-  OutputFileHandle fp_fastqout_discarded_rev;
-
-  fp_fastaout = open_optional_output_file(parameters.opt_fastaout, OutputOption{"--fastaout"});
-  fp_fastqout = open_optional_output_file(parameters.opt_fastqout, OutputOption{"--fastqout"});
-  fp_fastaout_discarded = open_optional_output_file(parameters.opt_fastaout_discarded, OutputOption{"--fastaout_discarded"});
-  fp_fastqout_discarded = open_optional_output_file(parameters.opt_fastqout_discarded, OutputOption{"--fastqout_discarded"});
+  kept_fwd.fasta = open_optional_output_file(parameters.opt_fastaout, OutputOption{"--fastaout"});
+  kept_fwd.fastq = open_optional_output_file(parameters.opt_fastqout, OutputOption{"--fastqout"});
+  discarded_fwd.fasta = open_optional_output_file(parameters.opt_fastaout_discarded, OutputOption{"--fastaout_discarded"});
+  discarded_fwd.fastq = open_optional_output_file(parameters.opt_fastqout_discarded, OutputOption{"--fastqout_discarded"});
 
   if (reverse_handle != nullptr)
     {
-      fp_fastaout_rev = open_optional_output_file(parameters.opt_fastaout_rev, OutputOption{"--fastaout_rev"});
-      fp_fastqout_rev = open_optional_output_file(parameters.opt_fastqout_rev, OutputOption{"--fastqout_rev"});
-      fp_fastaout_discarded_rev = open_optional_output_file(parameters.opt_fastaout_discarded_rev, OutputOption{"--fastaout_discarded_rev"});
-      fp_fastqout_discarded_rev = open_optional_output_file(parameters.opt_fastqout_discarded_rev, OutputOption{"--fastqout_discarded_rev"});
+      kept_rev.fasta = open_optional_output_file(parameters.opt_fastaout_rev, OutputOption{"--fastaout_rev"});
+      kept_rev.fastq = open_optional_output_file(parameters.opt_fastqout_rev, OutputOption{"--fastqout_rev"});
+      discarded_rev.fasta = open_optional_output_file(parameters.opt_fastaout_discarded_rev, OutputOption{"--fastaout_discarded_rev"});
+      discarded_rev.fastq = open_optional_output_file(parameters.opt_fastqout_discarded_rev, OutputOption{"--fastqout_discarded_rev"});
     }
 
   int64_t kept = 0;
@@ -535,24 +530,12 @@ auto filter(bool const fastq_only, char const * filename, struct Parameters cons
               static_cast<uint64_t>(res1.abundance), discarded};
             forward_annotations.expected_error = res1.ee;
 
-            if (parameters.opt_fastaout_discarded != nullptr)
-              {
-                fasta_print_general(fp_fastaout_discarded.get(),
-                                    res1.sequence,
-                                    forward_handle->header_view(),
-                                    forward_annotations,
-                                    parameters);
-              }
-
-            if (parameters.opt_fastqout_discarded != nullptr)
-              {
-                fastq_print_general(fp_fastqout_discarded.get(),
-                                    res1.sequence,
-                                    forward_handle->header_view(),
-                                    res1.quality,
-                                    forward_annotations,
-                                    parameters);
-              }
+            vsearch::write_record(discarded_fwd,
+                                  res1.sequence,
+                                  forward_handle->header_view(),
+                                  res1.quality,
+                                  forward_annotations,
+                                  parameters);
 
             if (reverse_handle != nullptr)
               {
@@ -560,24 +543,12 @@ auto filter(bool const fastq_only, char const * filename, struct Parameters cons
                   static_cast<uint64_t>(res2.abundance), discarded};
                 reverse_annotations.expected_error = res2.ee;
 
-                if (parameters.opt_fastaout_discarded_rev != nullptr)
-                  {
-                    fasta_print_general(fp_fastaout_discarded_rev.get(),
-                                        res2.sequence,
-                                        reverse_handle->header_view(),
-                                        reverse_annotations,
-                                        parameters);
-                  }
-
-                if (parameters.opt_fastqout_discarded_rev != nullptr)
-                  {
-                    fastq_print_general(fp_fastqout_discarded_rev.get(),
-                                        res2.sequence,
-                                        reverse_handle->header_view(),
-                                        res2.quality,
-                                        reverse_annotations,
-                                        parameters);
-                  }
+                vsearch::write_record(discarded_rev,
+                                      res2.sequence,
+                                      reverse_handle->header_view(),
+                                      res2.quality,
+                                      reverse_annotations,
+                                      parameters);
               }
           }
         else
@@ -595,24 +566,12 @@ auto filter(bool const fastq_only, char const * filename, struct Parameters cons
               static_cast<uint64_t>(res1.abundance), kept};
             forward_annotations.expected_error = res1.ee;
 
-            if (parameters.opt_fastaout != nullptr)
-              {
-                fasta_print_general(fp_fastaout.get(),
-                                    res1.sequence,
-                                    forward_handle->header_view(),
-                                    forward_annotations,
-                                    parameters);
-              }
-
-            if (parameters.opt_fastqout != nullptr)
-              {
-                fastq_print_general(fp_fastqout.get(),
-                                    res1.sequence,
-                                    forward_handle->header_view(),
-                                    res1.quality,
-                                    forward_annotations,
-                                    parameters);
-              }
+            vsearch::write_record(kept_fwd,
+                                  res1.sequence,
+                                  forward_handle->header_view(),
+                                  res1.quality,
+                                  forward_annotations,
+                                  parameters);
 
             if (reverse_handle != nullptr)
               {
@@ -620,24 +579,12 @@ auto filter(bool const fastq_only, char const * filename, struct Parameters cons
                   static_cast<uint64_t>(res2.abundance), kept};
                 reverse_annotations.expected_error = res2.ee;
 
-                if (parameters.opt_fastaout_rev != nullptr)
-                  {
-                    fasta_print_general(fp_fastaout_rev.get(),
-                                        res2.sequence,
-                                        reverse_handle->header_view(),
-                                        reverse_annotations,
-                                        parameters);
-                  }
-
-                if (parameters.opt_fastqout_rev != nullptr)
-                  {
-                    fastq_print_general(fp_fastqout_rev.get(),
-                                        res2.sequence,
-                                        reverse_handle->header_view(),
-                                        res2.quality,
-                                        reverse_annotations,
-                                        parameters);
-                  }
+                vsearch::write_record(kept_rev,
+                                      res2.sequence,
+                                      reverse_handle->header_view(),
+                                      res2.quality,
+                                      reverse_annotations,
+                                      parameters);
               }
           }
 
@@ -662,50 +609,22 @@ auto filter(bool const fastq_only, char const * filename, struct Parameters cons
       print_filter_summary(parameters.fp_log, summary);
     }
 
+  /* closed in the order the per-option guards used to give; reset() is a no-op
+     on an empty handle, so an output that was never opened needs no guard */
   if (reverse_handle != nullptr)
     {
-      if (parameters.opt_fastaout_rev != nullptr)
-        {
-          fp_fastaout_rev.reset();
-        }
-
-      if (parameters.opt_fastqout_rev != nullptr)
-        {
-          fp_fastqout_rev.reset();
-        }
-
-      if (parameters.opt_fastaout_discarded_rev != nullptr)
-        {
-          fp_fastaout_discarded_rev.reset();
-        }
-
-      if (parameters.opt_fastqout_discarded_rev != nullptr)
-        {
-          fp_fastqout_discarded_rev.reset();
-        }
+      kept_rev.fasta.reset();
+      kept_rev.fastq.reset();
+      discarded_rev.fasta.reset();
+      discarded_rev.fastq.reset();
 
       reverse_handle->report_stripped_warning(parameters);
     }
 
-  if (parameters.opt_fastaout != nullptr)
-    {
-      fp_fastaout.reset();
-    }
-
-  if (parameters.opt_fastqout != nullptr)
-    {
-      fp_fastqout.reset();
-    }
-
-  if (parameters.opt_fastaout_discarded != nullptr)
-    {
-      fp_fastaout_discarded.reset();
-    }
-
-  if (parameters.opt_fastqout_discarded != nullptr)
-    {
-      fp_fastqout_discarded.reset();
-    }
+  kept_fwd.fasta.reset();
+  kept_fwd.fastq.reset();
+  discarded_fwd.fasta.reset();
+  discarded_fwd.fastq.reset();
 
   forward_handle->report_stripped_warning(parameters);
 }
