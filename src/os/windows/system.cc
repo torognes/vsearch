@@ -78,9 +78,6 @@
    Win32-specific but not memory-related. */
 
 
-constexpr auto vsearch_memalignment = 16;
-
-
 auto system_get_cores() -> long
 {
   SYSTEM_INFO si;
@@ -131,7 +128,7 @@ auto xtell_fd(int const file_descriptor) -> uint64_t
 {
   __int64 const position = _lseeki64(file_descriptor, 0, SEEK_CUR);
   assert(position != -1);  // unchecked: -1 would widen to a huge uint64_t
-  return position;
+  return static_cast<uint64_t>(position);
 }
 
 
@@ -140,5 +137,5 @@ auto xftello(std::FILE * stream) -> uint64_t
 {
   __int64 const position = _ftelli64(stream);
   assert(position != -1);  // unchecked: -1 would widen to a huge uint64_t
-  return position;
+  return static_cast<uint64_t>(position);
 }

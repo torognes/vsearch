@@ -76,12 +76,15 @@
 #endif
 
 
+constexpr auto bytes_per_kilobyte = uint64_t{1024};
+
+
 auto system_get_memused() -> uint64_t
 {
   struct rusage r_usage;
   getrusage(RUSAGE_SELF, & r_usage);
   /* Linux: ru_maxrss gives the size in kilobytes  */
-  return static_cast<uint64_t>(r_usage.ru_maxrss) * 1024;
+  return static_cast<uint64_t>(r_usage.ru_maxrss) * bytes_per_kilobyte;
 }
 
 
