@@ -62,7 +62,7 @@
 #include "vsearch.hpp"
 #include <memory>  // std::unique_ptr
 #include "core/attributes.hpp"  // struct OutputAnnotations
-#include "core/fasta.hpp"  // fasta_print_general, fasta_get_abundance
+#include "core/print_pair.hpp"  // vsearch::OutputPair, vsearch::write_record
 #include "core/fastq.hpp"  // fastq_open, fastq_get_sequence, fastq_get_quality
 #include "core/fastx.hpp"  // fastx_handle
 #include "utils/print_view.hpp"  // fprint
@@ -95,16 +95,6 @@ namespace {
     input_file reverse;
   };
 
-  struct output_file {
-    char * name = nullptr;
-    OutputFileHandle handle;
-  };
-
-  struct output_files {
-    output_file fasta;
-    output_file fastq;
-  };
-
 
   auto check_parameters(struct Parameters const & parameters) -> void {
     if (parameters.opt_reverse == nullptr) {
@@ -135,23 +125,21 @@ namespace {
   }
 
 
-  auto open_output_files(struct Parameters const & parameters) -> struct output_files {
-    struct output_files outfiles;
-    outfiles.fasta.name = parameters.opt_fastaout;
-    outfiles.fastq.name = parameters.opt_fastqout;
-    outfiles.fasta.handle = open_optional_output_file(outfiles.fasta.name, OutputOption{"--fastaout"});
-    outfiles.fastq.handle = open_optional_output_file(outfiles.fastq.name, OutputOption{"--fastqout"});
+  auto open_output_files(struct Parameters const & parameters) -> vsearch::OutputPair {
+    vsearch::OutputPair outfiles;
+    outfiles.fasta = open_optional_output_file(parameters.opt_fastaout, OutputOption{"--fastaout"});
+    outfiles.fastq = open_optional_output_file(parameters.opt_fastqout, OutputOption{"--fastqout"});
     return outfiles;
   }
 
 
-  auto close_output_files(struct output_files & outfiles) -> void {
+  auto close_output_files(vsearch::OutputPair & outfiles) -> void {
     /* called before close_input_files(), which emits the stripped-character
        warnings, so that a deferred write error is fatal ahead of them. The
        order between the two is not significant: outputs naming the same target
        share one std::FILE (see utils/open_file.hpp). */
-    outfiles.fasta.handle.reset();
-    outfiles.fastq.handle.reset();
+    outfiles.fasta.reset();
+    outfiles.fastq.reset();
   }
 
 
@@ -251,26 +239,13 @@ auto fastq_join(struct Parameters const & parameters) -> void
 
         /* write output */
 
-        if (parameters.opt_fastqout != nullptr)
-          {
-            fastq_print_general(outfiles.fastq.handle.get(),
-                                make_view(final_sequence).first(needed),
-                                infiles.forward.handle->header_view(),
-                                make_view(final_quality).first(needed),
-                                OutputAnnotations{abundance,
-                                                  static_cast<int64_t>(total + 1)},
-                                parameters);
-          }
-
-        if (parameters.opt_fastaout != nullptr)
-          {
-            fasta_print_general(outfiles.fasta.handle.get(),
-                                make_view(final_sequence).first(needed),
-                                infiles.forward.handle->header_view(),
-                                OutputAnnotations{abundance,
-                                                  static_cast<int64_t>(total + 1)},
-                                parameters);
-          }
+        vsearch::write_record(outfiles,
+                              make_view(final_sequence).first(needed),
+                              infiles.forward.handle->header_view(),
+                              make_view(final_quality).first(needed),
+                              OutputAnnotations{abundance,
+                                                static_cast<int64_t>(total + 1)},
+                              parameters);
 
         ++total;
         progress.update(infiles.forward.handle->get_position());

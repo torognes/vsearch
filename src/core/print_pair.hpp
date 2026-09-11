@@ -88,6 +88,20 @@ struct OutputPair
 {
   OutputFileHandle fasta;
   OutputFileHandle fastq;
+
+  /* Will write_record() write anything at all? It tests both handles itself,
+     so this is not needed to be correct -- it is for a caller whose argument
+     views cost something to build, because as arguments they are built before
+     write_record() can decline. One test at the call site instead of the two
+     the migrated if/if pair used. Measured on fastq_mergepairs: building the
+     six views of a not-merged pair that nobody asked for cost 42 instructions
+     a record.
+
+     No user-provided constructor and no default member initializers, so
+     OutputPair stays a C++11 aggregate and callers can still brace-init it. */
+  auto wanted() const -> bool {
+    return (fasta != nullptr) or (fastq != nullptr);
+  }
 };
 
 
