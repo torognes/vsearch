@@ -164,9 +164,17 @@ namespace {
     /* Every fragment below is written the same way: the record's own header and
        abundance, and the fragment's ordinal within its output file. Only the
        destination, the fragment and the counter differ.
-       The offsets stay signed: rc_start is walked backwards from seq_length and
-       the intermediate rc_length is only known to be positive after the guard
-       at each call site, so std::size_t would be the wrong type for them. */
+
+       The offsets stay signed, and the two casts below stay, even though all
+       four of frag_start, frag_length, rc_start and rc_length are in fact
+       provably non-negative (each fragment runs from one match to the next, so
+       every length is a difference between two strictly increasing match
+       positions). The reason is the loop bound just below: pattern_length may
+       exceed seq_length -- a pattern longer than the sequence is ordinary, and
+       the record is simply never cut -- and `seq_length - pattern_length + 1`
+       must then be negative so the loop does not run. Unsigned, it would wrap
+       to a huge bound. Making only the four offsets unsigned would not remove
+       the casts either, since they are computed from `i` and seq_length. */
     auto emit = [&](struct a_file const & destination,
                     View<char> const source,
                     int const start,
