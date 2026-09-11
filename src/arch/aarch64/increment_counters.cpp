@@ -60,7 +60,6 @@
 
 #include "arch/increment_counters.hpp"
 #include "arch/intrinsics.hpp"
-#include "vsearch.hpp"
 #include <iterator>  // std::next
 
 
