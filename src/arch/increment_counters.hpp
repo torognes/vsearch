@@ -60,7 +60,8 @@
 
 #pragma once
 
-#include <climits>  // CHAR_BIT
+#include "utils/span.hpp"  // Span
+#include "utils/view.hpp"  // View
 
 /* increment_counters_from_bitmap: increment the 16-bit k-mer counters
    selected by the 1-bits of a bitmap (the search/sintax/cluster hot path).
@@ -79,21 +80,28 @@ using count_t = unsigned short;
 
 /* Every backend consumes the bitmap sixteen bits at a time: two bytes in, and
    the sixteen counters those bits select out (two 128-bit vectors of eight
-   16-bit counters each). A run of totalbits counters therefore takes
-   (totalbits + counters_per_round - 1) / counters_per_round rounds. */
+   16-bit counters each). counters.size() counters therefore take
+   (counters.size() + counters_per_round - 1) / counters_per_round rounds. */
 constexpr auto counters_per_round = 16U;
-constexpr auto bytes_per_round = counters_per_round / CHAR_BIT;
+constexpr auto bytes_per_round = 2U;  // the same sixteen bits, as whole bytes
 
+/* counters.size() is the old 'totalbits' parameter: one counter per bitmap
+   bit, so the span's own length is the bound and there is nothing left to pass
+   beside it -- nor two same-shaped pointers left to transpose at a call site.
+
+   Both ends are rounded up to a whole round, so the last one writes up to
+   counters_per_round - 1 counters past counters.size() and reads up to fifteen
+   bytes past the bitmap bits it needs. Both are deliberate and already paid
+   for: the callers reserve 16 counters of headroom (overflow_padding in
+   core/search.cpp, core/cluster.cpp and core/chimera.cpp) and the index pads
+   every bitmap by 127 bits (simd_padding in Dbindex::set_bitmap_width). */
 
 #ifdef __x86_64__
-auto increment_counters_from_bitmap_sse2(count_t * counters,
-                                         unsigned char const * bitmap,
-                                         unsigned int totalbits) -> void;
-auto increment_counters_from_bitmap_ssse3(count_t * counters,
-                                          unsigned char const * bitmap,
-                                          unsigned int totalbits) -> void;
+auto increment_counters_from_bitmap_sse2(Span<count_t> counters,
+                                         View<unsigned char> bitmap) -> void;
+auto increment_counters_from_bitmap_ssse3(Span<count_t> counters,
+                                          View<unsigned char> bitmap) -> void;
 #else
-auto increment_counters_from_bitmap(count_t * counters,
-                                    unsigned char const * bitmap,
-                                    unsigned int totalbits) -> void;
+auto increment_counters_from_bitmap(Span<count_t> counters,
+                                    View<unsigned char> bitmap) -> void;
 #endif

@@ -66,19 +66,18 @@
 
 // aarch64 backend: NEON intrinsics (arm_neon.h, via arch/intrinsics.hpp). Single
 // plain-named variant (no runtime dispatch off x86).
-auto increment_counters_from_bitmap(count_t * counters,
-                                    unsigned char const * bitmap,
-                                    unsigned int const totalbits) -> void
+auto increment_counters_from_bitmap(Span<count_t> const counters,
+                                    View<unsigned char> const bitmap) -> void
 {
   uint8x16_t const bit_selectors =
     { 0x01, 0x01, 0x02, 0x02, 0x04, 0x04, 0x08, 0x08,
       0x10, 0x10, 0x20, 0x20, 0x40, 0x40, 0x80, 0x80 };
 
-  auto const * bits = reinterpret_cast<unsigned short const *>(bitmap);
-  auto * counter_vector = reinterpret_cast<int16x8_t *>(counters);
-  auto const rounds = (totalbits + counters_per_round - 1) / counters_per_round;
+  auto const * bits = reinterpret_cast<unsigned short const *>(bitmap.data());
+  auto * counter_vector = reinterpret_cast<int16x8_t *>(counters.data());
+  auto const rounds = (counters.size() + counters_per_round - 1) / counters_per_round;
 
-  for (auto round = 0U; round < rounds; round++)
+  for (auto round = std::size_t{0}; round < rounds; round++)
     {
       // load and duplicate short
       auto const bit_word = vdupq_n_u16(*bits);

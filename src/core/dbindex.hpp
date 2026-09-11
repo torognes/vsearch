@@ -64,6 +64,8 @@
 #include "core/mask.hpp"  // Masking
 #include "core/unique.hpp"  // Uniquer
 #include "utils/fatal_allocator.hpp"  // FatalAllocator
+#include "utils/view.hpp"  // View
+#include <cstddef>  // std::size_t
 #include <cstdio>  // std::FILE
 #include <cstdint>  // uint64_t
 #include <vector>  // std::vector
@@ -107,6 +109,11 @@ struct Dbindex
   std::vector<unsigned int, FatalAllocator<unsigned int>> kmerbitmap_slot;
   std::vector<Bitmap> bitmap_pool;
   unsigned int bitmap_width = 0;  /* bits in each pooled bitmap; see set_bitmap_width */
+  /* bitmap_width rounded up to whole bytes, i.e. the length getbitmap() hands
+     out. Stored rather than derived, because getbitmap() is called once per
+     (query k-mer, slice) pair -- a quarter of a million times in a small
+     search -- and the width does not change for the life of an index. */
+  std::size_t bitmap_bytes = 0;
   std::vector<unsigned int, FatalAllocator<unsigned int>> map;  /* mapping from index element number to seqno */
   /* The index elements holding fewer distinct k-mers than minwordmatches, with
      that count. A target cannot share more k-mers than it holds, so asking one
@@ -185,6 +192,16 @@ struct Dbindex
   auto bitmap_of(unsigned int kmer) const -> Bitmap const &;
 
   auto getbitmap(unsigned int kmer) const -> unsigned char const *;
+
+  /* How many bytes long every bitmap getbitmap() returns is -- the same for all
+     of them, so a caller that walks a whole k-mer sample reads it once and
+     wraps each pointer in a View itself. Returning the View from getbitmap()
+     instead was measured and costs two instructions on each of its quarter of a
+     million calls per search, to re-return a length that never varies.
+     The count spans the whole allocation, padding included: set_bitmap_width()
+     adds 127 bits for exactly this reason, because the SIMD kernels load whole
+     128-bit registers and so touch bits past the last sequence. */
+  auto getbitmap_bytes() const -> std::size_t;
   auto getmatchcount(unsigned int kmer) const -> unsigned int;
   auto getmatchlist(unsigned int kmer) const -> unsigned int const *;
   auto getmapping(unsigned int index) const -> unsigned int;

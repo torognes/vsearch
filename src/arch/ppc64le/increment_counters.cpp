@@ -67,9 +67,8 @@
 
 // ppc64le backend: AltiVec/VSX intrinsics (altivec.h, via arch/intrinsics.hpp). Single
 // plain-named variant (no runtime dispatch off x86).
-auto increment_counters_from_bitmap(count_t * counters,
-                                    unsigned char const * bitmap,
-                                    unsigned int const totalbits) -> void
+auto increment_counters_from_bitmap(Span<count_t> const counters,
+                                    View<unsigned char> const bitmap) -> void
 {
   __vector unsigned char const shuffle_pattern =
     { 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0 };
@@ -80,11 +79,11 @@ auto increment_counters_from_bitmap(count_t * counters,
     { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
       0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff };
 
-  auto const * bits = reinterpret_cast<unsigned short const *>(bitmap);
-  auto * counter_vector = reinterpret_cast<__vector signed short *>(counters);
-  auto const rounds = (totalbits + counters_per_round - 1) / counters_per_round;
+  auto const * bits = reinterpret_cast<unsigned short const *>(bitmap.data());
+  auto * counter_vector = reinterpret_cast<__vector signed short *>(counters.data());
+  auto const rounds = (counters.size() + counters_per_round - 1) / counters_per_round;
 
-  for (auto round = 0U; round < rounds; round++)
+  for (auto round = std::size_t{0}; round < rounds; round++)
     {
       __vector unsigned char bit_word;
 

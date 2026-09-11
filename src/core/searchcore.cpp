@@ -285,26 +285,40 @@ auto accumulate_slice_counts(struct searchinfo_s const & searchinfo,
 
   std::fill_n(slice.begin(), slice_length, count_t{0});
 
+  /* Where this slice starts in any bitmap, and how much of one is left from
+     there. One bit per indexed sequence, and a slice starts on a multiple of
+     eight, so the slice starts on the whole byte first_index / 8; every bitmap
+     is the same length (see Dbindex::getbitmap_bytes). Both are the same for
+     every k-mer below, so both are computed once rather than once per k-mer. */
+  static constexpr auto bits_per_byte = 8U;
+  auto const first_byte = first_index / bits_per_byte;
+  auto const bitmap_bytes = searchinfo.dbindex->getbitmap_bytes();
+  /* a bitmap covers the whole indexed database and then some, so a slice of it
+     starts inside it; zero only if no index was built, when getbitmap() returns
+     null for every k-mer below and the length is never used */
+  assert((bitmap_bytes == 0) or (first_byte < bitmap_bytes));
+  auto const slice_bitmap_bytes =
+    (bitmap_bytes > first_byte) ? bitmap_bytes - first_byte : std::size_t{0};
+
   for (auto const kmer : searchinfo.kmersample)
     {
       auto const * const bitmap = searchinfo.dbindex->getbitmap(kmer);
 
       if (bitmap != nullptr)
         {
-          /* one bit per indexed sequence, so the slice starts at the whole
-             byte first_index / 8 */
-          auto const * const bits = std::next(bitmap, first_index / 8);
+          auto const bits = View<unsigned char>{std::next(bitmap, first_byte),
+                                                slice_bitmap_bytes};
 #ifdef __x86_64__
           if (parameters.runtime.ssse3_present != 0)
             {
-              increment_counters_from_bitmap_ssse3(slice.data(), bits, slice_length);
+              increment_counters_from_bitmap_ssse3(slice, bits);
             }
           else
             {
-              increment_counters_from_bitmap_sse2(slice.data(), bits, slice_length);
+              increment_counters_from_bitmap_sse2(slice, bits);
             }
 #else
-          increment_counters_from_bitmap(slice.data(), bits, slice_length);
+          increment_counters_from_bitmap(slice, bits);
 #endif
           continue;
         }

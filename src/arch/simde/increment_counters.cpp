@@ -69,9 +69,8 @@
 // backend (e.g. RISC-V, MIPS). arch/intrinsics.hpp pulls in SIMDE with native aliases,
 // so the x86 SSE intrinsics below compile everywhere. Single plain-named
 // variant (no runtime SSE2/SSSE3 dispatch off x86).
-auto increment_counters_from_bitmap(count_t * counters,
-                                    unsigned char const * bitmap,
-                                    unsigned int const totalbits) -> void
+auto increment_counters_from_bitmap(Span<count_t> const counters,
+                                    View<unsigned char> const bitmap) -> void
 {
   /*
     Increment selected elements in an array of 16 bit counters.
@@ -108,11 +107,11 @@ auto increment_counters_from_bitmap(count_t * counters,
   auto const bit_selectors = _mm_set_epi32(mask1, mask2, mask1, mask2);
   auto const ones = _mm_set_epi32(all_ones, all_ones, all_ones, all_ones);
 
-  auto const * bits = reinterpret_cast<unsigned short const *>(bitmap);
-  auto * counter_vector = reinterpret_cast<__m128i *>(counters);
-  auto const rounds = (totalbits + counters_per_round - 1) / counters_per_round;
+  auto const * bits = reinterpret_cast<unsigned short const *>(bitmap.data());
+  auto * counter_vector = reinterpret_cast<__m128i *>(counters.data());
+  auto const rounds = (counters.size() + counters_per_round - 1) / counters_per_round;
 
-  for (auto round = 0U; round < rounds; round++)
+  for (auto round = std::size_t{0}; round < rounds; round++)
     {
       auto const bit_word = _mm_loadu_si128(reinterpret_cast<__m128i const *>(bits));
       bits = std::next(bits);

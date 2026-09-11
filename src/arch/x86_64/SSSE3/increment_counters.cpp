@@ -67,9 +67,8 @@
 // SSSE3 backend: native x86_64, compiled with -mssse3. Uses the PSHUFB
 // instruction (_mm_shuffle_epi8) to expand the 16 bitmap bits in one step.
 // Runtime-selected on CPUs with SSSE3 support.
-auto increment_counters_from_bitmap_ssse3(count_t * counters,
-                                          unsigned char const * bitmap,
-                                          unsigned int const totalbits) -> void
+auto increment_counters_from_bitmap_ssse3(Span<count_t> const counters,
+                                          View<unsigned char> const bitmap) -> void
 {
   /*
     Increment selected elements in an array of 16 bit counters.
@@ -106,11 +105,11 @@ auto increment_counters_from_bitmap_ssse3(count_t * counters,
   auto const bit_selectors = _mm_set_epi32(mask1, mask2, mask1, mask2);
   auto const ones = _mm_set_epi32(all_ones, all_ones, all_ones, all_ones);
 
-  auto const * bits = reinterpret_cast<unsigned short const *>(bitmap);
-  auto * counter_vector = reinterpret_cast<__m128i *>(counters);
-  auto const rounds = (totalbits + counters_per_round - 1) / counters_per_round;
+  auto const * bits = reinterpret_cast<unsigned short const *>(bitmap.data());
+  auto * counter_vector = reinterpret_cast<__m128i *>(counters.data());
+  auto const rounds = (counters.size() + counters_per_round - 1) / counters_per_round;
 
-  for (auto round = 0U; round < rounds; round++)
+  for (auto round = std::size_t{0}; round < rounds; round++)
     {
       auto const bit_word = _mm_loadu_si128(reinterpret_cast<__m128i const *>(bits));
       bits = std::next(bits);
