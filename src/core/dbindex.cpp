@@ -103,6 +103,7 @@ auto Dbindex::bitmap_slots_reset(unsigned int const slots) -> void
   bitmap_pool.clear();
   bitmap_pool.shrink_to_fit();
   bitmap_width = 0;
+  bitmap_bytes = 0;
 }
 
 
@@ -111,7 +112,9 @@ auto Dbindex::set_bitmap_width(unsigned int const sequences) -> void
   /* pad for xmm: the SIMD counter routines read whole registers, so they may
      touch up to 127 bits past the last sequence */
   static constexpr unsigned int simd_padding = 127;
+  static constexpr auto bits_per_byte = 8U;
   bitmap_width = sequences + simd_padding;
+  bitmap_bytes = (bitmap_width + bits_per_byte - 1U) / bits_per_byte;
 }
 
 
@@ -158,6 +161,12 @@ auto Dbindex::getbitmap(unsigned int const kmer) const -> unsigned char const *
       return bitmap_pool[slot - 1].data();
     }
   return nullptr;
+}
+
+
+auto Dbindex::getbitmap_bytes() const -> std::size_t
+{
+  return bitmap_bytes;
 }
 
 

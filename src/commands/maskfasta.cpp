@@ -76,16 +76,18 @@ auto maskfasta(struct Parameters const & parameters) -> void
   db.read(parameters.input_filename, 0, parameters);
   // memory-intensive: the entire database is now held in memory
 
-  uint64_t const seqcount = db.getsequencecount();
+  auto const seqcount = db.getsequencecount();
 
   apply_masking(db, parameters.opt_qmask, parameters);
 
   {
+    /* the records keep their input order, so the ordinal --relabel counts from
+       is the sequence number plus one */
     Progress progress("Writing output", seqcount, parameters);
-    for (uint64_t i = 0; i < seqcount; i++)
+    for (auto seqno = uint64_t{0}; seqno < seqcount; ++seqno)
       {
-        fasta_print_db_relabel(output_handle.get(), i, i + 1, db, parameters);
-        progress.update(i);
+        fasta_print_db_relabel(output_handle.get(), seqno, seqno + 1, db, parameters);
+        progress.update(seqno);
       }
   }
 

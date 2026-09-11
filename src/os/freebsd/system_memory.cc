@@ -66,12 +66,15 @@
 #include <sys/sysctl.h>  // sysctlbyname
 
 
+constexpr auto bytes_per_kilobyte = uint64_t{1024};
+
+
 auto system_get_memused() -> uint64_t
 {
   struct rusage r_usage;
   getrusage(RUSAGE_SELF, & r_usage);
   /* FreeBSD: ru_maxrss gives the size in kilobytes */
-  return static_cast<uint64_t>(r_usage.ru_maxrss) * 1024;
+  return static_cast<uint64_t>(r_usage.ru_maxrss) * bytes_per_kilobyte;
 }
 
 
@@ -83,7 +86,9 @@ auto system_get_memtotal() -> uint64_t
   uint64_t ram = 0;
   std::size_t length = sizeof(ram);
   if (sysctlbyname("hw.physmem", &ram, &length, nullptr, 0) != 0)
-    fatal("Cannot determine amount of RAM");
+    {
+      fatal("Cannot determine amount of RAM");
+    }
   return ram;
 }
 

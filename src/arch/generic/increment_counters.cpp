@@ -59,48 +59,63 @@
 */
 
 #include "arch/increment_counters.hpp"
-#include "arch/intrinsics.hpp"
+#include <cstddef>  // std::ptrdiff_t, std::size_t
+#include <cstdint>  // int16_t, uint16_t
 #include <cstring>  // std::memcpy
 #include <iterator>  // std::next
 
 
-// ppc64le backend: AltiVec/VSX intrinsics (altivec.h, via arch/intrinsics.hpp). Single
-// plain-named variant (no runtime dispatch off x86).
+/*
+  Generic backend: plain C++11, no intrinsics and no SIMDE. Used on every
+  target that has no hand-written backend of its own (RISC-V, MIPS, s390x, ...);
+  aarch64, ppc64le and the two x86 ISA levels have their own.
+
+  This replaced a SIMDE backend that compiled the x86 SSE intrinsics through
+  SIMDE's translation layer. On a target with no vector unit for SIMDE to map
+  onto, that emulates 128-bit lane semantics in scalar integer operations: it
+  measured 305 instructions against the 53 below, on mips64el at -O2, with
+  neither form emitting a single vector instruction. The loop is deliberately
+  left rolled rather than unrolled sixteen ways, because on the ISAs that do
+  have a per-lane variable shift (NEON, AltiVec) GCC vectorizes the rolled form
+  of its own accord and unrolling defeats that.
+
+  Kept out of arch/x86_64/: below AVX2 the x86 ISAs have no per-lane variable
+  shift, so this loop cannot vectorize there and PSHUFB really is the algorithm
+  -- see arch/x86_64/SSSE3/.
+*/
 auto increment_counters_from_bitmap(Span<count_t> const counters,
                                     View<unsigned char> const bitmap) -> void
 {
-  __vector unsigned char const shuffle_pattern =
-    { 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0 };
-  __vector unsigned char const bit_selectors =
-    { 0xfe, 0xfd, 0xfb, 0xf7, 0xef, 0xdf, 0xbf, 0x7f,
-      0xfe, 0xfd, 0xfb, 0xf7, 0xef, 0xdf, 0xbf, 0x7f };
-  __vector unsigned char const all_ones =
-    { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
-      0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff };
+  /* the ceiling the SIMD backends saturate at: _mm_subs_epi16, vqsubq_s16 and
+     vec_subs are signed saturating, so they cap at INT16_MAX rather than
+     wrapping the unsigned-short counter at 65536 */
+  static constexpr auto counter_max = int16_t{32767};
 
-  auto const * bits = reinterpret_cast<unsigned short const *>(bitmap.data());
-  auto * counter_vector = reinterpret_cast<__vector signed short *>(counters.data());
   auto const rounds = (counters.size() + counters_per_round - 1) / counters_per_round;
 
-  for (auto round = std::size_t{0}; round < rounds; round++)
+  for (auto round = std::size_t{0}; round < rounds; ++round)
     {
-      __vector unsigned char bit_word;
+      /* std::next takes a signed difference_type, and these products are
+         std::size_t; the casts keep -Wsign-conversion quiet without widening
+         anything, since a round index cannot reach PTRDIFF_MAX */
+      auto const bitmap_offset =
+        static_cast<std::ptrdiff_t>(round * bytes_per_round);
+      auto const counter_offset =
+        static_cast<std::ptrdiff_t>(round * counters_per_round);
 
-      std::memcpy(&bit_word, bits, bytes_per_round);
-      bits = std::next(bits);
-      __vector unsigned char const spread = vec_perm(bit_word, bit_word, shuffle_pattern);
-      __vector unsigned char const selected = vec_or(spread, bit_selectors);
-      __vector __bool char const mask = vec_cmpeq(selected, all_ones);
-      /* vec_unpack* widen the boolean mask to __vector __bool short; the two
-         casts below only reinterpret those bits as signed counters, so they
-         are reinterpret_cast and not static_cast -- AltiVec vector types of
-         different element type have no conversion for static_cast to perform,
-         and GCC rejects it outright */
-      auto const mask_low = reinterpret_cast<__vector signed short>(vec_unpackl(mask));
-      auto const mask_high = reinterpret_cast<__vector signed short>(vec_unpackh(mask));
-      *counter_vector = vec_subs(*counter_vector, mask_low);
-      counter_vector = std::next(counter_vector);
-      *counter_vector = vec_subs(*counter_vector, mask_high);
-      counter_vector = std::next(counter_vector);
+      uint16_t bits = 0;
+      std::memcpy(&bits, std::next(bitmap.data(), bitmap_offset), bytes_per_round);
+      auto * const slice = std::next(counters.data(), counter_offset);
+
+      /* Written as a fold rather than a branch: the increment is zeroed at the
+         ceiling instead of jumping over the add, which is the shape a
+         vectorizer can take. Saturation costs nothing expressed this way. */
+      for (auto lane = 0U; lane < counters_per_round; ++lane)
+        {
+          auto const value = static_cast<int16_t>(slice[lane]);
+          auto const selected = static_cast<int16_t>((bits >> lane) & 1U);
+          slice[lane] = static_cast<count_t>(
+            value + ((value < counter_max) ? selected : int16_t{0}));
+        }
     }
 }

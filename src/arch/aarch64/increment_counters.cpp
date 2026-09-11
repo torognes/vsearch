@@ -60,53 +60,52 @@
 
 #include "arch/increment_counters.hpp"
 #include "arch/intrinsics.hpp"
-#include "vsearch.hpp"
+#include <iterator>  // std::next
 
 
 // aarch64 backend: NEON intrinsics (arm_neon.h, via arch/intrinsics.hpp). Single
 // plain-named variant (no runtime dispatch off x86).
-void increment_counters_from_bitmap(count_t * counters,
-                                    unsigned char const * bitmap,
-                                    unsigned int const totalbits)
+auto increment_counters_from_bitmap(Span<count_t> const counters,
+                                    View<unsigned char> const bitmap) -> void
 {
-  const uint8x16_t c1 =
+  uint8x16_t const bit_selectors =
     { 0x01, 0x01, 0x02, 0x02, 0x04, 0x04, 0x08, 0x08,
       0x10, 0x10, 0x20, 0x20, 0x40, 0x40, 0x80, 0x80 };
 
-  unsigned short const * p = reinterpret_cast<unsigned short const *>(bitmap);
-  int16x8_t * q = reinterpret_cast<int16x8_t *>(counters);
-  const auto r = (totalbits + 15) / 16;
+  auto const * bits = reinterpret_cast<unsigned short const *>(bitmap.data());
+  auto * counter_vector = reinterpret_cast<int16x8_t *>(counters.data());
+  auto const rounds = (counters.size() + counters_per_round - 1) / counters_per_round;
 
-  for (auto j = 0U; j < r; j++)
+  for (auto round = std::size_t{0}; round < rounds; round++)
     {
       // load and duplicate short
-      uint16x8_t r0 = vdupq_n_u16(*p);
-      ++p;
+      auto const bit_word = vdupq_n_u16(*bits);
+      bits = std::next(bits);
 
       // cast to bytes
-      uint8x16_t r1 = vreinterpretq_u8_u16(r0);
+      auto const bit_bytes = vreinterpretq_u8_u16(bit_word);
 
       // bit test with mask giving 0x00 or 0xff
-      uint8x16_t r2 = vtstq_u8(r1, c1);
+      auto const mask = vtstq_u8(bit_bytes, bit_selectors);
 
       // transpose to duplicate even bytes
-      uint8x16_t r3 = vtrn1q_u8(r2, r2);
+      auto const mask_even = vtrn1q_u8(mask, mask);
 
       // transpose to duplicate odd bytes
-      uint8x16_t r4 = vtrn2q_u8(r2, r2);
+      auto const mask_odd = vtrn2q_u8(mask, mask);
 
       // cast to signed 0x0000 or 0xffff
-      int16x8_t r5 = vreinterpretq_s16_u8(r3);
+      auto const mask_low = vreinterpretq_s16_u8(mask_even);
 
       // cast to signed 0x0000 or 0xffff
-      int16x8_t r6 = vreinterpretq_s16_u8(r4);
+      auto const mask_high = vreinterpretq_s16_u8(mask_odd);
 
       // subtract signed 0 or -1 (i.e add 0 or 1) with saturation to counter
-      *q = vqsubq_s16(*q, r5);
-      ++q;
+      *counter_vector = vqsubq_s16(*counter_vector, mask_low);
+      counter_vector = std::next(counter_vector);
 
       // subtract signed 0 or 1 (i.e. add 0 or 1) with saturation to counter
-      *q = vqsubq_s16(*q, r6);
-      ++q;
+      *counter_vector = vqsubq_s16(*counter_vector, mask_high);
+      counter_vector = std::next(counter_vector);
     }
 }

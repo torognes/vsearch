@@ -61,15 +61,15 @@
 #include "arch/increment_counters.hpp"
 #include "arch/intrinsics.hpp"  // SIMD intrinsics (__m128i, _mm_*)
 #include <cstdint>  // int32_t
+#include <iterator>  // std::next
 
 
 // SSE2 backend: native x86_64, compiled with -msse2. Lacking the SSSE3
 // PSHUFB instruction (_mm_shuffle_epi8), it expands the 16 bitmap bits with
 // a chain of unpack instructions instead. Runtime-selected on CPUs without
 // SSSE3; see arch/x86_64/SSSE3/ for the faster variant.
-void increment_counters_from_bitmap_sse2(count_t * counters,
-                                         unsigned char const * bitmap,
-                                         unsigned int const totalbits)
+auto increment_counters_from_bitmap_sse2(Span<count_t> const counters,
+                                         View<unsigned char> const bitmap) -> void
 {
   /*
     Increment selected elements in an array of 16 bit counters.
@@ -96,26 +96,27 @@ void increment_counters_from_bitmap_sse2(count_t * counters,
   // 0xf7fbfdfe -> 1111'0111'1111'1011'1111'1101'1111'1110 (32 bits)
   static constexpr auto mask2 = static_cast<int32_t>(0xf7fbfdfeU);
 
-  const auto c2 = _mm_set_epi32(mask1, mask2, mask1, mask2);
-  const auto c3 = _mm_set_epi32(all_ones, all_ones, all_ones, all_ones);
+  auto const bit_selectors = _mm_set_epi32(mask1, mask2, mask1, mask2);
+  auto const ones = _mm_set_epi32(all_ones, all_ones, all_ones, all_ones);
 
-  auto const * p = reinterpret_cast<unsigned short const *>(bitmap);
-  auto * q = reinterpret_cast<__m128i *>(counters);
-  const auto r = (totalbits + 15) / 16;
+  auto const * bits = reinterpret_cast<unsigned short const *>(bitmap.data());
+  auto * counter_vector = reinterpret_cast<__m128i *>(counters.data());
+  auto const rounds = (counters.size() + counters_per_round - 1) / counters_per_round;
 
-  for (auto j = 0U; j < r; j++)
+  for (auto round = std::size_t{0}; round < rounds; round++)
     {
-      const auto xmm0 = _mm_loadu_si128(reinterpret_cast<__m128i const *>(p++));
-      const auto xmm6 = _mm_unpacklo_epi8(xmm0, xmm0);
-      const auto xmm7 = _mm_unpacklo_epi16(xmm6, xmm6);
-      const auto xmm1 = _mm_unpacklo_epi32(xmm7, xmm7);
-      const auto xmm2 = _mm_or_si128(xmm1, c2);
-      const auto xmm3 = _mm_cmpeq_epi8(xmm2, c3);
-      const auto xmm4 = _mm_unpacklo_epi8(xmm3, xmm3);
-      const auto xmm5 = _mm_unpackhi_epi8(xmm3, xmm3);
-      *q = _mm_subs_epi16(*q, xmm4);
-      ++q;
-      *q = _mm_subs_epi16(*q, xmm5);
-      ++q;
+      auto const bit_word = _mm_loadu_si128(reinterpret_cast<__m128i const *>(bits));
+      bits = std::next(bits);
+      auto const spread_bytes = _mm_unpacklo_epi8(bit_word, bit_word);
+      auto const spread_words = _mm_unpacklo_epi16(spread_bytes, spread_bytes);
+      auto const spread = _mm_unpacklo_epi32(spread_words, spread_words);
+      auto const selected = _mm_or_si128(spread, bit_selectors);
+      auto const mask = _mm_cmpeq_epi8(selected, ones);
+      auto const mask_low = _mm_unpacklo_epi8(mask, mask);
+      auto const mask_high = _mm_unpackhi_epi8(mask, mask);
+      *counter_vector = _mm_subs_epi16(*counter_vector, mask_low);
+      counter_vector = std::next(counter_vector);
+      *counter_vector = _mm_subs_epi16(*counter_vector, mask_high);
+      counter_vector = std::next(counter_vector);
     }
 }

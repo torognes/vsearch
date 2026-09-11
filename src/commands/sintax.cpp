@@ -778,8 +778,8 @@ auto sintax_search_topscores(struct searchinfo_s * searchinfo,
   unsigned int const indexed_count = searchinfo->dbindex->getcount();
   assert(indexed_count <= kmer_counts.size());
   auto const counters = kmer_counts.first(indexed_count);
-  /* one bit per indexed sequence, rounded up to whole bytes */
-  auto const bitmap_bytes = (static_cast<std::size_t>(indexed_count) + 7) / 8;
+  /* every bitmap is the same length (see Dbindex::getbitmap_bytes) */
+  auto const bitmap_bytes = searchinfo->dbindex->getbitmap_bytes();
 
   /* Zero one slice of the counters and run the whole k-mer sample against it.
      A counter depends only on the k-mers that name its own sequence, so this
@@ -794,7 +794,7 @@ auto sintax_search_topscores(struct searchinfo_s * searchinfo,
 
       for (auto const kmer : searchinfo->kmersample)
         {
-          auto const * bitmap = searchinfo->dbindex->getbitmap(kmer);
+          auto const * const bitmap = searchinfo->dbindex->getbitmap(kmer);
 
           if (bitmap != nullptr)
             {

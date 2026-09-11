@@ -118,6 +118,13 @@ auto system_get_cores() -> long;
    where sysconf() cannot answer at all sees that failure passed through
    unchanged by both. */
 auto system_get_available_cores() -> long;
+
+/* The alignment every xmalloc() block is given. It lives here rather than in
+   each backend because it is a property of the allocations vsearch makes (the
+   SIMD kernels load 16-byte vectors from them), not of the platform allocator
+   that serves them. */
+constexpr auto vsearch_memalignment = 16;
+
 auto xmalloc(std::size_t size) -> void *;
 auto xfree(void * ptr) -> void;
 

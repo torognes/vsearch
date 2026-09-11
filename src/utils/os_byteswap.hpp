@@ -63,19 +63,11 @@
 
 #pragma once
 
-
-#if defined(_MSC_VER) || defined(_WIN32)
-
-#include <cstdint>  // uint16_t, uint32_t, uint64_t
-
-auto bswap_16(uint16_t bsx) noexcept -> uint16_t;
-
-auto bswap_32(uint32_t bsx) noexcept -> uint32_t;
-
-auto bswap_64(uint64_t bsx) noexcept -> uint64_t;
-
-
-#elif defined(__APPLE__) || defined(__FreeBSD__) || defined(__NetBSD__)
+// Declared as functions here (defined in os_byteswap.cpp with the
+// platform/compiler byteswap builtins / a portable fallback) rather than
+// pulling in the glibc-specific <byteswap.h>, so the build does not fail on a
+// host that lacks that header (uClibc, other exotic libcs). The declarations
+// are the interface and so cannot vary by platform; only the definitions do.
 
 #include <cstdint>  // uint16_t, uint32_t, uint64_t
 
@@ -84,21 +76,3 @@ auto bswap_16(uint16_t bsx) noexcept -> uint16_t;
 auto bswap_32(uint32_t bsx) noexcept -> uint32_t;
 
 auto bswap_64(uint64_t bsx) noexcept -> uint64_t;
-
-
-#else
-
-// Linux and other operating systems. Declared as functions here (defined in
-// os_byteswap.cpp with the compiler byteswap builtins / a portable fallback)
-// rather than pulling in the glibc-specific <byteswap.h>, so the build does
-// not fail on a host that lacks that header (uClibc, other exotic libcs).
-
-#include <cstdint>  // uint16_t, uint32_t, uint64_t
-
-auto bswap_16(uint16_t bsx) noexcept -> uint16_t;
-
-auto bswap_32(uint32_t bsx) noexcept -> uint32_t;
-
-auto bswap_64(uint64_t bsx) noexcept -> uint64_t;
-
-#endif

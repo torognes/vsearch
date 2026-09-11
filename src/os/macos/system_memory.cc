@@ -60,6 +60,7 @@
 
 #include "os/system.hpp"
 #include "utils/fatal.hpp"
+#include <array>  // std::array
 #include <cstddef>  // std::size_t
 #include <cstdint>  // int64_t, uint64_t
 #include <sys/resource.h>  // getrusage, RUSAGE_SELF, struct rusage
@@ -71,18 +72,24 @@ auto system_get_memused() -> uint64_t
   struct rusage r_usage;
   getrusage(RUSAGE_SELF, & r_usage);
   /* Mac: ru_maxrss gives the size in bytes */
-  return r_usage.ru_maxrss;
+  return static_cast<uint64_t>(r_usage.ru_maxrss);
 }
 
 
 auto system_get_memtotal() -> uint64_t
 {
-  int mib [] = { CTL_HW, HW_MEMSIZE };
+  /* a std::array reports its own element count, so the name and the length
+     handed to sysctl() can no longer disagree */
+  std::array<int, 2> mib = {{ CTL_HW, HW_MEMSIZE }};
   int64_t ram = 0;
   std::size_t length = sizeof(ram);
-  if(sysctl(mib, 2, &ram, &length, NULL, 0) == -1)
-    fatal("Cannot determine amount of RAM");
-  return ram;
+  /* sysctl() takes the element count as a u_int */
+  if (sysctl(mib.data(), static_cast<unsigned int>(mib.size()),
+             &ram, &length, nullptr, 0) == -1)
+    {
+      fatal("Cannot determine amount of RAM");
+    }
+  return static_cast<uint64_t>(ram);
 }
 
 

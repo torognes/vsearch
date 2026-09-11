@@ -259,8 +259,11 @@ libcpu_ssse3_pic_a_CXXFLAGS = $(AM_CXXFLAGS) -mssse3 -fPIC
 noinst_LIBRARIES = libcpu_sse2.a libcpu_ssse3.a libcpu_sse2_pic.a libcpu_ssse3_pic.a libcityhash.a libcityhash_pic.a libvsearch_core.a
 else
 # One backend per non-x86 ISA, selected here (no per-target preprocessor
-# branching in the source): NEON on aarch64, AltiVec on ppc64le, and the
-# SIMDE portable fallback (x86 SSE intrinsics translated by SIMDE) elsewhere.
+# branching in the source): NEON on aarch64, AltiVec on ppc64le, and a plain
+# C++11 kernel everywhere else. That last one used to be an x86-SSE-through-
+# SIMDE translation; on a target with no vector unit for SIMDE to map onto it
+# emulated 128-bit lane semantics in scalar code and cost 305 instructions
+# against the generic kernel's 53 (mips64el, -O2).
 if TARGET_AARCH64
 libcpu_a_SOURCES = arch/aarch64/increment_counters.cpp $(VSEARCHHEADERS)
 libcpu_pic_a_SOURCES = arch/aarch64/increment_counters.cpp $(VSEARCHHEADERS)
@@ -269,8 +272,8 @@ if TARGET_PPC
 libcpu_a_SOURCES = arch/ppc64le/increment_counters.cpp $(VSEARCHHEADERS)
 libcpu_pic_a_SOURCES = arch/ppc64le/increment_counters.cpp $(VSEARCHHEADERS)
 else
-libcpu_a_SOURCES = arch/simde/increment_counters.cpp $(VSEARCHHEADERS)
-libcpu_pic_a_SOURCES = arch/simde/increment_counters.cpp $(VSEARCHHEADERS)
+libcpu_a_SOURCES = arch/generic/increment_counters.cpp $(VSEARCHHEADERS)
+libcpu_pic_a_SOURCES = arch/generic/increment_counters.cpp $(VSEARCHHEADERS)
 endif
 endif
 libcpu_pic_a_CXXFLAGS = $(AM_CXXFLAGS) -fPIC

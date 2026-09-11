@@ -61,14 +61,14 @@
 #include "arch/increment_counters.hpp"
 #include "arch/intrinsics.hpp"  // SIMD intrinsics (__m128i, _mm_*)
 #include <cstdint>  // int32_t
+#include <iterator>  // std::next
 
 
 // SSSE3 backend: native x86_64, compiled with -mssse3. Uses the PSHUFB
 // instruction (_mm_shuffle_epi8) to expand the 16 bitmap bits in one step.
 // Runtime-selected on CPUs with SSSE3 support.
-void increment_counters_from_bitmap_ssse3(count_t * counters,
-                                          unsigned char const * bitmap,
-                                          unsigned int const totalbits)
+auto increment_counters_from_bitmap_ssse3(Span<count_t> const counters,
+                                          View<unsigned char> const bitmap) -> void
 {
   /*
     Increment selected elements in an array of 16 bit counters.
@@ -94,25 +94,33 @@ void increment_counters_from_bitmap_ssse3(count_t * counters,
   // 0xf7fbfdfe -> 1111'0111'1111'1011'1111'1101'1111'1110 (32 bits)
   static constexpr auto mask2 = static_cast<int32_t>(0xf7fbfdfeU);
 
-  const auto c1 = _mm_set_epi32(0x01010101, 0x01010101, 0x00000000, 0x00000000);
-  const auto c2 = _mm_set_epi32(mask1, mask2, mask1, mask2);
-  const auto c3 = _mm_set_epi32(all_ones, all_ones, all_ones, all_ones);
+  /* PSHUFB control bytes: 0x00 makes a lane take source byte 0 (the bit
+     word's low byte), 0x01 makes it take source byte 1 (the high byte), so
+     lanes 0-7 spread the low eight bits and lanes 8-15 the high eight */
+  static constexpr auto select_low_byte = 0x00000000;
+  static constexpr auto select_high_byte = 0x01010101;
 
-  auto const * p = reinterpret_cast<unsigned short const *>(bitmap);
-  auto * q = reinterpret_cast<__m128i *>(counters);
-  const auto r = (totalbits + 15) / 16;
+  auto const shuffle_pattern = _mm_set_epi32(select_high_byte, select_high_byte,
+                                             select_low_byte, select_low_byte);
+  auto const bit_selectors = _mm_set_epi32(mask1, mask2, mask1, mask2);
+  auto const ones = _mm_set_epi32(all_ones, all_ones, all_ones, all_ones);
 
-  for (auto j = 0U; j < r; j++)
+  auto const * bits = reinterpret_cast<unsigned short const *>(bitmap.data());
+  auto * counter_vector = reinterpret_cast<__m128i *>(counters.data());
+  auto const rounds = (counters.size() + counters_per_round - 1) / counters_per_round;
+
+  for (auto round = std::size_t{0}; round < rounds; round++)
     {
-      const auto xmm0 = _mm_loadu_si128(reinterpret_cast<__m128i const *>(p++));
-      const auto xmm1 = _mm_shuffle_epi8(xmm0, c1);
-      const auto xmm2 = _mm_or_si128(xmm1, c2);
-      const auto xmm3 = _mm_cmpeq_epi8(xmm2, c3);
-      const auto xmm4 = _mm_unpacklo_epi8(xmm3, xmm3);
-      const auto xmm5 = _mm_unpackhi_epi8(xmm3, xmm3);
-      *q = _mm_subs_epi16(*q, xmm4);
-      ++q;
-      *q = _mm_subs_epi16(*q, xmm5);
-      ++q;
+      auto const bit_word = _mm_loadu_si128(reinterpret_cast<__m128i const *>(bits));
+      bits = std::next(bits);
+      auto const spread = _mm_shuffle_epi8(bit_word, shuffle_pattern);
+      auto const selected = _mm_or_si128(spread, bit_selectors);
+      auto const mask = _mm_cmpeq_epi8(selected, ones);
+      auto const mask_low = _mm_unpacklo_epi8(mask, mask);
+      auto const mask_high = _mm_unpackhi_epi8(mask, mask);
+      *counter_vector = _mm_subs_epi16(*counter_vector, mask_low);
+      counter_vector = std::next(counter_vector);
+      *counter_vector = _mm_subs_epi16(*counter_vector, mask_high);
+      counter_vector = std::next(counter_vector);
     }
 }

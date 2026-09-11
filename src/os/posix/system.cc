@@ -73,9 +73,6 @@
    uniform POSIX. */
 
 
-constexpr auto vsearch_memalignment = 16;
-
-
 auto system_get_cores() -> long
 {
   return sysconf(_SC_NPROCESSORS_ONLN);
