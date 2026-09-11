@@ -63,8 +63,7 @@
 #include "utils/view.hpp"
 #include "vsearch.hpp"
 #include "core/attributes.hpp"  // struct OutputAnnotations
-#include "core/fasta.hpp"
-#include "core/fastq.hpp"
+#include "core/print_pair.hpp"  // vsearch::OutputPair, vsearch::write_record
 #include "core/fastx.hpp"
 #include "utils/progress.hpp"
 #include "utils/base_mapping.hpp"
@@ -115,8 +114,10 @@ auto fastx_revcomp(struct Parameters const & parameters) -> void
        which is the order the explicit close used to give. Which of the two is
        closed first is no longer observable: outputs naming the same target
        share one std::FILE (see utils/open_file.hpp). */
-    auto fastaout_handle = open_optional_output_file(parameters.opt_fastaout, OutputOption{"--fastaout"});
-    auto fastqout_handle = open_optional_output_file(parameters.opt_fastqout, OutputOption{"--fastqout"});
+    vsearch::OutputPair const destination {
+      open_optional_output_file(parameters.opt_fastaout, OutputOption{"--fastaout"}),
+      open_optional_output_file(parameters.opt_fastqout, OutputOption{"--fastqout"})
+    };
 
     int64_t count = 0;  // the ordinal fed to --relabel; int would wrap at 2^31 records
     Progress progress(input_handle->is_fastq_format() ? "Reading FASTQ file" : "Reading FASTA file", filesize, parameters);
@@ -147,24 +148,12 @@ auto fastx_revcomp(struct Parameters const & parameters) -> void
         auto const quality = input_handle->quality_view();
         std::reverse_copy(quality.cbegin(), quality.cend(), qual_buffer.begin());
 
-        if (parameters.opt_fastaout != nullptr)
-          {
-            fasta_print_general(fastaout_handle.get(),
-                                make_view(seq_buffer).first(length),
-                                header,
-                                OutputAnnotations{static_cast<uint64_t>(abundance), count},
-                                parameters);
-          }
-
-        if (parameters.opt_fastqout != nullptr)
-          {
-            fastq_print_general(fastqout_handle.get(),
-                                make_view(seq_buffer).first(length),
-                                header,
-                                make_view(qual_buffer).first(length),
-                                OutputAnnotations{static_cast<uint64_t>(abundance), count},
-                                parameters);
-          }
+        vsearch::write_record(destination,
+                              make_view(seq_buffer).first(length),
+                              header,
+                              make_view(qual_buffer).first(length),
+                              OutputAnnotations{static_cast<uint64_t>(abundance), count},
+                              parameters);
 
         progress.update(input_handle->get_position());
       }

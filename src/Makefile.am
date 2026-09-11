@@ -163,6 +163,7 @@ core/minheap.hpp \
 core/msa.hpp \
 commands/orient.hpp \
 core/otutable.hpp \
+core/print_pair.hpp \
 commands/rereplicate.hpp \
 core/query_record.hpp \
 core/results.hpp \
