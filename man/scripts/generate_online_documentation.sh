@@ -23,10 +23,16 @@ require_commands pandoc awk || exit 1
 ## the GitHub Pages renderer, thanks to the typographic_symbols
 ## setting in _config.yml (without it, kramdown would turn them
 ## into en-dashes).
+##
+## GFM proper has no definition-list syntax, so a plain "--to gfm" would
+## degrade each OPTIONS entry (term, then ": description") into a term, a
+## hard line break and the description, all inside a single paragraph.
+## The +definition_lists extension keeps them as definition lists, which
+## kramdown understands and renders as <dl>/<dt>/<dd>.
 ## called by name through write_output(), which shellcheck cannot see
 # shellcheck disable=SC2317
 convert_markdown_to_github_markdown() {
-    expand_markdown_includes "${1}" | pandoc - --to gfm
+    expand_markdown_includes "${1}" | pandoc - --to gfm+definition_lists
 }
 
 
