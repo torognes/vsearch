@@ -60,6 +60,7 @@
 
 #pragma once
 
+#include "vsearch.hpp"  // struct Parameters
 #include "utils/view.hpp"  // View<char>
 #include <cstdio>  // std::FILE
 #include <cstdint>  // int64_t, uint64_t
@@ -67,6 +68,20 @@
 #include <set>
 #include <string>
 #include <utility>  // std::pair
+
+
+// "this run builds an OTU table": the three output options that make the
+// per-hit path feed OtuTable::add(). The test was written out eight times
+// across usearch_global, search_exact and cluster, in two different spellings
+// of the same or -- which is what a named predicate settles. Inline, and in a
+// header, because three of those sites run once per query and vsearch has no
+// LTO, so a definition in another translation unit would become a real call.
+inline auto needs_otu_table(struct Parameters const & parameters) noexcept -> bool
+{
+  return (parameters.opt_otutabout != nullptr) or
+    (parameters.opt_mothur_shared_out != nullptr) or
+    (parameters.opt_biomout != nullptr);
+}
 
 
 // Identify sample and OTU identifiers in sequence headers and accumulate the

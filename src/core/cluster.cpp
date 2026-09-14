@@ -430,7 +430,7 @@ auto cluster_core_results_hit(struct cluster_cli_state_s & state,
   auto const qseqlen = static_cast<int>(qsequence.size());
   ++state.count_matched;
 
-  if ((state.parameters.opt_otutabout != nullptr) or (state.parameters.opt_mothur_shared_out != nullptr) or (state.parameters.opt_biomout != nullptr))
+  if (needs_otu_table(state.parameters))
     {
       if ((state.parameters.opt_relabel != nullptr) or state.parameters.opt_relabel_self or state.parameters.opt_relabel_sha1 or state.parameters.opt_relabel_md5)
         {
@@ -543,7 +543,7 @@ auto cluster_core_results_nohit(struct cluster_cli_state_s & state,
   auto const qseqlen = static_cast<int>(qsequence.size());
   ++state.count_notmatched;
 
-  if ((state.parameters.opt_otutabout != nullptr) or (state.parameters.opt_mothur_shared_out != nullptr) or (state.parameters.opt_biomout != nullptr))
+  if (needs_otu_table(state.parameters))
     {
       if ((state.parameters.opt_relabel != nullptr) or state.parameters.opt_relabel_self or state.parameters.opt_relabel_sha1 or state.parameters.opt_relabel_md5)
         {

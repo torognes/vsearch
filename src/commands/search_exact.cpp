@@ -299,7 +299,7 @@ auto search_exact_output_results(struct search_exact_state_s & state,
     {
       auto const top = top_hits(to_report, parameters.opt_top_hits_only != 0);
 
-      if ((parameters.opt_otutabout != nullptr) || (parameters.opt_mothur_shared_out != nullptr) || (parameters.opt_biomout != nullptr))
+      if (needs_otu_table(parameters))
         {
           state.otutable.add(query_head,
                        state.db.header_view(static_cast<uint64_t>(hits[0].target)),
@@ -376,7 +376,7 @@ auto search_exact_output_results(struct search_exact_state_s & state,
     }
   else
     {
-      if ((parameters.opt_otutabout != nullptr) || (parameters.opt_mothur_shared_out != nullptr) || (parameters.opt_biomout != nullptr))
+      if (needs_otu_table(parameters))
         {
           state.otutable.add(query_head,
                        View<char>{},
@@ -786,7 +786,7 @@ auto search_exact(struct Parameters const & parameters) -> void
     }
 
   // Add OTUs with no matches to OTU table
-  if ((parameters.opt_otutabout != nullptr) || (parameters.opt_mothur_shared_out != nullptr) || (parameters.opt_biomout != nullptr)) {
+  if (needs_otu_table(parameters)) {
     for (int64_t i = 0; i < state.seqcount; i++) {
       if (state.dbmatched[static_cast<std::size_t>(i)] == 0U) {
         state.otutable.add(View<char>{}, state.db.header_view(static_cast<uint64_t>(i)), 0);
