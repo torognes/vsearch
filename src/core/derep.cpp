@@ -1307,30 +1307,26 @@ auto derep_add_sequence(struct derep_session_s * ds,
 
 
 auto derep_get_results(struct derep_session_s * ds,
-                       struct derep_result_s * results,
-                       int const max_results,
-                       int * result_count) -> void
+                       Span<derep_result_s> const results) -> std::size_t
 {
-  /* Guard against a null output array: without this, a populated session with
-     max_results > 0 would write results[0] through a null pointer (L2e). */
-  if (results == nullptr)
+  /* Guard against a span with nothing to write to: without this, a populated
+     session handed a null pointer would write results[0] through it (L2e). An
+     empty span reaches the same answer through size(), so a caller asking for
+     no results is not a special case. */
+  if (results.empty() or (results.data() == nullptr))
     {
-      if (result_count != nullptr)
-        {
-          *result_count = 0;
-        }
-      return;
+      return 0;
     }
 
-  if (!ds->finalized)
+  if (not ds->finalized)
     {
       /* Sort the hashtable — same comparator as CLI */
       std::sort(ds->hashtable.begin(), ds->hashtable.end(), derep_bucket_before);
       ds->finalized = true;
     }
 
-  int count = 0;
-  for (uint64_t i = 0; i < ds->hashtablesize and count < max_results; ++i)
+  std::size_t count = 0;
+  for (uint64_t i = 0; i < ds->hashtablesize and count < results.size(); ++i)
     {
       auto const & b = ds->hashtable[i];
       if (not is_occupied(b))
@@ -1344,7 +1340,7 @@ auto derep_get_results(struct derep_session_s * ds,
       results[count].count = static_cast<int>(b.count);
       ++count;
     }
-  *result_count = count;
+  return count;
 }
 
 

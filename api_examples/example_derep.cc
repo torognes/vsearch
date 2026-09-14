@@ -66,13 +66,10 @@ int main() {
 
     /* 4. Get results (sorted by abundance descending) */
     std::vector<struct derep_result_s> results(labels.size());
-    int result_count = 0;
-    derep_get_results(ds, results.data(),
-                      static_cast<int>(results.size()), &result_count);
+    auto const result_count = derep_get_results(ds, make_span(results));
 
     /* 5. Output in FASTA format with ;size=N */
-    for (int i = 0; i < result_count; i++) {
-        auto const & r = results[i];
+    for (auto const & r : make_span(results).first(result_count)) {
         std::printf(">%s;size=%lu\n%s\n",
                     r.header,
                     (unsigned long) r.abundance,

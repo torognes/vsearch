@@ -60,6 +60,9 @@
 
 #pragma once
 
+#include "utils/span.hpp"  // Span<derep_result_s>
+#include <cstddef>  // std::size_t
+
 /* === Library API for in-memory dereplication === */
 
 /* Result for one unique sequence, populated by derep_get_results(). */
@@ -92,14 +95,13 @@ auto derep_add_sequence(struct derep_session_s * ds,
                         int64_t abundance) -> void;
 
 /* Finalize and retrieve results, sorted by abundance (descending).
-   results: caller-provided array of at least max_results elements.
-   max_results: maximum number of unique sequences to return.
-   result_count: set to actual number of results returned.
+   results: caller-provided span; at most results.size() unique sequences are
+   written to it, and an empty span asks for none.
+   Returns the number of results written, i.e. the length of the prefix of
+   results that is now populated.
    Results point into session-owned memory (valid until cleanup). */
 auto derep_get_results(struct derep_session_s * ds,
-                       struct derep_result_s * results,
-                       int max_results,
-                       int * result_count) -> void;
+                       Span<derep_result_s> results) -> std::size_t;
 
 /* Clean up session resources. Call before derep_session_free(). */
 auto derep_session_cleanup(struct derep_session_s * ds) -> void;

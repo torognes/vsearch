@@ -697,9 +697,8 @@ for (int i = 0; i < n_seqs; i++) {
 }
 
 // Retrieve results (sorted by abundance, descending)
-struct derep_result_s results[1000];
-int result_count;
-derep_get_results(ds, results, 1000, &result_count);
+std::vector<struct derep_result_s> results(1000);
+auto const result_count = derep_get_results(ds, make_span(results));
 
 derep_session_cleanup(ds);
 derep_session_free(ds);
@@ -727,7 +726,7 @@ called. Copy them if you need them afterward.
 | `derep_session_free(ds)` | Free session state. Null-safe. |
 | `derep_session_init(ds)` | Initialize session. No database required. |
 | `derep_add_sequence(ds, header, seq, len, abund)` | Add one sequence. Normalized internally. |
-| `derep_get_results(ds, results, max, count)` | Retrieve results sorted by abundance. Caller-provided array. |
+| `derep_get_results(ds, results)` | Retrieve results sorted by abundance into a caller-provided `Span<derep_result_s>`; returns how many were written. |
 | `derep_session_cleanup(ds)` | Free session resources. Invalidates result pointers. |
 
 ---
