@@ -604,8 +604,8 @@ auto udb_read(char const * filename,
     pos += largeread(in_stream, data_buffer.first(static_cast<std::size_t>(udb_headerchars)), pos, progress_bar);
 
     longestheader = std::accumulate(seqindex, std::next(seqindex, seqcount), longestheader,
-                                    [](uint64_t const longest, seqinfo_t const & record) -> uint64_t
-                                    { return std::max<uint64_t>(longest, record.headerlen); });
+                                    [](uint64_t const longest_so_far, seqinfo_t const & record) -> uint64_t
+                                    { return std::max<uint64_t>(longest_so_far, record.headerlen); });
 
     /* sequence lengths */
 
