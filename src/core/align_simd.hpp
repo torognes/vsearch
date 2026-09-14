@@ -88,7 +88,10 @@ auto search16_init(struct Scoring const & scoring) -> struct s16info_s *;
 auto search16_exit(s16info_s * searchinfo) -> void;
 
 
-auto search16_qprep(s16info_s * searchinfo, View<char> qseq) -> void;
+/* The handle is taken by reference, not by pointer: search16_init() returns
+   the pointer and search16_exit() destroys it, but everything between those
+   two receives a handle that is already valid, and said so only in prose. */
+auto search16_qprep(s16info_s & searchinfo, View<char> qseq) -> void;
 
 
 /* Align the query prepared by search16_qprep() against each database sequence
@@ -101,7 +104,7 @@ auto search16_qprep(s16info_s * searchinfo, View<char> qseq) -> void;
    and the storage were two separate facts that nothing checked against each
    other. Now the extent travels with the storage and the callee asserts that
    all seven agree. */
-auto search16(s16info_s * searchinfo,
+auto search16(s16info_s & searchinfo,
               View<unsigned int> seqnos,
               Span<CELL> pscores,
               Span<unsigned short> paligned,

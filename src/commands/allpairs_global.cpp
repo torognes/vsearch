@@ -297,11 +297,11 @@ static auto allpairs_thread_run(struct allpairs_state_s & state, uint64_t const 
       {
         /* perform alignments */
 
-        search16_qprep(searchinfo.s.get(), View<char>{searchinfo.qsequence});
+        search16_qprep(*searchinfo.s, View<char>{searchinfo.qsequence});
 
         /* the hits accumulated above, not the whole maxhits buffers */
         auto const found = static_cast<std::size_t>(searchinfo.hit_count);
-        search16(searchinfo.s.get(),
+        search16(*searchinfo.s,
                  make_view(pseqnos).first(found),
                  make_span(pscores).first(found),
                  make_span(paligned).first(found),

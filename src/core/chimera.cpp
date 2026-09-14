@@ -2194,11 +2194,11 @@ static auto chimera_process_query(struct chimera_info_s * ci,
 
   /* align full query to each candidate */
 
-  search16_qprep(ci->s.get(), ci->query());
+  search16_qprep(*ci->s, ci->query());
 
   /* the candidates found above, not the whole maxcandidates buffers */
   auto const candidates = static_cast<std::size_t>(ci->cand_count);
-  search16(ci->s.get(),
+  search16(*ci->s,
            make_view(ci->cand_list).first(candidates),
            make_span(ci->snwscore).first(candidates),
            make_span(ci->snwalignmentlength).first(candidates),

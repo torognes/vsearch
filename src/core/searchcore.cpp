@@ -1021,7 +1021,7 @@ auto align_delayed(struct searchinfo_s * searchinfo) -> void
       /* the filled prefix of the round's buffers, not the whole MAXDELAYED
          arrays: target_count is how many the loop above wrote */
       auto const filled = static_cast<std::size_t>(target_count);
-      search16(searchinfo->s.get(),
+      search16(*searchinfo->s,
                make_view(target_list).first(filled),
                make_span(nwscore_list).first(filled),
                make_span(nwalignmentlength_list).first(filled),
@@ -1128,7 +1128,7 @@ auto search_onequery(struct searchinfo_s * searchinfo, Masking const seqmask) ->
      kmers are extracted at searchinfo->dbindex->wordlength, the effective index width. */
   searchinfo->hit_count = 0;
 
-  search16_qprep(searchinfo->s.get(), View<char>{searchinfo->qsequence});
+  search16_qprep(*searchinfo->s, View<char>{searchinfo->qsequence});
 
   struct Scoring const scoring = scoring_from_options(*searchinfo->parameters);
 

@@ -793,7 +793,7 @@ static auto evaluate_extra_hits(struct searchinfo_s & si,
 
                   /* one candidate, so each span is one element over the
                      local above; search16 asserts that the seven agree */
-                  search16(si.s.get(),
+                  search16(*si.s,
                            View<unsigned int>{& nwtarget, 1},
                            Span<CELL>{& snwscore, 1},
                            Span<unsigned short>{& snwalignmentlength, 1},

@@ -919,38 +919,38 @@ namespace {
    also where the last integer std::snprintf outside vendored/ lived: the two
    other cigar builders (utils/cigar.cpp and core/linmemalign.cpp) already use
    decimal::to_decimal, as decimal_digits.hpp's own header comment records. */
-inline auto emit_pending_op(s16info_s * s) -> void
+inline auto emit_pending_op(s16info_s & s) -> void
 {
-  *--s->cigar_begin = s->op;
-  if (s->opcount > 1)
+  *--s.cigar_begin = s.op;
+  if (s.opcount > 1)
     {
       decimal::Buffer buffer;
-      auto const digits = decimal::to_decimal(buffer, s->opcount);
-      s->cigar_begin = std::prev(s->cigar_begin, static_cast<std::ptrdiff_t>(digits.size()));
-      std::memcpy(s->cigar_begin, digits.data(), digits.size());
+      auto const digits = decimal::to_decimal(buffer, s.opcount);
+      s.cigar_begin = std::prev(s.cigar_begin, static_cast<std::ptrdiff_t>(digits.size()));
+      std::memcpy(s.cigar_begin, digits.data(), digits.size());
     }
 }
 
 
-inline auto pushop(s16info_s * s, char const newop) -> void
+inline auto pushop(s16info_s & s, char const newop) -> void
 {
-  if (newop == s->op) {
-    ++s->opcount;
+  if (newop == s.op) {
+    ++s.opcount;
     return;
   }
   emit_pending_op(s);
-  s->op = newop;
-  s->opcount = 1;
+  s.op = newop;
+  s.opcount = 1;
 }
 
 
-inline auto finishop(s16info_s * s) -> void
+inline auto finishop(s16info_s & s) -> void
 {
-  if ((s->op != 0) and (s->opcount != 0))
+  if ((s.op != 0) and (s.opcount != 0))
     {
       emit_pending_op(s);
-      s->op = 0;
-      s->opcount = 0;
+      s.op = 0;
+      s.opcount = 0;
     }
 }
 
@@ -968,16 +968,16 @@ struct Backtrack16Stats {
 };
 
 
-auto backtrack16(s16info_s * s,
+auto backtrack16(s16info_s & s,
                  char const * dseq,
                  uint64_t const dlen,
                  uint64_t const offset,
                  uint64_t const channel) -> Backtrack16Stats
 {
-  unsigned short const * dirbuffer = s->dir.data();
-  uint64_t const qlen = s->qseq.size();
-  uint64_t const dirbuffersize = qlen * static_cast<uint64_t>(s->maxdlen) * 4;
-  auto const qseq = s->qseq;
+  unsigned short const * dirbuffer = s.dir.data();
+  uint64_t const qlen = s.qseq.size();
+  uint64_t const dirbuffersize = qlen * static_cast<uint64_t>(s.maxdlen) * 4;
+  auto const qseq = s.qseq;
 
   uint64_t const maskup      = 3ULL << ((2 * channel) + 0);
   uint64_t const maskleft    = 3ULL << ((2 * channel) + 16);
@@ -992,10 +992,10 @@ auto backtrack16(s16info_s * s,
   int64_t i = static_cast<int64_t>(qlen) - 1;
   int64_t j = static_cast<int64_t>(dlen) - 1;
 
-  s->cigar_begin = std::next(s->cigar.data(),
-                             static_cast<std::ptrdiff_t>(s->cigar_terminator_index() + 1));
-  s->op = 0;
-  s->opcount = 1;
+  s.cigar_begin = std::next(s.cigar.data(),
+                             static_cast<std::ptrdiff_t>(s.cigar_terminator_index() + 1));
+  s.op = 0;
+  s.opcount = 1;
 
   while ((i >= 0) and (j >= 0))
     {
@@ -1014,19 +1014,19 @@ auto backtrack16(s16info_s * s,
       uint64_t d = 0;
       std::memcpy(&d, dir_word, sizeof(d));
 
-      if ((s->op == 'I') and ((d & maskextleft) != 0U))
+      if ((s.op == 'I') and ((d & maskextleft) != 0U))
         {
           --j;
           pushop(s, 'I');
         }
-      else if ((s->op == 'D') and ((d & maskextup) != 0U))
+      else if ((s.op == 'D') and ((d & maskextup) != 0U))
         {
           --i;
           pushop(s, 'D');
         }
       else if ((d & maskleft) != 0U)
         {
-          if (s->op != 'I')
+          if (s.op != 'I')
             {
               ++gaps;
             }
@@ -1035,7 +1035,7 @@ auto backtrack16(s16info_s * s,
         }
       else if ((d & maskup) != 0U)
         {
-          if (s->op != 'D')
+          if (s.op != 'D')
             {
               ++gaps;
             }
@@ -1046,7 +1046,7 @@ auto backtrack16(s16info_s * s,
         {
           if (four_bit::is_equivalent(qseq[static_cast<std::size_t>(i)], dseq[j]))
             {
-              if (s->n_mismatch and ((four_bit::map(qseq[static_cast<std::size_t>(i)]) == 15) or
+              if (s.n_mismatch and ((four_bit::map(qseq[static_cast<std::size_t>(i)]) == 15) or
                                      (four_bit::map(dseq[j]) == 15)))
                 {
                   ++mismatches;
@@ -1069,7 +1069,7 @@ auto backtrack16(s16info_s * s,
   while (i >= 0)
     {
       ++aligned;
-      if (s->op != 'D')
+      if (s.op != 'D')
         {
           ++gaps;
         }
@@ -1080,7 +1080,7 @@ auto backtrack16(s16info_s * s,
   while (j >= 0)
     {
       ++aligned;
-      if (s->op != 'I')
+      if (s.op != 'I')
         {
           ++gaps;
         }
@@ -1239,26 +1239,26 @@ auto search16_exit(s16info_s * s) -> void
 }
 
 
-auto search16_qprep(s16info_s * s, View<char> const qseq) -> void
+auto search16_qprep(s16info_s & s, View<char> const qseq) -> void
 {
-  s->qseq = qseq;
+  s.qseq = qseq;
 
-  s->hearray.resize(2 * qseq.size());
+  s.hearray.resize(2 * qseq.size());
   /* An empty query (issue 171) leaves hearray empty, and data() is then null
      on the first query a thread prepares, before any capacity exists. A null
      destination is undefined for std::memset even with a zero length, so the
      call is skipped rather than reached with one. */
-  if (not s->hearray.empty())
+  if (not s.hearray.empty())
     {
-      std::memset(s->hearray.data(), 0, s->hearray.size() * sizeof(VECTOR_SHORT));
+      std::memset(s.hearray.data(), 0, s.hearray.size() * sizeof(VECTOR_SHORT));
     }
 
-  s->qtable.resize(qseq.size());
+  s.qtable.resize(qseq.size());
 
   std::size_t position = 0;
   for (auto const nucleotide : qseq)
     {
-      s->qtable[position] = s->dprofile.data() + (4 * four_bit::map(nucleotide));
+      s.qtable[position] = s.dprofile.data() + (4 * four_bit::map(nucleotide));
       ++position;
     }
 }
@@ -1279,7 +1279,7 @@ auto compute_score_min(struct s16info_s const & alignment) -> short {
 }
 
 
-auto search16(s16info_s * s,
+auto search16(s16info_s & s,
               View<unsigned int> const seqnos,
               Span<CELL> const pscores,
               Span<unsigned short> const paligned,
@@ -1300,12 +1300,12 @@ auto search16(s16info_s * s,
   assert(pgaps.size() == sequences);
   assert(pcigar.size() == sequences);
 
-  CELL ** q_start = reinterpret_cast<CELL **>(s->qtable.data());
-  CELL * dprofile = reinterpret_cast<CELL *>(s->dprofile.data());
-  CELL * hearray = reinterpret_cast<CELL *>(s->hearray.data());
-  uint64_t const qlen = s->qseq.size();
+  CELL ** q_start = reinterpret_cast<CELL **>(s.qtable.data());
+  CELL * dprofile = reinterpret_cast<CELL *>(s.dprofile.data());
+  CELL * hearray = reinterpret_cast<CELL *>(s.hearray.data());
+  uint64_t const qlen = s.qseq.size();
 
-  if (s->force_scalar_fallback)
+  if (s.force_scalar_fallback)
     {
       /* A score or penalty did not fit the 16-bit cells (e.g. the '*'
          infinite gap penalty). Report every pair as unrepresentable via the
@@ -1358,10 +1358,10 @@ auto search16(s16info_s * s,
           else
             {
               pscores[cand_id] = static_cast<CELL>(
-                std::max(- s->penalty_gap_open_target_left -
-                    (length * s->penalty_gap_extension_target_left),
-                    - s->penalty_gap_open_target_right -
-                    (length * s->penalty_gap_extension_target_right)));
+                std::max(- s.penalty_gap_open_target_left -
+                    (length * s.penalty_gap_extension_target_left),
+                    - s.penalty_gap_open_target_right -
+                    (length * s.penalty_gap_extension_target_right)));
             }
 
           if (length > 0)
@@ -1388,16 +1388,16 @@ auto search16(s16info_s * s,
         }
     }
   maxdlen = 4 * ((maxdlen + 3) / 4);
-  s->maxdlen = static_cast<int>(maxdlen);
-  uint64_t const dirbuffersize = qlen * static_cast<uint64_t>(s->maxdlen) * 4;
+  s.maxdlen = static_cast<int>(maxdlen);
+  uint64_t const dirbuffersize = qlen * static_cast<uint64_t>(s.maxdlen) * 4;
 
-  vsearch::grow_to_fit(s->dir, static_cast<std::size_t>(dirbuffersize));
+  vsearch::grow_to_fit(s.dir, static_cast<std::size_t>(dirbuffersize));
 
-  unsigned short * dirbuffer = s->dir.data();
+  unsigned short * dirbuffer = s.dir.data();
 
-  auto const cigar_needed = static_cast<int64_t>(qlen) + s->maxdlen + 1;
+  auto const cigar_needed = static_cast<int64_t>(qlen) + s.maxdlen + 1;
   assert(cigar_needed > 0);
-  vsearch::grow_to_fit(s->cigar, static_cast<std::size_t>(cigar_needed));
+  vsearch::grow_to_fit(s.cigar, static_cast<std::size_t>(cigar_needed));
 
   VECTOR_SHORT M;
   VECTOR_SHORT T0;
@@ -1449,27 +1449,27 @@ auto search16(s16info_s * s,
 #endif
   T0 = v_init({{-1, 0, 0, 0, 0, 0, 0, 0}});
 
-  R_query_left = v_dup(s->penalty_gap_extension_query_left);
+  R_query_left = v_dup(s.penalty_gap_extension_query_left);
 
-  QR_query_interior = v_dup(static_cast<short>(s->penalty_gap_open_query_interior +
-                             s->penalty_gap_extension_query_interior));
-  R_query_interior  = v_dup(s->penalty_gap_extension_query_interior);
+  QR_query_interior = v_dup(static_cast<short>(s.penalty_gap_open_query_interior +
+                             s.penalty_gap_extension_query_interior));
+  R_query_interior  = v_dup(s.penalty_gap_extension_query_interior);
 
-  QR_query_right  = v_dup(static_cast<short>(s->penalty_gap_open_query_right +
-                           s->penalty_gap_extension_query_right));
-  R_query_right  = v_dup(s->penalty_gap_extension_query_right);
+  QR_query_right  = v_dup(static_cast<short>(s.penalty_gap_open_query_right +
+                           s.penalty_gap_extension_query_right));
+  R_query_right  = v_dup(s.penalty_gap_extension_query_right);
 
-  QR_target_left  = v_dup(static_cast<short>(s->penalty_gap_open_target_left +
-                           s->penalty_gap_extension_target_left));
-  R_target_left  = v_dup(s->penalty_gap_extension_target_left);
+  QR_target_left  = v_dup(static_cast<short>(s.penalty_gap_open_target_left +
+                           s.penalty_gap_extension_target_left));
+  R_target_left  = v_dup(s.penalty_gap_extension_target_left);
 
-  QR_target_interior = v_dup(static_cast<short>(s->penalty_gap_open_target_interior +
-                              s->penalty_gap_extension_target_interior));
-  R_target_interior = v_dup(s->penalty_gap_extension_target_interior);
+  QR_target_interior = v_dup(static_cast<short>(s.penalty_gap_open_target_interior +
+                              s.penalty_gap_extension_target_interior));
+  R_target_interior = v_dup(s.penalty_gap_extension_target_interior);
 
-  QR_target_right  = v_dup(static_cast<short>(s->penalty_gap_open_target_right +
-                            s->penalty_gap_extension_target_right));
-  R_target_right  = v_dup(s->penalty_gap_extension_target_right);
+  QR_target_right  = v_dup(static_cast<short>(s.penalty_gap_open_target_right +
+                            s.penalty_gap_extension_target_right));
+  R_target_right  = v_dup(s.penalty_gap_extension_target_right);
 #pragma GCC diagnostic pop
 
   hep = reinterpret_cast<VECTOR_SHORT *>(hearray);
@@ -1486,7 +1486,7 @@ auto search16(s16info_s * s,
       overflow[c] = false;
     }
 
-  auto const score_min = compute_score_min(*s);
+  auto const score_min = compute_score_min(s);
   auto const score_max = std::numeric_limits<short>::max();
 
   for (size_t i = 0; i < 4; i++)
@@ -1534,7 +1534,7 @@ auto search16(s16info_s * s,
                 }
             }
 
-          dprofile_fill16(dprofile, reinterpret_cast<CELL *>(s->matrix.data()), dseq);
+          dprofile_fill16(dprofile, reinterpret_cast<CELL *>(s.matrix.data()), dseq);
 
           /* create vectors of gap penalties for target depending on whether
              any of the database sequences ended in these four columns */
@@ -1680,7 +1680,7 @@ auto search16(s16info_s * s,
                           pmatches[slot] = stats.matches;
                           pmismatches[slot] = stats.mismatches;
                           pgaps[slot] = stats.gaps;
-                          auto const cigar = s->cigar_view();
+                          auto const cigar = s.cigar_view();
                           pcigar[slot].assign(cigar.data(), cigar.size());
                         }
 
@@ -1721,21 +1721,21 @@ auto search16(s16info_s * s,
                       overflow[cc] = false;
 
                       set_channel(H0, c, 0);
-                      set_channel(H1, c, static_cast<CELL>(- s->penalty_gap_open_query_left
-                        - (1 * s->penalty_gap_extension_query_left)));
-                      set_channel(H2, c, static_cast<CELL>(- s->penalty_gap_open_query_left
-                        - (2 * s->penalty_gap_extension_query_left)));
-                      set_channel(H3, c, static_cast<CELL>(- s->penalty_gap_open_query_left
-                        - (3 * s->penalty_gap_extension_query_left)));
+                      set_channel(H1, c, static_cast<CELL>(- s.penalty_gap_open_query_left
+                        - (1 * s.penalty_gap_extension_query_left)));
+                      set_channel(H2, c, static_cast<CELL>(- s.penalty_gap_open_query_left
+                        - (2 * s.penalty_gap_extension_query_left)));
+                      set_channel(H3, c, static_cast<CELL>(- s.penalty_gap_open_query_left
+                        - (3 * s.penalty_gap_extension_query_left)));
 
-                      set_channel(F0, c, static_cast<CELL>(- s->penalty_gap_open_query_left
-                        - (1 * s->penalty_gap_extension_query_left)));
-                      set_channel(F1, c, static_cast<CELL>(- s->penalty_gap_open_query_left
-                        - (2 * s->penalty_gap_extension_query_left)));
-                      set_channel(F2, c, static_cast<CELL>(- s->penalty_gap_open_query_left
-                        - (3 * s->penalty_gap_extension_query_left)));
-                      set_channel(F3, c, static_cast<CELL>(- s->penalty_gap_open_query_left
-                        - (4 * s->penalty_gap_extension_query_left)));
+                      set_channel(F0, c, static_cast<CELL>(- s.penalty_gap_open_query_left
+                        - (1 * s.penalty_gap_extension_query_left)));
+                      set_channel(F1, c, static_cast<CELL>(- s.penalty_gap_open_query_left
+                        - (2 * s.penalty_gap_extension_query_left)));
+                      set_channel(F2, c, static_cast<CELL>(- s.penalty_gap_open_query_left
+                        - (3 * s.penalty_gap_extension_query_left)));
+                      set_channel(F3, c, static_cast<CELL>(- s.penalty_gap_open_query_left
+                        - (4 * s.penalty_gap_extension_query_left)));
 
                       /* fill channel */
 
@@ -1790,7 +1790,7 @@ auto search16(s16info_s * s,
           M_QR_query_interior = v_and(M, QR_query_interior);
           M_QR_query_right = v_and(M, QR_query_right);
 
-          dprofile_fill16(dprofile, reinterpret_cast<CELL *>(s->matrix.data()), dseq);
+          dprofile_fill16(dprofile, reinterpret_cast<CELL *>(s.matrix.data()), dseq);
 
           /* create vectors of gap penalties for target depending on whether
              any of the database sequences ended in these four columns */
