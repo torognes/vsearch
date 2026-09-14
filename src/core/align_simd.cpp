@@ -197,7 +197,10 @@ inline auto v_min(VECTOR_SHORT const lhs, VECTOR_SHORT const rhs) -> VECTOR_SHOR
 }
 
 inline auto v_dup(short const value) -> VECTOR_SHORT {
-  return vec_splat((VECTOR_SHORT){value, 0, 0, 0, 0, 0, 0, 0}, 0);
+  /* vec_splats rather than vec_splat of a compound literal: (VECTOR_SHORT){...}
+     is a C construct that ISO C++ forbids, and -Wpedantic says so on every
+     Power build. */
+  return vec_splats(value);
 }
 
 inline auto v_zero() -> VECTOR_SHORT {
