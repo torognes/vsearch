@@ -152,9 +152,11 @@ auto annotation_separator(bool & trailing_separator) -> char const * {
 }
 
 
-auto header_fprint_strip(std::FILE * output_handle,
-                         View<char> const header_view,
-                         StripAttributes const to_strip) -> bool
+auto detail::header_fprint_strip(std::FILE * output_handle,
+                                 View<char> const header_view,
+                                 bool const strip_size,
+                                 bool const strip_ee,
+                                 bool const strip_length) -> bool
 {
   /* the attributes found, ordered by position in the header by the sort below;
      one array of spans, where two parallel start/end arrays used to be kept
@@ -172,13 +174,13 @@ auto header_fprint_strip(std::FILE * output_handle,
   };
 
   /* look for size attribute */
-  collect(to_strip.size, attributes.size);
+  collect(strip_size, attributes.size);
 
   /* look for ee attribute */
-  collect(to_strip.ee, attributes.ee);
+  collect(strip_ee, attributes.ee);
 
   /* look for length attribute */
-  collect(to_strip.length, attributes.length);
+  collect(strip_length, attributes.length);
 
   /* sort */
 

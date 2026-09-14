@@ -87,18 +87,44 @@ struct StripAttributes {
    LTO, so a definition in another translation unit would become a real call.
 
    StripAttributes deliberately has no default member initializers: in C++11
-   those would make it a non-aggregate, and GCC then materializes it in memory
-   instead of passing the three bytes in a register -- measured at +10% of
-   header_fprint_strip, which runs once per output record. */
+   those would make it a non-aggregate, and the call sites below
+   brace-initialize it. */
 inline auto attributes_to_strip(struct Parameters const & parameters) noexcept -> StripAttributes
 {
   return StripAttributes{parameters.opt_xsize, parameters.opt_xee, parameters.opt_xlength};
 }
 
 
-auto header_fprint_strip(std::FILE * output_handle,
-                         View<char> header,
-                         StripAttributes to_strip) -> bool;
+namespace detail {
+
+  /* Three separate bools, not the struct, and this is measured rather than
+     assumed: passing StripAttributes across this boundary costs +5 instructions
+     on every call, because three bools arrive in three registers while three
+     bytes of one struct have to be shifted back out of one. header_fprint_strip
+     runs once per output record.
+
+     It lives in detail:: so that the struct below stays the only spelling a
+     caller can reach -- the whole point of the struct being that the three
+     flags cannot be transposed. */
+  auto header_fprint_strip(std::FILE * output_handle,
+                           View<char> header,
+                           bool strip_size,
+                           bool strip_ee,
+                           bool strip_length) -> bool;
+
+}  // namespace detail
+
+
+/* Emit the header with the requested annotations removed. Inline, so the
+   struct is unpacked in the caller -- where the three flags are separate
+   fields of Parameters to begin with -- rather than in the callee. */
+inline auto header_fprint_strip(std::FILE * output_handle,
+                                View<char> const header,
+                                StripAttributes const to_strip) -> bool
+{
+  return detail::header_fprint_strip(output_handle, header,
+                                     to_strip.size, to_strip.ee, to_strip.length);
+}
 
 
 /* The values a print helper may append to a record's header, as opposed to the
