@@ -264,9 +264,9 @@ auto worst_region(View<char> const window) -> DustRegion
 }  // anonymous namespace
 
 
-/* Core DUST implementation with explicit hardmask parameter.
+/* Core DUST implementation with an explicit masking style.
    Thread-safe: does not read any globals. */
-static auto dust_core(Span<char> const sequence, bool const use_hardmask) -> void
+static auto dust_core(Span<char> const sequence, MaskStyle const style) -> void
 {
   static constexpr auto half_dust_window = dust_window / 2;
 
@@ -283,7 +283,7 @@ static auto dust_core(Span<char> const sequence, bool const use_hardmask) -> voi
      std::copy_n(nullptr, 1, ...). */
   std::vector<char> const local_seq(sequence.cbegin(), sequence.cend());
 
-  if (!use_hardmask)
+  if (style == MaskStyle::soft)
     {
       /* convert sequence to upper case unless hardmask in effect */
       std::transform(sequence.begin(), sequence.end(), sequence.begin(), to_upper);
@@ -311,7 +311,7 @@ static auto dust_core(Span<char> const sequence, bool const use_hardmask) -> voi
                                                + static_cast<std::size_t>(i),
                                                static_cast<std::size_t>(worst.end)
                                                - static_cast<std::size_t>(worst.begin) + 1);
-          if (use_hardmask)
+          if (style == MaskStyle::hard)
             {
               std::fill(region.begin(), region.end(), 'N');
             }
@@ -336,7 +336,7 @@ static auto dust_core(Span<char> const sequence, bool const use_hardmask) -> voi
 
 auto dust(Span<char> const seq, struct Parameters const & parameters) -> void
 {
-  dust_core(seq, parameters.opt_hardmask);
+  dust_core(seq, parameters.opt_hardmask ? MaskStyle::hard : MaskStyle::soft);
 }
 
 
@@ -444,7 +444,7 @@ auto hardmask_all(struct Database & db) -> void
 }
 
 
-auto dust_single(char * seq, int const len, bool const use_hardmask) -> void
+auto dust_single(Span<char> const sequence, MaskStyle const style) -> void
 {
-  dust_core(Span<char>{seq, static_cast<std::size_t>(len)}, use_hardmask);
+  dust_core(sequence, style);
 }

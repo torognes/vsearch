@@ -67,6 +67,11 @@ struct Database;
 
 enum struct Masking : std::int8_t { error = -1, none = 0, dust = 1, soft = 2 };
 
+/* How DUST marks the low-complexity regions it finds: soft masking lower-cases
+   them, hard masking overwrites them with 'N'. --hardmask selects the second.
+   Named at the call site so the two cases stop being a bare true/false. */
+enum struct MaskStyle : bool { soft, hard };
+
 
 auto dust(Span<char> seq, struct Parameters const & parameters) -> void;
 auto hardmask(Span<char> seq) -> void;
@@ -87,8 +92,8 @@ auto apply_masking(Span<char> sequence, Masking masking,
 /* === Library API for single-sequence masking === */
 
 /* Apply DUST low-complexity masking to a single sequence in-place.
-   Does NOT require database loading — works on any null-terminated sequence.
-   use_hardmask: if false, soft-mask (lowercase); if true, hard-mask ('N').
+   Does NOT require database loading — works on any sequence the caller can
+   hand over as a Span; no terminator is read and none is written.
    The sequence is modified in-place.
    Thread-safe: does not read or write any global state. */
-auto dust_single(char * seq, int len, bool use_hardmask) -> void;
+auto dust_single(Span<char> sequence, MaskStyle style) -> void;

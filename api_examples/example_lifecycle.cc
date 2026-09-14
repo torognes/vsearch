@@ -278,10 +278,10 @@ static int test_nonchimera_result_zeroed(struct Parameters const & parameters)
 }
 
 
-/* --- Test 6: dust_single honours the hardmask parameter ---
+/* --- Test 6: dust_single honours the masking style ---
    The soft-mask path is covered by example_dust; this pins the other value of
-   the boolean library parameter. Hard-masking replaces a low-complexity run
-   with 'N'; soft-masking lowercases the same run. */
+   the library's MaskStyle parameter. Hard-masking replaces a low-complexity
+   run with 'N'; soft-masking lowercases the same run. */
 static int test_dust_hardmask()
 {
   int failures = 0;
@@ -290,10 +290,10 @@ static int test_dust_hardmask()
     "ACGTAGCTAGCTGATCGATCGATTTTTTTTTTTTTTTTTTTTTTTTTTTGCATGCATGCAT";
 
   std::string soft = original;
-  dust_single(&soft[0], static_cast<int>(soft.size()), false);
+  dust_single(Span<char>{&soft[0], soft.size()}, MaskStyle::soft);
 
   std::string hard = original;
-  dust_single(&hard[0], static_cast<int>(hard.size()), true);
+  dust_single(Span<char>{&hard[0], hard.size()}, MaskStyle::hard);
 
   bool const soft_lowered = (soft != original) and (soft.find('N') == std::string::npos);
   bool const hard_has_n = hard.find('N') != std::string::npos;
@@ -310,7 +310,7 @@ static int test_dust_hardmask()
 
   if (failures == 0)
     {
-      std::fprintf(stderr, "PASS: dust_single hardmask=true inserts N, hardmask=false lowercases\n");
+      std::fprintf(stderr, "PASS: dust_single MaskStyle::hard inserts N, MaskStyle::soft lowercases\n");
     }
   return failures;
 }

@@ -824,7 +824,7 @@ dust_all(db, parameters);
 
 // Standalone: mask a single sequence in-place (thread-safe)
 char seq[] = "AAAAAAAAAAAACCGTACGT";
-dust_single(seq, strlen(seq), false);  // false = soft-mask (lowercase)
+dust_single(Span<char>{seq, strlen(seq)}, MaskStyle::soft);  // lowercase
 ```
 
 `dust_single()` is fully thread-safe with no global state dependencies.
@@ -835,7 +835,7 @@ It can be called without any initialization.
 | Function | Description |
 |----------|-------------|
 | `dust_all(db, parameters)` | Apply DUST masking to all database sequences. |
-| `dust_single(seq, len, hardmask)` | Mask one sequence in-place. `hardmask=true` replaces with N; `false` lowercases. Thread-safe. |
+| `dust_single(sequence, style)` | Mask one `Span<char>` in-place. `MaskStyle::hard` replaces with N; `MaskStyle::soft` lowercases. Thread-safe. |
 
 ### Masking modes
 
