@@ -217,66 +217,20 @@ static auto allpairs_output_results(struct allpairs_state_s & state,
     }
   else
     {
-      if (state.fp_uc != nullptr)
-        {
-          results_show_uc_one(state.fp_uc,
-                              nullptr,
-                              query_head,
-                              qseqlen,
-                              0,
-                              state.db,
-                              state.parameters,
-                              PerfectMatch::whole_alignment);
-        }
-
-      if (state.parameters.opt_output_no_hits != 0)
-        {
-          if (state.fp_userout != nullptr)
-            {
-              results_show_userout_one(state.fp_userout,
-                                       nullptr,
-                                       query_head,
-                                       qsequence,
-                                       qsequence_rc,
-                                       state.db,
-                                       state.parameters);
-            }
-
-          if (state.fp_blast6out != nullptr)
-            {
-              results_show_blast6out_one(state.fp_blast6out,
-                                         nullptr,
-                                         query_head,
-                                         qseqlen,
-                                         state.db);
-            }
-        }
+      NoHitOutputFiles no_hit_files;
+      no_hit_files.uc = state.fp_uc;
+      no_hit_files.userout = state.fp_userout;
+      no_hit_files.blast6out = state.fp_blast6out;
+      results_show_no_hit(no_hit_files, query_head, qsequence, qsequence_rc,
+                          qseqlen, state.db, state.parameters);
     }
 
-  if (not hits.empty())
-    {
-      ++state.count_matched;
-      if (state.parameters.opt_matched != nullptr)
-        {
-          fasta_print_general(state.fp_matched,
-                              qsequence,
-                              query_head,
-                              OutputAnnotations{0, state.count_matched},
-                              state.parameters);
-        }
-    }
-  else
-    {
-      ++state.count_notmatched;
-      if (state.parameters.opt_notmatched != nullptr)
-        {
-          fasta_print_general(state.fp_notmatched,
-                              qsequence,
-                              query_head,
-                              OutputAnnotations{0, state.count_notmatched},
-                              state.parameters);
-        }
-    }
+  /* no query abundance here: allpairs_global has no --sizein, so the record
+     is annotated with OutputAnnotations' 0 sentinel */
+  auto const matched = not hits.empty();
+  results_show_matched_query(matched ? state.fp_matched : state.fp_notmatched,
+                             matched ? state.count_matched : state.count_notmatched,
+                             query_head, qsequence, 0, state.parameters);
 }
 
 
