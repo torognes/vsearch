@@ -374,14 +374,17 @@ static auto search_thread_worker_run(struct search_cli_state_s & state) -> void
   int const seqcount = state.seqcount;
   int const tophits = state.tophits;
 
-  /* init per-thread search state before the workers start */
-  for (int t = 0; t < state.parameters.opt_threads; t++)
+  /* init per-thread search state before the workers start. Both vectors are
+     resize()d to opt_threads (si_minus stays empty unless --strand both), so
+     walking each one whole is the same set of calls the index made -- and an
+     empty si_minus needs no emptiness test of its own. */
+  for (auto & si : si_plus)
     {
-      search_thread_init(si_plus[static_cast<std::size_t>(t)], seqcount, tophits, state.effective_parameters, state.dbindex, state.db);
-      if (not si_minus.empty())
-        {
-          search_thread_init(si_minus[static_cast<std::size_t>(t)], seqcount, tophits, state.effective_parameters, state.dbindex, state.db);
-        }
+      search_thread_init(si, seqcount, tophits, state.effective_parameters, state.dbindex, state.db);
+    }
+  for (auto & si : si_minus)
+    {
+      search_thread_init(si, seqcount, tophits, state.effective_parameters, state.dbindex, state.db);
     }
 
   /* run the worker pool over the input file */
@@ -393,13 +396,13 @@ static auto search_thread_worker_run(struct search_cli_state_s & state) -> void
   }
 
   /* clean up per-thread search state */
-  for (int t = 0; t < state.parameters.opt_threads; t++)
+  for (auto & si : si_plus)
     {
-      search_thread_exit(si_plus[static_cast<std::size_t>(t)]);
-      if (not si_minus.empty())
-        {
-          search_thread_exit(si_minus[static_cast<std::size_t>(t)]);
-        }
+      search_thread_exit(si);
+    }
+  for (auto & si : si_minus)
+    {
+      search_thread_exit(si);
     }
 }
 

@@ -499,14 +499,17 @@ auto search_batch(struct Parameters const & parameters,
       ctx.batch_si_minus.resize(static_cast<std::size_t>(nthreads));
     }
 
-  /* Init per-thread search state before the workers start */
-  for (int t = 0; t < nthreads; t++)
+  /* Init per-thread search state before the workers start. Both vectors are
+     resize()d to nthreads just above (batch_si_minus stays empty unless
+     --strand both), so walking each one whole is the same set of calls the
+     index made -- and an empty batch_si_minus needs no emptiness test. */
+  for (auto & si : ctx.batch_si_plus)
     {
-      search_thread_init(ctx.batch_si_plus[static_cast<std::size_t>(t)], seqcount, tophits, parameters, dbindex, db);
-      if (not ctx.batch_si_minus.empty())
-        {
-          search_thread_init(ctx.batch_si_minus[static_cast<std::size_t>(t)], seqcount, tophits, parameters, dbindex, db);
-        }
+      search_thread_init(si, seqcount, tophits, parameters, dbindex, db);
+    }
+  for (auto & si : ctx.batch_si_minus)
+    {
+      search_thread_init(si, seqcount, tophits, parameters, dbindex, db);
     }
 
   /* run all queries through the worker pool (work-stealing on next_query) */
@@ -520,12 +523,12 @@ auto search_batch(struct Parameters const & parameters,
 
   /* clean up per-thread search state (the vectors also free themselves, and
      would run these searchinfo_s destructors on an exception unwind). */
-  for (int t = 0; t < nthreads; t++)
+  for (auto & si : ctx.batch_si_plus)
     {
-      search_thread_exit(ctx.batch_si_plus[static_cast<std::size_t>(t)]);
-      if (not ctx.batch_si_minus.empty())
-        {
-          search_thread_exit(ctx.batch_si_minus[static_cast<std::size_t>(t)]);
-        }
+      search_thread_exit(si);
+    }
+  for (auto & si : ctx.batch_si_minus)
+    {
+      search_thread_exit(si);
     }
 }
