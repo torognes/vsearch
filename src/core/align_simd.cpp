@@ -425,7 +425,12 @@ struct s16info_s
   View<char> qseq;  /* borrowed query (not owned) */
 
   std::vector<char, FatalAllocator<char>> cigar;
-  char * cigarend = nullptr;  /* working pointer into cigar (not owned) */
+  /* Working cursor into cigar (not owned): the backtracker fills the buffer
+     from its far end towards its front, so this walks down and points at the
+     first character written so far. Only meaningful between the start of a
+     backtrack16() and the cigar_view() that reads the result out; grow_to_fit()
+     reallocates the vector between alignments. */
+  char * cigar_begin = nullptr;
   int opcount = 0;
   char op = '\0';
 
@@ -444,6 +449,24 @@ struct s16info_s
   CELL penalty_gap_extension_target_right = 0;
   bool n_mismatch = false;  // treat alignment against N as a mismatch (opt_n_mismatch)
   bool force_scalar_fallback = false;  // a score/penalty exceeded the 16-bit cell range: defer every pair to the scalar aligner
+
+  /* One past the last cigar character, i.e. the slot the backtracker's first
+     emit_pending_op() writes -- which holds '\0', because op is still 0 when
+     the first real operation displaces it. cigar is sized qseq.size() +
+     maxdlen + 1 for exactly this reason. */
+  auto cigar_terminator_index() const -> std::size_t {
+    return qseq.size() + static_cast<std::size_t>(maxdlen);
+  }
+
+  /* The cigar the last backtrack16() built, in place at the tail of the
+     buffer. Computed on demand rather than stored, so it cannot outlive a
+     grow_to_fit() reallocation. */
+  auto cigar_view() const -> View<char> {
+    char const * const first = cigar_begin;
+    char const * const terminator =
+      std::next(cigar.data(), static_cast<std::ptrdiff_t>(cigar_terminator_index()));
+    return View<char>{first, static_cast<std::size_t>(std::distance(first, terminator))};
+  }
 };
 
 
@@ -898,13 +921,13 @@ namespace {
    decimal::to_decimal, as decimal_digits.hpp's own header comment records. */
 inline auto emit_pending_op(s16info_s * s) -> void
 {
-  *--s->cigarend = s->op;
+  *--s->cigar_begin = s->op;
   if (s->opcount > 1)
     {
       decimal::Buffer buffer;
       auto const digits = decimal::to_decimal(buffer, s->opcount);
-      s->cigarend = std::prev(s->cigarend, static_cast<std::ptrdiff_t>(digits.size()));
-      std::memcpy(s->cigarend, digits.data(), digits.size());
+      s->cigar_begin = std::prev(s->cigar_begin, static_cast<std::ptrdiff_t>(digits.size()));
+      std::memcpy(s->cigar_begin, digits.data(), digits.size());
     }
 }
 
@@ -969,7 +992,8 @@ auto backtrack16(s16info_s * s,
   int64_t i = static_cast<int64_t>(qlen) - 1;
   int64_t j = static_cast<int64_t>(dlen) - 1;
 
-  s->cigarend = s->cigar.data() + s->qseq.size() + s->maxdlen + 1;
+  s->cigar_begin = std::next(s->cigar.data(),
+                             static_cast<std::ptrdiff_t>(s->cigar_terminator_index() + 1));
   s->op = 0;
   s->opcount = 1;
 
@@ -1066,9 +1090,10 @@ auto backtrack16(s16info_s * s,
 
   finishop(s);
 
-  /* move cigar to beginning of allocated memory area */
-  int const cigarlen = static_cast<int>(s->cigar.data() + s->qseq.size() + s->maxdlen - s->cigarend);
-  std::memmove(s->cigar.data(), s->cigarend, static_cast<size_t>(cigarlen + 1));
+  /* nothing slides the cigar to the front of the buffer any more: it is left
+     where it was built and cigar_view() reports where that is. The move was
+     only ever there so the single consumer could read cigar.data() as a C
+     string. */
 
   /* named, not brace-initialised: the members have default initialisers, which
      under C++11 makes this a non-aggregate -- and naming them is what keeps
@@ -1655,7 +1680,8 @@ auto search16(s16info_s * s,
                           pmatches[slot] = stats.matches;
                           pmismatches[slot] = stats.mismatches;
                           pgaps[slot] = stats.gaps;
-                          pcigar[slot].assign(s->cigar.data());
+                          auto const cigar = s->cigar_view();
+                          pcigar[slot].assign(cigar.data(), cigar.size());
                         }
 
                       done++;
