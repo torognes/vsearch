@@ -60,6 +60,7 @@
 
 #pragma once
 
+#include "vsearch.hpp"  // struct Parameters
 #include "utils/view.hpp"  // View<char>
 #include <cstdint>  // int64_t, uint64_t
 #include <cstdio>  // std::FILE
@@ -69,11 +70,35 @@ auto header_get_size(View<char> header) -> int64_t;
 
 auto annotation_separator(bool & trailing_separator) -> char const *;
 
+/* Which annotations header_fprint_strip() removes from a header. These were
+   three adjacent bool parameters, transposable in any order at twenty-one call
+   sites with nothing to catch it; named members are not. The members keep
+   bool rather than becoming three enums -- they are named at the point of
+   use, which is the whole of what the positional bools failed to do. */
+struct StripAttributes {
+  bool size;    /* the ;size= annotation   */
+  bool ee;      /* the ;ee= annotation     */
+  bool length;  /* the ;length= annotation */
+};
+
+
+/* The --xsize/--xee/--xlength triple that every caller but one passes.
+   Inline because the call sites run once per output record and vsearch has no
+   LTO, so a definition in another translation unit would become a real call.
+
+   StripAttributes deliberately has no default member initializers: in C++11
+   those would make it a non-aggregate, and GCC then materializes it in memory
+   instead of passing the three bytes in a register -- measured at +10% of
+   header_fprint_strip, which runs once per output record. */
+inline auto attributes_to_strip(struct Parameters const & parameters) noexcept -> StripAttributes
+{
+  return StripAttributes{parameters.opt_xsize, parameters.opt_xee, parameters.opt_xlength};
+}
+
+
 auto header_fprint_strip(std::FILE * output_handle,
                          View<char> header,
-                         bool strip_size,
-                         bool strip_ee,
-                         bool strip_length) -> bool;
+                         StripAttributes to_strip) -> bool;
 
 
 /* The values a print helper may append to a record's header, as opposed to the

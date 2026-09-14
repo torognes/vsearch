@@ -1256,9 +1256,7 @@ auto eval_parents_long(struct chimera_info_s * ci, struct chimera_cli_state_s * 
       fprint(cli->fp_uchimealns, " nt) ");
       header_fprint_strip(cli->fp_uchimealns,
                           ci->query_head,
-                          parameters.opt_xsize,
-                          parameters.opt_xee,
-                          parameters.opt_xlength);
+                          attributes_to_strip(parameters));
 
       if (ci->parents_found > maxparents)  // 20 parents max ('A' to 'U')
         {
@@ -1274,9 +1272,7 @@ auto eval_parents_long(struct chimera_info_s * ci, struct chimera_cli_state_s * 
           fprint(cli->fp_uchimealns, " nt) ");
           header_fprint_strip(cli->fp_uchimealns,
                               db.header_view(static_cast<uint64_t>(parent_seqno)),
-                              parameters.opt_xsize,
-                              parameters.opt_xee,
-                              parameters.opt_xlength);
+                              attributes_to_strip(parameters));
         }
 
       fprint(cli->fp_uchimealns, "\n\n");
@@ -1357,29 +1353,21 @@ auto eval_parents_long(struct chimera_info_s * ci, struct chimera_cli_state_s * 
 
       header_fprint_strip(cli->fp_uchimeout,
                           ci->query_head,
-                          parameters.opt_xsize,
-                          parameters.opt_xee,
-                          parameters.opt_xlength);
+                          attributes_to_strip(parameters));
       fprint(cli->fp_uchimeout, '\t');
       header_fprint_strip(cli->fp_uchimeout,
                           db.header_view(static_cast<uint64_t>(seqno_a)),
-                          parameters.opt_xsize,
-                          parameters.opt_xee,
-                          parameters.opt_xlength);
+                          attributes_to_strip(parameters));
       fprint(cli->fp_uchimeout, '\t');
       header_fprint_strip(cli->fp_uchimeout,
                           db.header_view(static_cast<uint64_t>(seqno_b)),
-                          parameters.opt_xsize,
-                          parameters.opt_xee,
-                          parameters.opt_xlength);
+                          attributes_to_strip(parameters));
       fprint(cli->fp_uchimeout, '\t');
       if (seqno_c >= 0)
         {
           header_fprint_strip(cli->fp_uchimeout,
                               db.header_view(static_cast<uint64_t>(seqno_c)),
-                              parameters.opt_xsize,
-                              parameters.opt_xee,
-                              parameters.opt_xlength);
+                              attributes_to_strip(parameters));
         }
       else
         {
@@ -1848,27 +1836,21 @@ auto eval_parents(struct chimera_info_s * ci, struct chimera_cli_state_s * cli, 
 
           header_fprint_strip(cli->fp_uchimealns,
                               ci->query_head,
-                              parameters.opt_xsize,
-                              parameters.opt_xee,
-                              parameters.opt_xlength);
+                              attributes_to_strip(parameters));
 
           fprint(cli->fp_uchimealns, "\nParentA (");
           fprint_integer(cli->fp_uchimealns, db.getsequencelen(static_cast<uint64_t>(seqno_a)), 5);
           fprint(cli->fp_uchimealns, " nt) ");
           header_fprint_strip(cli->fp_uchimealns,
                               db.header_view(static_cast<uint64_t>(seqno_a)),
-                              parameters.opt_xsize,
-                              parameters.opt_xee,
-                              parameters.opt_xlength);
+                              attributes_to_strip(parameters));
 
           fprint(cli->fp_uchimealns, "\nParentB (");
           fprint_integer(cli->fp_uchimealns, db.getsequencelen(static_cast<uint64_t>(seqno_b)), 5);
           fprint(cli->fp_uchimealns, " nt) ");
           header_fprint_strip(cli->fp_uchimealns,
                               db.header_view(static_cast<uint64_t>(seqno_b)),
-                              parameters.opt_xsize,
-                              parameters.opt_xee,
-                              parameters.opt_xlength);
+                              attributes_to_strip(parameters));
           fprint(cli->fp_uchimealns, "\n\n");
 
           auto const width = parameters.opt_alignwidth > 0 ? parameters.opt_alignwidth : alnlen;
@@ -1978,21 +1960,15 @@ auto eval_parents(struct chimera_info_s * ci, struct chimera_cli_state_s * cli, 
 
           header_fprint_strip(cli->fp_uchimeout,
                               ci->query_head,
-                              parameters.opt_xsize,
-                              parameters.opt_xee,
-                              parameters.opt_xlength);
+                              attributes_to_strip(parameters));
           fprint(cli->fp_uchimeout, '\t');
           header_fprint_strip(cli->fp_uchimeout,
                               db.header_view(static_cast<uint64_t>(seqno_a)),
-                              parameters.opt_xsize,
-                              parameters.opt_xee,
-                              parameters.opt_xlength);
+                              attributes_to_strip(parameters));
           fprint(cli->fp_uchimeout, '\t');
           header_fprint_strip(cli->fp_uchimeout,
                               db.header_view(static_cast<uint64_t>(seqno_b)),
-                              parameters.opt_xsize,
-                              parameters.opt_xee,
-                              parameters.opt_xlength);
+                              attributes_to_strip(parameters));
           fprint(cli->fp_uchimeout, '\t');
 
           if (parameters.opt_uchimeout5 == 0)
@@ -2001,17 +1977,13 @@ auto eval_parents(struct chimera_info_s * ci, struct chimera_cli_state_s * cli, 
                 {
                   header_fprint_strip(cli->fp_uchimeout,
                                       db.header_view(static_cast<uint64_t>(seqno_a)),
-                                      parameters.opt_xsize,
-                                      parameters.opt_xee,
-                                      parameters.opt_xlength);
+                                      attributes_to_strip(parameters));
                 }
               else
                 {
                   header_fprint_strip(cli->fp_uchimeout,
                                       db.header_view(static_cast<uint64_t>(seqno_b)),
-                                      parameters.opt_xsize,
-                                      parameters.opt_xee,
-                                      parameters.opt_xlength);
+                                      attributes_to_strip(parameters));
                 }
               fprint(cli->fp_uchimeout, '\t');
             }
@@ -2433,9 +2405,7 @@ static auto chimera_thread_core(struct chimera_cli_state_s & state,
 
             header_fprint_strip(state.fp_uchimeout,
                                 ci->query_head,
-                                state.parameters.opt_xsize,
-                                state.parameters.opt_xee,
-                                state.parameters.opt_xlength);
+                                attributes_to_strip(state.parameters));
 
             if (state.parameters.opt_uchimeout5 != 0)
               {

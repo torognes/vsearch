@@ -386,15 +386,11 @@ auto results_show_uc_one(std::FILE * output_handle,
      still against the 24 stdio calls the unbuffered form needs */
   header_fprint_strip(record.stream(),
                       query_head,
-                      parameters.opt_xsize,
-                      parameters.opt_xee,
-                      parameters.opt_xlength);
+                      attributes_to_strip(parameters));
   fprint(record, '\t');
   header_fprint_strip(record.stream(),
                       db.header_view(target),
-                      parameters.opt_xsize,
-                      parameters.opt_xee,
-                      parameters.opt_xlength);
+                      attributes_to_strip(parameters));
   fprint(record, '\n');
 }
 

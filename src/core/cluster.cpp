@@ -565,9 +565,7 @@ auto cluster_core_results_nohit(struct cluster_cli_state_s & state,
       fprint(state.fp_uc, "\t*\t*\t*\t*\t*\t");
       header_fprint_strip(state.fp_uc,
                           query_head,
-                          state.parameters.opt_xsize,
-                          state.parameters.opt_xee,
-                          state.parameters.opt_xlength);
+                          attributes_to_strip(state.parameters));
       fprint(state.fp_uc, "\t*\n");
     }
 
@@ -1447,9 +1445,7 @@ auto cluster(char const * dbname, ClusterMode const mode,
                 fprint(fp_uc, "\t*\t*\t*\t*\t*\t");
                 header_fprint_strip(fp_uc,
                                     state.db.header_view(static_cast<uint64_t>(seqno)),
-                                    parameters.opt_xsize,
-                                    parameters.opt_xee,
-                                    parameters.opt_xlength);
+                                    attributes_to_strip(parameters));
                 fprint(fp_uc, "\t*\n");
               }
 
