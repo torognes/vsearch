@@ -73,6 +73,7 @@
 #include <cstdint>  // uint64_t
 #include <fstream>  // std::ofstream
 #include <ios>
+#include <numeric>  // std::accumulate
 #include <ostream>  // std::ostream
 #include <vector>
 
@@ -184,11 +185,11 @@ auto makeudb_usearch(struct Parameters const & parameters) -> void
   uint64_t const kmerhash_entries = uint64_t{1} << (2 * static_cast<uint64_t>(parameters.opt_wordlength));
 
   /* count word matches */
-  uint64_t wordmatches = 0;
-  for (auto i = 0U; i < kmerhash_entries; i++)
-    {
-      wordmatches += dbindex.kmercount[i];
-    }
+  /* the k-mer slots are exactly the counts: dbindex.prepare() assigns
+     kmercount hashsize entries, and hashsize is the same 4^wordlength */
+  assert(dbindex.kmercount.size() == kmerhash_entries);
+  auto const wordmatches =
+    std::accumulate(dbindex.kmercount.cbegin(), dbindex.kmercount.cend(), uint64_t{0});
 
   uint64_t pos = 0;
   uint64_t const progress_all =

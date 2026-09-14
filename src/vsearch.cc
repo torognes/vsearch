@@ -127,7 +127,9 @@
 #include <cstdio>  // std::FILE, std::size_t, std::snprintf
 #include <cstdlib>  // std::exit, EXIT_FAILURE
 #include <cstring>  // std::strlen
+#include <iterator>  // std::next
 #include <new>  // std::set_new_handler
+#include <numeric>  // std::accumulate
 #include <string>
 #include <unistd.h>  // write, _exit, STDERR_FILENO
 
@@ -226,11 +228,11 @@ auto getentirecommandline(int const argc, char * const * argv) -> std::string
   // Size the result up front so it is built in a single allocation: the sum
   // of every argument's length plus one separating space between adjacent
   // arguments.
-  auto total_length = static_cast<std::string::size_type>(argc - 1);
-  for (int i = 0; i < argc; ++i)
-    {
-      total_length += std::strlen(argv[i]);
-    }
+  auto const total_length =
+    std::accumulate(argv, std::next(argv, argc),
+                    static_cast<std::string::size_type>(argc - 1),
+                    [](std::string::size_type const sum, char const * const argument)
+                    { return sum + std::strlen(argument); });
   command_line.reserve(total_length);
 
   for (int i = 0; i < argc; ++i)

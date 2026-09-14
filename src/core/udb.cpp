@@ -73,7 +73,7 @@
 #include "utils/print_view.hpp"  // fprint
 #include "utils/span.hpp"  // Span, make_span
 #include "utils/warn.hpp"  // vsearch::warn
-#include <algorithm>  // std::min, std::max
+#include <algorithm>  // std::any_of, std::min, std::max
 #include <array>
 #include <cassert>  // assert
 #include <cstdint>  // uint64_t
@@ -82,6 +82,7 @@
 #include <ios>
 #include <istream>  // std::istream
 #include <limits>
+#include <numeric>  // std::accumulate, std::iota
 #include <string>  // std::string
 #include <sys/stat.h>
 #include <vector>
@@ -498,12 +499,14 @@ auto udb_read(const char * filename,
 
         pos += largeread(in_stream, make_span(dbindex.kmerindex).first(dbindex.indexsize), pos, progress_bar);
 
-        for (uint64_t i = 0; i < dbindex.indexsize; i++)
+        /* every word-list entry is a sequence number, so none may reach
+           seqcount; the whole list was just read, so this is the whole
+           container */
+        if (std::any_of(dbindex.kmerindex.cbegin(), dbindex.kmerindex.cend(),
+                        [seqcount](unsigned int const seqno) -> bool
+                        { return seqno >= seqcount; }))
           {
-            if (dbindex.kmerindex[i] >= seqcount)
-              {
-                fatal("Invalid UDB file");
-              }
+            fatal("Invalid UDB file");
           }
       }
     else
@@ -600,10 +603,9 @@ auto udb_read(const char * filename,
 
     pos += largeread(in_stream, data_buffer.first(static_cast<std::size_t>(udb_headerchars)), pos, progress_bar);
 
-    for (auto i = 0U; i < seqcount; i++)
-      {
-        longestheader = std::max<uint64_t>(seqindex[i].headerlen, longestheader);
-      }
+    longestheader = std::accumulate(seqindex, std::next(seqindex, seqcount), longestheader,
+                                    [](uint64_t const longest, seqinfo_t const & record) -> uint64_t
+                                    { return std::max<uint64_t>(longest, record.headerlen); });
 
     /* sequence lengths */
 
@@ -756,10 +758,7 @@ auto udb_read(const char * filename,
   dbindex.map.resize(seqcount);
   dbindex.count = seqcount;
 
-  for (auto i = 0U; i < seqcount; i++)
-    {
-      dbindex.map[i] = i;
-    }
+  std::iota(dbindex.map.begin(), dbindex.map.end(), 0U);
 
   /* done */
 

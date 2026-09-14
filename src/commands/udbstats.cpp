@@ -73,6 +73,7 @@
 #include <cstddef>  // std::size_t
 #include <cstdint>  // uint64_t
 #include <cstdio>  // std::fprintf
+#include <numeric>  // std::iota
 #include <vector>
 
 
@@ -281,12 +282,8 @@ auto udbstats(struct Parameters const & parameters) -> void
          order through a sorted list of their positions. */
 
       {
-        std::vector<std::size_t> in_kmer_order;
-        in_kmer_order.reserve(top.size());
-        for (std::size_t row = 0; row < top.size(); ++row)
-          {
-            in_kmer_order.push_back(row);
-          }
+        std::vector<std::size_t> in_kmer_order(top.size());
+        std::iota(in_kmer_order.begin(), in_kmer_order.end(), std::size_t{0});
         std::sort(in_kmer_order.begin(), in_kmer_order.end(),
                   [&top](std::size_t const lhs, std::size_t const rhs) -> bool
                   { return top[lhs].kmer < top[rhs].kmer; });
