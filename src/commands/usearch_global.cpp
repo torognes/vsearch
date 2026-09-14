@@ -217,73 +217,15 @@ static auto search_output_results(struct search_cli_state_s & state,
                        qsize);
         }
 
-      /* indexed rather than a range-for: --uc reports the best hit only,
-         unless --uc_allhits, so the position is part of the output */
-      for (std::size_t t = 0; t < top.size(); ++t)
-        {
-          auto const * hp = &top[t];
-
-          if (state.fp_fastapairs != nullptr)
-            {
-              results_show_fastapairs_one(state.fp_fastapairs.get(),
-                                          *hp,
-                                          query_head,
-                                          qsequence,
-                                          qsequence_rc,
-                                          state.db,
-                                          state.parameters);
-            }
-
-          if (state.fp_qsegout != nullptr)
-            {
-              results_show_qsegout_one(state.fp_qsegout.get(),
-                                       *hp,
-                                       query_head,
-                                       qsequence,
-                                       qsequence_rc,
-                                       state.parameters);
-            }
-
-          if (state.fp_tsegout != nullptr)
-            {
-              results_show_tsegout_one(state.fp_tsegout.get(),
-                                       *hp,
-                                       state.db,
-                                       state.parameters);
-            }
-
-          if ((state.fp_uc != nullptr) && ((t==0) || state.parameters.opt_uc_allhits))
-            {
-              results_show_uc_one(state.fp_uc.get(),
-                                  hp,
-                                  query_head,
-                                  qseqlen,
-                                  hp->target,
-                                  state.db,
-                                  state.parameters,
-                                  PerfectMatch::whole_alignment);
-            }
-
-          if (state.fp_userout != nullptr)
-            {
-              results_show_userout_one(state.fp_userout.get(),
-                                       hp,
-                                       query_head,
-                                       qsequence,
-                                       qsequence_rc,
-                                       state.db,
-                                       state.parameters);
-            }
-
-          if (state.fp_blast6out != nullptr)
-            {
-              results_show_blast6out_one(state.fp_blast6out.get(),
-                                         hp,
-                                         query_head,
-                                         qseqlen,
-                                         state.db);
-            }
-        }
+      PerHitOutputFiles per_hit_files;
+      per_hit_files.fastapairs = state.fp_fastapairs.get();
+      per_hit_files.qsegout = state.fp_qsegout.get();
+      per_hit_files.tsegout = state.fp_tsegout.get();
+      per_hit_files.uc = state.fp_uc.get();
+      per_hit_files.userout = state.fp_userout.get();
+      per_hit_files.blast6out = state.fp_blast6out.get();
+      results_show_hits(per_hit_files, top, query_head, qsequence, qsequence_rc,
+                        state.db, state.parameters);
     }
   else
     {

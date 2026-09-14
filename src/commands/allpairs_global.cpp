@@ -205,73 +205,15 @@ static auto allpairs_output_results(struct allpairs_state_s & state,
     {
       auto const top = top_hits(to_report, state.parameters.opt_top_hits_only != 0);
 
-      /* indexed rather than a range-for: --uc reports the best hit only,
-         unless --uc_allhits, so the position is part of the output */
-      for (std::size_t t = 0; t < top.size(); ++t)
-        {
-          struct hit const * hp = &top[t];
-
-          if (state.fp_fastapairs != nullptr)
-            {
-              results_show_fastapairs_one(state.fp_fastapairs,
-                                          *hp,
-                                          query_head,
-                                          qsequence,
-                                          qsequence_rc,
-                                          state.db,
-                                          state.parameters);
-            }
-
-          if (state.fp_qsegout != nullptr)
-            {
-              results_show_qsegout_one(state.fp_qsegout,
-                                       *hp,
-                                       query_head,
-                                       qsequence,
-                                       qsequence_rc,
-                                       state.parameters);
-            }
-
-          if (state.fp_tsegout != nullptr)
-            {
-              results_show_tsegout_one(state.fp_tsegout,
-                                       *hp,
-                                       state.db,
-                                       state.parameters);
-            }
-
-          if ((state.fp_uc != nullptr) and ((t == 0) or state.parameters.opt_uc_allhits))
-            {
-              results_show_uc_one(state.fp_uc,
-                                  hp,
-                                  query_head,
-                                  qseqlen,
-                                  hp->target,
-                                  state.db,
-                                  state.parameters,
-                                  PerfectMatch::whole_alignment);
-            }
-
-          if (state.fp_userout != nullptr)
-            {
-              results_show_userout_one(state.fp_userout,
-                                       hp,
-                                       query_head,
-                                       qsequence,
-                                       qsequence_rc,
-                                       state.db,
-                                       state.parameters);
-            }
-
-          if (state.fp_blast6out != nullptr)
-            {
-              results_show_blast6out_one(state.fp_blast6out,
-                                         hp,
-                                         query_head,
-                                         qseqlen,
-                                         state.db);
-            }
-        }
+      PerHitOutputFiles per_hit_files;
+      per_hit_files.fastapairs = state.fp_fastapairs;
+      per_hit_files.qsegout = state.fp_qsegout;
+      per_hit_files.tsegout = state.fp_tsegout;
+      per_hit_files.uc = state.fp_uc;
+      per_hit_files.userout = state.fp_userout;
+      per_hit_files.blast6out = state.fp_blast6out;
+      results_show_hits(per_hit_files, top, query_head, qsequence, qsequence_rc,
+                        state.db, state.parameters);
     }
   else
     {

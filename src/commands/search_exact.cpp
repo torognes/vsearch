@@ -306,73 +306,15 @@ auto search_exact_output_results(struct search_exact_state_s & state,
                        qsize);
         }
 
-      /* indexed rather than a range-for: --uc reports the best hit only,
-         unless --uc_allhits, so the position is part of the output */
-      for (std::size_t t = 0; t < top.size(); ++t)
-        {
-          auto const & hit = top[t];
-
-          if (state.fp_fastapairs != nullptr)
-            {
-              results_show_fastapairs_one(state.fp_fastapairs,
-                                          hit,
-                                          query_head,
-                                          qsequence,
-                                          qsequence_rc,
-                                          state.db,
-                                          parameters);
-            }
-
-          if (state.fp_qsegout != nullptr)
-            {
-              results_show_qsegout_one(state.fp_qsegout,
-                                       hit,
-                                       query_head,
-                                       qsequence,
-                                       qsequence_rc,
-                                       parameters);
-            }
-
-          if (state.fp_tsegout != nullptr)
-            {
-              results_show_tsegout_one(state.fp_tsegout,
-                                       hit,
-                                       state.db,
-                                       parameters);
-            }
-
-          if ((state.fp_uc != nullptr) && ((t == 0) || parameters.opt_uc_allhits))
-            {
-              results_show_uc_one(state.fp_uc,
-                                  &hit,
-                                  query_head,
-                                  qseqlen,
-                                  hit.target,
-                                  state.db,
-                                  parameters,
-                                  PerfectMatch::whole_alignment);
-            }
-
-          if (state.fp_userout != nullptr)
-            {
-              results_show_userout_one(state.fp_userout,
-                                       &hit,
-                                       query_head,
-                                       qsequence,
-                                       qsequence_rc,
-                                       state.db,
-                                       parameters);
-            }
-
-          if (state.fp_blast6out != nullptr)
-            {
-              results_show_blast6out_one(state.fp_blast6out,
-                                         &hit,
-                                         query_head,
-                                         qseqlen,
-                                         state.db);
-            }
-        }
+      PerHitOutputFiles per_hit_files;
+      per_hit_files.fastapairs = state.fp_fastapairs;
+      per_hit_files.qsegout = state.fp_qsegout;
+      per_hit_files.tsegout = state.fp_tsegout;
+      per_hit_files.uc = state.fp_uc;
+      per_hit_files.userout = state.fp_userout;
+      per_hit_files.blast6out = state.fp_blast6out;
+      results_show_hits(per_hit_files, top, query_head, qsequence, qsequence_rc,
+                        state.db, parameters);
     }
   else
     {

@@ -156,6 +156,35 @@ auto results_show_tsegout_one(std::FILE * output_handle,
                               struct Database const & db,
                               struct Parameters const & parameters) -> void;
 
+/* The six per-hit output files, in the order their writers run below. A null
+   handle means this run does not write that file, which is why they are
+   gathered rather than passed as six arguments: the three search commands each
+   carried the same six handles through the same loop. */
+struct PerHitOutputFiles {
+  std::FILE * fastapairs = nullptr;
+  std::FILE * qsegout = nullptr;
+  std::FILE * tsegout = nullptr;
+  std::FILE * uc = nullptr;
+  std::FILE * userout = nullptr;
+  std::FILE * blast6out = nullptr;
+};
+
+
+/* Emit the kept hits of one query through every per-hit writer this run has a
+   file for. Was written out three times -- usearch_global, search_exact and
+   allpairs_global -- with the same six writers in the same order, differing
+   only in how each command spells its handles.
+
+   'top' is the --top_hits_only prefix the caller has already taken. */
+auto results_show_hits(PerHitOutputFiles const & files,
+                       View<struct hit> top,
+                       View<char> query_head,
+                       View<char> qsequence,
+                       View<char> qsequence_rc,
+                       struct Database const & db,
+                       struct Parameters const & parameters) -> void;
+
+
 auto results_show_samheader(std::FILE * output_handle,
                             char const * dbname,
                             struct Database const & db,
