@@ -916,16 +916,28 @@ auto sintax_search_topscores(struct searchinfo_s * searchinfo,
      memory at once. A slice keeps that traffic in cache; without it, adding
      threads eventually makes the command slower rather than faster.
 
-     Which cache level a slice reaches barely matters, because the point is
-     that it leaves main memory at all. The other end of the range does: every
-     slice repeats the walk over the k-mer sample, so a slice much smaller than
-     the database charges the bitmap lookups and the list bisections above once
-     per slice. sintax samples subset_size k-mers where a search samples an
-     order of magnitude more, so its floor sits lower than the 524288 of
-     search_topscores; measured, anything from 16384 to 262144 costs the same
-     wall clock and 262144 the least CPU. A reference of a quarter million
-     sequences or fewer -- which is most of them -- is a single slice and pays
-     nothing.
+     The floor is the other end of the range, and it is steep: every slice
+     repeats the walk over the k-mer sample, so a slice much smaller than the
+     database charges the bitmap lookups and the list bisections above once
+     per slice -- 4096 costs +43 % of the query phase at eight threads and
+     +58 % at twenty-four. sintax samples subset_size k-mers where a search
+     samples an order of magnitude more, so its floor still sits lower than
+     the 524288 of search_topscores.
+
+     What a slice does not do is read fewer bitmap bytes. The loop nest is
+     bootstrap outside, slice inside, so a smaller slice reorders those reads
+     without removing any, and the reuse it could capture lives across
+     bootstraps rather than within one. What it does capture is the counter
+     array, whose traffic is the same whatever the query's k-mer count -- which
+     is why the measured optimum sits at 32768, a 32 kB counter slice, for a
+     120-k-mer query and a 354-k-mer one alike, and not at the very different
+     sizes a bitmap-footprint argument predicts for the two. It is a shallow
+     optimum and it does not survive the thread count: against 262144 it is
+     5 % faster on the query phase at eight threads and 10 % slower at
+     twenty-four, where the repeated k-mer walk stops paying for itself. So
+     262144 stays -- fastest, and cheapest in CPU, where the threads are. A
+     reference of a quarter million sequences or fewer -- which is most of
+     them -- is a single slice and pays nothing either way.
 
      It has to be a multiple of the block width, so that a slice starts on a
      block boundary, and of eight, so that it starts on a whole bitmap byte. */
