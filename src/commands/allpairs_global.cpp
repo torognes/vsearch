@@ -348,25 +348,11 @@ static auto allpairs_thread_run(struct allpairs_state_s & state, uint64_t const 
 
   searchinfo.hits_v.resize(static_cast<std::size_t>(state.seqcount));
 
-  searchinfo.s.reset(search16_init(state.parameters.opt_match,
-                        state.parameters.opt_mismatch,
-                        state.parameters.opt_gap_open_query_left,
-                        state.parameters.opt_gap_open_target_left,
-                        state.parameters.opt_gap_open_query_interior,
-                        state.parameters.opt_gap_open_target_interior,
-                        state.parameters.opt_gap_open_query_right,
-                        state.parameters.opt_gap_open_target_right,
-                        state.parameters.opt_gap_extension_query_left,
-                        state.parameters.opt_gap_extension_target_left,
-                        state.parameters.opt_gap_extension_query_interior,
-                        state.parameters.opt_gap_extension_target_interior,
-                        state.parameters.opt_gap_extension_query_right,
-                        state.parameters.opt_gap_extension_target_right,
-                        state.parameters.opt_n_mismatch));
-
-
+  /* one description of the scoring for both aligners: the SIMD one clamps it
+     to 16-bit cells, the scalar one keeps it at 64 bits */
   struct Scoring const scoring = scoring_from_options(state.parameters);
 
+  searchinfo.s.reset(search16_init(scoring));
 
   LinearMemoryAligner lma(scoring);
 

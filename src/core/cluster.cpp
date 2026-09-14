@@ -260,21 +260,7 @@ auto cluster_query_init(struct searchinfo_s & si, int const seqcount, int const 
 
   /* si.uh (a Uniquer value member) is ready to use as default-constructed */
   si.m = Minheap(tophits);
-  si.s.reset(search16_init(parameters.opt_match,
-                        parameters.opt_mismatch,
-                        parameters.opt_gap_open_query_left,
-                        parameters.opt_gap_open_target_left,
-                        parameters.opt_gap_open_query_interior,
-                        parameters.opt_gap_open_target_interior,
-                        parameters.opt_gap_open_query_right,
-                        parameters.opt_gap_open_target_right,
-                        parameters.opt_gap_extension_query_left,
-                        parameters.opt_gap_extension_target_left,
-                        parameters.opt_gap_extension_query_interior,
-                        parameters.opt_gap_extension_target_interior,
-                        parameters.opt_gap_extension_query_right,
-                        parameters.opt_gap_extension_target_right,
-                        parameters.opt_n_mismatch));
+  si.s.reset(search16_init(scoring_from_options(parameters)));
 }
 
 

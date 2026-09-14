@@ -61,6 +61,7 @@
 #include "core/align_simd.hpp"
 #include "arch/intrinsics.hpp"  // SIMD intrinsics (__m128i / VECTOR_SHORT, _mm_*)
 #include "core/db.hpp"
+#include "core/linmemalign.hpp"  // struct Scoring
 #include "utils/fatal_allocator.hpp"  // FatalAllocator
 #include "utils/grow_to_fit.hpp"  // vsearch::grow_to_fit
 #include "utils/maps/four_bit.hpp"
@@ -1107,33 +1108,19 @@ namespace {
 }  // end of anonymous namespace
 
 
-auto search16_init(int64_t const score_match,
-                   int64_t const score_mismatch,
-                   int64_t const penalty_gap_open_query_left,
-                   int64_t const penalty_gap_open_target_left,
-                   int64_t const penalty_gap_open_query_interior,
-                   int64_t const penalty_gap_open_target_interior,
-                   int64_t const penalty_gap_open_query_right,
-                   int64_t const penalty_gap_open_target_right,
-                   int64_t const penalty_gap_extension_query_left,
-                   int64_t const penalty_gap_extension_target_left,
-                   int64_t const penalty_gap_extension_query_interior,
-                   int64_t const penalty_gap_extension_target_interior,
-                   int64_t const penalty_gap_extension_query_right,
-                   int64_t const penalty_gap_extension_target_right,
-                   bool const score_n_mismatch) -> struct s16info_s *
+auto search16_init(struct Scoring const & scoring) -> struct s16info_s *
 {
   /* prepare alloc of qtable, dprofile, hearray, dir. The owned buffers are
      std::vector members (default-constructed empty); the scalar/view fields
      take their in-class initializers, so only the two below need setting. */
   auto * s = new s16info_s{};
 
-  s->n_mismatch = score_n_mismatch;
+  s->n_mismatch = scoring.n_mismatch;
   s->dprofile.resize(2 * 4 * 8 * 16 / sizeof(VECTOR_SHORT));  // 1024 bytes, as before
 
   bool needs_fallback = false;
-  CELL const match = clamp_to_cell(score_match, score_cell_limit, needs_fallback);
-  CELL const mismatch = clamp_to_cell(score_mismatch, score_cell_limit, needs_fallback);
+  CELL const match = clamp_to_cell(scoring.match, score_cell_limit, needs_fallback);
+  CELL const mismatch = clamp_to_cell(scoring.mismatch, score_cell_limit, needs_fallback);
 
   /* Nearly all of this 16 x 16 matrix is load-bearing. Rows are database
      4-bit codes, columns are query 4-bit codes, and codes 1 to 15 (the full
@@ -1161,7 +1148,7 @@ auto search16_init(int64_t const score_match,
      from vsearch::score_4bit (utils/score_4bit.hpp). */
   static_assert(matrix_size == vsearch::nucleotide_codes_4bit.size(),
                 "one matrix row and column per 4-bit nucleotide code");
-  vsearch::SubstitutionScores<CELL> const scores {match, mismatch, score_n_mismatch,};
+  vsearch::SubstitutionScores<CELL> const scores {match, mismatch, scoring.n_mismatch,};
   for (auto const row : vsearch::nucleotide_codes_4bit)
     {
       for (auto const column : vsearch::nucleotide_codes_4bit)
@@ -1179,32 +1166,32 @@ auto search16_init(int64_t const score_match,
 
 
   s->penalty_gap_open_query_left =
-    clamp_to_cell(penalty_gap_open_query_left, penalty_cell_limit, needs_fallback);
+    clamp_to_cell(scoring.gap_open_query_left, penalty_cell_limit, needs_fallback);
   s->penalty_gap_open_query_interior =
-    clamp_to_cell(penalty_gap_open_query_interior, penalty_cell_limit, needs_fallback);
+    clamp_to_cell(scoring.gap_open_query_interior, penalty_cell_limit, needs_fallback);
   s->penalty_gap_open_query_right =
-    clamp_to_cell(penalty_gap_open_query_right, penalty_cell_limit, needs_fallback);
+    clamp_to_cell(scoring.gap_open_query_right, penalty_cell_limit, needs_fallback);
 
   s->penalty_gap_open_target_left =
-    clamp_to_cell(penalty_gap_open_target_left, penalty_cell_limit, needs_fallback);
+    clamp_to_cell(scoring.gap_open_target_left, penalty_cell_limit, needs_fallback);
   s->penalty_gap_open_target_interior =
-    clamp_to_cell(penalty_gap_open_target_interior, penalty_cell_limit, needs_fallback);
+    clamp_to_cell(scoring.gap_open_target_interior, penalty_cell_limit, needs_fallback);
   s->penalty_gap_open_target_right =
-    clamp_to_cell(penalty_gap_open_target_right, penalty_cell_limit, needs_fallback);
+    clamp_to_cell(scoring.gap_open_target_right, penalty_cell_limit, needs_fallback);
 
   s->penalty_gap_extension_query_left =
-    clamp_to_cell(penalty_gap_extension_query_left, penalty_cell_limit, needs_fallback);
+    clamp_to_cell(scoring.gap_extension_query_left, penalty_cell_limit, needs_fallback);
   s->penalty_gap_extension_query_interior =
-    clamp_to_cell(penalty_gap_extension_query_interior, penalty_cell_limit, needs_fallback);
+    clamp_to_cell(scoring.gap_extension_query_interior, penalty_cell_limit, needs_fallback);
   s->penalty_gap_extension_query_right =
-    clamp_to_cell(penalty_gap_extension_query_right, penalty_cell_limit, needs_fallback);
+    clamp_to_cell(scoring.gap_extension_query_right, penalty_cell_limit, needs_fallback);
 
   s->penalty_gap_extension_target_left =
-    clamp_to_cell(penalty_gap_extension_target_left, penalty_cell_limit, needs_fallback);
+    clamp_to_cell(scoring.gap_extension_target_left, penalty_cell_limit, needs_fallback);
   s->penalty_gap_extension_target_interior =
-    clamp_to_cell(penalty_gap_extension_target_interior, penalty_cell_limit, needs_fallback);
+    clamp_to_cell(scoring.gap_extension_target_interior, penalty_cell_limit, needs_fallback);
   s->penalty_gap_extension_target_right =
-    clamp_to_cell(penalty_gap_extension_target_right, penalty_cell_limit, needs_fallback);
+    clamp_to_cell(scoring.gap_extension_target_right, penalty_cell_limit, needs_fallback);
 
   s->force_scalar_fallback = needs_fallback;
 
