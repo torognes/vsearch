@@ -63,6 +63,7 @@
 #include "core/db.hpp"
 #include "core/linmemalign.hpp"  // struct Scoring
 #include "utils/fatal_allocator.hpp"  // FatalAllocator
+#include "utils/decimal_digits.hpp"  // decimal::to_decimal, decimal::Buffer
 #include "utils/grow_to_fit.hpp"  // vsearch::grow_to_fit
 #include "utils/maps/four_bit.hpp"
 #include "utils/score_4bit.hpp"  // vsearch::score_4bit, SubstitutionScores, nucleotide_codes_4bit
@@ -72,9 +73,8 @@
 #include <cassert>  // assert
 #include <cstddef>  // std::size_t
 #include <cstdint>  // int64_t, uint64_t
-#include <cstdio>  // std::snprintf
 #include <cstring>  // std::memcpy, std::memmove, std::memset
-#include <iterator>  // std::next
+#include <iterator>  // std::next, std::prev
 #include <limits>
 #include <string>  // std::string, std::to_string
 #include <vector>  // std::vector
@@ -885,21 +885,34 @@ namespace {
 }  // end of anonymous namespace
 
 
+/* Emit the pending operation and, when it repeats, its count -- backwards,
+   which is the direction this builder writes the cigar in and also the
+   direction to_decimal() produces digits in.
+
+   This block was written twice, byte for byte, in pushop and finishop. It is
+   also where the last integer std::snprintf outside vendored/ lived: the two
+   other cigar builders (utils/cigar.cpp and core/linmemalign.cpp) already use
+   decimal::to_decimal, as decimal_digits.hpp's own header comment records. */
+inline auto emit_pending_op(s16info_s * s) -> void
+{
+  *--s->cigarend = s->op;
+  if (s->opcount > 1)
+    {
+      decimal::Buffer buffer;
+      auto const digits = decimal::to_decimal(buffer, s->opcount);
+      s->cigarend = std::prev(s->cigarend, static_cast<std::ptrdiff_t>(digits.size()));
+      std::memcpy(s->cigarend, digits.data(), digits.size());
+    }
+}
+
+
 inline auto pushop(s16info_s * s, char const newop) -> void
 {
   if (newop == s->op) {
     ++s->opcount;
     return;
   }
-  *--s->cigarend = s->op;
-  if (s->opcount > 1)
-    {
-      static constexpr auto size = 11;
-      std::array<char, size> buffer {{}};
-      auto const length = std::snprintf(buffer.data(), size, "%d", s->opcount);
-      s->cigarend -= length;
-      std::memcpy(s->cigarend, buffer.data(), static_cast<size_t>(length));
-    }
+  emit_pending_op(s);
   s->op = newop;
   s->opcount = 1;
 }
@@ -909,15 +922,7 @@ inline auto finishop(s16info_s * s) -> void
 {
   if ((s->op != 0) and (s->opcount != 0))
     {
-      *--s->cigarend = s->op;
-      if (s->opcount > 1)
-        {
-          static constexpr auto size = 11;
-          std::array<char, size> buffer {{}};
-          auto const length = std::snprintf(buffer.data(), size, "%d", s->opcount);
-          s->cigarend -= length;
-          std::memcpy(s->cigarend, buffer.data(), static_cast<size_t>(length));
-        }
+      emit_pending_op(s);
       s->op = 0;
       s->opcount = 0;
     }
