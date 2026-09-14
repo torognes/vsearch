@@ -204,13 +204,52 @@ struct NoHitOutputFiles {
    The --otutabout gate that precedes this in two of the three stays at those
    call sites rather than moving in here: allpairs_global has no OTU table at
    all, so folding the gate in would give it a branch it can never take. */
-auto results_show_no_hit(NoHitOutputFiles const & files,
-                         View<char> query_head,
-                         View<char> qsequence,
-                         View<char> qsequence_rc,
-                         int64_t qseqlen,
-                         struct Database const & db,
-                         struct Parameters const & parameters) -> void;
+inline auto results_show_no_hit(NoHitOutputFiles const & files,
+                                View<char> const query_head,
+                                View<char> const qsequence,
+                                View<char> const qsequence_rc,
+                                int64_t const qseqlen,
+                                struct Database const & db,
+                                struct Parameters const & parameters) -> void
+{
+  /* the null hit is what makes each of these writers emit its no-hit form */
+  if (files.uc != nullptr)
+    {
+      results_show_uc_one(files.uc,
+                          nullptr,
+                          query_head,
+                          qseqlen,
+                          0,
+                          db,
+                          parameters,
+                          PerfectMatch::whole_alignment);
+    }
+
+  if (parameters.opt_output_no_hits == 0)
+    {
+      return;
+    }
+
+  if (files.userout != nullptr)
+    {
+      results_show_userout_one(files.userout,
+                               nullptr,
+                               query_head,
+                               qsequence,
+                               qsequence_rc,
+                               db,
+                               parameters);
+    }
+
+  if (files.blast6out != nullptr)
+    {
+      results_show_blast6out_one(files.blast6out,
+                                 nullptr,
+                                 query_head,
+                                 qseqlen,
+                                 db);
+    }
+}
 
 
 /* Emit one query into --matched or --notmatched, and advance that side's
@@ -228,12 +267,39 @@ auto results_show_no_hit(NoHitOutputFiles const & files,
    allpairs_global, differing only in the abundance each annotates the record
    with: allpairs_global has no query abundance and passes OutputAnnotations'
    0 sentinel. */
-auto results_show_matched_query(std::FILE * output_handle,
-                                int & count,
-                                View<char> query_head,
-                                View<char> qsequence,
-                                uint64_t abundance,
-                                struct Parameters const & parameters) -> void;
+namespace detail {
+  /* The half that actually writes. Out of line because it pulls in
+     fasta_print_general; see the inline wrapper below for why it is split. */
+  auto write_matched_query(std::FILE * output_handle,
+                           int count,
+                           View<char> query_head,
+                           View<char> qsequence,
+                           uint64_t abundance,
+                           struct Parameters const & parameters) -> void;
+}
+
+/* Split, not merged, for the reason 933bf566 recorded about
+   header_fprint_strip: most runs give neither --matched nor --notmatched, and
+   for those every query paid a call that did nothing but ++count. The counter
+   still has to advance -- it is the "Matching unique query sequences: N of M"
+   statistic -- so the increment and the null test stay inline and only the
+   writing half is a call. Measured at 18 instructions per query on
+   --search_exact, which is the cheapest command that runs this. */
+inline auto results_show_matched_query(std::FILE * const output_handle,
+                                       int & count,
+                                       View<char> const query_head,
+                                       View<char> const qsequence,
+                                       uint64_t const abundance,
+                                       struct Parameters const & parameters) -> void
+{
+  ++count;
+  if (output_handle == nullptr)
+    {
+      return;
+    }
+  detail::write_matched_query(output_handle, count, query_head, qsequence,
+                              abundance, parameters);
+}
 
 
 auto results_show_samheader(std::FILE * output_handle,

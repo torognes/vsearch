@@ -1178,66 +1178,13 @@ auto results_show_hits(PerHitOutputFiles const & files,
 }
 
 
-auto results_show_no_hit(NoHitOutputFiles const & files,
-                         View<char> const query_head,
-                         View<char> const qsequence,
-                         View<char> const qsequence_rc,
-                         int64_t const qseqlen,
-                         struct Database const & db,
-                         struct Parameters const & parameters) -> void
+auto detail::write_matched_query(std::FILE * const output_handle,
+                                 int const count,
+                                 View<char> const query_head,
+                                 View<char> const qsequence,
+                                 uint64_t const abundance,
+                                 struct Parameters const & parameters) -> void
 {
-  /* the null hit is what makes each of these writers emit its no-hit form */
-  if (files.uc != nullptr)
-    {
-      results_show_uc_one(files.uc,
-                          nullptr,
-                          query_head,
-                          qseqlen,
-                          0,
-                          db,
-                          parameters,
-                          PerfectMatch::whole_alignment);
-    }
-
-  if (parameters.opt_output_no_hits == 0)
-    {
-      return;
-    }
-
-  if (files.userout != nullptr)
-    {
-      results_show_userout_one(files.userout,
-                               nullptr,
-                               query_head,
-                               qsequence,
-                               qsequence_rc,
-                               db,
-                               parameters);
-    }
-
-  if (files.blast6out != nullptr)
-    {
-      results_show_blast6out_one(files.blast6out,
-                                 nullptr,
-                                 query_head,
-                                 qseqlen,
-                                 db);
-    }
-}
-
-
-auto results_show_matched_query(std::FILE * const output_handle,
-                                int & count,
-                                View<char> const query_head,
-                                View<char> const qsequence,
-                                uint64_t const abundance,
-                                struct Parameters const & parameters) -> void
-{
-  ++count;
-  if (output_handle == nullptr)
-    {
-      return;
-    }
   fasta_print_general(output_handle,
                       qsequence,
                       query_head,
