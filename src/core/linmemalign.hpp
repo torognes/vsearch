@@ -67,6 +67,30 @@
 #include <vector>
 
 
+/* Whether a gap in B is already open on this side of the sub-problem. Was a
+   bare bool, one of six adjacent ones in diff(). */
+enum struct GapOpen : bool { closed, open };
+
+
+/* Which ends of the two sequences this sub-problem still includes -- which is
+   what decides whether a gap there pays the left/right terminal penalty or the
+   interior one. These were four adjacent bools in diff(), distinguished by
+   position and readable only because each carried a trailing comment; those
+   comments are now the member documentation.
+
+   No default member initializers on purpose: in C++11 they would make this a
+   non-aggregate, and the recursion below brace-initializes it. whole() names
+   the all-ends case the entry call wants. */
+struct Ends {
+  bool a_left;   /* includes left end of a  */
+  bool a_right;  /* includes right end of a */
+  bool b_left;   /* includes left end of b  */
+  bool b_right;  /* includes right end of b */
+
+  static auto whole() -> Ends { return Ends{true, true, true, true}; }
+};
+
+
 struct Scoring {
   // aligned nucleotides
   int64_t match = 0;
@@ -167,12 +191,9 @@ private:
             int64_t b_start,
             int64_t a_len,
             int64_t b_len,
-            bool gap_b_left,  /* gap open left of b      */
-            bool gap_b_right, /* gap open right of b     */
-            bool a_left,      /* includes left end of a  */
-            bool a_right,     /* includes right end of a */
-            bool b_left,      /* includes left end of b  */
-            bool b_right) -> void;    /* includes right end of b */
+            GapOpen gap_b_left,
+            GapOpen gap_b_right,
+            Ends ends) -> void;    /* includes right end of b */
 
   auto alloc_vectors(std::size_t size) -> void;
 
