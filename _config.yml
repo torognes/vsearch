@@ -6,7 +6,10 @@ description: >-
   Manual pages for vsearch, a versatile open-source tool for metabarcoding
   and metagenomics.
 
-# attempt to fix lack of CSS rendering in deployed mode
+# a project site is served from a subfolder, and the theme builds every
+# asset URL from baseurl, so both settings are required: without them the
+# deployed pages reference stylesheets that are not there, and render
+# unstyled
 baseurl: /vsearch
 url: https://torognes.github.io
 

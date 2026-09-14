@@ -111,7 +111,10 @@ convert_markdown_to_github_markdown() {
 # create folder
 mkdir -p ../docs/{commands,formats,misc} || exit 1
 
-# test: maybe the config file needs to be placed at the root of the documentation?
+# jekyll reads its configuration from the folder it builds, and the
+# workflow builds ../docs, so the configuration has to be copied there.
+# Without it the build reports "Configuration file: none", warns that the
+# layout the pages ask for does not exist, and emits an unthemed site.
 cp -f ../_config.yml ../docs/ || exit 1
 
 STATUS=0
