@@ -83,12 +83,25 @@ section_page() {
     echo "${3}"
 }
 
+## The hub page is the only page whose published name differs from its
+## source name: index.1.md is written as docs/index.md, so that GitHub
+## Pages serves it as the site root. jekyll-relative-links rewrites a
+## link only when its target exists, so a link spelled with the source
+## name is left untouched and becomes a 404. Rewrite those to the
+## published name. Every other page of the manual sits exactly one
+## folder below the hub, which is why one '../' form is enough.
+rename_hub_page_links() {
+    sed 's|](\.\./index\.1\.md)|](../index.md)|g'
+}
+
 ## ${1}: markdown source, ${2}: title, ${3}: parent section, ${4}: rank
 ## called by name through write_output(), which shellcheck cannot see
 # shellcheck disable=SC2317
 convert_markdown_to_github_markdown() {
     emit_front_matter "${2}" "${3}" "${4}"
-    expand_markdown_includes "${1}" | pandoc - --to gfm+definition_lists
+    expand_markdown_includes "${1}" \
+        | pandoc - --to gfm+definition_lists \
+        | rename_hub_page_links
 }
 
 

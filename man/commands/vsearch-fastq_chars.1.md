@@ -150,7 +150,7 @@ vsearch \
 
 # SEE ALSO
 
-[`vsearch-fastq_stats(1)`](./commands/vsearch-stats.1.md),
+[`vsearch-fastq_stats(1)`](./vsearch-fastq_stats.1.md),
 [`vsearch-fastq(5)`](../formats/vsearch-fastq.5.md)
 
 
