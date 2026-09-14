@@ -1641,16 +1641,15 @@ auto eval_parents(struct chimera_info_s * ci, struct chimera_cli_state_s * cli, 
 
       if (best_is_reverse)
         {
-          for (int i = 0; i < alnlen; ++i)
+          for (auto & diff : make_span(ci->diffs).first(static_cast<std::size_t>(alnlen)))
             {
-              char const diff = ci->diffs[static_cast<size_t>(i)];
               if (diff == 'A')
                 {
-                  ci->diffs[static_cast<size_t>(i)] = 'B';
+                  diff = 'B';
                 }
               else if (diff == 'B')
                 {
-                  ci->diffs[static_cast<size_t>(i)] = 'A';
+                  diff = 'A';
                 }
             }
         }
@@ -3085,7 +3084,7 @@ auto chimera_detect_batch(struct Parameters const & parameters,
       /* own the handle before initialising it, so a fatal() in
          chimera_detect_thread_init frees this element and all prior ones. */
       ctx.ci_array.emplace_back(chimera_info_alloc());
-      chimera_detect_thread_init(ctx.ci_array[static_cast<size_t>(t)].get(), parameters, dbindex, db,
+      chimera_detect_thread_init(ctx.ci_array.back().get(), parameters, dbindex, db,
                                  mode);
     }
 

@@ -578,14 +578,18 @@ inline auto chunk_perform_write(struct mergepairs_cli_state_s & state,
 {
   while (state.chunks[static_cast<std::size_t>(state.chunk_write_next)].state == State::processed)
     {
+      /* chunk_write_next only moves at the end of this body, so one reference
+         stands for the five subscripts this loop used to repeat */
+      auto & chunk = state.chunks[static_cast<std::size_t>(state.chunk_write_next)];
       lock.unlock();
-      for (auto i = 0; i < state.chunks[static_cast<std::size_t>(state.chunk_write_next)].size; i++)
+      for (auto const & a_read_pair :
+             make_view(chunk.merge_data).first(static_cast<std::size_t>(chunk.size)))
         {
-          keep_or_discard(state, state.chunks[static_cast<std::size_t>(state.chunk_write_next)].merge_data[static_cast<std::size_t>(i)]);
+          keep_or_discard(state, a_read_pair);
         }
       lock.lock();
-      state.pairs_written += state.chunks[static_cast<std::size_t>(state.chunk_write_next)].size;
-      state.chunks[static_cast<std::size_t>(state.chunk_write_next)].state = State::empty;
+      state.pairs_written += chunk.size;
+      chunk.state = State::empty;
       if (state.finished_reading and (state.pairs_written >= state.pairs_read))
         {
           state.finished_all = true;
@@ -608,13 +612,14 @@ inline auto chunk_perform_process(struct mergepairs_cli_state_s & state,
       state.chunk_process_next = (chunk_current + 1) % state.chunk_count;
       cond_chunks.notify_all();
       lock.unlock();
-      for (auto i = 0; i < state.chunks[static_cast<std::size_t>(chunk_current)].size; i++)
+      auto & chunk = state.chunks[static_cast<std::size_t>(chunk_current)];
+      for (auto & a_read_pair :
+             make_span(chunk.merge_data).first(static_cast<std::size_t>(chunk.size)))
         {
           if (state.abort.aborted())
             {
               break;
             }
-          auto & a_read_pair = state.chunks[static_cast<std::size_t>(chunk_current)].merge_data[static_cast<std::size_t>(i)];
           process(a_read_pair, kmerhash, state.tables, state.parameters);
           /* the merge core flags an out-of-range FASTQ quality on the pair rather
              than touching pool state; turn it into a cooperative abort here */
