@@ -58,7 +58,7 @@ int main() {
         std::vector<char> buf(seqs[i].begin(), seqs[i].end());
         buf.push_back('\0');
 
-        dust_single(buf.data(), static_cast<int>(seqs[i].size()), false);
+        dust_single(Span<char>{buf.data(), seqs[i].size()}, MaskStyle::soft);
 
         std::printf(">%s\n%s\n", labels[i].c_str(), buf.data());
     }

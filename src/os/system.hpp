@@ -129,7 +129,7 @@ auto xmalloc(std::size_t size) -> void *;
 auto xfree(void * ptr) -> void;
 
 auto xfstat(int file_descriptor, xstat_t * buf) -> int;
-auto xstat(const char * path, xstat_t  * buf) -> int;
+auto xstat(char const * path, xstat_t  * buf) -> int;
 /* Where the descriptor currently is. POSIX has no tell() for a descriptor,
    so this is the lseek(fd, 0, SEEK_CUR) idiom; the offset and whence used to
    be parameters, but the one caller only ever asked for the position, so the

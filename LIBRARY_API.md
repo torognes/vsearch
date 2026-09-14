@@ -697,9 +697,8 @@ for (int i = 0; i < n_seqs; i++) {
 }
 
 // Retrieve results (sorted by abundance, descending)
-struct derep_result_s results[1000];
-int result_count;
-derep_get_results(ds, results, 1000, &result_count);
+std::vector<struct derep_result_s> results(1000);
+auto const result_count = derep_get_results(ds, make_span(results));
 
 derep_session_cleanup(ds);
 derep_session_free(ds);
@@ -727,7 +726,7 @@ called. Copy them if you need them afterward.
 | `derep_session_free(ds)` | Free session state. Null-safe. |
 | `derep_session_init(ds)` | Initialize session. No database required. |
 | `derep_add_sequence(ds, header, seq, len, abund)` | Add one sequence. Normalized internally. |
-| `derep_get_results(ds, results, max, count)` | Retrieve results sorted by abundance. Caller-provided array. |
+| `derep_get_results(ds, results)` | Retrieve results sorted by abundance into a caller-provided `Span<derep_result_s>`; returns how many were written. |
 | `derep_session_cleanup(ds)` | Free session resources. Invalidates result pointers. |
 
 ---
@@ -824,7 +823,7 @@ dust_all(db, parameters);
 
 // Standalone: mask a single sequence in-place (thread-safe)
 char seq[] = "AAAAAAAAAAAACCGTACGT";
-dust_single(seq, strlen(seq), false);  // false = soft-mask (lowercase)
+dust_single(Span<char>{seq, strlen(seq)}, MaskStyle::soft);  // lowercase
 ```
 
 `dust_single()` is fully thread-safe with no global state dependencies.
@@ -835,7 +834,7 @@ It can be called without any initialization.
 | Function | Description |
 |----------|-------------|
 | `dust_all(db, parameters)` | Apply DUST masking to all database sequences. |
-| `dust_single(seq, len, hardmask)` | Mask one sequence in-place. `hardmask=true` replaces with N; `false` lowercases. Thread-safe. |
+| `dust_single(sequence, style)` | Mask one `Span<char>` in-place. `MaskStyle::hard` replaces with N; `MaskStyle::soft` lowercases. Thread-safe. |
 
 ### Masking modes
 

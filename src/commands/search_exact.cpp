@@ -299,150 +299,45 @@ auto search_exact_output_results(struct search_exact_state_s & state,
     {
       auto const top = top_hits(to_report, parameters.opt_top_hits_only != 0);
 
-      if ((parameters.opt_otutabout != nullptr) || (parameters.opt_mothur_shared_out != nullptr) || (parameters.opt_biomout != nullptr))
+      if (needs_otu_table(parameters))
         {
           state.otutable.add(query_head,
                        state.db.header_view(static_cast<uint64_t>(hits[0].target)),
                        qsize);
         }
 
-      /* indexed rather than a range-for: --uc reports the best hit only,
-         unless --uc_allhits, so the position is part of the output */
-      for (std::size_t t = 0; t < top.size(); ++t)
-        {
-          auto const & hit = top[t];
-
-          if (state.fp_fastapairs != nullptr)
-            {
-              results_show_fastapairs_one(state.fp_fastapairs,
-                                          hit,
-                                          query_head,
-                                          qsequence,
-                                          qsequence_rc,
-                                          state.db,
-                                          parameters);
-            }
-
-          if (state.fp_qsegout != nullptr)
-            {
-              results_show_qsegout_one(state.fp_qsegout,
-                                       hit,
-                                       query_head,
-                                       qsequence,
-                                       qsequence_rc,
-                                       parameters);
-            }
-
-          if (state.fp_tsegout != nullptr)
-            {
-              results_show_tsegout_one(state.fp_tsegout,
-                                       hit,
-                                       state.db,
-                                       parameters);
-            }
-
-          if ((state.fp_uc != nullptr) && ((t == 0) || parameters.opt_uc_allhits))
-            {
-              results_show_uc_one(state.fp_uc,
-                                  &hit,
-                                  query_head,
-                                  qseqlen,
-                                  hit.target,
-                                  state.db,
-                                  parameters,
-                                  PerfectMatch::whole_alignment);
-            }
-
-          if (state.fp_userout != nullptr)
-            {
-              results_show_userout_one(state.fp_userout,
-                                       &hit,
-                                       query_head,
-                                       qsequence,
-                                       qsequence_rc,
-                                       state.db,
-                                       parameters);
-            }
-
-          if (state.fp_blast6out != nullptr)
-            {
-              results_show_blast6out_one(state.fp_blast6out,
-                                         &hit,
-                                         query_head,
-                                         qseqlen,
-                                         state.db);
-            }
-        }
+      PerHitOutputFiles per_hit_files;
+      per_hit_files.fastapairs = state.fp_fastapairs;
+      per_hit_files.qsegout = state.fp_qsegout;
+      per_hit_files.tsegout = state.fp_tsegout;
+      per_hit_files.uc = state.fp_uc;
+      per_hit_files.userout = state.fp_userout;
+      per_hit_files.blast6out = state.fp_blast6out;
+      results_show_hits(per_hit_files, top, query_head, qsequence, qsequence_rc,
+                        state.db, parameters);
     }
   else
     {
-      if ((parameters.opt_otutabout != nullptr) || (parameters.opt_mothur_shared_out != nullptr) || (parameters.opt_biomout != nullptr))
+      if (needs_otu_table(parameters))
         {
           state.otutable.add(query_head,
                        View<char>{},
                        qsize);
         }
 
-      if (state.fp_uc != nullptr)
-        {
-          results_show_uc_one(state.fp_uc,
-                              nullptr,
-                              query_head,
-                              qseqlen,
-                              0,
-                              state.db,
-                              parameters,
-                              PerfectMatch::whole_alignment);
-        }
-
-      if (parameters.opt_output_no_hits != 0)
-        {
-          if (state.fp_userout != nullptr)
-            {
-              results_show_userout_one(state.fp_userout,
-                                       nullptr,
-                                       query_head,
-                                       qsequence,
-                                       qsequence_rc,
-                                       state.db,
-                                       parameters);
-            }
-
-          if (state.fp_blast6out != nullptr)
-            {
-              results_show_blast6out_one(state.fp_blast6out,
-                                         nullptr,
-                                         query_head,
-                                         qseqlen,
-                                         state.db);
-            }
-        }
+      NoHitOutputFiles no_hit_files;
+      no_hit_files.uc = state.fp_uc;
+      no_hit_files.userout = state.fp_userout;
+      no_hit_files.blast6out = state.fp_blast6out;
+      results_show_no_hit(no_hit_files, query_head, qsequence, qsequence_rc,
+                          qseqlen, state.db, parameters);
     }
 
-  if (not hits.empty())
-    {
-      ++state.count_matched;
-      if (parameters.opt_matched != nullptr)
-        {
-          fasta_print_general(state.fp_matched,
-                              qsequence,
-                              query_head,
-                              OutputAnnotations{static_cast<uint64_t>(qsize), state.count_matched},
-                              parameters);
-        }
-    }
-  else
-    {
-      ++state.count_notmatched;
-      if (parameters.opt_notmatched != nullptr)
-        {
-          fasta_print_general(state.fp_notmatched,
-                              qsequence,
-                              query_head,
-                              OutputAnnotations{static_cast<uint64_t>(qsize), state.count_notmatched},
-                              parameters);
-        }
-    }
+  auto const matched = not hits.empty();
+  results_show_matched_query(matched ? state.fp_matched : state.fp_notmatched,
+                             matched ? state.count_matched : state.count_notmatched,
+                             query_head, qsequence,
+                             static_cast<uint64_t>(qsize), parameters);
 
   /* update matching db sequences */
     for (auto const & hit : hits) {
@@ -486,7 +381,7 @@ auto search_exact_thread_run(uint64_t const t, struct search_exact_state_s & sta
   uint64_t progress = 0;
 
   auto const has_work_to_claim = [&]() -> bool {
-    if (not state.query_fastx_h->next((not parameters.opt_notrunclabels), Mapping::none))
+    if (not state.query_fastx_h->next(header_truncation(parameters.opt_notrunclabels), Mapping::none))
       {
         return false;
       }
@@ -786,7 +681,7 @@ auto search_exact(struct Parameters const & parameters) -> void
     }
 
   // Add OTUs with no matches to OTU table
-  if ((parameters.opt_otutabout != nullptr) || (parameters.opt_mothur_shared_out != nullptr) || (parameters.opt_biomout != nullptr)) {
+  if (needs_otu_table(parameters)) {
     for (int64_t i = 0; i < state.seqcount; i++) {
       if (state.dbmatched[static_cast<std::size_t>(i)] == 0U) {
         state.otutable.add(View<char>{}, state.db.header_view(static_cast<uint64_t>(i)), 0);

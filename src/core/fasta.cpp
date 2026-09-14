@@ -141,7 +141,7 @@ namespace {
 }  // end of anonymous namespace
 
 
-auto fasta_open(const char * filename, struct Parameters const & parameters) -> std::unique_ptr<fastx_s>
+auto fasta_open(char const * filename, struct Parameters const & parameters) -> std::unique_ptr<fastx_s>
 {
   // fastx_open hands back an owning unique_ptr; on the fatal() path below it
   // frees the handle as the stack unwinds (library session), otherwise it is
@@ -227,7 +227,7 @@ auto fasta_filter_sequence(fastx_handle input_handle) -> void
 
 
 auto fasta_next(fastx_handle input_handle,
-                bool const truncateatspace,
+                HeaderTruncation const truncation,
                 Mapping const char_mapping) -> bool
 {
   input_handle->lineno_start = input_handle->lineno;
@@ -311,7 +311,7 @@ auto fasta_next(fastx_handle input_handle,
 
   ++input_handle->seqno;
 
-  fastx_filter_header(input_handle, truncateatspace);
+  fastx_filter_header(input_handle, truncation);
   /* The mapping is a compile-time fact at every caller (see
      base_mapping.hpp), so the parser is specialized once per record rather
      than reading a table per accepted byte. Mapping has exactly two

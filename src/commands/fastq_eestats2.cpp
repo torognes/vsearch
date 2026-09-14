@@ -197,7 +197,7 @@ auto fastq_eestats2(struct Parameters const & parameters) -> void
 
   {
     Progress progress("Reading FASTQ file", filesize, parameters);
-    while (h->next(false, Mapping::upcase))
+    while (h->next(HeaderTruncation::keep_whole, Mapping::upcase))
       {
         ++seq_count;
 

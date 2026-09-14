@@ -82,8 +82,8 @@ enum struct UdbUse : unsigned char {
   sequences,  /* no k-mer data at all: the sequences and their headers */
 };
 
-auto udb_detect_isudb(const char * filename) -> bool;
-auto udb_read(const char * filename,
+auto udb_detect_isudb(char const * filename) -> bool;
+auto udb_read(char const * filename,
               UdbUse usage,
               struct Dbindex & dbindex,
               struct Database & db,
@@ -103,7 +103,7 @@ auto udb_read(const char * filename,
    number into the report. The section's position comes from the index
    udb_read() just filled, not from the session's configuration -- so the word
    length used to find it is the file's own. */
-auto udb_read_word_entries(const char * filename,
+auto udb_read_word_entries(char const * filename,
                            struct Dbindex const & dbindex,
                            unsigned int seqcount,
                            uint64_t first,

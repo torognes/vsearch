@@ -292,7 +292,7 @@ auto quality_line_body(Line_fragment const & fragment) -> View<char>
 }  // anonymous namespace
 
 
-auto fastq_open(const char * filename, struct Parameters const & parameters) -> std::unique_ptr<fastx_s>
+auto fastq_open(char const * filename, struct Parameters const & parameters) -> std::unique_ptr<fastx_s>
 {
   // fastx_open hands back an owning unique_ptr; on the fatal() path below it
   // frees the handle as the stack unwinds (library session), otherwise it is
@@ -362,7 +362,7 @@ auto fastx_s::warn_if_offset_looks_wrong() -> void
 
 
 auto fastq_next(fastx_handle input_handle,
-                bool const truncateatspace,
+                HeaderTruncation const truncation,
                 Mapping const char_mapping) -> bool
 {
   input_handle->header_buffer.length = 0;
@@ -647,7 +647,7 @@ auto fastq_next(fastx_handle input_handle,
       return false;
     }
 
-  fastx_filter_header(input_handle, truncateatspace);
+  fastx_filter_header(input_handle, truncation);
   fastx_filter_sequence_length(input_handle);
 
   /* two comparisons per record, not per byte: the file-wide range the offset

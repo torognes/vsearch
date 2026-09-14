@@ -204,7 +204,7 @@ inline auto cluster_query_core(struct searchinfo_s & si, struct Database const &
   /* the main core function for clustering */
 
   /* get sequence etc */
-  const int seqno = si.query_no;
+  int const seqno = si.query_no;
   auto const useqno = static_cast<uint64_t>(seqno);
   /* read-only borrow into the (const) database; query_head is a const view, so
      no copy or cast is needed */
@@ -260,21 +260,7 @@ auto cluster_query_init(struct searchinfo_s & si, int const seqcount, int const 
 
   /* si.uh (a Uniquer value member) is ready to use as default-constructed */
   si.m = Minheap(tophits);
-  si.s.reset(search16_init(parameters.opt_match,
-                        parameters.opt_mismatch,
-                        parameters.opt_gap_open_query_left,
-                        parameters.opt_gap_open_target_left,
-                        parameters.opt_gap_open_query_interior,
-                        parameters.opt_gap_open_target_interior,
-                        parameters.opt_gap_open_query_right,
-                        parameters.opt_gap_open_target_right,
-                        parameters.opt_gap_extension_query_left,
-                        parameters.opt_gap_extension_target_left,
-                        parameters.opt_gap_extension_query_interior,
-                        parameters.opt_gap_extension_target_interior,
-                        parameters.opt_gap_extension_query_right,
-                        parameters.opt_gap_extension_target_right,
-                        parameters.opt_n_mismatch));
+  si.s.reset(search16_init(scoring_from_options(parameters)));
 }
 
 
@@ -444,7 +430,7 @@ auto cluster_core_results_hit(struct cluster_cli_state_s & state,
   auto const qseqlen = static_cast<int>(qsequence.size());
   ++state.count_matched;
 
-  if ((state.parameters.opt_otutabout != nullptr) or (state.parameters.opt_mothur_shared_out != nullptr) or (state.parameters.opt_biomout != nullptr))
+  if (needs_otu_table(state.parameters))
     {
       if ((state.parameters.opt_relabel != nullptr) or state.parameters.opt_relabel_self or state.parameters.opt_relabel_sha1 or state.parameters.opt_relabel_md5)
         {
@@ -557,7 +543,7 @@ auto cluster_core_results_nohit(struct cluster_cli_state_s & state,
   auto const qseqlen = static_cast<int>(qsequence.size());
   ++state.count_notmatched;
 
-  if ((state.parameters.opt_otutabout != nullptr) or (state.parameters.opt_mothur_shared_out != nullptr) or (state.parameters.opt_biomout != nullptr))
+  if (needs_otu_table(state.parameters))
     {
       if ((state.parameters.opt_relabel != nullptr) or state.parameters.opt_relabel_self or state.parameters.opt_relabel_sha1 or state.parameters.opt_relabel_md5)
         {
@@ -579,9 +565,7 @@ auto cluster_core_results_nohit(struct cluster_cli_state_s & state,
       fprint(state.fp_uc, "\t*\t*\t*\t*\t*\t");
       header_fprint_strip(state.fp_uc,
                           query_head,
-                          state.parameters.opt_xsize,
-                          state.parameters.opt_xee,
-                          state.parameters.opt_xlength);
+                          attributes_to_strip(state.parameters));
       fprint(state.fp_uc, "\t*\n");
     }
 
@@ -809,7 +793,7 @@ static auto evaluate_extra_hits(struct searchinfo_s & si,
 
                   /* one candidate, so each span is one element over the
                      local above; search16 asserts that the seven agree */
-                  search16(si.s.get(),
+                  search16(*si.s,
                            View<unsigned int>{& nwtarget, 1},
                            Span<CELL>{& snwscore, 1},
                            Span<unsigned short>{& snwalignmentlength, 1},
@@ -945,7 +929,7 @@ auto cluster_core_parallel(struct cluster_cli_state_s & state,
                            struct Database const & db) -> void
 {
   constexpr static int queries_per_thread = 1;
-  const int max_queries = queries_per_thread * static_cast<int>(state.parameters.opt_threads);
+  int const max_queries = queries_per_thread * static_cast<int>(state.parameters.opt_threads);
 
   /* Own worker pool + per-thread search state (E4); see cluster_work_pool_s.
      The local si_plus/si_minus aliases let the loops below read unchanged. */
@@ -1461,9 +1445,7 @@ auto cluster(char const * dbname, ClusterMode const mode,
                 fprint(fp_uc, "\t*\t*\t*\t*\t*\t");
                 header_fprint_strip(fp_uc,
                                     state.db.header_view(static_cast<uint64_t>(seqno)),
-                                    parameters.opt_xsize,
-                                    parameters.opt_xee,
-                                    parameters.opt_xlength);
+                                    attributes_to_strip(parameters));
                 fprint(fp_uc, "\t*\n");
               }
 

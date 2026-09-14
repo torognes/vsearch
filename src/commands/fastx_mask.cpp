@@ -148,7 +148,7 @@ auto fastx_mask(struct Parameters const & parameters) -> void
       {
         auto unmasked = 0;
         auto const seq = db.sequence_view(i);
-        const int len = static_cast<int>(seq.size());
+        int const len = static_cast<int>(seq.size());
         if (parameters.opt_qmask == Masking::none)
           {
             unmasked = len;

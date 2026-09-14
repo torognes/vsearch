@@ -324,7 +324,7 @@ auto Database::add(bool const is_fastq_record,
 }
 
 
-auto Database::read(const char * filename, int const upcase, struct Parameters const & parameters,
+auto Database::read(char const * filename, int const upcase, struct Parameters const & parameters,
                     MinsizeFilter const minsize_filter) -> void
 {
   /* fastx_open hands back an owning unique_ptr, so the handle is freed
@@ -368,7 +368,7 @@ auto Database::read(const char * filename, int const upcase, struct Parameters c
   {
     Progress progress(prompt, static_cast<uint64_t>(filesize), parameters);
     while (input_handle->next(
-                     not parameters.opt_notrunclabels,
+                     header_truncation(parameters.opt_notrunclabels),
                       (upcase != 0) ? Mapping::upcase : Mapping::none))
       {
         size_t const sequencelength = input_handle->sequence_view().size();

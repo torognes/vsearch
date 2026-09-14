@@ -78,8 +78,8 @@ namespace dynlib {
   using handle = void *;
   using symbol_ptr = void (*)();
 
-  auto open(const char * library_name) -> handle;
-  auto symbol(handle library, const char * symbol_name) -> symbol_ptr;
+  auto open(char const * library_name) -> handle;
+  auto symbol(handle library, char const * symbol_name) -> symbol_ptr;
   auto close(handle library) -> void;
 
 }  // namespace dynlib

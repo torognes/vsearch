@@ -156,6 +156,152 @@ auto results_show_tsegout_one(std::FILE * output_handle,
                               struct Database const & db,
                               struct Parameters const & parameters) -> void;
 
+/* The six per-hit output files, in the order their writers run below. A null
+   handle means this run does not write that file, which is why they are
+   gathered rather than passed as six arguments: the three search commands each
+   carried the same six handles through the same loop. */
+struct PerHitOutputFiles {
+  std::FILE * fastapairs = nullptr;
+  std::FILE * qsegout = nullptr;
+  std::FILE * tsegout = nullptr;
+  std::FILE * uc = nullptr;
+  std::FILE * userout = nullptr;
+  std::FILE * blast6out = nullptr;
+};
+
+
+/* Emit the kept hits of one query through every per-hit writer this run has a
+   file for. Was written out three times -- usearch_global, search_exact and
+   allpairs_global -- with the same six writers in the same order, differing
+   only in how each command spells its handles.
+
+   'top' is the --top_hits_only prefix the caller has already taken. */
+auto results_show_hits(PerHitOutputFiles const & files,
+                       View<struct hit> top,
+                       View<char> query_head,
+                       View<char> qsequence,
+                       View<char> qsequence_rc,
+                       struct Database const & db,
+                       struct Parameters const & parameters) -> void;
+
+
+/* The three writers that report a query which kept no hits. A null handle
+   means this run does not write that file. Deliberately not PerHitOutputFiles:
+   the no-hit branch reaches only these three, and building the other three at
+   a call site that cannot use them is the cost paired_record_emit recorded. */
+struct NoHitOutputFiles {
+  std::FILE * uc = nullptr;
+  std::FILE * userout = nullptr;
+  std::FILE * blast6out = nullptr;
+};
+
+
+/* Report one query that kept no hits: its .uc N record, and -- only when
+   --output_no_hits is set -- its userout and blast6out rows. Was written out
+   three times, identically, in usearch_global, search_exact and
+   allpairs_global.
+
+   The --otutabout gate that precedes this in two of the three stays at those
+   call sites rather than moving in here: allpairs_global has no OTU table at
+   all, so folding the gate in would give it a branch it can never take. */
+inline auto results_show_no_hit(NoHitOutputFiles const & files,
+                                View<char> const query_head,
+                                View<char> const qsequence,
+                                View<char> const qsequence_rc,
+                                int64_t const qseqlen,
+                                struct Database const & db,
+                                struct Parameters const & parameters) -> void
+{
+  /* the null hit is what makes each of these writers emit its no-hit form */
+  if (files.uc != nullptr)
+    {
+      results_show_uc_one(files.uc,
+                          nullptr,
+                          query_head,
+                          qseqlen,
+                          0,
+                          db,
+                          parameters,
+                          PerfectMatch::whole_alignment);
+    }
+
+  if (parameters.opt_output_no_hits == 0)
+    {
+      return;
+    }
+
+  if (files.userout != nullptr)
+    {
+      results_show_userout_one(files.userout,
+                               nullptr,
+                               query_head,
+                               qsequence,
+                               qsequence_rc,
+                               db,
+                               parameters);
+    }
+
+  if (files.blast6out != nullptr)
+    {
+      results_show_blast6out_one(files.blast6out,
+                                 nullptr,
+                                 query_head,
+                                 qseqlen,
+                                 db);
+    }
+}
+
+
+/* Emit one query into --matched or --notmatched, and advance that side's
+   count. The caller has already decided which side this query belongs to and
+   passes that side's handle and counter, so there is no pair of same-typed
+   handles here to transpose.
+
+   The count advances even when the option was not given: it is also the
+   "Matching query sequences: N of M" statistic the run reports at the end.
+   A null handle means the option was not given -- open_optional_output_file()
+   yields an empty handle for a null filename -- which is the same test every
+   other writer in this header makes.
+
+   Was written out three times, in usearch_global, search_exact and
+   allpairs_global, differing only in the abundance each annotates the record
+   with: allpairs_global has no query abundance and passes OutputAnnotations'
+   0 sentinel. */
+namespace detail {
+  /* The half that actually writes. Out of line because it pulls in
+     fasta_print_general; see the inline wrapper below for why it is split. */
+  auto write_matched_query(std::FILE * output_handle,
+                           int count,
+                           View<char> query_head,
+                           View<char> qsequence,
+                           uint64_t abundance,
+                           struct Parameters const & parameters) -> void;
+}
+
+/* Split, not merged, for the reason 933bf566 recorded about
+   header_fprint_strip: most runs give neither --matched nor --notmatched, and
+   for those every query paid a call that did nothing but ++count. The counter
+   still has to advance -- it is the "Matching unique query sequences: N of M"
+   statistic -- so the increment and the null test stay inline and only the
+   writing half is a call. Measured at 18 instructions per query on
+   --search_exact, which is the cheapest command that runs this. */
+inline auto results_show_matched_query(std::FILE * const output_handle,
+                                       int & count,
+                                       View<char> const query_head,
+                                       View<char> const qsequence,
+                                       uint64_t const abundance,
+                                       struct Parameters const & parameters) -> void
+{
+  ++count;
+  if (output_handle == nullptr)
+    {
+      return;
+    }
+  detail::write_matched_query(output_handle, count, query_head, qsequence,
+                              abundance, parameters);
+}
+
+
 auto results_show_samheader(std::FILE * output_handle,
                             char const * dbname,
                             struct Database const & db,

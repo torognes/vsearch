@@ -143,6 +143,25 @@ private:
 
 enum struct Format : unsigned char { undefined, plain, bzip, gzip };
 
+
+/* Whether a record's header ends at its first blank or is kept whole. This was
+   a bare bool named truncateatspace, passed positionally beside Mapping at 31
+   call sites; --notrunclabels selects keep_whole. */
+enum struct HeaderTruncation : unsigned char {
+  at_first_blank,  /* the default: the header ends at the first blank */
+  keep_whole,      /* --notrunclabels: the header is kept as it is */
+};
+
+
+/* The option is spelled as a negative, so the double negative is resolved
+   once, here, rather than at each of the eleven readers. constexpr, and taking
+   the flag rather than Parameters, so fastx.hpp needs no new include and the
+   conversion costs nothing at the call. */
+constexpr auto header_truncation(bool const notrunclabels) noexcept -> HeaderTruncation
+{
+  return notrunclabels ? HeaderTruncation::keep_whole : HeaderTruncation::at_first_blank;
+}
+
 class DynamicLibraries;  // set from parameters.runtime.dyn_libs in fastx_open()
 
 /* Deleter that closes an open gzip/bzip2 stream through the borrowed
@@ -178,12 +197,12 @@ private:
      fasta.cpp and fastq.cpp -- are granted access as friends. */
   friend auto fastx_open(char const * filename, struct Parameters const & parameters) -> std::unique_ptr<fastx_s>;
   friend auto fastx_file_fill_buffer(fastx_s * input_handle) -> uint64_t;
-  friend auto fastx_filter_header(fastx_s * input_handle, bool truncateatspace) -> void;
+  friend auto fastx_filter_header(fastx_s * input_handle, HeaderTruncation truncation) -> void;
   friend auto fastx_filter_sequence_length(fastx_s * input_handle) -> void;
-  friend auto fasta_next(fastx_s * input_handle, bool truncateatspace, Mapping char_mapping) -> bool;
+  friend auto fasta_next(fastx_s * input_handle, HeaderTruncation truncation, Mapping char_mapping) -> bool;
   template <Mapping mapping>
   friend auto fasta_filter_sequence(fastx_s * input_handle) -> void;
-  friend auto fastq_next(fastx_s * input_handle, bool truncateatspace, Mapping char_mapping) -> bool;
+  friend auto fastq_next(fastx_s * input_handle, HeaderTruncation truncation, Mapping char_mapping) -> bool;
   friend auto scan_line_fragment(fastx_s * input_handle) -> Line_fragment;
   friend auto consume_fragment(fastx_s * input_handle, Line_fragment const & fragment) -> void;
 
@@ -391,7 +410,7 @@ public:
 
   // Advance to the next record, dispatching to the FASTA or FASTQ parser by
   // format. Returns false at end of input or on a deferred parse error.
-  auto next(bool truncateatspace, Mapping char_mapping) -> bool;
+  auto next(HeaderTruncation truncation, Mapping char_mapping) -> bool;
 
   // Emit the end-of-input warning about invalid characters stripped from the
   // input (to stderr and, when open, the log file). This is the user-facing
@@ -420,8 +439,8 @@ using fastx_handle = struct fastx_s *;
    freed when it goes out of scope), so there is no fastx_close free function.
    These remaining free functions are not simple accessors: the opener and the
    two in-parser filters. */
-auto fastx_filter_header(fastx_handle input_handle, bool truncateatspace) -> void;
-auto fastx_open(const char * filename, struct Parameters const & parameters) -> std::unique_ptr<fastx_s>;
+auto fastx_filter_header(fastx_handle input_handle, HeaderTruncation truncation) -> void;
+auto fastx_open(char const * filename, struct Parameters const & parameters) -> std::unique_ptr<fastx_s>;
 
 // Reject a sequence too long for the int length bookkeeping used downstream.
 // Called from fasta_next/fastq_next so every read is bounded at one choke

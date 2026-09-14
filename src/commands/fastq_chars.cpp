@@ -301,7 +301,7 @@ auto fastq_chars(struct Parameters const & parameters) -> void
   {
     Progress progress("Reading FASTQ file", filesize, parameters);
 
-    while (fastq_handle->next(false, Mapping::upcase))
+    while (fastq_handle->next(HeaderTruncation::keep_whole, Mapping::upcase))
       {
         auto const sequence = fastq_handle->sequence_view();
         auto const quality = fastq_handle->quality_view();

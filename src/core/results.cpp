@@ -386,15 +386,11 @@ auto results_show_uc_one(std::FILE * output_handle,
      still against the 24 stdio calls the unbuffered form needs */
   header_fprint_strip(record.stream(),
                       query_head,
-                      parameters.opt_xsize,
-                      parameters.opt_xee,
-                      parameters.opt_xlength);
+                      attributes_to_strip(parameters));
   fprint(record, '\t');
   header_fprint_strip(record.stream(),
                       db.header_view(target),
-                      parameters.opt_xsize,
-                      parameters.opt_xee,
-                      parameters.opt_xlength);
+                      attributes_to_strip(parameters));
   fprint(record, '\n');
 }
 
@@ -1101,6 +1097,101 @@ auto build_sam_strings(View<char> const alignment,
     }
 }
 }  // anonymous namespace
+
+auto results_show_hits(PerHitOutputFiles const & files,
+                       View<struct hit> const top,
+                       View<char> const query_head,
+                       View<char> const qsequence,
+                       View<char> const qsequence_rc,
+                       struct Database const & db,
+                       struct Parameters const & parameters) -> void
+{
+  auto const qseqlen = static_cast<int64_t>(qsequence.size());
+
+  /* indexed rather than a range-for: --uc reports the best hit only,
+     unless --uc_allhits, so the position is part of the output */
+  for (std::size_t t = 0; t < top.size(); ++t)
+    {
+      auto const & a_hit = top[t];
+
+      if (files.fastapairs != nullptr)
+        {
+          results_show_fastapairs_one(files.fastapairs,
+                                      a_hit,
+                                      query_head,
+                                      qsequence,
+                                      qsequence_rc,
+                                      db,
+                                      parameters);
+        }
+
+      if (files.qsegout != nullptr)
+        {
+          results_show_qsegout_one(files.qsegout,
+                                   a_hit,
+                                   query_head,
+                                   qsequence,
+                                   qsequence_rc,
+                                   parameters);
+        }
+
+      if (files.tsegout != nullptr)
+        {
+          results_show_tsegout_one(files.tsegout,
+                                   a_hit,
+                                   db,
+                                   parameters);
+        }
+
+      if ((files.uc != nullptr) and ((t == 0) or parameters.opt_uc_allhits))
+        {
+          results_show_uc_one(files.uc,
+                              &a_hit,
+                              query_head,
+                              qseqlen,
+                              a_hit.target,
+                              db,
+                              parameters,
+                              PerfectMatch::whole_alignment);
+        }
+
+      if (files.userout != nullptr)
+        {
+          results_show_userout_one(files.userout,
+                                   &a_hit,
+                                   query_head,
+                                   qsequence,
+                                   qsequence_rc,
+                                   db,
+                                   parameters);
+        }
+
+      if (files.blast6out != nullptr)
+        {
+          results_show_blast6out_one(files.blast6out,
+                                     &a_hit,
+                                     query_head,
+                                     qseqlen,
+                                     db);
+        }
+    }
+}
+
+
+auto detail::write_matched_query(std::FILE * const output_handle,
+                                 int const count,
+                                 View<char> const query_head,
+                                 View<char> const qsequence,
+                                 uint64_t const abundance,
+                                 struct Parameters const & parameters) -> void
+{
+  fasta_print_general(output_handle,
+                      qsequence,
+                      query_head,
+                      OutputAnnotations{abundance, count},
+                      parameters);
+}
+
 
 auto results_show_samheader(std::FILE * output_handle,
                             char const * dbname,

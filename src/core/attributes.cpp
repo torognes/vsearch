@@ -152,11 +152,11 @@ auto annotation_separator(bool & trailing_separator) -> char const * {
 }
 
 
-auto header_fprint_strip(std::FILE * output_handle,
-                         View<char> const header_view,
-                         bool const strip_size,
-                         bool const strip_ee,
-                         bool const strip_length) -> bool
+auto detail::header_fprint_strip(std::FILE * output_handle,
+                                 View<char> const header_view,
+                                 bool const strip_size,
+                                 bool const strip_ee,
+                                 bool const strip_length) -> bool
 {
   /* the attributes found, ordered by position in the header by the sort below;
      one array of spans, where two parallel start/end arrays used to be kept
@@ -283,14 +283,11 @@ auto fprint_header_annotations(std::FILE * const output_handle,
     }
   else
     {
-      bool const strip_size = parameters.opt_xsize or (parameters.opt_sizeout and (annotations.abundance > 0));
-      bool const strip_ee = parameters.opt_xee or ((parameters.opt_eeout or parameters.opt_fastq_eeout) and (annotations.expected_error >= 0.0));
-      bool const strip_length = parameters.opt_xlength or parameters.opt_lengthout;
-      trailing_separator = header_fprint_strip(output_handle,
-                                               header,
-                                               strip_size,
-                                               strip_ee,
-                                               strip_length);
+      StripAttributes to_strip {};
+      to_strip.size = parameters.opt_xsize or (parameters.opt_sizeout and (annotations.abundance > 0));
+      to_strip.ee = parameters.opt_xee or ((parameters.opt_eeout or parameters.opt_fastq_eeout) and (annotations.expected_error >= 0.0));
+      to_strip.length = parameters.opt_xlength or parameters.opt_lengthout;
+      trailing_separator = header_fprint_strip(output_handle, header, to_strip);
     }
 
   if (parameters.opt_label_suffix != nullptr)

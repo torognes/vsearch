@@ -74,25 +74,25 @@
 
 #ifdef HAVE_ZLIB_H
 # ifdef _WIN32
-const std::string gz_libname = "zlib1.dll";
+std::string const gz_libname = "zlib1.dll";
 # elif defined(__APPLE__)
-const std::string gz_libname = "libz.dylib";
+std::string const gz_libname = "libz.dylib";
 # elif defined(__FreeBSD__)
-const std::string gz_libname = "libz.so.6";
+std::string const gz_libname = "libz.so.6";
 # else
-const std::string gz_libname = "libz.so.1";
+std::string const gz_libname = "libz.so.1";
 # endif
 #endif
 
 #ifdef HAVE_BZLIB_H
 # ifdef _WIN32
-const std::string bz2_libname = "libbz2.dll";
+std::string const bz2_libname = "libbz2.dll";
 # elif defined(__APPLE__)
-const std::string bz2_libname = "libbz2.dylib";
+std::string const bz2_libname = "libbz2.dylib";
 # elif defined(__FreeBSD__)
-const std::string bz2_libname = "libbz2.so.4";
+std::string const bz2_libname = "libbz2.so.4";
 # else
-const std::string bz2_libname = "libbz2.so.1";
+std::string const bz2_libname = "libbz2.so.1";
 # endif
 #endif
 
@@ -120,8 +120,8 @@ DynamicLibraries::DynamicLibraries()  // not noexcept: see the header
       gzclose_p = dynlib::symbol(gz_lib, "gzclose");
       gzread_p = dynlib::symbol(gz_lib, "gzread");
       gzerror_p = dynlib::symbol(gz_lib, "gzerror");
-      if (not ((gzdopen_p != nullptr) && (gzclose_p != nullptr)
-               && (gzread_p != nullptr) && (gzerror_p != nullptr)))
+      if (not ((gzdopen_p != nullptr) and (gzclose_p != nullptr)
+               and (gzread_p != nullptr) and (gzerror_p != nullptr)))
         {
           fatal("Invalid compression library (zlib)");
         }
@@ -135,7 +135,7 @@ DynamicLibraries::DynamicLibraries()  // not noexcept: see the header
       bz_read_open_p = dynlib::symbol(bz2_lib, "BZ2_bzReadOpen");
       bz_read_close_p = dynlib::symbol(bz2_lib, "BZ2_bzReadClose");
       bz_read_p = dynlib::symbol(bz2_lib, "BZ2_bzRead");
-      if (not ((bz_read_open_p != nullptr) && (bz_read_close_p != nullptr) && (bz_read_p != nullptr)))
+      if (not ((bz_read_open_p != nullptr) and (bz_read_close_p != nullptr) and (bz_read_p != nullptr)))
         {
           fatal("Invalid compression library (bz2)");
         }

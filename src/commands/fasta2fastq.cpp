@@ -91,7 +91,7 @@ auto fasta2fastq(struct Parameters const & parameters) -> void
                     parameters);
 
   auto counter = int64_t{0};  // the ordinal is an int64_t (see OutputAnnotations)
-  while (fp_input->next(false, Mapping::none))
+  while (fp_input->next(HeaderTruncation::keep_whole, Mapping::none))
     {
       /* get sequence length and allocate more mem if necessary */
 

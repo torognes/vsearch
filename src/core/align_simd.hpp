@@ -70,33 +70,28 @@ using WORD = unsigned short;
 using BYTE = unsigned char;
 struct s16info_s;
 struct Database;
+struct Scoring;  // core/linmemalign.hpp -- passed by const reference only
 
 
-// The score/penalty parameters are int64_t rather than CELL: search16_init
-// converts them to the aligner's 16-bit cells itself, and a value that does
-// not fit (e.g. the '*' infinite gap penalty) makes search16 defer every pair
-// to the scalar (linear-memory) aligner instead of wrapping silently.
-auto search16_init(int64_t score_match,
-                   int64_t score_mismatch,
-                   int64_t penalty_gap_open_query_left,
-                   int64_t penalty_gap_open_target_left,
-                   int64_t penalty_gap_open_query_interior,
-                   int64_t penalty_gap_open_target_interior,
-                   int64_t penalty_gap_open_query_right,
-                   int64_t penalty_gap_open_target_right,
-                   int64_t penalty_gap_extension_query_left,
-                   int64_t penalty_gap_extension_target_left,
-                   int64_t penalty_gap_extension_query_interior,
-                   int64_t penalty_gap_extension_target_interior,
-                   int64_t penalty_gap_extension_query_right,
-                   int64_t penalty_gap_extension_target_right,
-                   bool score_n_mismatch) -> struct s16info_s *;
+// Scoring's fields are int64_t rather than CELL: search16_init converts them
+// to the aligner's 16-bit cells itself, and a value that does not fit (e.g.
+// the '*' infinite gap penalty) makes search16 defer every pair to the scalar
+// (linear-memory) aligner instead of wrapping silently.
+//
+// The same struct configures the scalar aligner (LinearMemoryAligner), which
+// is what the two aligners agreeing cell for cell requires: one description of
+// the scoring, built once by scoring_from_options(), rather than two
+// separately-maintained argument lists.
+auto search16_init(struct Scoring const & scoring) -> struct s16info_s *;
 
 
 auto search16_exit(s16info_s * searchinfo) -> void;
 
 
-auto search16_qprep(s16info_s * searchinfo, View<char> qseq) -> void;
+/* The handle is taken by reference, not by pointer: search16_init() returns
+   the pointer and search16_exit() destroys it, but everything between those
+   two receives a handle that is already valid, and said so only in prose. */
+auto search16_qprep(s16info_s & searchinfo, View<char> qseq) -> void;
 
 
 /* Align the query prepared by search16_qprep() against each database sequence
@@ -109,7 +104,7 @@ auto search16_qprep(s16info_s * searchinfo, View<char> qseq) -> void;
    and the storage were two separate facts that nothing checked against each
    other. Now the extent travels with the storage and the callee asserts that
    all seven agree. */
-auto search16(s16info_s * searchinfo,
+auto search16(s16info_s & searchinfo,
               View<unsigned int> seqnos,
               Span<CELL> pscores,
               Span<unsigned short> paligned,

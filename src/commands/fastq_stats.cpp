@@ -603,7 +603,7 @@ auto fastq_stats(struct Parameters const & parameters) -> void
   // note: fastq parsing represents 99% of total wallclock time
   {
     Progress progress("Reading FASTQ file", filesize, parameters);
-    while (input_handle->next(false, Mapping::upcase))
+    while (input_handle->next(HeaderTruncation::keep_whole, Mapping::upcase))
       {
 
         /* update length statistics */

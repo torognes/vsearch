@@ -205,136 +205,32 @@ static auto allpairs_output_results(struct allpairs_state_s & state,
     {
       auto const top = top_hits(to_report, state.parameters.opt_top_hits_only != 0);
 
-      /* indexed rather than a range-for: --uc reports the best hit only,
-         unless --uc_allhits, so the position is part of the output */
-      for (std::size_t t = 0; t < top.size(); ++t)
-        {
-          struct hit const * hp = &top[t];
-
-          if (state.fp_fastapairs != nullptr)
-            {
-              results_show_fastapairs_one(state.fp_fastapairs,
-                                          *hp,
-                                          query_head,
-                                          qsequence,
-                                          qsequence_rc,
-                                          state.db,
-                                          state.parameters);
-            }
-
-          if (state.fp_qsegout != nullptr)
-            {
-              results_show_qsegout_one(state.fp_qsegout,
-                                       *hp,
-                                       query_head,
-                                       qsequence,
-                                       qsequence_rc,
-                                       state.parameters);
-            }
-
-          if (state.fp_tsegout != nullptr)
-            {
-              results_show_tsegout_one(state.fp_tsegout,
-                                       *hp,
-                                       state.db,
-                                       state.parameters);
-            }
-
-          if ((state.fp_uc != nullptr) and ((t == 0) or state.parameters.opt_uc_allhits))
-            {
-              results_show_uc_one(state.fp_uc,
-                                  hp,
-                                  query_head,
-                                  qseqlen,
-                                  hp->target,
-                                  state.db,
-                                  state.parameters,
-                                  PerfectMatch::whole_alignment);
-            }
-
-          if (state.fp_userout != nullptr)
-            {
-              results_show_userout_one(state.fp_userout,
-                                       hp,
-                                       query_head,
-                                       qsequence,
-                                       qsequence_rc,
-                                       state.db,
-                                       state.parameters);
-            }
-
-          if (state.fp_blast6out != nullptr)
-            {
-              results_show_blast6out_one(state.fp_blast6out,
-                                         hp,
-                                         query_head,
-                                         qseqlen,
-                                         state.db);
-            }
-        }
+      PerHitOutputFiles per_hit_files;
+      per_hit_files.fastapairs = state.fp_fastapairs;
+      per_hit_files.qsegout = state.fp_qsegout;
+      per_hit_files.tsegout = state.fp_tsegout;
+      per_hit_files.uc = state.fp_uc;
+      per_hit_files.userout = state.fp_userout;
+      per_hit_files.blast6out = state.fp_blast6out;
+      results_show_hits(per_hit_files, top, query_head, qsequence, qsequence_rc,
+                        state.db, state.parameters);
     }
   else
     {
-      if (state.fp_uc != nullptr)
-        {
-          results_show_uc_one(state.fp_uc,
-                              nullptr,
-                              query_head,
-                              qseqlen,
-                              0,
-                              state.db,
-                              state.parameters,
-                              PerfectMatch::whole_alignment);
-        }
-
-      if (state.parameters.opt_output_no_hits != 0)
-        {
-          if (state.fp_userout != nullptr)
-            {
-              results_show_userout_one(state.fp_userout,
-                                       nullptr,
-                                       query_head,
-                                       qsequence,
-                                       qsequence_rc,
-                                       state.db,
-                                       state.parameters);
-            }
-
-          if (state.fp_blast6out != nullptr)
-            {
-              results_show_blast6out_one(state.fp_blast6out,
-                                         nullptr,
-                                         query_head,
-                                         qseqlen,
-                                         state.db);
-            }
-        }
+      NoHitOutputFiles no_hit_files;
+      no_hit_files.uc = state.fp_uc;
+      no_hit_files.userout = state.fp_userout;
+      no_hit_files.blast6out = state.fp_blast6out;
+      results_show_no_hit(no_hit_files, query_head, qsequence, qsequence_rc,
+                          qseqlen, state.db, state.parameters);
     }
 
-  if (not hits.empty())
-    {
-      ++state.count_matched;
-      if (state.parameters.opt_matched != nullptr)
-        {
-          fasta_print_general(state.fp_matched,
-                              qsequence,
-                              query_head,
-                              OutputAnnotations{0, state.count_matched},
-                              state.parameters);
-        }
-    }
-  else
-    {
-      ++state.count_notmatched;
-      if (state.parameters.opt_notmatched != nullptr)
-        {
-          fasta_print_general(state.fp_notmatched,
-                              qsequence,
-                              query_head,
-                              OutputAnnotations{0, state.count_notmatched},
-                              state.parameters);
-        }
-    }
+  /* no query abundance here: allpairs_global has no --sizein, so the record
+     is annotated with OutputAnnotations' 0 sentinel */
+  auto const matched = not hits.empty();
+  results_show_matched_query(matched ? state.fp_matched : state.fp_notmatched,
+                             matched ? state.count_matched : state.count_notmatched,
+                             query_head, qsequence, 0, state.parameters);
 }
 
 
@@ -348,25 +244,11 @@ static auto allpairs_thread_run(struct allpairs_state_s & state, uint64_t const 
 
   searchinfo.hits_v.resize(static_cast<std::size_t>(state.seqcount));
 
-  searchinfo.s.reset(search16_init(state.parameters.opt_match,
-                        state.parameters.opt_mismatch,
-                        state.parameters.opt_gap_open_query_left,
-                        state.parameters.opt_gap_open_target_left,
-                        state.parameters.opt_gap_open_query_interior,
-                        state.parameters.opt_gap_open_target_interior,
-                        state.parameters.opt_gap_open_query_right,
-                        state.parameters.opt_gap_open_target_right,
-                        state.parameters.opt_gap_extension_query_left,
-                        state.parameters.opt_gap_extension_target_left,
-                        state.parameters.opt_gap_extension_query_interior,
-                        state.parameters.opt_gap_extension_target_interior,
-                        state.parameters.opt_gap_extension_query_right,
-                        state.parameters.opt_gap_extension_target_right,
-                        state.parameters.opt_n_mismatch));
-
-
+  /* one description of the scoring for both aligners: the SIMD one clamps it
+     to 16-bit cells, the scalar one keeps it at 64 bits */
   struct Scoring const scoring = scoring_from_options(state.parameters);
 
+  searchinfo.s.reset(search16_init(scoring));
 
   LinearMemoryAligner lma(scoring);
 
@@ -415,11 +297,11 @@ static auto allpairs_thread_run(struct allpairs_state_s & state, uint64_t const 
       {
         /* perform alignments */
 
-        search16_qprep(searchinfo.s.get(), View<char>{searchinfo.qsequence});
+        search16_qprep(*searchinfo.s, View<char>{searchinfo.qsequence});
 
         /* the hits accumulated above, not the whole maxhits buffers */
         auto const found = static_cast<std::size_t>(searchinfo.hit_count);
-        search16(searchinfo.s.get(),
+        search16(*searchinfo.s,
                  make_view(pseqnos).first(found),
                  make_span(pscores).first(found),
                  make_span(paligned).first(found),

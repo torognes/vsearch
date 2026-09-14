@@ -60,6 +60,7 @@
 
 #pragma once
 
+#include "vsearch.hpp"  // struct Parameters
 #include "utils/view.hpp"  // View<char>
 #include <cstdint>  // int64_t, uint64_t
 #include <cstdio>  // std::FILE
@@ -69,11 +70,61 @@ auto header_get_size(View<char> header) -> int64_t;
 
 auto annotation_separator(bool & trailing_separator) -> char const *;
 
-auto header_fprint_strip(std::FILE * output_handle,
-                         View<char> header,
-                         bool strip_size,
-                         bool strip_ee,
-                         bool strip_length) -> bool;
+/* Which annotations header_fprint_strip() removes from a header. These were
+   three adjacent bool parameters, transposable in any order at twenty-one call
+   sites with nothing to catch it; named members are not. The members keep
+   bool rather than becoming three enums -- they are named at the point of
+   use, which is the whole of what the positional bools failed to do. */
+struct StripAttributes {
+  bool size;    /* the ;size= annotation   */
+  bool ee;      /* the ;ee= annotation     */
+  bool length;  /* the ;length= annotation */
+};
+
+
+/* The --xsize/--xee/--xlength triple that every caller but one passes.
+   Inline because the call sites run once per output record and vsearch has no
+   LTO, so a definition in another translation unit would become a real call.
+
+   StripAttributes deliberately has no default member initializers: in C++11
+   those would make it a non-aggregate, and the call sites below
+   brace-initialize it. */
+inline auto attributes_to_strip(struct Parameters const & parameters) noexcept -> StripAttributes
+{
+  return StripAttributes{parameters.opt_xsize, parameters.opt_xee, parameters.opt_xlength};
+}
+
+
+namespace detail {
+
+  /* Three separate bools, not the struct, and this is measured rather than
+     assumed: passing StripAttributes across this boundary costs +5 instructions
+     on every call, because three bools arrive in three registers while three
+     bytes of one struct have to be shifted back out of one. header_fprint_strip
+     runs once per output record.
+
+     It lives in detail:: so that the struct below stays the only spelling a
+     caller can reach -- the whole point of the struct being that the three
+     flags cannot be transposed. */
+  auto header_fprint_strip(std::FILE * output_handle,
+                           View<char> header,
+                           bool strip_size,
+                           bool strip_ee,
+                           bool strip_length) -> bool;
+
+}  // namespace detail
+
+
+/* Emit the header with the requested annotations removed. Inline, so the
+   struct is unpacked in the caller -- where the three flags are separate
+   fields of Parameters to begin with -- rather than in the callee. */
+inline auto header_fprint_strip(std::FILE * output_handle,
+                                View<char> const header,
+                                StripAttributes const to_strip) -> bool
+{
+  return detail::header_fprint_strip(output_handle, header,
+                                     to_strip.size, to_strip.ee, to_strip.length);
+}
 
 
 /* The values a print helper may append to a record's header, as opposed to the

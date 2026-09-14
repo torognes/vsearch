@@ -203,7 +203,7 @@ struct chimera_info_s
   std::array<unsigned int, maxcandidates> cand_list {{}};
   int cand_count = 0;
 
-  struct s16info_s * s = nullptr;
+  std::unique_ptr<s16info_s, s16info_deleter> s;  /* SIMD aligner instance (owned) */
   std::array<CELL, maxcandidates> snwscore {{}};
   std::array<unsigned short, maxcandidates> snwalignmentlength {{}};
   std::array<unsigned short, maxcandidates> snwmatches {{}};
@@ -457,14 +457,14 @@ auto realloc_arrays(struct chimera_info_s * chimera_info, struct Database const 
       chimera_info->parts = 4;
     }
 
-  const int maxhlen = std::max(static_cast<int>(header_length), 1);
+  int const maxhlen = std::max(static_cast<int>(header_length), 1);
   vsearch::grow_to_fit(chimera_info->query_head_v, static_cast<size_t>(maxhlen));
 
   /* realloc arrays based on query length */
 
-  const int maxqlen = std::max(chimera_info->query_len, 1);
+  int const maxqlen = std::max(chimera_info->query_len, 1);
   auto const max_2x2_size = static_cast<size_t>(maxcandidates) * static_cast<size_t>(maxqlen);
-  const int64_t maxalnlen = static_cast<int64_t>(maxqlen) + (2 * static_cast<int64_t>(db.getlongestsequence()));
+  int64_t const maxalnlen = static_cast<int64_t>(maxqlen) + (2 * static_cast<int64_t>(db.getlongestsequence()));
 
   /* Each buffer states the size it needs. They all grow monotonically with
      maxqlen, so the single query_alloc guard they used to share was correct --
@@ -491,7 +491,7 @@ auto realloc_arrays(struct chimera_info_s * chimera_info, struct Database const 
   vsearch::grow_to_fit(chimera_info->ignore, static_cast<size_t>(maxalnlen) + 1);
 
   // resize query parts if longer than earlier, minimum 100
-  const int maxpartlen =
+  int const maxpartlen =
     std::max((maxqlen + chimera_info->parts - 1) / chimera_info->parts, 100);
   for (auto & query_info: chimera_info->si)
     {
@@ -1256,9 +1256,7 @@ auto eval_parents_long(struct chimera_info_s * ci, struct chimera_cli_state_s * 
       fprint(cli->fp_uchimealns, " nt) ");
       header_fprint_strip(cli->fp_uchimealns,
                           ci->query_head,
-                          parameters.opt_xsize,
-                          parameters.opt_xee,
-                          parameters.opt_xlength);
+                          attributes_to_strip(parameters));
 
       if (ci->parents_found > maxparents)  // 20 parents max ('A' to 'U')
         {
@@ -1274,9 +1272,7 @@ auto eval_parents_long(struct chimera_info_s * ci, struct chimera_cli_state_s * 
           fprint(cli->fp_uchimealns, " nt) ");
           header_fprint_strip(cli->fp_uchimealns,
                               db.header_view(static_cast<uint64_t>(parent_seqno)),
-                              parameters.opt_xsize,
-                              parameters.opt_xee,
-                              parameters.opt_xlength);
+                              attributes_to_strip(parameters));
         }
 
       fprint(cli->fp_uchimealns, "\n\n");
@@ -1357,29 +1353,21 @@ auto eval_parents_long(struct chimera_info_s * ci, struct chimera_cli_state_s * 
 
       header_fprint_strip(cli->fp_uchimeout,
                           ci->query_head,
-                          parameters.opt_xsize,
-                          parameters.opt_xee,
-                          parameters.opt_xlength);
+                          attributes_to_strip(parameters));
       fprint(cli->fp_uchimeout, '\t');
       header_fprint_strip(cli->fp_uchimeout,
                           db.header_view(static_cast<uint64_t>(seqno_a)),
-                          parameters.opt_xsize,
-                          parameters.opt_xee,
-                          parameters.opt_xlength);
+                          attributes_to_strip(parameters));
       fprint(cli->fp_uchimeout, '\t');
       header_fprint_strip(cli->fp_uchimeout,
                           db.header_view(static_cast<uint64_t>(seqno_b)),
-                          parameters.opt_xsize,
-                          parameters.opt_xee,
-                          parameters.opt_xlength);
+                          attributes_to_strip(parameters));
       fprint(cli->fp_uchimeout, '\t');
       if (seqno_c >= 0)
         {
           header_fprint_strip(cli->fp_uchimeout,
                               db.header_view(static_cast<uint64_t>(seqno_c)),
-                              parameters.opt_xsize,
-                              parameters.opt_xee,
-                              parameters.opt_xlength);
+                              attributes_to_strip(parameters));
         }
       else
         {
@@ -1653,16 +1641,15 @@ auto eval_parents(struct chimera_info_s * ci, struct chimera_cli_state_s * cli, 
 
       if (best_is_reverse)
         {
-          for (int i = 0; i < alnlen; ++i)
+          for (auto & diff : make_span(ci->diffs).first(static_cast<std::size_t>(alnlen)))
             {
-              char const diff = ci->diffs[static_cast<size_t>(i)];
               if (diff == 'A')
                 {
-                  ci->diffs[static_cast<size_t>(i)] = 'B';
+                  diff = 'B';
                 }
               else if (diff == 'B')
                 {
-                  ci->diffs[static_cast<size_t>(i)] = 'A';
+                  diff = 'A';
                 }
             }
         }
@@ -1848,27 +1835,21 @@ auto eval_parents(struct chimera_info_s * ci, struct chimera_cli_state_s * cli, 
 
           header_fprint_strip(cli->fp_uchimealns,
                               ci->query_head,
-                              parameters.opt_xsize,
-                              parameters.opt_xee,
-                              parameters.opt_xlength);
+                              attributes_to_strip(parameters));
 
           fprint(cli->fp_uchimealns, "\nParentA (");
           fprint_integer(cli->fp_uchimealns, db.getsequencelen(static_cast<uint64_t>(seqno_a)), 5);
           fprint(cli->fp_uchimealns, " nt) ");
           header_fprint_strip(cli->fp_uchimealns,
                               db.header_view(static_cast<uint64_t>(seqno_a)),
-                              parameters.opt_xsize,
-                              parameters.opt_xee,
-                              parameters.opt_xlength);
+                              attributes_to_strip(parameters));
 
           fprint(cli->fp_uchimealns, "\nParentB (");
           fprint_integer(cli->fp_uchimealns, db.getsequencelen(static_cast<uint64_t>(seqno_b)), 5);
           fprint(cli->fp_uchimealns, " nt) ");
           header_fprint_strip(cli->fp_uchimealns,
                               db.header_view(static_cast<uint64_t>(seqno_b)),
-                              parameters.opt_xsize,
-                              parameters.opt_xee,
-                              parameters.opt_xlength);
+                              attributes_to_strip(parameters));
           fprint(cli->fp_uchimealns, "\n\n");
 
           auto const width = parameters.opt_alignwidth > 0 ? parameters.opt_alignwidth : alnlen;
@@ -1978,21 +1959,15 @@ auto eval_parents(struct chimera_info_s * ci, struct chimera_cli_state_s * cli, 
 
           header_fprint_strip(cli->fp_uchimeout,
                               ci->query_head,
-                              parameters.opt_xsize,
-                              parameters.opt_xee,
-                              parameters.opt_xlength);
+                              attributes_to_strip(parameters));
           fprint(cli->fp_uchimeout, '\t');
           header_fprint_strip(cli->fp_uchimeout,
                               db.header_view(static_cast<uint64_t>(seqno_a)),
-                              parameters.opt_xsize,
-                              parameters.opt_xee,
-                              parameters.opt_xlength);
+                              attributes_to_strip(parameters));
           fprint(cli->fp_uchimeout, '\t');
           header_fprint_strip(cli->fp_uchimeout,
                               db.header_view(static_cast<uint64_t>(seqno_b)),
-                              parameters.opt_xsize,
-                              parameters.opt_xee,
-                              parameters.opt_xlength);
+                              attributes_to_strip(parameters));
           fprint(cli->fp_uchimeout, '\t');
 
           if (parameters.opt_uchimeout5 == 0)
@@ -2001,17 +1976,13 @@ auto eval_parents(struct chimera_info_s * ci, struct chimera_cli_state_s * cli, 
                 {
                   header_fprint_strip(cli->fp_uchimeout,
                                       db.header_view(static_cast<uint64_t>(seqno_a)),
-                                      parameters.opt_xsize,
-                                      parameters.opt_xee,
-                                      parameters.opt_xlength);
+                                      attributes_to_strip(parameters));
                 }
               else
                 {
                   header_fprint_strip(cli->fp_uchimeout,
                                       db.header_view(static_cast<uint64_t>(seqno_b)),
-                                      parameters.opt_xsize,
-                                      parameters.opt_xee,
-                                      parameters.opt_xlength);
+                                      attributes_to_strip(parameters));
                 }
               fprint(cli->fp_uchimeout, '\t');
             }
@@ -2065,22 +2036,8 @@ static auto query_init(struct searchinfo_s * search_info, int const tophits,
   search_info->kmers_v.resize(db.getsequencecount());
   search_info->hit_count = 0;
   /* search_info->uh (a Uniquer value member) is ready to use as default-constructed */
-  search_info->s.reset(search16_init(parameters.opt_match,
-                                 parameters.opt_mismatch,
-                                 parameters.opt_gap_open_query_left,
-                                 parameters.opt_gap_open_target_left,
-                                 parameters.opt_gap_open_query_interior,
-                                 parameters.opt_gap_open_target_interior,
-                                 parameters.opt_gap_open_query_right,
-                                 parameters.opt_gap_open_target_right,
-                                 parameters.opt_gap_extension_query_left,
-                                 parameters.opt_gap_extension_target_left,
-                                 parameters.opt_gap_extension_query_interior,
-                                 parameters.opt_gap_extension_target_interior,
-                                 parameters.opt_gap_extension_query_right,
-                                 parameters.opt_gap_extension_target_right,
-                                 // always false: no chimera command accepts --n_mismatch
-                                 parameters.opt_n_mismatch));
+  // scoring.n_mismatch is always false: no chimera command accepts --n_mismatch
+  search_info->s.reset(search16_init(scoring_from_options(parameters)));
   search_info->m = Minheap(tophits);
 }
 
@@ -2141,28 +2098,14 @@ auto chimera_thread_init(struct chimera_info_s * ci, int const tophits,
   ci->tophits = tophits;
   ci->parts_ready = 0;
 
-  ci->s = search16_init(parameters.opt_match,
-                        parameters.opt_mismatch,
-                        parameters.opt_gap_open_query_left,
-                        parameters.opt_gap_open_target_left,
-                        parameters.opt_gap_open_query_interior,
-                        parameters.opt_gap_open_target_interior,
-                        parameters.opt_gap_open_query_right,
-                        parameters.opt_gap_open_target_right,
-                        parameters.opt_gap_extension_query_left,
-                        parameters.opt_gap_extension_target_left,
-                        parameters.opt_gap_extension_query_interior,
-                        parameters.opt_gap_extension_target_interior,
-                        parameters.opt_gap_extension_query_right,
-                        parameters.opt_gap_extension_target_right,
-                        // always false: no chimera command accepts --n_mismatch
-                        parameters.opt_n_mismatch);
+  // scoring.n_mismatch is always false: no chimera command accepts --n_mismatch
+  ci->s.reset(search16_init(scoring_from_options(parameters)));
 }
 
 
 auto chimera_thread_exit(struct chimera_info_s * ci) -> void
 {
-  search16_exit(ci->s);
+  ci->s.reset();
 
   for (auto & a_search_info : ci->si) {
     query_exit(a_search_info);
@@ -2251,11 +2194,11 @@ static auto chimera_process_query(struct chimera_info_s * ci,
 
   /* align full query to each candidate */
 
-  search16_qprep(ci->s, ci->query());
+  search16_qprep(*ci->s, ci->query());
 
   /* the candidates found above, not the whole maxcandidates buffers */
   auto const candidates = static_cast<std::size_t>(ci->cand_count);
-  search16(ci->s,
+  search16(*ci->s,
            make_view(ci->cand_list).first(candidates),
            make_span(ci->snwscore).first(candidates),
            make_span(ci->snwalignmentlength).first(candidates),
@@ -2350,7 +2293,7 @@ static auto chimera_thread_core(struct chimera_cli_state_s & state,
 
     if (state.mode == ChimeraMode::uchime_ref)
       {
-        if (state.query_fasta_h->next((not state.parameters.opt_notrunclabels),
+        if (state.query_fasta_h->next(header_truncation(state.parameters.opt_notrunclabels),
                        Mapping::none))
           {
             auto const query_record = state.query_fasta_h->record();
@@ -2461,9 +2404,7 @@ static auto chimera_thread_core(struct chimera_cli_state_s & state,
 
             header_fprint_strip(state.fp_uchimeout,
                                 ci->query_head,
-                                state.parameters.opt_xsize,
-                                state.parameters.opt_xee,
-                                state.parameters.opt_xlength);
+                                attributes_to_strip(state.parameters));
 
             if (state.parameters.opt_uchimeout5 != 0)
               {
@@ -3143,7 +3084,7 @@ auto chimera_detect_batch(struct Parameters const & parameters,
       /* own the handle before initialising it, so a fatal() in
          chimera_detect_thread_init frees this element and all prior ones. */
       ctx.ci_array.emplace_back(chimera_info_alloc());
-      chimera_detect_thread_init(ctx.ci_array[static_cast<size_t>(t)].get(), parameters, dbindex, db,
+      chimera_detect_thread_init(ctx.ci_array.back().get(), parameters, dbindex, db,
                                  mode);
     }
 

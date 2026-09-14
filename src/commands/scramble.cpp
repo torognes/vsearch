@@ -80,6 +80,7 @@
 #include <cstdio>  // std::FILE, std::size_t
 #include <iterator>  // std::next
 #include <limits>  // std::numeric_limits
+#include <numeric>  // std::partial_sum
 #include <utility>  // std::swap
 #include <vector>
 
@@ -203,9 +204,7 @@ namespace {
       for (std::size_t pos = 0; pos + 1 < n_positions; ++pos) {
         ++offsets_[static_cast<std::size_t>(position_vertices_[pos]) + 1];
       }
-      for (std::size_t vertex = 1; vertex < offsets_.size(); ++vertex) {
-        offsets_[vertex] += offsets_[vertex - 1];
-      }
+      std::partial_sum(offsets_.begin(), offsets_.end(), offsets_.begin());
       assert(offsets_.back() == n_edges);
 
       /* pass 3: scatter successor ids, grouped by source vertex */
@@ -435,7 +434,7 @@ auto scramble(struct Parameters const & parameters) -> void
 
     int64_t count = 0;  // the ordinal fed to --relabel; int would wrap at 2^31 records
     Progress progress("Scrambling", filesize, parameters);
-    while (input_handle->next(false, Mapping::none))
+    while (input_handle->next(HeaderTruncation::keep_whole, Mapping::none))
       {
         ++count;
 

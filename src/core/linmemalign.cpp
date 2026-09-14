@@ -294,20 +294,22 @@ auto LinearMemoryAligner::cigar_add(char const _op, int64_t const run) -> void
 }
 
 
-auto LinearMemoryAligner::diff(int64_t const a_start,
-                               int64_t const b_start,
-                               int64_t const a_len,
-                               int64_t const b_len,
-                               bool const gap_b_left,  /* gap open left of b      */
-                               bool const gap_b_right, /* gap open right of b     */
-                               bool const a_left,      /* includes left end of a  */
-                               bool const a_right,     /* includes right end of a */
-                               bool const b_left,      /* includes left end of b  */
-                               bool const b_right) -> void  /* includes right end of b */
+auto LinearMemoryAligner::diff(View<char> const a_sub,
+                               View<char> const b_sub,
+                               GapOpen const gap_b_left,
+                               GapOpen const gap_b_right,
+                               Ends const ends) -> void
 {
   static constexpr auto int64_min = std::numeric_limits<int64_t>::min();
-  // auto span_A = Span{std::next(a_seq, a_start), a_len};
-  // auto span_B = Span{std::next(b_seq, b_start), b_len};
+
+  /* The two lengths, as the int64_t the arithmetic below is written in. View
+     reports std::size_t, and every length here feeds signed expressions that
+     are allowed to reach zero from above (b_len - 1 - i, a_len - I - 1), so
+     the interior stays signed and converts once, here, rather than casting at
+     each of its ~40 uses. Retyping the interior to std::size_t is a separate
+     question and is deliberately not answered here. */
+  auto const a_len = static_cast<int64_t>(a_sub.size());
+  auto const b_len = static_cast<int64_t>(b_sub.size());
 
   if (b_len == 0)
     {
@@ -352,16 +354,16 @@ auto LinearMemoryAligner::diff(int64_t const a_start,
 
       /* gap penalty for gap in B of length 1 */
 
-      if (not gap_b_left)
+      if (gap_b_left == GapOpen::closed)
         {
-          Score -= b_left ? go_t_l : go_t_i;
+          Score -= ends.b_left ? go_t_l : go_t_i;
         }
 
-      Score -= b_left ? ge_t_l : ge_t_i;
+      Score -= ends.b_left ? ge_t_l : ge_t_i;
 
       /* gap penalty for gap in A of length b_len */
 
-      Score -= a_right ? go_q_r + (b_len * ge_q_r) : go_q_i + (b_len * ge_q_i);
+      Score -= ends.a_right ? go_q_r + (b_len * ge_q_r) : go_q_i + (b_len * ge_q_i);
 
       MaxScore = Score;
       best = -1;
@@ -375,16 +377,16 @@ auto LinearMemoryAligner::diff(int64_t const a_start,
 
       /* gap penalty for gap in A of length b_len */
 
-      Score -= a_left ? go_q_l + (b_len * ge_q_l) : go_q_i + (b_len * ge_q_i);
+      Score -= ends.a_left ? go_q_l + (b_len * ge_q_l) : go_q_i + (b_len * ge_q_i);
 
       /* gap penalty for gap in B of length 1 */
 
-      if (not gap_b_right)
+      if (gap_b_right == GapOpen::closed)
         {
-          Score -= b_right ? go_t_r : go_t_i;
+          Score -= ends.b_right ? go_t_r : go_t_i;
         }
 
-      Score -= b_right ? ge_t_r : ge_t_i;
+      Score -= ends.b_right ? ge_t_r : ge_t_i;
 
       if (Score > MaxScore)
         {
@@ -405,15 +407,15 @@ auto LinearMemoryAligner::diff(int64_t const a_start,
 
           if (i > 0)
             {
-              Score -= a_left ? go_q_l + (i * ge_q_l) : go_q_i + (i * ge_q_i);
+              Score -= ends.a_left ? go_q_l + (i * ge_q_l) : go_q_i + (i * ge_q_i);
             }
 
-          Score += subst_score(a_seq[static_cast<std::size_t>(a_start)],
-                               b_seq[static_cast<std::size_t>(b_start + i)]);
+          Score += subst_score(a_sub[0],
+                               b_sub[static_cast<std::size_t>(i)]);
 
           if (i < b_len - 1)
             {
-              Score -= a_right ?
+              Score -= ends.a_right ?
                 go_q_r + ((b_len - 1 - i) * ge_q_r) :
                 go_q_i + ((b_len - 1 - i) * ge_q_i);
             }
@@ -473,7 +475,7 @@ auto LinearMemoryAligner::diff(int64_t const a_start,
 
       for (int64_t i = 1; i <= b_len; i++)
         {
-          HH[static_cast<std::size_t>(i)] = - (a_left ? go_q_l + (i * ge_q_l) : go_q_i + (i * ge_q_i));
+          HH[static_cast<std::size_t>(i)] = - (ends.a_left ? go_q_l + (i * ge_q_l) : go_q_i + (i * ge_q_i));
           EE[static_cast<std::size_t>(i)] = int64_min;
         }
 
@@ -483,20 +485,20 @@ auto LinearMemoryAligner::diff(int64_t const a_start,
         {
           auto p = HH[0];
 
-          int64_t h = - (b_left ?
-                         (gap_b_left ? 0 : go_t_l) + (i * ge_t_l) :
-                         (gap_b_left ? 0 : go_t_i) + (i * ge_t_i));
+          int64_t h = - (ends.b_left ?
+                         ((gap_b_left == GapOpen::open) ? 0 : go_t_l) + (i * ge_t_l) :
+                         ((gap_b_left == GapOpen::open) ? 0 : go_t_i) + (i * ge_t_i));
 
           HH[0] = h;
           auto f = int64_min;
 
-          auto const a_code = four_bit::map(a_seq[static_cast<std::size_t>(a_start + i - 1)]);
+          auto const a_code = four_bit::map(a_sub[static_cast<std::size_t>(i - 1)]);
 
           for (int64_t j = 1; j <= b_len; j++)
             {
               auto const jdx = static_cast<std::size_t>(j);
               f = std::max(f, h - go_q_i) - ge_q_i;
-              if (b_right and (j == b_len))
+              if (ends.b_right and (j == b_len))
                 {
                   EE[jdx] = std::max(EE[jdx], HH[jdx] - go_t_r) - ge_t_r;
                 }
@@ -505,7 +507,7 @@ auto LinearMemoryAligner::diff(int64_t const a_start,
                   EE[jdx] = std::max(EE[jdx], HH[jdx] - go_t_i) - ge_t_i;
                 }
 
-              auto const b_code = four_bit::map(b_seq[static_cast<std::size_t>(b_start + j - 1)]);
+              auto const b_code = four_bit::map(b_sub[static_cast<std::size_t>(j - 1)]);
               h = p + scorematrix[(matrix_size * std::size_t{b_code}) + a_code];
 
               h = std::max(f, h);
@@ -527,7 +529,7 @@ auto LinearMemoryAligner::diff(int64_t const a_start,
 
       for (int64_t i = 1; i <= b_len; i++)
         {
-          XX[static_cast<std::size_t>(i)] = - (a_right ? go_q_r + (i * ge_q_r) : go_q_i + (i * ge_q_i));
+          XX[static_cast<std::size_t>(i)] = - (ends.a_right ? go_q_r + (i * ge_q_r) : go_q_i + (i * ge_q_i));
           YY[static_cast<std::size_t>(i)] = int64_min;
         }
 
@@ -537,19 +539,19 @@ auto LinearMemoryAligner::diff(int64_t const a_start,
         {
           auto p = XX[0];
 
-          int64_t h = - (b_right ?
-                         (gap_b_right ? 0 : go_t_r) + (i * ge_t_r) :
-                         (gap_b_right ? 0 : go_t_i) + (i * ge_t_i));
+          int64_t h = - (ends.b_right ?
+                         ((gap_b_right == GapOpen::open) ? 0 : go_t_r) + (i * ge_t_r) :
+                         ((gap_b_right == GapOpen::open) ? 0 : go_t_i) + (i * ge_t_i));
           XX[0] = h;
           auto f = int64_min;
 
-          auto const a_code = four_bit::map(a_seq[static_cast<std::size_t>(a_start + a_len - i)]);
+          auto const a_code = four_bit::map(a_sub[static_cast<std::size_t>(a_len - i)]);
 
           for (int64_t j = 1; j <= b_len; j++)
             {
               auto const jdx = static_cast<std::size_t>(j);
               f = std::max(f, h - go_q_i) - ge_q_i;
-              if (b_left and (j == b_len))
+              if (ends.b_left and (j == b_len))
                 {
                   YY[jdx] = std::max(YY[jdx], XX[jdx] - go_t_l) - ge_t_l;
                 }
@@ -558,7 +560,7 @@ auto LinearMemoryAligner::diff(int64_t const a_start,
                   YY[jdx] = std::max(YY[jdx], XX[jdx] - go_t_i) - ge_t_i;
                 }
 
-              auto const b_code = four_bit::map(b_seq[static_cast<std::size_t>(b_start + b_len - j)]);
+              auto const b_code = four_bit::map(b_sub[static_cast<std::size_t>(b_len - j)]);
               h = p + scorematrix[(matrix_size * std::size_t{b_code}) + a_code];
 
               h = std::max(f, h);
@@ -597,11 +599,11 @@ auto LinearMemoryAligner::diff(int64_t const a_start,
       for (int64_t i = 0; i <= b_len; i++)
         {
           int64_t g = 0;
-          if (b_left and (i == 0))
+          if (ends.b_left and (i == 0))
             {
               g = go_t_l;
             }
-          else if (b_right and (i == b_len))
+          else if (ends.b_right and (i == b_len))
             {
               g = go_t_r;
             }
@@ -650,33 +652,29 @@ auto LinearMemoryAligner::diff(int64_t const a_start,
 
       if (P == 0)
         {
-          diff(a_start,               b_start,
-               I,                     best,
-               gap_b_left,            false,
-               a_left,                false,
-               b_left,                b_right and (best == b_len));
+          diff(a_sub.first(static_cast<std::size_t>(I)),
+               b_sub.first(static_cast<std::size_t>(best)),
+               gap_b_left, GapOpen::closed,
+               Ends{ends.a_left, false, ends.b_left, ends.b_right and (best == b_len)});
 
-          diff(a_start + I,           b_start + best,
-               a_len - I,             b_len - best,
-               false,                 gap_b_right,
-               false,                 a_right,
-               b_left and (best == 0), b_right);
+          diff(a_sub.drop(static_cast<std::size_t>(I)),
+               b_sub.drop(static_cast<std::size_t>(best)),
+               GapOpen::closed, gap_b_right,
+               Ends{false, ends.a_right, ends.b_left and (best == 0), ends.b_right});
         }
       else if (P == 1)
         {
-          diff(a_start,               b_start,
-               I - 1,                 best,
-               gap_b_left,            true,
-               a_left,                false,
-               b_left,                b_right and (best == b_len));
+          diff(a_sub.first(static_cast<std::size_t>(I - 1)),
+               b_sub.first(static_cast<std::size_t>(best)),
+               gap_b_left, GapOpen::open,
+               Ends{ends.a_left, false, ends.b_left, ends.b_right and (best == b_len)});
 
           cigar_add('D', 2);
 
-          diff(a_start + I + 1,       b_start + best,
-               a_len - I - 1,         b_len - best,
-               true,                  gap_b_right,
-               false,                 a_right,
-               b_left and (best == 0), b_right);
+          diff(a_sub.drop(static_cast<std::size_t>(I + 1)),
+               b_sub.drop(static_cast<std::size_t>(best)),
+               GapOpen::open, gap_b_right,
+               Ends{false, ends.a_right, ends.b_left and (best == 0), ends.b_right});
         }
     }
 }
@@ -688,17 +686,17 @@ auto LinearMemoryAligner::align(View<char> const a_sequence,
   /* copy parameters */
   a_seq = a_sequence;
   b_seq = b_sequence;
-  auto const a_len = static_cast<int64_t>(a_sequence.size());
-  auto const b_len = static_cast<int64_t>(b_sequence.size());
 
   /* init cigar operations */
   cigar_reset();
 
-  /* allocate enough memory for vectors */
-  alloc_vectors(static_cast<std::size_t>(b_len + 1));
+  /* allocate enough memory for vectors: the four DP rows are indexed 0..b_len.
+     A-side length is no longer needed here -- diff() reads both lengths off
+     the views it is handed. */
+  alloc_vectors(b_sequence.size() + 1);
 
   /* perform alignment */
-  diff(0, 0, a_len, b_len, false, false, true, true, true, true);
+  diff(a_seq, b_seq, GapOpen::closed, GapOpen::closed, Ends::whole());
 
   /* ensure entire cigar has been written */
   cigar_flush();
@@ -824,7 +822,7 @@ auto LinearMemoryAligner::alignstats(char const * cigar,
 //       scorematrix as vector of vectors? fix scorematrix_create? *DONE*
 //       pass nucleotides to subst_score(char const lhs, char const rhs) *DONE*
 //       struct scoring as class private member (rename struct members everywhere),
-//       inject struct Span in diff(),
+//       inject struct Span in diff(), *DONE* (View<char>, not Span: diff only reads)
 //       pass a Pair<nucleotides>
 //       design a struct Pair<sequences>?
 

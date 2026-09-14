@@ -148,7 +148,7 @@ auto worst_region(View<char> const window) -> DustRegion
   assert(window.size() <= static_cast<std::size_t>(dust_window));
   auto const window_length = static_cast<int>(window.size());
   /* smallest possible region is 8 */
-  const auto start_count = window_length - dust_word + 1 - 5;
+  auto const start_count = window_length - dust_word + 1 - 5;
   if (start_count < 0)
     {
       return DustRegion{};
@@ -234,7 +234,7 @@ auto worst_region(View<char> const window) -> DustRegion
         {
           auto const window_position = static_cast<std::size_t>(start_offset + offset);
           word = static_cast<unsigned int>(words[window_position]);
-          const auto repeats = counts[word];
+          auto const repeats = counts[word];
           if (repeats != 0)
             {
               sum += repeats;
@@ -243,7 +243,7 @@ auto worst_region(View<char> const window) -> DustRegion
                  orders of magnitude below INT_MAX. The assert states that
                  bound rather than leaving it to be re-derived. */
               assert(sum >= 0 and sum <= max_sum);
-              const auto score = score_scale * sum / offset;
+              auto const score = score_scale * sum / offset;
 
               if (score > best_score)
                 {
@@ -264,9 +264,9 @@ auto worst_region(View<char> const window) -> DustRegion
 }  // anonymous namespace
 
 
-/* Core DUST implementation with explicit hardmask parameter.
+/* Core DUST implementation with an explicit masking style.
    Thread-safe: does not read any globals. */
-static auto dust_core(Span<char> const sequence, bool const use_hardmask) -> void
+static auto dust_core(Span<char> const sequence, MaskStyle const style) -> void
 {
   static constexpr auto half_dust_window = dust_window / 2;
 
@@ -283,7 +283,7 @@ static auto dust_core(Span<char> const sequence, bool const use_hardmask) -> voi
      std::copy_n(nullptr, 1, ...). */
   std::vector<char> const local_seq(sequence.cbegin(), sequence.cend());
 
-  if (!use_hardmask)
+  if (style == MaskStyle::soft)
     {
       /* convert sequence to upper case unless hardmask in effect */
       std::transform(sequence.begin(), sequence.end(), sequence.begin(), to_upper);
@@ -294,7 +294,7 @@ static auto dust_core(Span<char> const sequence, bool const use_hardmask) -> voi
      (i += half_dust_window - b), so this is not a traversal */
   for (auto i = 0; i < len; i += half_dust_window)
     {
-      const auto l = (len > i + dust_window) ? dust_window : len - i;
+      auto const l = (len > i + dust_window) ? dust_window : len - i;
       auto const window = make_view(local_seq).subspan(static_cast<std::size_t>(i),
                                                        static_cast<std::size_t>(l));
       auto const worst = worst_region(window);
@@ -311,7 +311,7 @@ static auto dust_core(Span<char> const sequence, bool const use_hardmask) -> voi
                                                + static_cast<std::size_t>(i),
                                                static_cast<std::size_t>(worst.end)
                                                - static_cast<std::size_t>(worst.begin) + 1);
-          if (use_hardmask)
+          if (style == MaskStyle::hard)
             {
               std::fill(region.begin(), region.end(), 'N');
             }
@@ -336,7 +336,7 @@ static auto dust_core(Span<char> const sequence, bool const use_hardmask) -> voi
 
 auto dust(Span<char> const seq, struct Parameters const & parameters) -> void
 {
-  dust_core(seq, parameters.opt_hardmask);
+  dust_core(seq, parameters.opt_hardmask ? MaskStyle::hard : MaskStyle::soft);
 }
 
 
@@ -444,7 +444,7 @@ auto hardmask_all(struct Database & db) -> void
 }
 
 
-auto dust_single(char * seq, int const len, bool const use_hardmask) -> void
+auto dust_single(Span<char> const sequence, MaskStyle const style) -> void
 {
-  dust_core(Span<char>{seq, static_cast<std::size_t>(len)}, use_hardmask);
+  dust_core(sequence, style);
 }

@@ -487,7 +487,7 @@ namespace {
                      KeyIndex & index,
                      struct Parameters const & parameters) -> void {
     Progress progress("Indexing reverse reads", reverse_handle->get_size(), parameters);
-    while (reverse_handle->next(false, Mapping::none)) {
+    while (reverse_handle->next(HeaderTruncation::keep_whole, Mapping::none)) {
       auto const key = matching_key(reverse_handle->header_view(), separators);
       auto const position = store.size();
       if (not index.insert(key, position, store)) {
@@ -565,7 +565,7 @@ auto fastx_syncpairs(struct Parameters const & parameters) -> void
 
   {
     Progress progress("Synchronizing reads", forward_handle->get_size(), parameters);
-    while (forward_handle->next(false, Mapping::none)) {
+    while (forward_handle->next(HeaderTruncation::keep_whole, Mapping::none)) {
       auto const key = matching_key(forward_handle->header_view(), separators);
       auto const position = reverse_index.find(key, reverse_records);
       if (position == KeyIndex::npos()) {

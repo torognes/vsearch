@@ -281,7 +281,7 @@ auto orient(struct Parameters const & parameters) -> void
     Progress progress_bar("Orienting sequences", query_h->get_size(), parameters);
 
     while (query_h->next(
-                      (not parameters.opt_notrunclabels),
+                      header_truncation(parameters.opt_notrunclabels),
                       Mapping::none))
       {
         auto const query_head = query_h->header_view();

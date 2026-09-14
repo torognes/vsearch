@@ -221,7 +221,7 @@ auto fastq_eestats(struct Parameters const & parameters) -> void
   /* only the initial size now; the tables grow themselves per record */
   int64_t const initial_table_length = 10;
 
-  const int resolution = 1000;
+  int const resolution = 1000;
   /* rows of qual_length_table are indexed by the raw quality value (0..qmax),
      so size them by qmax rather than (qmax - qmin): subtracting qmin here
      while indexing by the unshifted value overflowed the row for qmin >= 2 */
@@ -254,7 +254,7 @@ auto fastq_eestats(struct Parameters const & parameters) -> void
 
   {
     Progress progress("Reading FASTQ file", filesize, parameters);
-    while (h->next(false, Mapping::upcase))
+    while (h->next(HeaderTruncation::keep_whole, Mapping::upcase))
       {
         ++seq_count;
 

@@ -309,7 +309,7 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
 
   {
     Progress progress(prompt, filesize, parameters);
-    while (h->next(not parameters.opt_notrunclabels, Mapping::none))
+    while (h->next(header_truncation(parameters.opt_notrunclabels), Mapping::none))
       {
         auto const sequence = h->sequence_view();
         auto const seqlen = static_cast<int64_t>(sequence.size());
@@ -424,7 +424,7 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
 
   {
     Progress progress("Writing FASTA output file", filesize, parameters);
-    while (h2->next(not parameters.opt_notrunclabels, Mapping::none))
+    while (h2->next(header_truncation(parameters.opt_notrunclabels), Mapping::none))
       {
         auto const sequence = h2->sequence_view();
         auto const seqlen = static_cast<int64_t>(sequence.size());
