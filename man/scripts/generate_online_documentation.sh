@@ -40,6 +40,9 @@ require_commands pandoc awk || exit 1
 ## "children" when the page groups other pages under it.
 emit_front_matter() {
     echo "---"
+    ## named per page rather than as a site-wide default, which would
+    ## also wrap the stylesheets the theme generates (see _config.yml)
+    echo "layout: default"
     echo "title: \"${1}\""
     [ -n "${2}" ] && echo "parent: \"${2}\""
     [ -n "${3}" ] && echo "nav_order: ${3}"

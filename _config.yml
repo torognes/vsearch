@@ -39,15 +39,13 @@ include:
   - ISSUE_TEMPLATE.md
   - PULL_REQUEST_TEMPLATE.md
 
-# Jekyll does not merge a theme's own _config.yml into the site, so the
-# layout that every just-the-docs page needs has to be declared here.
-# Without it the pages are emitted as bare markdown conversions, with no
-# sidebar, no header and no <title>.
-defaults:
-  - scope:
-      path: ""
-    values:
-      layout: default
+# The layout is not set here. Jekyll does not merge a theme's own
+# _config.yml into the site, so the layout every just-the-docs page needs
+# has to be declared somewhere -- but a site-wide default (scope path "")
+# also catches the stylesheets the theme generates, and wraps them in the
+# page layout: just-the-docs-head-nav.css then comes out as an HTML
+# document and the sidebar loses its styling. The generated pages name
+# the layout in their own front matter instead.
 
 # just-the-docs settings. The navigation itself is not configured here:
 # each generated page declares its own title and its section in the YAML
