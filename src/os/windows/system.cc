@@ -118,7 +118,7 @@ auto xfstat(int const file_descriptor, xstat_t * buf) -> int
 }
 
 
-auto xstat(const char * path, xstat_t * buf) -> int
+auto xstat(char const * path, xstat_t * buf) -> int
 {
   return _stat64(path, buf);
 }

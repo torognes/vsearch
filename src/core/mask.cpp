@@ -148,7 +148,7 @@ auto worst_region(View<char> const window) -> DustRegion
   assert(window.size() <= static_cast<std::size_t>(dust_window));
   auto const window_length = static_cast<int>(window.size());
   /* smallest possible region is 8 */
-  const auto start_count = window_length - dust_word + 1 - 5;
+  auto const start_count = window_length - dust_word + 1 - 5;
   if (start_count < 0)
     {
       return DustRegion{};
@@ -234,7 +234,7 @@ auto worst_region(View<char> const window) -> DustRegion
         {
           auto const window_position = static_cast<std::size_t>(start_offset + offset);
           word = static_cast<unsigned int>(words[window_position]);
-          const auto repeats = counts[word];
+          auto const repeats = counts[word];
           if (repeats != 0)
             {
               sum += repeats;
@@ -243,7 +243,7 @@ auto worst_region(View<char> const window) -> DustRegion
                  orders of magnitude below INT_MAX. The assert states that
                  bound rather than leaving it to be re-derived. */
               assert(sum >= 0 and sum <= max_sum);
-              const auto score = score_scale * sum / offset;
+              auto const score = score_scale * sum / offset;
 
               if (score > best_score)
                 {
@@ -294,7 +294,7 @@ static auto dust_core(Span<char> const sequence, bool const use_hardmask) -> voi
      (i += half_dust_window - b), so this is not a traversal */
   for (auto i = 0; i < len; i += half_dust_window)
     {
-      const auto l = (len > i + dust_window) ? dust_window : len - i;
+      auto const l = (len > i + dust_window) ? dust_window : len - i;
       auto const window = make_view(local_seq).subspan(static_cast<std::size_t>(i),
                                                        static_cast<std::size_t>(l));
       auto const worst = worst_region(window);

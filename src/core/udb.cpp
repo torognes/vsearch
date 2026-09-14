@@ -152,7 +152,7 @@ namespace {
 }  // end of anonymous namespace
 
 
-auto udb_detect_isudb(const char * filename) -> bool
+auto udb_detect_isudb(char const * filename) -> bool
 {
   /*
     Detect whether the given filename seems to refer to an UDB file.
@@ -276,7 +276,7 @@ namespace {
 }  // end of anonymous namespace
 
 
-auto udb_read(const char * filename,
+auto udb_read(char const * filename,
               UdbUse const usage,
               struct Dbindex & dbindex,
               struct Database & db,
@@ -781,7 +781,7 @@ auto udb_read(const char * filename,
 }
 
 
-auto udb_read_word_entries(const char * filename,
+auto udb_read_word_entries(char const * filename,
                            struct Dbindex const & dbindex,
                            unsigned int const seqcount,
                            uint64_t const first,

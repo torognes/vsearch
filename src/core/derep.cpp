@@ -1235,8 +1235,8 @@ auto derep_session_init(struct derep_session_s * ds) -> void
 
 
 auto derep_add_sequence(struct derep_session_s * ds,
-                        const char * header,
-                        const char * sequence,
+                        char const * header,
+                        char const * sequence,
                         int const seqlen,
                         int64_t const abundance) -> void
 {

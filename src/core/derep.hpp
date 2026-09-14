@@ -64,8 +64,8 @@
 
 /* Result for one unique sequence, populated by derep_get_results(). */
 struct derep_result_s {
-  const char * header;    /* representative header (owned by session — valid until cleanup) */
-  const char * sequence;  /* normalized sequence: uppercase DNA, U→T (owned by session) */
+  char const * header;    /* representative header (owned by session — valid until cleanup) */
+  char const * sequence;  /* normalized sequence: uppercase DNA, U→T (owned by session) */
   uint64_t abundance;     /* total abundance (sum of all identical sequences) */
   uint64_t seqlen;        /* sequence length */
   int count;              /* number of input sequences that collapsed into this */
@@ -86,8 +86,8 @@ auto derep_session_init(struct derep_session_s * ds) -> void;
    Sequences are normalized (uppercase, U→T) internally.
    abundance: the abundance of this input sequence (typically 1). */
 auto derep_add_sequence(struct derep_session_s * ds,
-                        const char * header,
-                        const char * sequence,
+                        char const * header,
+                        char const * sequence,
                         int seqlen,
                         int64_t abundance) -> void;
 

@@ -64,12 +64,12 @@
 
 namespace dynlib {
 
-  auto open(const char * library_name) -> handle
+  auto open(char const * library_name) -> handle
   {
     return dlopen(library_name, RTLD_LAZY);
   }
 
-  auto symbol(handle library, const char * symbol_name) -> symbol_ptr
+  auto symbol(handle library, char const * symbol_name) -> symbol_ptr
   {
     return reinterpret_cast<symbol_ptr>(dlsym(library, symbol_name));
   }

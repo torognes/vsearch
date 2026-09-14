@@ -427,7 +427,7 @@ auto udbstats(struct Parameters const & parameters) -> void
           fprint(parameters.fp_log, '%');
 
           static constexpr auto divider = 3.0;
-          const auto dots = std::lround(pct / divider);
+          auto const dots = std::lround(pct / divider);
 
           if (dots > 0)
             {

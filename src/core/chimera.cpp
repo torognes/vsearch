@@ -457,14 +457,14 @@ auto realloc_arrays(struct chimera_info_s * chimera_info, struct Database const 
       chimera_info->parts = 4;
     }
 
-  const int maxhlen = std::max(static_cast<int>(header_length), 1);
+  int const maxhlen = std::max(static_cast<int>(header_length), 1);
   vsearch::grow_to_fit(chimera_info->query_head_v, static_cast<size_t>(maxhlen));
 
   /* realloc arrays based on query length */
 
-  const int maxqlen = std::max(chimera_info->query_len, 1);
+  int const maxqlen = std::max(chimera_info->query_len, 1);
   auto const max_2x2_size = static_cast<size_t>(maxcandidates) * static_cast<size_t>(maxqlen);
-  const int64_t maxalnlen = static_cast<int64_t>(maxqlen) + (2 * static_cast<int64_t>(db.getlongestsequence()));
+  int64_t const maxalnlen = static_cast<int64_t>(maxqlen) + (2 * static_cast<int64_t>(db.getlongestsequence()));
 
   /* Each buffer states the size it needs. They all grow monotonically with
      maxqlen, so the single query_alloc guard they used to share was correct --
@@ -491,7 +491,7 @@ auto realloc_arrays(struct chimera_info_s * chimera_info, struct Database const 
   vsearch::grow_to_fit(chimera_info->ignore, static_cast<size_t>(maxalnlen) + 1);
 
   // resize query parts if longer than earlier, minimum 100
-  const int maxpartlen =
+  int const maxpartlen =
     std::max((maxqlen + chimera_info->parts - 1) / chimera_info->parts, 100);
   for (auto & query_info: chimera_info->si)
     {

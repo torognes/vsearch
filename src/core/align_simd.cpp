@@ -896,7 +896,7 @@ inline auto pushop(s16info_s * s, char const newop) -> void
     {
       static constexpr auto size = 11;
       std::array<char, size> buffer {{}};
-      const auto length = std::snprintf(buffer.data(), size, "%d", s->opcount);
+      auto const length = std::snprintf(buffer.data(), size, "%d", s->opcount);
       s->cigarend -= length;
       std::memcpy(s->cigarend, buffer.data(), static_cast<size_t>(length));
     }
@@ -914,7 +914,7 @@ inline auto finishop(s16info_s * s) -> void
         {
           static constexpr auto size = 11;
           std::array<char, size> buffer {{}};
-          const auto length = std::snprintf(buffer.data(), size, "%d", s->opcount);
+          auto const length = std::snprintf(buffer.data(), size, "%d", s->opcount);
           s->cigarend -= length;
           std::memcpy(s->cigarend, buffer.data(), static_cast<size_t>(length));
         }

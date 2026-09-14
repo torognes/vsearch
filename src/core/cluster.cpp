@@ -204,7 +204,7 @@ inline auto cluster_query_core(struct searchinfo_s & si, struct Database const &
   /* the main core function for clustering */
 
   /* get sequence etc */
-  const int seqno = si.query_no;
+  int const seqno = si.query_no;
   auto const useqno = static_cast<uint64_t>(seqno);
   /* read-only borrow into the (const) database; query_head is a const view, so
      no copy or cast is needed */
@@ -931,7 +931,7 @@ auto cluster_core_parallel(struct cluster_cli_state_s & state,
                            struct Database const & db) -> void
 {
   constexpr static int queries_per_thread = 1;
-  const int max_queries = queries_per_thread * static_cast<int>(state.parameters.opt_threads);
+  int const max_queries = queries_per_thread * static_cast<int>(state.parameters.opt_threads);
 
   /* Own worker pool + per-thread search state (E4); see cluster_work_pool_s.
      The local si_plus/si_minus aliases let the loops below read unchanged. */

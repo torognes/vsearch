@@ -948,7 +948,7 @@ auto search_acceptable_aligned(struct searchinfo_s const & searchinfo,
     {
       if (searchinfo.unoise_acceptance)
         {
-          const auto mismatches = hit.mismatches;
+          auto const mismatches = hit.mismatches;
           auto const skew = 1.0 * static_cast<double>(searchinfo.qsize) / static_cast<double>(searchinfo.db->getabundance(static_cast<uint64_t>(hit.target)));
           auto const beta = 1.0 / std::pow(2, (1.0 * parameters.opt_unoise_alpha * mismatches) + 1);
 
