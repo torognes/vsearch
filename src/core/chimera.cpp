@@ -203,7 +203,7 @@ struct chimera_info_s
   std::array<unsigned int, maxcandidates> cand_list {{}};
   int cand_count = 0;
 
-  struct s16info_s * s = nullptr;
+  std::unique_ptr<s16info_s, s16info_deleter> s;  /* SIMD aligner instance (owned) */
   std::array<CELL, maxcandidates> snwscore {{}};
   std::array<unsigned short, maxcandidates> snwalignmentlength {{}};
   std::array<unsigned short, maxcandidates> snwmatches {{}};
@@ -2141,28 +2141,28 @@ auto chimera_thread_init(struct chimera_info_s * ci, int const tophits,
   ci->tophits = tophits;
   ci->parts_ready = 0;
 
-  ci->s = search16_init(parameters.opt_match,
-                        parameters.opt_mismatch,
-                        parameters.opt_gap_open_query_left,
-                        parameters.opt_gap_open_target_left,
-                        parameters.opt_gap_open_query_interior,
-                        parameters.opt_gap_open_target_interior,
-                        parameters.opt_gap_open_query_right,
-                        parameters.opt_gap_open_target_right,
-                        parameters.opt_gap_extension_query_left,
-                        parameters.opt_gap_extension_target_left,
-                        parameters.opt_gap_extension_query_interior,
-                        parameters.opt_gap_extension_target_interior,
-                        parameters.opt_gap_extension_query_right,
-                        parameters.opt_gap_extension_target_right,
-                        // always false: no chimera command accepts --n_mismatch
-                        parameters.opt_n_mismatch);
+  ci->s.reset(search16_init(parameters.opt_match,
+                            parameters.opt_mismatch,
+                            parameters.opt_gap_open_query_left,
+                            parameters.opt_gap_open_target_left,
+                            parameters.opt_gap_open_query_interior,
+                            parameters.opt_gap_open_target_interior,
+                            parameters.opt_gap_open_query_right,
+                            parameters.opt_gap_open_target_right,
+                            parameters.opt_gap_extension_query_left,
+                            parameters.opt_gap_extension_target_left,
+                            parameters.opt_gap_extension_query_interior,
+                            parameters.opt_gap_extension_target_interior,
+                            parameters.opt_gap_extension_query_right,
+                            parameters.opt_gap_extension_target_right,
+                            // always false: no chimera command accepts --n_mismatch
+                            parameters.opt_n_mismatch));
 }
 
 
 auto chimera_thread_exit(struct chimera_info_s * ci) -> void
 {
-  search16_exit(ci->s);
+  ci->s.reset();
 
   for (auto & a_search_info : ci->si) {
     query_exit(a_search_info);
@@ -2251,11 +2251,11 @@ static auto chimera_process_query(struct chimera_info_s * ci,
 
   /* align full query to each candidate */
 
-  search16_qprep(ci->s, ci->query());
+  search16_qprep(ci->s.get(), ci->query());
 
   /* the candidates found above, not the whole maxcandidates buffers */
   auto const candidates = static_cast<std::size_t>(ci->cand_count);
-  search16(ci->s,
+  search16(ci->s.get(),
            make_view(ci->cand_list).first(candidates),
            make_span(ci->snwscore).first(candidates),
            make_span(ci->snwalignmentlength).first(candidates),
