@@ -57,6 +57,6 @@ vsearch \
 
 # SEE ALSO
 
-[`vsearch(1)`](./vsearch.1.md)
+[`vsearch(1)`](../index.1.md)
 
 #(./fragments/footer.md)

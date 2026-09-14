@@ -1,6 +1,15 @@
-remote_theme: pages-themes/hacker@v0.2.0
+remote_theme: just-the-docs/just-the-docs@v0.12.0
 
-# attempt to fix lack of CSS rendering in deployed mode
+# shown in the sidebar header and in the browser tab
+title: vsearch manual
+description: >-
+  Manual pages for vsearch, a versatile open-source tool for metabarcoding
+  and metagenomics.
+
+# a project site is served from a subfolder, and the theme builds every
+# asset URL from baseurl, so both settings are required: without them the
+# deployed pages reference stylesheets that are not there, and render
+# unstyled
 baseurl: /vsearch
 url: https://torognes.github.io
 
@@ -14,15 +23,31 @@ kramdown:
 plugins:
   - jekyll-relative-links
   - jekyll-remote-theme
+  # required by the just-the-docs layouts, which call {% seo %} and
+  # {% include_cached %}: with a remote theme the plugins it depends on
+  # have to be listed here, or the build fails on an unknown tag. Both
+  # are supported by GitHub Pages (see pages.github.com/versions.json).
+  - jekyll-seo-tag
+  - jekyll-include-cache
 relative_links:
   enabled: true
   collections: true
-include:
-  - CONTRIBUTING.md
-  - README.md
-  - LICENSE.md
-  - COPYING.md
-  - CODE_OF_CONDUCT.md
-  - CONTRIBUTING.md
-  - ISSUE_TEMPLATE.md
-  - PULL_REQUEST_TEMPLATE.md
+
+# The layout is not set here. Jekyll does not merge a theme's own
+# _config.yml into the site, so the layout every just-the-docs page needs
+# has to be declared somewhere -- but a site-wide default (scope path "")
+# also catches the stylesheets the theme generates, and wraps them in the
+# page layout: just-the-docs-head-nav.css then comes out as an HTML
+# document and the sidebar loses its styling. The generated pages name
+# the layout in their own front matter instead.
+
+# just-the-docs settings. The navigation itself is not configured here:
+# each generated page declares its own title and its section in the YAML
+# front matter written by man/scripts/generate_online_documentation.sh.
+color_scheme: light
+search_enabled: true
+heading_anchors: true
+aux_links:
+  vsearch on GitHub:
+    - https://github.com/torognes/vsearch
+aux_links_new_tab: true

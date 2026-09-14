@@ -23,29 +23,124 @@ require_commands pandoc awk || exit 1
 ## the GitHub Pages renderer, thanks to the typographic_symbols
 ## setting in _config.yml (without it, kramdown would turn them
 ## into en-dashes).
+##
+## GFM proper has no definition-list syntax, so a plain "--to gfm" would
+## degrade each OPTIONS entry (term, then ": description") into a term, a
+## hard line break and the description, all inside a single paragraph.
+## The +definition_lists extension keeps them as definition lists, which
+## kramdown understands and renders as <dl>/<dt>/<dd>.
+## just-the-docs builds its sidebar from YAML front matter, not from the
+## folder layout. A page that declares no title is listed under its first
+## heading, which for a manual page is always "NAME", so every page has to
+## announce the manual page it stands for and the section it belongs to.
+##
+## ${1}: title, ${2}: parent section (empty for the hub page), ${3}: rank
+## in the sidebar (empty to let just-the-docs sort the section
+## alphabetically, which is what the command pages want), ${4}: the word
+## "children" when the page groups other pages under it.
+emit_front_matter() {
+    echo "---"
+    ## named per page rather than as a site-wide default, which would
+    ## also wrap the stylesheets the theme generates (see _config.yml)
+    echo "layout: default"
+    echo "title: \"${1}\""
+    [ -n "${2}" ] && echo "parent: \"${2}\""
+    [ -n "${3}" ] && echo "nav_order: ${3}"
+    [ "${4:-}" = "children" ] && echo "has_children: true"
+    echo "---"
+    echo
+}
+
+## ${1}: markdown source (for instance ./commands/vsearch-cut.1.md).
+## Write the title the online manual gives it: the manual page name in
+## the usual "name(section)" form, which is also how the pages refer to
+## one another.
+page_title() {
+    local name
+    name="$(manpage_name "${1}")"
+    printf '%s(%s)\n' "${name%.*}" "${name##*.}"
+}
+
+## ${1}: markdown source. Write the sidebar section it belongs to, or
+## nothing at all for the hub page, which sits at the top level.
+page_section() {
+    case "${1}" in
+        ./commands/*) echo "Commands" ;;
+        ./formats/*)  echo "File formats" ;;
+        ./misc/*)     echo "Reference topics" ;;
+        *)            echo "" ;;
+    esac
+}
+
+## ${1}: title, ${2}: rank in the sidebar, ${3}: one-line summary.
+##
+## just-the-docs needs a page for every section its children name. These
+## three carry no manual content of their own: they only group the pages
+## below them.
+## called by name through write_output(), which shellcheck cannot see
+# shellcheck disable=SC2317
+section_page() {
+    emit_front_matter "${1}" "" "${2}" children
+    echo "# ${1}"
+    echo
+    echo "${3}"
+}
+
+## The hub page is the only page whose published name differs from its
+## source name: index.1.md is written as docs/index.md, so that GitHub
+## Pages serves it as the site root. jekyll-relative-links rewrites a
+## link only when its target exists, so a link spelled with the source
+## name is left untouched and becomes a 404. Rewrite those to the
+## published name. Every other page of the manual sits exactly one
+## folder below the hub, which is why one '../' form is enough.
+rename_hub_page_links() {
+    sed 's|](\.\./index\.1\.md)|](../index.md)|g'
+}
+
+## ${1}: markdown source, ${2}: title, ${3}: parent section, ${4}: rank
 ## called by name through write_output(), which shellcheck cannot see
 # shellcheck disable=SC2317
 convert_markdown_to_github_markdown() {
-    expand_markdown_includes "${1}" | pandoc - --to gfm
+    emit_front_matter "${2}" "${3}" "${4}"
+    expand_markdown_includes "${1}" \
+        | pandoc - --to gfm+definition_lists \
+        | rename_hub_page_links
 }
 
 
 # create folder
 mkdir -p ../docs/{commands,formats,misc} || exit 1
 
-# test: maybe the config file needs to be placed at the root of the documentation?
+# jekyll reads its configuration from the folder it builds, and the
+# workflow builds ../docs, so the configuration has to be copied there.
+# Without it the build reports "Configuration file: none", warns that the
+# layout the pages ask for does not exist, and emits an unthemed site.
 cp -f ../_config.yml ../docs/ || exit 1
 
 STATUS=0
 
 # future: use vsearch.1.md as the starting page (index.html)
+# the hub page opens the sidebar, above the three sections
 write_output ../docs/index.md \
-             convert_markdown_to_github_markdown ./index.1.md || STATUS=1
+             convert_markdown_to_github_markdown ./index.1.md \
+             "$(page_title ./index.1.md)" "" 1 || STATUS=1
+
+# one grouping page per section, in manual-section order
+write_output ../docs/commands/index.md section_page \
+             "Commands" 2 \
+             "One page per vsearch command (section 1 of the manual)." || STATUS=1
+write_output ../docs/formats/index.md section_page \
+             "File formats" 3 \
+             "The file formats vsearch reads and writes (section 5)." || STATUS=1
+write_output ../docs/misc/index.md section_page \
+             "Reference topics" 4 \
+             "Topics shared by several commands (section 7)." || STATUS=1
 
 # mirror the organization of manpages
 while read -r raw_md ; do
     write_output "../docs/${raw_md#./}" \
-                 convert_markdown_to_github_markdown "${raw_md}" || STATUS=1
+                 convert_markdown_to_github_markdown "${raw_md}" \
+                 "$(page_title "${raw_md}")" "$(page_section "${raw_md}")" "" || STATUS=1
 done < <(manpage_sources | grep -v '^\./index\.1\.md$')
 
 exit "${STATUS}"

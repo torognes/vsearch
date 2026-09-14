@@ -134,13 +134,13 @@ Positions in reads are sorted in decreasing order, starting with the
 first read length (L) with a cumulative expected error smaller or
 equal to 1.0. The next four columns indicate the number of reads that
 would be retained by the command
-[`vsearch-fastq_filter(1)`](./commands/vsearch-fastq_filter.1.md) if
+[`vsearch-fastq_filter(1)`](./vsearch-fastq_filter.1.md) if
 the reads were truncated at length L with the option
 `--fastq_trunclen`, and filtered to have a maximum expected error
 equal to or lesser than 1.0, 0.5, 0.25 or 0.1 with the option
 `--fastq_maxee`. The last four columns indicate the fraction of reads
 that would be retained by the command
-[`vsearch-fastq_filter(1)`](./commands/vsearch-fastq_filter.1.md)
+[`vsearch-fastq_filter(1)`](./vsearch-fastq_filter.1.md)
 using the same length L and maximum expected error parameters.
 
 1.  L: read length
@@ -178,7 +178,7 @@ with a minimum of 1), so the table has
 largest length - floor(largest length / 2) + 1 rows. The next four
 columns
 indicate the fraction of reads that would be retained by the command
-[`vsearch-fastq_filter(1)`](./commands/vsearch-fastq_filter.1.md) if
+[`vsearch-fastq_filter(1)`](./vsearch-fastq_filter.1.md) if
 the reads were truncated at length Len with the option
 `--fastq_trunclen`, or at the first position with a quality Q equal to
 or lesser than 5, 10, 15 or 20 with the option `--fastq_truncqual`.
@@ -254,7 +254,7 @@ vsearch \
 
 # SEE ALSO
 
-[`vsearch-fastq_chars(1)`](./commands/vsearch-fastq_chars.1.md),
+[`vsearch-fastq_chars(1)`](./vsearch-fastq_chars.1.md),
 [`vsearch-fastq(5)`](../formats/vsearch-fastq.5.md)
 
 
