@@ -187,10 +187,13 @@ private:
 
   auto subst_score(char lhs, char rhs) -> int64_t;
 
-  auto diff(int64_t a_start,
-            int64_t b_start,
-            int64_t a_len,
-            int64_t b_len,
+  /* a_sub and b_sub are the two sub-sequences this call aligns: the TODO
+     below asked for "inject struct Span in diff()", and this is it. They
+     replace the (a_start, a_len) and (b_start, b_len) pairs that used to index
+     the a_seq/b_seq members, which is why the recursion now slices with
+     first()/drop() instead of doing arithmetic on four int64_t. */
+  auto diff(View<char> a_sub,
+            View<char> b_sub,
             GapOpen gap_b_left,
             GapOpen gap_b_right,
             Ends ends) -> void;    /* includes right end of b */
