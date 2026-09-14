@@ -29,15 +29,6 @@ plugins:
 relative_links:
   enabled: true
   collections: true
-include:
-  - CONTRIBUTING.md
-  - README.md
-  - LICENSE.md
-  - COPYING.md
-  - CODE_OF_CONDUCT.md
-  - CONTRIBUTING.md
-  - ISSUE_TEMPLATE.md
-  - PULL_REQUEST_TEMPLATE.md
 
 # The layout is not set here. Jekyll does not merge a theme's own
 # _config.yml into the site, so the layout every just-the-docs page needs
