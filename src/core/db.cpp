@@ -368,7 +368,7 @@ auto Database::read(char const * filename, int const upcase, struct Parameters c
   {
     Progress progress(prompt, static_cast<uint64_t>(filesize), parameters);
     while (input_handle->next(
-                     not parameters.opt_notrunclabels,
+                     header_truncation(parameters.opt_notrunclabels),
                       (upcase != 0) ? Mapping::upcase : Mapping::none))
       {
         size_t const sequencelength = input_handle->sequence_view().size();

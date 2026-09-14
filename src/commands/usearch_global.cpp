@@ -417,7 +417,7 @@ static auto search_thread_run(struct search_cli_state_s & state, uint64_t const 
 
   auto const has_work_to_claim = [&]() -> bool {
     if (not query_fastx_h->next(
-                       (not state.parameters.opt_notrunclabels),
+                       header_truncation(state.parameters.opt_notrunclabels),
                        Mapping::none))
       {
         return false;

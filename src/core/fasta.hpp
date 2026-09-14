@@ -77,7 +77,7 @@ struct SeqRecord;
 auto fasta_open_rest(fastx_handle input_handle) -> void;
 auto fasta_open(char const * filename, struct Parameters const & parameters) -> std::unique_ptr<fastx_s>;
 auto fasta_next(fastx_handle input_handle,
-                bool truncateatspace,
+                HeaderTruncation truncation,
                 unsigned char const * char_mapping) -> bool;
 
 /* fasta output */

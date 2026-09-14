@@ -209,7 +209,7 @@ auto fastx_s::set_deferred_error(std::string const & message) -> void
 }
 
 
-auto fastx_s::next(bool const truncateatspace, Mapping const char_mapping) -> bool
+auto fastx_s::next(HeaderTruncation const truncation, Mapping const char_mapping) -> bool
 {
   /* deferred-error mode (see fastx.hpp): if a previous call already recorded a
      parse error, report no further records so every worker stops; and if the
@@ -220,8 +220,8 @@ auto fastx_s::next(bool const truncateatspace, Mapping const char_mapping) -> bo
       return false;
     }
   bool const got_record = is_fastq
-    ? fastq_next(this, truncateatspace, char_mapping)
-    : fasta_next(this, truncateatspace, char_mapping);
+    ? fastq_next(this, truncation, char_mapping)
+    : fasta_next(this, truncation, char_mapping);
   if (error)
     {
       return false;
@@ -277,10 +277,11 @@ namespace {
 }  // end of anonymous namespace
 
 
-auto fastx_filter_header(fastx_handle input_handle, bool const truncateatspace) -> void {
+auto fastx_filter_header(fastx_handle input_handle, HeaderTruncation const truncation) -> void {
   // truncate header (in-place)
   auto raw_header = input_handle->header_buffer.span();
-  auto const count = truncateatspace ? find_header_end_first_blank(raw_header) : find_header_end(raw_header);
+  auto const count = (truncation == HeaderTruncation::at_first_blank)
+    ? find_header_end_first_blank(raw_header) : find_header_end(raw_header);
   input_handle->header_buffer.length = count;
 
   /* Reject a header too long for the int header-length bookkeeping used

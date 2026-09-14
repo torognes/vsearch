@@ -423,7 +423,7 @@ auto cut(struct Parameters const & parameters) -> void {
   struct statistics counters;
   std::vector<char> rc_buffer;
   std::vector<unsigned char> coded_buffer;
-  while (input_handle->next(false, Mapping::none))
+  while (input_handle->next(HeaderTruncation::keep_whole, Mapping::none))
     {
       cut_a_sequence(input_handle.get(), restriction, fastaout, counters, rc_buffer, coded_buffer, parameters);
 

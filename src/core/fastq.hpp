@@ -73,7 +73,7 @@ struct SeqRecord;
 auto fastq_open_rest(fastx_handle input_handle) -> void;
 auto fastq_open(char const * filename, struct Parameters const & parameters) -> std::unique_ptr<fastx_s>;
 auto fastq_next(fastx_handle input_handle,
-                bool truncateatspace,
+                HeaderTruncation truncation,
                 unsigned char const * char_mapping) -> bool;
 
 auto fastq_print_general(std::FILE * output_handle,

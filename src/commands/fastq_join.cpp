@@ -196,9 +196,9 @@ auto fastq_join(struct Parameters const & parameters) -> void
 
   {
     Progress progress("Joining reads", filesize, parameters);
-    while (infiles.forward.handle->next(false, Mapping::none))
+    while (infiles.forward.handle->next(HeaderTruncation::keep_whole, Mapping::none))
       {
-        if (not infiles.reverse.handle->next(false, Mapping::none))
+        if (not infiles.reverse.handle->next(HeaderTruncation::keep_whole, Mapping::none))
           {
             fatal("More forward reads than reverse reads");
           }
@@ -252,7 +252,7 @@ auto fastq_join(struct Parameters const & parameters) -> void
       }
   }
 
-  if (infiles.reverse.handle->next(false, Mapping::none))
+  if (infiles.reverse.handle->next(HeaderTruncation::keep_whole, Mapping::none))
     {
       fatal("More reverse reads than forward reads");
     }

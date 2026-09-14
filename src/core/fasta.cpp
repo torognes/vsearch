@@ -227,7 +227,7 @@ auto fasta_filter_sequence(fastx_handle input_handle) -> void
 
 
 auto fasta_next(fastx_handle input_handle,
-                bool const truncateatspace,
+                HeaderTruncation const truncation,
                 Mapping const char_mapping) -> bool
 {
   input_handle->lineno_start = input_handle->lineno;
@@ -311,7 +311,7 @@ auto fasta_next(fastx_handle input_handle,
 
   ++input_handle->seqno;
 
-  fastx_filter_header(input_handle, truncateatspace);
+  fastx_filter_header(input_handle, truncation);
   /* The mapping is a compile-time fact at every caller (see
      base_mapping.hpp), so the parser is specialized once per record rather
      than reading a table per accepted byte. Mapping has exactly two

@@ -2322,7 +2322,7 @@ static auto chimera_thread_core(struct chimera_cli_state_s & state,
 
     if (state.mode == ChimeraMode::uchime_ref)
       {
-        if (state.query_fasta_h->next((not state.parameters.opt_notrunclabels),
+        if (state.query_fasta_h->next(header_truncation(state.parameters.opt_notrunclabels),
                        Mapping::none))
           {
             auto const query_record = state.query_fasta_h->record();

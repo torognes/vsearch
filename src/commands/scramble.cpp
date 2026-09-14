@@ -434,7 +434,7 @@ auto scramble(struct Parameters const & parameters) -> void
 
     int64_t count = 0;  // the ordinal fed to --relabel; int would wrap at 2^31 records
     Progress progress("Scrambling", filesize, parameters);
-    while (input_handle->next(false, Mapping::none))
+    while (input_handle->next(HeaderTruncation::keep_whole, Mapping::none))
       {
         ++count;
 

@@ -748,7 +748,7 @@ static auto dereplicating(std::unique_ptr<fastx_s> const & input_handle,
 
   {
     Progress progress(prompt, filesize, parameters);
-    while (input_handle->next(not parameters.opt_notrunclabels, Mapping::none))
+    while (input_handle->next(header_truncation(parameters.opt_notrunclabels), Mapping::none))
       {
         auto const sequence = input_handle->sequence_view();
         auto const seqlen = static_cast<int64_t>(sequence.size());
