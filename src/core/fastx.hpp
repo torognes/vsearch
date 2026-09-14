@@ -421,7 +421,7 @@ using fastx_handle = struct fastx_s *;
    These remaining free functions are not simple accessors: the opener and the
    two in-parser filters. */
 auto fastx_filter_header(fastx_handle input_handle, bool truncateatspace) -> void;
-auto fastx_open(const char * filename, struct Parameters const & parameters) -> std::unique_ptr<fastx_s>;
+auto fastx_open(char const * filename, struct Parameters const & parameters) -> std::unique_ptr<fastx_s>;
 
 // Reject a sequence too long for the int length bookkeeping used downstream.
 // Called from fasta_next/fastq_next so every read is bounded at one choke

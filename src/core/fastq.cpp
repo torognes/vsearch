@@ -292,7 +292,7 @@ auto quality_line_body(Line_fragment const & fragment) -> View<char>
 }  // anonymous namespace
 
 
-auto fastq_open(const char * filename, struct Parameters const & parameters) -> std::unique_ptr<fastx_s>
+auto fastq_open(char const * filename, struct Parameters const & parameters) -> std::unique_ptr<fastx_s>
 {
   // fastx_open hands back an owning unique_ptr; on the fatal() path below it
   // frees the handle as the stack unwinds (library session), otherwise it is

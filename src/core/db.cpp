@@ -324,7 +324,7 @@ auto Database::add(bool const is_fastq_record,
 }
 
 
-auto Database::read(const char * filename, int const upcase, struct Parameters const & parameters,
+auto Database::read(char const * filename, int const upcase, struct Parameters const & parameters,
                     MinsizeFilter const minsize_filter) -> void
 {
   /* fastx_open hands back an owning unique_ptr, so the handle is freed

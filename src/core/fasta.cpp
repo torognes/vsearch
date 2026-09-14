@@ -141,7 +141,7 @@ namespace {
 }  // end of anonymous namespace
 
 
-auto fasta_open(const char * filename, struct Parameters const & parameters) -> std::unique_ptr<fastx_s>
+auto fasta_open(char const * filename, struct Parameters const & parameters) -> std::unique_ptr<fastx_s>
 {
   // fastx_open hands back an owning unique_ptr; on the fatal() path below it
   // frees the handle as the stack unwinds (library session), otherwise it is

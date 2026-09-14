@@ -121,7 +121,7 @@ private:
 
   /* udb_read is a second database loader that fills data_/seqindex_ in place
      (it bypasses add()); grant it access to the otherwise-private buffers. */
-  friend auto udb_read(const char * filename,
+  friend auto udb_read(char const * filename,
                        UdbUse usage,
                        struct Dbindex & dbindex,
                        struct Database & db,
