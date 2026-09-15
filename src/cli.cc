@@ -4770,8 +4770,8 @@ namespace {
       {
         /* --fastq_qmaxout follows the input bound where quality passes
            *through* vsearch (--fastq_convert, --fastx_uniques,
-           --sff_convert), and keeps the pre-3.0 41 where vsearch *generates*
-           the score:
+           --sff_convert), and keeps the pre-2.32.0 41 where vsearch
+           *generates* the score:
 
            - --fasta2fastq has no input quality at all and fills every
              position with the highest score the option allows, so the new
@@ -4786,7 +4786,7 @@ namespace {
            The --fastq_mergepairs half is a deliberate deviation from
            torognes/vsearch#609, which asks for --fastq_qmaxout 93
            unconditionally. Reviewed and kept on 2026-08-29, on the grounds
-           above, and recorded in the v3.0.0 changelog entry; mapping
+           above, and recorded in the v2.32.0 changelog entry; mapping
            --fastq_mergepairs to QualityOrigin::passed_through in
            cli_quality_origin() is the whole of the change needed to follow
            #609 literally, should that be revisited.

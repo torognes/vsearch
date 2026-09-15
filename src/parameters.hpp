@@ -88,7 +88,7 @@ auto parameters_resolve_derived(struct Parameters & parameters) -> void;
 
      merged          --fastq_mergepairs. The Edgar & Flyvbjerg posterior of a
                      merged base is computed rather than read, so it keeps the
-                     pre-3.0 ceiling of 41; and it is written with
+                     pre-2.32.0 ceiling of 41; and it is written with
                      --fastq_ascii, because the command does not accept
                      --fastq_asciiout.
      generated       --fasta2fastq. Also a produced score, so also 41, but
