@@ -1,4 +1,4 @@
-% vsearch-sff_convert(1) version 2.31.0 | vsearch manual
+% vsearch-sff_convert(1) version 2.32.0 | vsearch manual
 % Torbjørn Rognes, Tomás Flouri, and Frédéric Mahé
 #(./fragments/date.md)
 
@@ -24,7 +24,7 @@ offset can be set with `--fastq_asciiout` (default 33, phred+33). Output
 quality scores are always clamped to the range set by `--fastq_qminout`
 and `--fastq_qmaxout`, whose defaults are 0 and 93: SFF quality values
 are written unchanged unless `--fastq_qmaxout` is lowered. Before
-version 3.0 the default was 41, and any higher SFF value was silently
+version 2.32.0 the default was 41, and any higher SFF value was silently
 reduced to it.
 
 While converting, vsearch reports the number of reads, the flows per

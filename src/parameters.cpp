@@ -169,7 +169,7 @@ auto resolve_fastq_qmaxout(struct Parameters const & parameters,
     {
       return parameters.opt_fastq_qmaxout;
     }
-  /* a score vsearch produced keeps the pre-3.0 ceiling; one that passed
+  /* a score vsearch produced keeps the pre-2.32.0 ceiling; one that passed
      through is capped only by what the output offset can carry */
   if (origin == QualityOrigin::passed_through)
     {

@@ -16,10 +16,6 @@
 # markdown source it comes from. That is what the two conditionals mean:
 # BUILD_MANPAGES, "there is a manual to install", and HAVE_PANDOC, "it
 # can be (re)generated".
-#
-# The monolithic man/vsearch.1 page these replace is no longer built,
-# installed or distributed; it is kept in the source tree, marked as
-# superseded, until it is removed.
 
 # $(wildcard) and '%'-style pattern rules below are GNU make extensions.
 # vsearch already requires GNU make (3.82 or later on Linux), and the

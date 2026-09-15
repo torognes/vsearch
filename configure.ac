@@ -2,7 +2,7 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ([2.63])
-AC_INIT([vsearch], [2.31.0], [torognes@ifi.uio.no], [vsearch], [https://github.com/torognes/vsearch])
+AC_INIT([vsearch], [2.32.0], [torognes@ifi.uio.no], [vsearch], [https://github.com/torognes/vsearch])
 AC_CANONICAL_TARGET
 AM_INIT_AUTOMAKE([subdir-objects])
 # Ship the generated build files (configure, Makefile.in, ...) and treat them

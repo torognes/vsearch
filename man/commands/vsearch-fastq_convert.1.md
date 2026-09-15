@@ -1,4 +1,4 @@
-% vsearch-fastq_convert(1) version 2.31.0 | vsearch manual
+% vsearch-fastq_convert(1) version 2.32.0 | vsearch manual
 % Torbjørn Rognes, Tomás Flouri, and Frédéric Mahé
 #(./fragments/date.md)
 
@@ -28,7 +28,7 @@ vsearch where the Solexa score definition is understood.
 Quality scores are remapped during conversion. Output scores are
 always clamped to the range set by `--fastq_qminout` and
 `--fastq_qmaxout`, whose defaults are 0 and 93: scores are written
-unchanged unless `--fastq_qmaxout` is lowered (before version 3.0 the
+unchanged unless `--fastq_qmaxout` is lowered (before version 2.32.0 the
 default was 41, and any higher score was silently reduced to it), and
 negative scores (e.g. Solexa scores read
 with `--fastq_ascii 64 --fastq_qmin -5`) are raised to 0, unless the

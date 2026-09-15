@@ -1,17 +1,38 @@
-# Sample workflow for building and deploying a Jekyll site to GitHub Pages
-name: Deploy Jekyll with GitHub Pages dependencies preinstalled
+# Build and deploy the vsearch manual to GitHub Pages.
+#
+# The site holds two manuals, because the one people are pointed to must
+# describe the vsearch they actually have: every installed copy names
+# https://torognes.github.io/vsearch/ in the AVAILABILITY section of its
+# manual pages, and a site built from dev would answer them with options
+# and defaults no release has yet.
+#
+#   https://torognes.github.io/vsearch/       the released manual, master
+#   https://torognes.github.io/vsearch/dev/   the development manual, dev
+#
+# GitHub Pages serves one site per repository, so these are two folders
+# of a single site rather than two deployments. That is why this workflow
+# checks out both branches on every run, whichever one was pushed: each
+# deployment replaces the whole site, so a run that rebuilt only the
+# pushed branch would erase the other manual.
+#
+# Which file runs is decided by the branch that was pushed, so this
+# workflow has to exist on master as well as on dev to do its job. Until
+# it reaches master -- it travels there with the 2.32.0 merge -- a push to
+# master still runs master's own copy. The guard below covers the other
+# half of that window.
+name: Deploy the manual to GitHub Pages
 
 on:
-  # Runs on pushes targeting the dev branch
+  # Either manual can change, and either change has to be published
   push:
-    branches: ["dev"]
+    branches: ["master", "dev"]
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
 # Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
 permissions:
-  contents: write
+  contents: read
   pages: write
   id-token: write
 
@@ -26,24 +47,61 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
+      - name: Check out the released manual
+        uses: actions/checkout@v6
+        with:
+          ref: master
+          path: released
+      - name: Check out the development manual
         uses: actions/checkout@v6
         with:
           ref: dev
-      - name: generate markdown files
-        working-directory: ./man
+          path: development
+      - name: Install pandoc
         run: |
           sudo apt update
           sudo apt install -y pandoc
-          bash ./scripts/generate_online_documentation.sh
-          ls -lh ../docs/*
+      - name: Generate the released manual
+        working-directory: ./released/man
+        run: bash ./scripts/generate_online_documentation.sh released
+      - name: Generate the development manual
+        working-directory: ./development/man
+        run: bash ./scripts/generate_online_documentation.sh development
+      # master carried an older manual toolchain until the 2.32.0 merge:
+      # the hacker theme, pandoc without +definition_lists, and pages with
+      # no YAML front matter, hence no sidebar and no search. Publishing
+      # that output would not fail, it would quietly replace the themed
+      # site with the old rendering, so check for it and stop instead.
+      - name: Check the released manual against the modular toolchain
+        run: |
+          fault=""
+          head -1 released/docs/index.md | grep -q '^---$' \
+            || fault="the pages carry no YAML front matter"
+          grep -q 'just-the-docs' released/docs/_config.yml \
+            || fault="the configuration does not name just-the-docs"
+          if [ -n "${fault}" ] ; then
+            echo "::error::The released manual built from master is not the modular one: ${fault}."
+            echo "::error::Publishing it would replace the themed site with the pre-2.32.0 rendering."
+            echo "::error::Merge dev into master, then re-run this workflow."
+            exit 1
+          fi
+          echo "released: $(find released/docs -name '*.md' | wc -l) pages"
+          echo "development: $(find development/docs -name '*.md' | wc -l) pages"
       - name: Setup Pages
         uses: actions/configure-pages@v6
-      - name: Build with Jekyll
+      # Order matters: jekyll empties the folder it builds into, so the
+      # released manual has to be built before the development manual is
+      # placed inside it. The reverse order deletes the development half.
+      - name: Build the released manual
         uses: actions/jekyll-build-pages@v1
         with:
-          source: ./docs
+          source: ./released/docs
           destination: ./_site
+      - name: Build the development manual
+        uses: actions/jekyll-build-pages@v1
+        with:
+          source: ./development/docs
+          destination: ./_site/dev
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v5
 

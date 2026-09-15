@@ -1,4 +1,4 @@
-**v3.0.0** in development
+**v2.32.0** released September 17th, 2026
 :   Includes the following changes:
 
     - change: `--fastq_qmax` and `--fastq_qmaxout` now default to the

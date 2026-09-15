@@ -1,4 +1,4 @@
-% vsearch-userfields(7) version 2.31.0 | vsearch manual
+% vsearch-userfields(7) version 2.32.0 | vsearch manual
 % Torbjørn Rognes, Tomás Flouri, and Frédéric Mahé
 #(../commands/fragments/date.md)
 

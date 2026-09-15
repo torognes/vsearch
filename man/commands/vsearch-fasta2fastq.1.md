@@ -1,4 +1,4 @@
-% vsearch-fasta2fastq(1) version 2.31.0 | vsearch manual
+% vsearch-fasta2fastq(1) version 2.32.0 | vsearch manual
 % Torbjørn Rognes, Tomás Flouri, and Frédéric Mahé
 #(./fragments/date.md)
 
@@ -53,7 +53,7 @@ default is 33).
   default is 41 ('J'), which is the usual maximal quality score for
   recent Sanger/Illumina 1.8+ files (maximal quality score was 40 in
   older formats). Note that `--fasta2fastq` keeps that default where
-  other commands raised theirs to 93 in version 3.0: here the option
+  other commands raised theirs to 93 in version 2.32.0: here the option
   is the score to write, not a ceiling on a score that was read, and
   fabricating Q93 would claim a confidence the invented data does not
   have. Accepted values range from 0 to 93 when the quality

@@ -1,4 +1,4 @@
-% vsearch-fastq(5) version 2.31.0 | vsearch file formats
+% vsearch-fastq(5) version 2.32.0 | vsearch file formats
 % Torbjørn Rognes, Tomás Flouri, and Frédéric Mahé
 #(../commands/fragments/date.md)
 
@@ -61,7 +61,7 @@ offset is set with `--fastq_ascii` (default 33):
 - **phred+33** (offset 33): Sanger and Illumina 1.8+ format. Valid
   quality characters range from '!' (Q=0) to '~' (Q=93). vsearch
   accepts the whole range by default (`--fastq_qmin` 0 and
-  `--fastq_qmax` 93). Before version 3.0 the upper bound defaulted to
+  `--fastq_qmax` 93). Before version 2.32.0 the upper bound defaulted to
   41, which rejected PacBio HiFi and nanopore files.
 
 - **phred+64** (offset 64): Illumina 1.3+ and Illumina 1.5+ formats.

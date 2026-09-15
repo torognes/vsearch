@@ -1,4 +1,4 @@
-% vsearch-fastq_mergepairs(1) version 2.31.0 | vsearch manual
+% vsearch-fastq_mergepairs(1) version 2.32.0 | vsearch manual
 % Torbjørn Rognes, Tomás Flouri, and Frédéric Mahé
 #(./fragments/date.md)
 
@@ -37,7 +37,7 @@ replaced by the minimum score (Q0) in every output, including the
 not-merged output files. Output quality scores can be clamped
 with `--fastq_qmaxout` and `--fastq_qminout` (these apply only to the
 merged region). Unlike the commands that pass an input quality through,
-`--fastq_mergepairs` keeps the pre-3.0 `--fastq_qmaxout` default of 41,
+`--fastq_mergepairs` keeps the pre-2.32.0 `--fastq_qmaxout` default of 41,
 because the score it clamps is computed rather than read: two agreeing
 Q40 bases have a posterior quality of Q85, and reporting it would change
 the merged output of every run. Pass `--fastq_qmaxout 93` for the
