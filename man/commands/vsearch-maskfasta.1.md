@@ -1,4 +1,4 @@
-% vsearch-maskfasta(1) version 2.31.0 | vsearch manual
+% vsearch-maskfasta(1) version 2.32.0 | vsearch manual
 % Torbjørn Rognes, Tomás Flouri, and Frédéric Mahé
 #(./fragments/date.md)
 
