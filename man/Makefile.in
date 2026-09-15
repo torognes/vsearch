@@ -32,10 +32,6 @@
 # markdown source it comes from. That is what the two conditionals mean:
 # BUILD_MANPAGES, "there is a manual to install", and HAVE_PANDOC, "it
 # can be (re)generated".
-#
-# The monolithic man/vsearch.1 page these replace is no longer built,
-# installed or distributed; it is kept in the source tree, marked as
-# superseded, until it is removed.
 VPATH = @srcdir@
 am__is_gnu_make = { \
   if test -z '$(MAKELEVEL)'; then \
