@@ -9,13 +9,14 @@ vsearch \-\-cluster_unoise --- denoise amplicon sequences using the UNOISE3 algo
 
 # SYNOPSIS
 
-| **vsearch** **\-\-cluster_unoise** _fastafile_ (**\-\-alnout** | **\-\-biomout** | **\-\-blast6out** | **\-\-centroids** | **\-\-clusters** | **\-\-consout** | **\-\-fastapairs** | **\-\-matched** | **\-\-mothur_shared_out** | **\-\-msaout** | **\-\-notmatched** | **\-\-otutabout** | **\-\-profile** | **\-\-qsegout** | **\-\-samout** | **\-\-tsegout** | **\-\-uc** | **\-\-userout**) _filename_ \[_options_]
+| **vsearch** **\-\-cluster_unoise** _fastxfile_ (**\-\-alnout** | **\-\-biomout** | **\-\-blast6out** | **\-\-centroids** | **\-\-clusters** | **\-\-consout** | **\-\-fastapairs** | **\-\-matched** | **\-\-mothur_shared_out** | **\-\-msaout** | **\-\-notmatched** | **\-\-otutabout** | **\-\-profile** | **\-\-qsegout** | **\-\-samout** | **\-\-tsegout** | **\-\-uc** | **\-\-userout**) _filename_ \[_options_]
 
 
 # DESCRIPTION
 
-The vsearch command `--cluster_unoise` performs denoising of fasta
-amplicon sequences according to the UNOISE version 3 algorithm by
+The vsearch command `--cluster_unoise` performs denoising of the
+amplicon sequences of the fasta- or fastq-formatted *fastxfile* (quality
+values are ignored) according to the UNOISE version 3 algorithm by
 Robert Edgar, but without the *de novo* chimera removal step. The
 chimera removal step may be performed separately with
 `--uchime3_denovo` (see
@@ -30,7 +31,8 @@ abundances are counted in the outputs (see `--sizeout`). Entries
 without annotations count as 1 and are therefore discarded by the
 default `--minsize` of 8.
 
-At least one output option must be specified.
+At least one output option must be specified. The output is always
+fasta: no output option of this command writes quality values.
 
 Unlike the standard clustering commands, `--cluster_unoise` does not
 use a fixed identity threshold (`--id`). Instead, a sequence is
@@ -57,9 +59,9 @@ are excluded before denoising.
 
 ## mandatory options
 
-`--cluster_unoise` *fastafile*
-: Read and denoise fasta amplicon sequences from *fastafile*. This
-  option is mandatory.
+`--cluster_unoise` *fastxfile*
+: Read and denoise amplicon sequences from the fasta- or fastq-formatted
+  *fastxfile* (quality values are ignored). This option is mandatory.
 
 
 ## core options
