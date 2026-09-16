@@ -257,7 +257,8 @@ vsearch \
 [`vsearch-fastx_filter(1)`](./vsearch-fastx_filter.1.md),
 [`vsearch-fastq_eestats(1)`](./vsearch-fastq_eestats.1.md),
 [`vsearch-fastq(5)`](../formats/vsearch-fastq.5.md),
-[`vsearch-expected_error(7)`](../misc/vsearch-expected_error.7.md)
+[`vsearch-expected_error(7)`](../misc/vsearch-expected_error.7.md),
+[`vsearch-usearch(7)`](../misc/vsearch-usearch.7.md)
 
 
 #(./fragments/footer.md)

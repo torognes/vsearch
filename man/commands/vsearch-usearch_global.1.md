@@ -339,6 +339,7 @@ vsearch \
 [`vsearch-fastq(5)`](../formats/vsearch-fastq.5.md),
 [`vsearch-udb(5)`](../formats/vsearch-udb.5.md),
 [`vsearch-pairwise_alignment_parameters(7)`](../misc/vsearch-pairwise_alignment_parameters.7.md),
+[`vsearch-usearch(7)`](../misc/vsearch-usearch.7.md),
 [`vsearch-userfields(7)`](../misc/vsearch-userfields.7.md)
 
 
