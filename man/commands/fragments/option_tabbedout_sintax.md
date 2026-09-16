@@ -10,5 +10,3 @@
        with bootstrap support at or above the threshold and omitting the
        values (e.g., `d:Bacteria,p:Proteobacteria`). Absent if `--sintax_cutoff`
        is not specified.
-
-  This option is mandatory.
