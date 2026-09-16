@@ -24,9 +24,18 @@ For each query, vsearch first pre-filters the database by counting shared
 k-mers (words), then performs global pairwise alignments on the most
 promising candidates. By default, the search stops after `--maxaccepts`
 hits are accepted or `--maxrejects` candidates fail the identity threshold.
-Setting both to 0 searches the entire database. Using values of `--id`
+Setting both to 0 considers every candidate the pre-filter kept; add
+`--minwordmatches 0` to drop the pre-filter as well and compare the query
+against the whole database. Using values of `--id`
 below 0.5 is unlikely to capture additional hits due to the k-mer
 pre-filter.
+
+Alignment is global, not local: a query is aligned end-to-end against a
+target rather than searched for as a subsequence, and at most one
+alignment is reported per database sequence and per strand. A motif
+occurring several times within one long target therefore yields a single
+hit, and two at most with `--strand both`. Enumerating every occurrence
+calls for a local-alignment tool instead.
 
 The identity threshold is set with `--id`. By default, only the *plus*
 strand of the query is compared to the database; use `--strand both` to
