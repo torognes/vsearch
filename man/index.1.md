@@ -283,6 +283,9 @@ system-wide.
 **[`vsearch-pairwise_alignment_parameters(7)`](./misc/vsearch-pairwise_alignment_parameters.7.md)**
 : The pairwise alignment model implemented in vsearch.
 
+**[`vsearch-usearch(7)`](./misc/vsearch-usearch.7.md)**
+: What vsearch shares with usearch, and what it does differently.
+
 **[`vsearch-userfields(7)`](./misc/vsearch-userfields.7.md)**
 : The output fields available with the `--userout` option.
 
