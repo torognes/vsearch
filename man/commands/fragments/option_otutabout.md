@@ -10,6 +10,11 @@
   used when filling the table, whether or not `--sizein` is given
   (unlike the `--uc` cluster summaries, which count each sequence as 1
   without `--sizein`).
+  Rows and columns are both ordered lexicographically by identifier,
+  whatever order the OTUs were created in or the samples first appeared
+  in, and no option changes that. Sorting the table by decreasing
+  abundance is a job for a downstream tool.
+
   OTU identifiers must be unique: two OTUs sharing the same identifier
   are reported on a single line, and their abundances are summed. When
   clustering, a relabelling option (`--relabel`, `--relabel_self`,

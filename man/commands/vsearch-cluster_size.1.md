@@ -9,13 +9,14 @@ vsearch \-\-cluster_size --- clusterize sequences sorted by decreasing abundance
 
 # SYNOPSIS
 
-| **vsearch** **\-\-cluster_size** _fastafile_ **\-\-id** _real_ (**\-\-alnout** | **\-\-biomout** | **\-\-blast6out** | **\-\-centroids** | **\-\-clusters** | **\-\-consout** | **\-\-fastapairs** | **\-\-matched** | **\-\-mothur_shared_out** | **\-\-msaout** | **\-\-notmatched** | **\-\-otutabout** | **\-\-profile** | **\-\-qsegout** | **\-\-samout** | **\-\-tsegout** | **\-\-uc** | **\-\-userout**) _filename_ \[_options_]
+| **vsearch** **\-\-cluster_size** _fastxfile_ **\-\-id** _real_ (**\-\-alnout** | **\-\-biomout** | **\-\-blast6out** | **\-\-centroids** | **\-\-clusters** | **\-\-consout** | **\-\-fastapairs** | **\-\-matched** | **\-\-mothur_shared_out** | **\-\-msaout** | **\-\-notmatched** | **\-\-otutabout** | **\-\-profile** | **\-\-qsegout** | **\-\-samout** | **\-\-tsegout** | **\-\-uc** | **\-\-userout**) _filename_ \[_options_]
 
 
 # DESCRIPTION
 
-The vsearch command `--cluster_size` groups the fasta sequences in
-*fastafile* into clusters using a greedy, heuristic, centroid-based
+The vsearch command `--cluster_size` groups the sequences of the fasta-
+or fastq-formatted *fastxfile* (quality values are ignored) into
+clusters using a greedy, heuristic, centroid-based
 algorithm. Input sequences are automatically sorted by decreasing
 abundance before clustering (a query joins the *closest* compatible
 centroid by default; abundance-based greedy clustering, AGC, where it
@@ -51,17 +52,20 @@ performs the same clustering but skips the initial sorting step,
 expecting the input to be already sorted by decreasing length (or use
 `--usersort`).
 
-See [`vsearch-fasta(5)`](../formats/vsearch-fasta.5.md) for a
-description of the input format.
+See [`vsearch-fasta(5)`](../formats/vsearch-fasta.5.md) and
+[`vsearch-fastq(5)`](../formats/vsearch-fastq.5.md) for a description of
+the input formats. The output is always fasta: no output option of this
+command writes quality values.
 
 
 # OPTIONS
 
 ## mandatory options
 
-`--cluster_size` *fastafile*
-: Read and clusterize fasta sequences from *fastafile* after sorting
-  them by decreasing abundance. This option is mandatory.
+`--cluster_size` *fastxfile*
+: Read and clusterize sequences from the fasta- or fastq-formatted
+  *fastxfile* (quality values are ignored) after sorting them by
+  decreasing abundance. This option is mandatory.
 
 #(./fragments/option_id.md)
 

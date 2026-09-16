@@ -16,3 +16,9 @@
     searching or clustering short sequences, lower `--minwordmatches` (1
     is usually enough, and is as sensitive as 0 while much faster), or
     lower `--wordlength`.
+
+    This word requirement is the only heuristic left once `--maxaccepts`
+    and `--maxrejects` are both zero, so `--minwordmatches 0` together
+    with them aligns every query against every target: an exhaustive
+    search, at the cost of the speed the pre-filter buys. Older usearch
+    versions spelled `--minwordmatches 0` as `--nowordcountreject`.

@@ -17,3 +17,10 @@
   matching column whenever the two symbols share at least one of the
   nucleotides they represent; an N is thus a match against anything,
   unless `--n_mismatch` is given.
+
+  All five count columns of the chosen alignment; none of them reads
+  the alignment score. The scoring options (`--match`, `--mismatch`,
+  `--gapopen`, `--gapext`) therefore act on identity only indirectly,
+  by changing which alignment is optimal, and a pair whose optimal
+  alignment does not change keeps the identity it had. See
+  [`vsearch-pairwise_alignment_parameters(7)`](../misc/vsearch-pairwise_alignment_parameters.7.md).

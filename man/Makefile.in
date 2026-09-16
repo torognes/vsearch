@@ -347,6 +347,7 @@ GENERATED_MANS = \
   manpages/vsearch-udb2fasta.1 \
   manpages/vsearch-udbinfo.1 \
   manpages/vsearch-udbstats.1 \
+  manpages/vsearch-usearch.7 \
   manpages/vsearch-usearch_global.1 \
   manpages/vsearch-userfields.7 \
   manpages/vsearch-version.1

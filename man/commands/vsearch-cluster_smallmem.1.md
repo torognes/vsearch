@@ -9,13 +9,14 @@ vsearch \-\-cluster_smallmem --- clusterize pre-sorted sequences
 
 # SYNOPSIS
 
-| **vsearch** **\-\-cluster_smallmem** _fastafile_ **\-\-id** _real_ (**\-\-alnout** | **\-\-biomout** | **\-\-blast6out** | **\-\-centroids** | **\-\-clusters** | **\-\-consout** | **\-\-fastapairs** | **\-\-matched** | **\-\-mothur_shared_out** | **\-\-msaout** | **\-\-notmatched** | **\-\-otutabout** | **\-\-profile** | **\-\-qsegout** | **\-\-samout** | **\-\-tsegout** | **\-\-uc** | **\-\-userout**) _filename_ \[_options_]
+| **vsearch** **\-\-cluster_smallmem** _fastxfile_ **\-\-id** _real_ (**\-\-alnout** | **\-\-biomout** | **\-\-blast6out** | **\-\-centroids** | **\-\-clusters** | **\-\-consout** | **\-\-fastapairs** | **\-\-matched** | **\-\-mothur_shared_out** | **\-\-msaout** | **\-\-notmatched** | **\-\-otutabout** | **\-\-profile** | **\-\-qsegout** | **\-\-samout** | **\-\-tsegout** | **\-\-uc** | **\-\-userout**) _filename_ \[_options_]
 
 
 # DESCRIPTION
 
-The vsearch command `--cluster_smallmem` groups the fasta sequences in
-*fastafile* into clusters using a greedy, heuristic, centroid-based
+The vsearch command `--cluster_smallmem` groups the sequences of the
+fasta- or fastq-formatted *fastxfile* (quality values are ignored) into
+clusters using a greedy, heuristic, centroid-based
 algorithm. Unlike `--cluster_fast` and `--cluster_size`, this command
 does not sort the input sequences before clustering; sequences are
 expected to be sorted by decreasing length. Use `--usersort` to
@@ -37,18 +38,21 @@ Sequences are compared using global pairwise alignment
 [`vsearch-cluster_size(1)`](./vsearch-cluster_size.1.md)) perform the
 same clustering but automatically sort the input sequences beforehand.
 
-See [`vsearch-fasta(5)`](../formats/vsearch-fasta.5.md) for a
-description of the input format.
+See [`vsearch-fasta(5)`](../formats/vsearch-fasta.5.md) and
+[`vsearch-fastq(5)`](../formats/vsearch-fastq.5.md) for a description of
+the input formats. The output is always fasta: no output option of this
+command writes quality values.
 
 
 # OPTIONS
 
 ## mandatory options
 
-`--cluster_smallmem` *fastafile*
-: Read and clusterize fasta sequences from *fastafile*. Sequences must
-  be sorted by decreasing length, unless `--usersort` is used. This
-  option is mandatory.
+`--cluster_smallmem` *fastxfile*
+: Read and clusterize sequences from the fasta- or fastq-formatted
+  *fastxfile* (quality values are ignored). Sequences must be sorted by
+  decreasing length, unless `--usersort` is used. This option is
+  mandatory.
 
 #(./fragments/option_id.md)
 

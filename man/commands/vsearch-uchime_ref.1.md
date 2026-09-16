@@ -26,6 +26,16 @@ algorithm identifies candidate chimeras by finding three-way
 alignments where a query sequence can be modelled as a mosaic of two
 parent sequences from the reference database.
 
+Candidate parents are not gathered by comparing the query to every
+reference sequence. The query is split into four parts, each part is
+searched separately, and the four most similar sequences found for each
+part are kept, so the best pair of parents is chosen among at most
+sixteen candidates. That inner search runs with fixed limits of its own,
+which no option exposes. A reference matching one part very well but the
+whole query poorly can therefore crowd out the best overall parent, and
+candidates that tie are kept in the order they occur in the reference
+database, so reordering that file can change which parents are reported.
+
 Chimeras can only be detected if their parents, or sufficiently close
 relatives, are present in the reference database. Unlike the *de
 novo* methods, `--uchime_ref` does not require abundance annotations.

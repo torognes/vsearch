@@ -104,6 +104,60 @@ controllable:
   the overlap region.
 
 
+# ALGORITHM
+
+Merging happens in three stages: candidate overlaps are located with
+shared words, each candidate is scored by an ungapped alignment whose
+scores are derived from the base qualities, and the best candidate is
+accepted only if it is both good enough and unambiguous. The thresholds
+below are internal and have no options of their own.
+
+**Locating candidates.** The forward read is indexed by its 5-mers (a
+shorter word than the search commands use), and every possible overlap
+length is rated by the number of 5-mers the two reads share at that
+offset. Only offsets sharing at least four 5-mers are examined further.
+A pair where no offset reaches that count is discarded as `too few kmers
+found on same diagonal`, without any alignment being attempted. When
+`--fastq_minovlen` is below 9 the requirement is relaxed to
+`--fastq_minovlen` minus 4.
+
+**Scoring a candidate.** Each surviving offset is aligned without gaps,
+the forward read against the reverse complement of the reverse read, and
+scored in bits as a log-odds ratio. Writing *p* for the probability that
+two truly identical bases are observed as a match, given the error
+probabilities *p_f* and *p_r* of the forward and reverse base:
+
+```text
+p = 1 - p_f - p_r + 4 x p_f x p_r / 3
+```
+
+a matching column scores log2(*p* / 0.25) and a mismatching column
+log2((1 - *p*) / 0.75), the latter capped at -4 bits so that one
+disagreement between two poor bases cannot dominate. Two good bases that
+agree are therefore worth almost 2 bits each, while a disagreement
+between two good bases costs many. The formulas are those of Edgar &
+Flyvbjerg (2015), which also give the posterior qualities written for
+the merged region.
+
+**Accepting a candidate.** The running score and its maximum so far are
+tracked as the overlap is walked, and a candidate whose score falls more
+than 16 bits below its own maximum is dropped: that is how a run of
+clustered mismatches is rejected even when the two ends align well. A
+candidate is *acceptable* once its final score reaches 16 bits, or 1.6
+times `--fastq_minovlen` when that is below 9 --- about nine matching
+bases of good quality, since eight Q40 matches come to 15.998 bits. If
+more than one candidate is acceptable the overlap is ambiguous and the
+pair is discarded as `multiple potential alignments`, which is what a
+tandem repeat in the overlap produces. Otherwise the highest-scoring
+candidate is kept, and a pair whose best candidate never reached the
+threshold is discarded as `alignment score too low, or score drop too
+high`.
+
+Because the alignment is ungapped, an indel in the overlap is not
+modelled as such: it shows up as a run of mismatches and is rejected by
+the score-drop rule.
+
+
 # OPTIONS
 
 ## mandatory options
@@ -257,7 +311,8 @@ vsearch \
 [`vsearch-fastx_filter(1)`](./vsearch-fastx_filter.1.md),
 [`vsearch-fastq_eestats(1)`](./vsearch-fastq_eestats.1.md),
 [`vsearch-fastq(5)`](../formats/vsearch-fastq.5.md),
-[`vsearch-expected_error(7)`](../misc/vsearch-expected_error.7.md)
+[`vsearch-expected_error(7)`](../misc/vsearch-expected_error.7.md),
+[`vsearch-usearch(7)`](../misc/vsearch-usearch.7.md)
 
 
 #(./fragments/footer.md)

@@ -9,13 +9,14 @@ vsearch \-\-cluster_fast --- clusterize sequences sorted by decreasing length
 
 # SYNOPSIS
 
-| **vsearch** **\-\-cluster_fast** _fastafile_ **\-\-id** _real_ (**\-\-alnout** | **\-\-biomout** | **\-\-blast6out** | **\-\-centroids** | **\-\-clusters** | **\-\-consout** | **\-\-fastapairs** | **\-\-matched** | **\-\-mothur_shared_out** | **\-\-msaout** | **\-\-notmatched** | **\-\-otutabout** | **\-\-profile** | **\-\-qsegout** | **\-\-samout** | **\-\-tsegout** | **\-\-uc** | **\-\-userout**) _filename_ \[_options_]
+| **vsearch** **\-\-cluster_fast** _fastxfile_ **\-\-id** _real_ (**\-\-alnout** | **\-\-biomout** | **\-\-blast6out** | **\-\-centroids** | **\-\-clusters** | **\-\-consout** | **\-\-fastapairs** | **\-\-matched** | **\-\-mothur_shared_out** | **\-\-msaout** | **\-\-notmatched** | **\-\-otutabout** | **\-\-profile** | **\-\-qsegout** | **\-\-samout** | **\-\-tsegout** | **\-\-uc** | **\-\-userout**) _filename_ \[_options_]
 
 
 # DESCRIPTION
 
-The vsearch command `--cluster_fast` groups the fasta sequences in
-*fastafile* into clusters using a greedy, heuristic, centroid-based
+The vsearch command `--cluster_fast` groups the sequences of the fasta-
+or fastq-formatted *fastxfile* (quality values are ignored) into
+clusters using a greedy, heuristic, centroid-based
 algorithm, also known as distance-based greedy clustering (DGC). Input
 sequences are automatically sorted by decreasing length before
 clustering. At least one output option must be specified.
@@ -41,17 +42,20 @@ instead of length.
 performs the same clustering but skips the initial sorting step,
 expecting the input to be already sorted by decreasing length.
 
-See [`vsearch-fasta(5)`](../formats/vsearch-fasta.5.md) for a
-description of the input format.
+See [`vsearch-fasta(5)`](../formats/vsearch-fasta.5.md) and
+[`vsearch-fastq(5)`](../formats/vsearch-fastq.5.md) for a description of
+the input formats. The output is always fasta: no output option of this
+command writes quality values.
 
 
 # OPTIONS
 
 ## mandatory options
 
-`--cluster_fast` *fastafile*
-: Read and clusterize fasta sequences from *fastafile* after sorting
-  them by decreasing length. This option is mandatory.
+`--cluster_fast` *fastxfile*
+: Read and clusterize sequences from the fasta- or fastq-formatted
+  *fastxfile* (quality values are ignored) after sorting them by
+  decreasing length. This option is mandatory.
 
 #(./fragments/option_id.md)
 

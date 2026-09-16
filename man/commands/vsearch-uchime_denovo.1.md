@@ -26,6 +26,17 @@ algorithm identifies candidate chimeras by finding three-way
 alignments where a query sequence can be modelled as a mosaic of two
 parent sequences.
 
+Candidate parents are not gathered by comparing the query to every
+eligible sequence. The query is split into four parts, each part is
+searched separately, and the four most similar sequences found for each
+part are kept, so the best pair of parents is chosen among at most
+sixteen candidates. That inner search runs with fixed limits of its own,
+which no option exposes. A sequence matching one part very well but the
+whole query poorly can therefore crowd out the best overall parent, and
+candidates that tie are kept in the order they occur in the input, so
+reordering equally abundant sequences can change which parents are
+reported.
+
 Input sequences should carry abundance annotations in their headers
 (e.g. `;size=integer;`). `--sizein` is always implied; it does not
 need to be specified. Entries without annotations silently count as
