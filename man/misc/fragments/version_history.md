@@ -1,6 +1,320 @@
 **v2.32.0** released September 17th, 2026
 :   Includes the following changes:
 
+    - fix: `--gapopen`/`--gapext` `*` now forbid gaps at the match/merge
+      decision, not only in the alignment score: a `*` opening penalty
+      forbids that gap class outright, a `*` extension penalty forbids
+      gaps longer than one, and both apply per sequence (Q/T) and
+      location (L/I/R/E). For instance `--gapopen '*LQ'` forbids opening
+      left end-gaps in the query, and a bare `--gapopen '*'` forbids
+      every gap opening, including the terminal gaps used for substring
+      matching. Previously `*` only lowered the score, so a pair whose
+      best alignment still needed a forbidden gap was reported as a
+      match (issue #602, and a 2016 forum report of internal gaps
+      appearing despite `--gapopen '*I'`).
+    - fix: stop truncating the `*` infinite gap penalty on the SIMD
+      path, so `--gapopen`/`--gapext` `*` forbid gaps on short sequences
+      too, not just on long ones.
+    - fix: stop truncating abundance to 32 bits when writing size
+      annotations.
+    - fix: stop truncating abundances above 2^32 in the `--sortbysize`
+      and `--sortbylength` decks, where the most abundant sequences
+      sorted to the bottom (`;size=4294967297` truncated to 1, ranking
+      below `;size=100`) and "Median abundance:" reported a median of
+      the truncated values.
+    - fix: `--fastq_mergepairs` with `--fastq_ascii` 64 and
+      `--fastq_qmaxout` between 63 and 93 wrote quality symbols outside
+      printable ASCII (byte 127 at qmaxout 63, up to 149 at 93),
+      producing an invalid FASTQ file, and a SIGSEGV in v2.31.0, which
+      indexes a table with the resulting negative char. The sum rule was
+      stated against `--fastq_asciiout`, which is the one fastq-writing
+      command that does not accept it. `--fastq_qminout` was rejected
+      for the mirror-image reason and is now accepted where the real
+      offset represents it.
+    - fix: the k-mer pre-filter required a target to share more k-mers
+      than it can hold, so a database sequence with less than
+      `wordlength + minwordmatches - 1` = 19 nt of distinct k-mer
+      content could not be selected by any query, an exact match
+      included, and the same pair gave opposite answers depending on
+      direction (issue #328).
+    - fix: `--fastx_uniques --strand both --fastqout` merged a
+      minus-strand member's quality string positionally against the
+      plus-strand seed, averaging seed position *i* with member position
+      *i* instead of *seqlen - 1 - i*. Output changes versus released
+      binaries for strand-both fastq dereplication.
+    - fix: `--fastx_uniques --fastqout` truncated merged qualities
+      through an irreversible probability round trip: quality 2 came
+      back as 1, and qualities 3, 5, 6, 8, 10 and 17 moved with the
+      abundances (two identical Q10 reads merged to Q10 at abundances
+      1+1, but to Q9 at 1+2). Present since v2.20.0.
+    - fix: `--selfid` never excluded anything on any chimera path. The
+      gate compared a query *part*, always shorter than a full-length
+      identical reference, so the length pre-check short-circuited, and
+      an identical reference in the database won every smoothing window
+      and suppressed detection entirely.
+    - fix: `--cluster_unoise` silently ignored a user-supplied
+      `--weak_id`, overwriting it with 0.90 unconditionally; 0.90 is now
+      a true default.
+    - fix: count `--qsegout`, `--tsegout` and `--fastapairs` as output
+      files in the "No output files specified" gates of
+      `--allpairs_global`, `--usearch_global`, `--search_exact` and the
+      `--cluster_*` commands, so each can be used as the sole output.
+      Same defect and same fix as issue #82.
+    - fix: enforce the documented ranges of option arguments. A negative
+      `--idprefix`/`--idsuffix` crashed (out-of-bounds read under
+      NDEBUG); `--query_cov`/`--target_cov` outside 0.0-1.0 silently
+      made the filter unsatisfiable or inert; negative `--maxdiffs`,
+      `--maxsubs`, `--maxgaps`, `--mincols`, `--maxqsize`, `--mintsize`
+      and `--topn` silently rejected every hit or ignored the option
+      entirely; `--maxrejects -1` was indistinguishable from not passing
+      the option; and an empty argument such as `--id ""` was read as
+      zero, accepting every hit.
+    - fix: accept a correctly-rounded underflowing double such as
+      `--fastq_maxee 1e-320`, which died with "Illegal option argument"
+      although the manual admits any positive real. Overflow stays
+      rejected. Whether `strtod` even sets ERANGE on underflow is
+      implementation-defined, so the old rejection also varied with the
+      platform's libc.
+    - fix: `--fastx_getseqs --label_word ""` matched every record. An
+      empty needle gave `std::strstr` no exit condition, so the search
+      walked past the end of the header into the zero-filled buffer
+      tail.
+    - fix: `--fastq_filter`/`--fastx_filter` silently ignored
+      `--fastq_truncqual` on fasta input instead of rejecting it; the
+      comparison tested `< LONG_MIN`, which no value satisfies, where
+      `!= LONG_MIN` was meant. The fatal message has always listed it
+      among the not-accepted options.
+    - fix: a second one-past-the-end abundance read in
+      `--fastx_subsample` (`random_subsampling`), in the priming read
+      before the loop, reached on an empty database. The read inside the
+      loop was guarded by PR #650; this is the one four lines above it.
+    - fix: `--makeudb_usearch` wrote a UDB declaring zero sequences and
+      exited 0, then rejected that file itself on every subsequent read
+      with "Invalid UDB file". Reachable through `--minseqlength`, not
+      only through an empty input file.
+    - fix: extend the UDB load validation of PR #647 to `--udbinfo`,
+      which reads the header through its own path and so accepted both a
+      UDB served from a pipe and an inflated stored sequence count,
+      printing a garbage count and exiting 0. A stored word count larger
+      than the database is now rejected by every reader too: it cannot
+      describe a valid word list, and such slots were never visited
+      while still being reported.
+    - fix: `--udb2fasta`, `--udbstats` and `--udbinfo` no longer print
+      "WARNING: Wordlength adjusted to N as indicated in UDB file". None
+      of the three accepts `--wordlength`, so the warning announced a
+      change to a setting the user had no way of making; for
+      `--udbstats` the report prints the word length two lines later
+      anyway. Search commands, which do have a configured value for the
+      file to override, keep it.
+    - fix: uppercase the reference bases in SAM `MD` fields, as the
+      SAMtags grammar requires. A target lowercased by DUST masking
+      produced `MD:Z:20a19` and `MD:Z:20^a19`, which disagree with what
+      samtools calmd recomputes for the same alignment, and with the
+      file itself after a BAM round trip.
+    - fix: `--sff_convert` read 32 header bytes where the format
+      specifies 31 (the struct carries a trailing padding byte),
+      shifting every later section by one: the reported key sequence
+      lost its first base, and spec-valid files were wrongly rejected
+      whenever `31 + flows + key` is a multiple of 8. The per-record
+      offsets re-synchronized through the padding arithmetic, so the
+      fastq output itself was always correct.
+    - fix: `--gzip_decompress` no longer disables the transparent read
+      that lets uncompressed standard input through. Feeding plain input
+      to the option died with "incorrect header check" instead of
+      reading it as-is, against zlib 1.3.2 as shipped by FreeBSD.
+    - fix: `--fastq_stats` searched past the end of its per-position
+      tables for the first complete EE filtering row. The bound is
+      `len_max`, as in the pre-refactoring report loop.
+    - fix: `--fastq_eestats2` printed "0 reads, max len 0, avg -nan" to
+      `--log` on empty input, where `--output` printed "0 reads".
+    - fix: restore one progress line per percent step when standard
+      error is not a terminal. The behaviour added in v2.31.0 was
+      silently reverted when the callers migrated to the progress class,
+      which had been written from the older code.
+    - fix: warnings now reach the `--log` file. Two of the fifteen
+      warning sites (`--sff_convert`'s missing index padding, the UDB
+      adjusted-wordlength notice) wrote to standard error and stopped
+      there, and the `--rereplicate` and sequence-retrieval warnings
+      obeyed `--quiet` on standard error while logging unconditionally.
+      The manual says `--quiet` suppresses everything "except for
+      warnings and error messages".
+    - fix: `--chimeras_parents_max` above 20 was an out-of-bounds heap
+      write, and `--iddef` outside 0-4 selected an undefined identity
+      definition, for a caller reaching the engines through the library:
+      both were range-checked in the command-line parser only. Both
+      moved to the shared validator, and the `parents_found <= 20`
+      assert became a runtime check so it holds under NDEBUG.
+    - fix: reject `-` given as both the query and `--db`. Since `--db`
+      gained standard-input support the two readers raced over the same
+      stream and the command silently returned no hits with exit 0
+      (issue #506).
+    - fix: `--orient` against a database of fewer than eight sequences
+      gave a bitmap to every one of the 4^wordlength index slots, absent
+      k-mers included, because integer division makes the threshold
+      zero: +512 MB of peak memory and a full SIMD bitmap scan per
+      absent k-mer (0.85 s to 0.25 s on a 4-sequence database).
+    - fix: undefined behaviour at twelve `<cctype>` call sites passing a
+      plain `char`, reachable wherever `char` is signed (x86-64,
+      Windows) through sequence headers carrying UTF-8 or Latin-1.
+    - fix: `--fastq_mergepairs` no longer reports two discard reasons
+      that could never occur: "indel errors", unassigned since it was
+      added in 2017 because an ungapped aligner cannot detect an indel,
+      and "undefined reason".
+    - fix: the FASTQ offset-warning threshold counted 101 records where
+      the constant and its comment both say 100.
+    - fix: `--help` now lists the commands `--fastx_getseq`,
+      `--fastx_getseqs` and `--fastx_getsubseq`, under a new "Sequence
+      retrieval" section, along with the options specific to them
+      (`--label`, `--labels`, `--label_word`, `--label_words`,
+      `--label_field`, `--label_substr_match`, `--subseq_start`,
+      `--subseq_end` and `--notmatchedfq`). The three commands have
+      manual pages but could not be discovered from the help text.
+    - fix: `--help` now lists the output annotation options
+      `--lengthout`, `--xlength` and `--sample` wherever it already
+      lists their siblings `--sizeout` and `--xsize`, lists
+      `--allow_fewer` under `--fastx_subsample`, and lists
+      `--fastq_qout_max`, the last of the twenty-nine options
+      `--fastx_uniques` accepts that appeared nowhere in the help text.
+    - fix: out-of-bounds read in `--fastx_getsubseq` when
+      `--subseq_start` exceeds a sequence's length, in mixed-length
+      files (also affects the `--fastqout` path) (PR #650).
+    - fix: one-past-the-end abundance read in `--fastx_subsample`
+      (`random_subsampling`), reached with `--sizein` when the last
+      selected read is the last read of the last amplicon (PR #650).
+    - fix: hit-list buffer overflow in clustering with large
+      `--maxaccepts`/`--maxrejects` on small datasets (PR #650).
+    - fix: harden the SFF reader (`--sff_convert`) against truncated or
+      corrupt files: inverted clip regions under `--sff_clip`, flowgram
+      truncation, and overflow guards that were previously compiled out
+      of release builds (PR #650).
+    - fix: bound-check the CIGAR walk in SAM output (`--samout`) to
+      prevent out-of-bounds reads on malformed or mismatched alignments
+      (PR #649).
+    - fix: reject non-finite floating-point command-line arguments such
+      as `--sample_pct` nan or inf, which previously slipped past range
+      checks (PR #649).
+    - fix: on Windows, load the zlib and bzip2 DLLs with
+      `LOAD_LIBRARY_SEARCH_DEFAULT_DIRS` so a planted
+      `zlib1.dll`/`libbz2.dll` in the working directory can no longer be
+      loaded on the first `.gz`/`.bz2` input (PR #649).
+    - fix: validate UDB header fields on load (kmerindex entries,
+      kmerindexsize, seqcount, header offsets); corrupt or crafted
+      `.udb` files are now rejected with "Invalid UDB file" instead of
+      causing out-of-bounds memory access; valid files are unaffected
+      (PR #647).
+    - fix: avoid int overflow when sizing and indexing the
+      `--fastq_eestats2` count table with a large `--length_cutoffs`
+      range and many `--ee_cutoffs` values (PR #644).
+    - fix: avoid intermittent crashes from terminating in a worker
+      thread on malformed or mismatched input (PR #635, #636).
+    - fix: data race on the query file position in `--uchime_ref` with
+      multiple threads (PR #637).
+    - fix: print FASTA sequences longer than `INT_MAX` (about 2 GB,
+      reachable with a raised `--maxseqlength`) correctly instead of
+      silently truncating them, and reject FASTA/FASTQ headers longer
+      than the int length limit instead of overflowing the query buffer
+      (PR #643).
+    - fix: bound sequence length at the central FASTA/FASTQ reader and
+      lower the `--maxseqlength` hard cap to `INT_MAX` - 2001
+      (2147481646) to prevent int overflow in the search, cluster and
+      chimera engines (PR #646; refines the 2^32-1 cap from PR #632).
+    - fix: detect write, flush and close errors on output streams; a
+      deferred write failure (full disk, exceeded quota, read-only
+      remount) now aborts with a fatal error instead of silently
+      producing a truncated output file that exits 0 (PR #651).
+    - fix: duplicated annotation separators (`;`) in fastq and fasta
+      headers (issue #271).
+    - fix: shared-kmer counter overflow when aligning very long
+      sequences (about 75 kbp) (PR #630).
+    - fix: SIMD alignment counters (aligned/matches/mismatches/gaps)
+      could overflow when the alignment path exceeds 65535 columns;
+      over-long sequence pairs are now diverted to the linear-memory
+      aligner, with 64-bit length arithmetic (PR #631).
+    - fix: handle sequence abundances above 2^31 (`;size=`) in storage,
+      filtering and output (including `;seqs=` and centroid size) and in
+      the library API; the abskew/size-ratio comparison is now exact
+      above 2^53, and `--maxseqlength` rejects values above 2^32-1 (PR
+      #632).
+    - fix: commands `--fastq_filter`, `--fastx_filter`,
+      `--fastq_eestats` and `--fastq_mergepairs` write `qmin` to the log
+      file instead of standard error.
+    - fix: off-by-one in MSA consensus `;length=` output (PR #629).
+    - fix: command `--rereplicate` writes its warning to the log file
+      instead of standard error (PR #628).
+    - add: new command `--scramble`: randomize the nucleotide order
+      within each fasta or fastq entry, the within-entry counterpart of
+      `--shuffle`. Useful for building null-model datasets: entry order,
+      headers, lengths, and per-entry nucleotide composition are
+      preserved; fastq quality strings are copied through unchanged.
+      Reproducible with `--randseed`. The option `--scramble_kmer` *k*
+      (1 to 9, default 1) additionally preserves the counts of all words
+      of length *k* or less, by sampling a uniformly random Eulerian
+      path of each entry's de Bruijn graph
+      (Altschul-Erickson/uShuffle-style).
+    - add: ten new `--userfields` output fields (issue #548): `diffs`
+      and `mid`, which report the quantities `--maxdiffs` and `--mid`
+      are compared against; `qseq` and `tseq`, the full-length query and
+      target sequences; `qrowdots` and `trowdots`, the aligned segments
+      with a dot at every position identical to the other sequence; and
+      `qlor`, `qhir`, `tlor` and `thir`, the alignment span in 0-based
+      coordinates.
+    - add: new option `--allow_fewer` for `--fastx_subsample`, which
+      reads `--sample_size` as an upper bound: take at most N reads, and
+      keep them all when fewer are available. Without it, a subset size
+      larger than the input remains an error, as in usearch.
+    - add: new option `--fastq_solexa` for `--fastq_convert`, which
+      converts Solexa scores (-10 log10(p / (1 - p))) to Phred scores.
+      The two scales share the ASCII offset 64 and nothing else, so a
+      Solexa file was previously rebased and left otherwise untouched:
+      fifteen of the 68 representable symbols came out wrong, and they
+      were exactly the low ones a quality filter acts on.
+    - add: a warning when the quality symbols read contradict
+      `--fastq_ascii`. Raising `--fastq_qmax` means a phred+64 file read
+      at the default offset 33 is no longer stopped by the bound, so
+      vsearch now says so instead. Run `--fastq_chars` to confirm.
+    - add: a warning when database sequences yield no k-mer for the
+      index (issue #570). Such sequences are absent from the index and
+      are never selected as candidates, so an all-lowercase reference
+      database silently produced empty classifications. Emitted once per
+      run as a summary line, not once per sequence.
+    - add: a warning when a minimum threshold exceeds its matching
+      maximum (`--minuniquesize`/`--maxuniquesize`,
+      `--minseqlength`/`--maxseqlength`). Such a pair selects nothing,
+      and the command used to write an empty output file and exit 0; the
+      empty output stays legal. Also catches the implicit inversion, for
+      instance `--maxseqlength 10` alone against the default minimum of
+      32.
+    - add: a warning when `--sample` resolves to an empty sample name,
+      which writes a bare `;sample=` annotation and yields an OTU table
+      whose first column has no name.
+    - add: a warning when `--gzip_decompress` or `--bzip2_decompress`
+      contradicts a seekable standard input, where autodetection runs
+      and wins and the asserted format is ignored. On piped standard
+      input the same mistake is already fatal.
+    - add: shell auto-completion scripts for bash, zsh and fish (issue
+      #417), installed by `make install` in the standard location for
+      each shell. Completion offers the commands, then only the options
+      the chosen command accepts, values for options taking a fixed set,
+      and filenames filtered by extension. Configure with
+      `--disable-completion` or `--with-bashcompdir=DIR` and friends.
+    - add: an online manual, published per command, with the released
+      pages at `/vsearch/` and the development pages under
+      `/vsearch/dev/`. `--help` now points at both.
+    - add: a `--enable-sanitize` configure switch that builds the
+      vsearch executable under the address and undefined-behaviour
+      sanitizers, independently of `--enable-debug`.
+    - add: new command `--fastx_syncpairs`.
+    - add: preliminary support for FreeBSD/x86-64 (PR #633, #634).
+    - add: new option `--centroid_sizeout`, which reports the centroid
+      size in the FASTA header after clustering (issue #623).
+    - remove: `--search_exact` no longer accepts `--lcaout` and
+      `--lca_cutoff`. It never implemented them, in this tree or
+      upstream: no call to the LCA writer exists on that code path, so
+      the run completed, exited 0, and created no file.
+      `--usearch_global`, the only command that implements LCA output,
+      is unaffected.
+    - remove: the monolithic `vsearch.1` manual page, deprecated since
+      the per-command pages and the online manual took over.
     - change: `--fastq_qmax` and `--fastq_qmaxout` now default to the
       highest quality score the offset can represent (93 with
       `--fastq_ascii` 33, 62 with offset 64) instead of 41. PacBio HiFi
@@ -13,45 +327,141 @@
       input quality, and `--fastq_mergepairs` caps a computed posterior
       (two agreeing Q40 bases would otherwise be reported as Q85 instead
       of Q41). Pass `--fastq_qmaxout 93` for the unclamped values.
-    - add: new command `--scramble`: randomize the nucleotide order
-      within each fasta or fastq entry, the within-entry counterpart
-      of `--shuffle`. Useful for building null-model datasets: entry
-      order, headers, lengths, and per-entry nucleotide composition
-      are preserved; fastq quality strings are copied through
-      unchanged. Reproducible with `--randseed`. The option
-      `--scramble_kmer` *k* (1 to 9, default 1) additionally
-      preserves the counts of all words of length *k* or less, by
-      sampling a uniformly random Eulerian path of each entry's de
-      Bruijn graph (Altschul-Erickson/uShuffle-style).
-    - add: ten new `--userfields` output fields (issue #548): `diffs`
-      and `mid`, which report the quantities `--maxdiffs` and `--mid`
-      are compared against; `qseq` and `tseq`, the full-length query and
-      target sequences; `qrowdots` and `trowdots`, the aligned segments
-      with a dot at every position identical to the other sequence; and
-      `qlor`, `qhir`, `tlor` and `thir`, the alignment span in 0-based
-      coordinates.
-    - add: a warning when the quality symbols read contradict
-      `--fastq_ascii`. Raising `--fastq_qmax` means a phred+64 file read
-      at the default offset 33 is no longer stopped by the bound, so
-      vsearch now says so instead. Run `--fastq_chars` to confirm.
-    - add: shell auto-completion scripts for bash, zsh and fish (issue
-      #417), installed by `make install` in the standard location for
-      each shell. Completion offers the commands, then only the options
-      the chosen command accepts, values for options taking a fixed set,
-      and filenames filtered by extension. Configure with
-      `--disable-completion` or `--with-bashcompdir=DIR` and friends.
-    - fix: `--help` now lists the commands `--fastx_getseq`,
-      `--fastx_getseqs` and `--fastx_getsubseq`, under a new "Sequence
-      retrieval" section, along with the options specific to them
-      (`--label`, `--labels`, `--label_word`, `--label_words`,
-      `--label_field`, `--label_substr_match`, `--subseq_start`,
-      `--subseq_end` and `--notmatchedfq`). The three commands have
-      manual pages but could not be discovered from the help text.
-    - fix: `--help` now lists the output annotation options
-      `--lengthout`, `--xlength` and `--sample` wherever it already
-      lists their siblings `--sizeout` and `--xsize`, and lists
-      `--allow_fewer` under `--fastx_subsample`. All four were accepted
-      but appeared nowhere in the help text.
+    - change: the default thread count, and an explicit `--threads 0`,
+      now follow the cores this run may actually use, namely the CPU
+      affinity mask and the cgroup CPU quota, instead of the machine's
+      core count; memory detection is cgroup-aware for the same reason.
+      Inside a Slurm, Docker, podman, Kubernetes or Apptainer
+      confinement vsearch read the host's figures: a session limited to
+      50 MB and one core was told it had 500+ GB and 128 cores, and then
+      really did start 128 workers on that one core (issue #584). A
+      virtual machine was already correct and is unaffected.
+    - change: `--fastq_stats` now requires `--log`, as the manual
+      documents; the report has no other destination.
+    - change: `--fastq_mergepairs` now honours `--quiet` for its final
+      report on standard error, diverging from the issue #527
+      resolution, and `--log` no longer takes that report away from
+      standard error: every other command writes both copies.
+    - change: `--fastq_mergepairs` applies `--fastq_maxlen` after
+      quality truncation, as the shared option fragment ("Applied after
+      trimming") and the discard-reason string ("reads too long (after
+      truncation)") both already stated. A pair truncated to within
+      `--fastq_maxlen` is no longer discarded as too long.
+    - change: `--fastx_uniques` now applies `--fastq_qmin` and
+      `--fastq_qmax` to its input. Both were listed among its valid
+      options and neither was enforced, although the command decodes
+      every quality symbol, converts it to an error probability, takes
+      an abundance-weighted mean across the cluster and re-encodes the
+      result.
+    - change: `--derep_prefix` now requires an output option, like
+      `--derep_fulllength` and `--derep_id`. A run with neither
+      `--output` nor `--uc` used to read the input, write nothing, and
+      exit 0.
+    - change: `--fastq_filter` and `--fastx_filter` now reject a `*_rev`
+      output given without `--reverse`, for which the file was never
+      opened: such a run created no file, wrote nothing, and exited 0.
+    - change: `--udb2fasta --sizeout` now needs `--sizein` to reproduce
+      the abundances stored in the UDB, following the convention of
+      every other command. Previously `--sizeout` alone overwrote every
+      abundance with `size=1`, so the option that asks for the
+      annotation was the one destroying it, and `--sizein` had no effect
+      on this path.
+    - change: `--makeudb_usearch` masks on several threads instead of
+      being forced to one and warning. Only the masking phase is
+      parallel; reading, indexing and writing the UDB remain serial.
+    - change: four commands accept options they already needed. `--cut`
+      accepts `--threads` (it warns and forces one thread, like every
+      other single-threaded command); `--fastx_mask`,
+      `--fastx_subsample` and `--orient` accept
+      `--minseqlength`/`--maxseqlength`, whose input was silently capped
+      at the 50000-nt default with no way to raise it;
+      `--derep_fulllength` accepts `--label_suffix`, like its four
+      sibling dereplication commands; and `--fastx_uniques` accepts
+      `--tabbedout` with fasta input, since none of the six tabbedout
+      columns depends on quality data.
+    - change: the `--sintax --randseed` multithreading warning is
+      removed. The per-query RNG is seeded from a per-query substream,
+      so the classification is reproducible whatever the thread count,
+      exactly as the manual page states.
+    - change: reject `--match`/`--mismatch` outside -32767..32767 and
+      finite `--gapopen`/`--gapext` outside 0..6553, instead of silently
+      wrapping them to the 16-bit aligner.
+    - improve: `--fastq_filter` and `--fastx_filter` are about 2x faster
+      (552 ms to 282 ms on 300000 records, byte-identical). Most of the
+      gain is in the shared FASTQ reader, so every FASTQ-reading command
+      benefits: `--fastq_stats` -27%, `--fastq_eestats2` -15%,
+      `--fastq_join` -13%, `--fastq_convert` -13%, `--fastx_revcomp`
+      -12%, `--fastx_subsample` -11%, `--fastq_chars` -11%,
+      `--fastx_uniques` -8%.
+    - improve: `--fastq_mergepairs` is 3.0x faster on one thread and
+      1.9x on eight, and 3.5x on a non-overlapping pair set, chiefly by
+      indexing its 5-mers directly (1024 possible values) instead of
+      hashing them.
+    - improve: `--search_exact` is 1.74x faster at `--threads 24` and
+      uses 61 MB instead of 3752 MB, by growing the per-thread hit
+      buffer on demand rather than sizing it to the whole database, per
+      strand, per thread. That allocation, not the search, was what made
+      the command slower with more threads.
+    - improve: `--sintax` is 15% to 38% faster depending on how
+      query-heavy the run is: byte-wide hit counters (a sintax count
+      cannot exceed 32, so a 16-bit counter is twice the width it needs)
+      and a block skip over the counters that cannot beat the running
+      best, which is 99.94% of them.
+    - improve: `--udb2fasta` is 7% to 82% faster and uses 21 MB instead
+      of 1.0 GB on a word length 13 database, by not loading a k-mer
+      index it never reads. `--udbstats` no longer sorts the whole k-mer
+      table to print eleven rows and two order statistics (up to -91%),
+      and no longer builds that report when `--log` is absent and it
+      cannot be printed.
+    - improve: `--makeudb_usearch` is 35% faster (4.93 s to 3.18 s on
+      the PR2 reference): parallel masking, and a word-at-a-time scan
+      that expands a bitmapped k-mer 8.6x faster than bit by bit.
+    - improve: `--uchime_denovo` and the `--uchime*_ref` commands are
+      13% faster: clearing only the live prefix of the match and insert
+      arrays (about 9 rows of the 400 allocated) and wiping each match
+      column once instead of once per overlapping window.
+    - improve: `--fastx_syncpairs` executes 16% fewer instructions and
+      allocates far less, storing the reverse reads in a chunked arena
+      instead of three separate allocations per record.
+    - improve: `--fastx_getseqs --labels` hashes the labels for exact
+      whole-header matching instead of comparing every record with every
+      label: 1.95 billion string comparisons for 10000 labels against
+      200000 records, 90% of the command's runtime, and quadratic growth
+      on both axes.
+    - improve: DUST masking skips the start positions that provably
+      cannot score, which is 99.4% of windows on real data.
+    - improve: `--fastq_eestats` can now process long reads in a
+      memory-efficient way. It is also faster (14-27% in our tests) when
+      processing short reads.
+    - improve: output-open failure messages are harmonized and now
+      include the offending filename (for instance `--alnout`,
+      `--samout`, `--uc`, `--clusters`) (PR #652).
+    - improve: building no longer requires `./autogen.sh` or the
+      autotools; the generated build files are committed and
+      authoritative (maintainer mode disabled), so an ordinary build
+      needs only a C++ compiler and make (PR #648).
+    - improve: recommend `-O3` again now that the SIMD-aligner
+      strict-aliasing miscompile (issue #589) is fixed at the root and
+      the `-fno-tree-partial-pre` workaround is removed (PR #649).
+    - improve: a documentation audit of the whole manual, correcting the
+      per-command pages against measured behaviour: the actual
+      `--minseqlength` default (32) for four commands, `--derep_prefix`
+      accepting only `--strand plus`, `--borderline` as a sole output
+      option for the uchime commands, `--sizeout` propagating rather
+      than resetting sizes, how alignments against Ns are scored and
+      counted, the OTU-table identifier uniqueness requirement, the
+      cigar(5) example and the SAM run-length exception,
+      `--fastq_solexa`, `--derep_fulllength` marked deprecated in favour
+      of `--fastx_uniques`, and the accepted ranges for
+      `--match`/`--mismatch` and the gap penalties.
+    - improve: fix double-hyphen rendering of option names in the manual
+      pages and the online HTML documentation, including the
+      vsearch-userfields(7) NAME line.
+    - improve: cross-platform pseudo-random number generator
+      reproducibility (PR #640).
+    - improve: documentation (issues #239, #282).
+    - improve: code testing (new automatic tests in vsearch-tests; PR
+      #638, #641).
 
 **v2.31.0** released April 29th, 2026
 :   Includes the following changes:
