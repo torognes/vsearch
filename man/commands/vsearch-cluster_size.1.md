@@ -65,7 +65,7 @@ command writes quality values.
 `--cluster_size` *fastxfile*
 : Read and clusterize sequences from the fasta- or fastq-formatted
   *fastxfile* (quality values are ignored) after sorting them by
-  decreasing abundance. This option is mandatory.
+  decreasing abundance.
 
 #(./fragments/option_id.md)
 

@@ -43,8 +43,7 @@ of the UDB file format.
 ## mandatory options
 
 `--udb2fasta` *udbfile*
-: Read sequences from the UDB database *udbfile*. This option is
-  mandatory.
+: Read sequences from the UDB database *udbfile*.
 
 #(./fragments/option_output_udb2fasta.md)
 

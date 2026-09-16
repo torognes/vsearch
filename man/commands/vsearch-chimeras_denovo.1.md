@@ -69,7 +69,7 @@ only QA, QB and QC are reported.
 `--chimeras_denovo` *inputfile*
 : Detect chimeras *de novo* in *inputfile* (fasta or fastq format)
   using a modified UCHIME algorithm that adapts to a wide range of
-  sequence lengths. This option is mandatory.
+  sequence lengths.
 
 At least one of the following output options must be specified:
 

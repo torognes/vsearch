@@ -58,7 +58,7 @@ reference database.
 
 `--uchime_ref` *fastafile*
 : Detect chimeras in the fasta-formatted *fastafile* using a
-  reference database. This option is mandatory.
+  reference database.
 
 #(./fragments/option_db_uchime_ref.md)
 

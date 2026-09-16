@@ -63,8 +63,7 @@ reference-based chimera detection.
 
 `--uchime_denovo` *fastxfile*
 : Detect chimeras *de novo* in the fasta- or fastq-formatted
-  *fastxfile* (quality values are ignored). This
-  option is mandatory.
+  *fastxfile* (quality values are ignored).
 
 At least one of the following output options must be specified:
 

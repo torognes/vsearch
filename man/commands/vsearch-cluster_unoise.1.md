@@ -61,7 +61,7 @@ are excluded before denoising.
 
 `--cluster_unoise` *fastxfile*
 : Read and denoise amplicon sequences from the fasta- or fastq-formatted
-  *fastxfile* (quality values are ignored). This option is mandatory.
+  *fastxfile* (quality values are ignored).
 
 
 ## core options
