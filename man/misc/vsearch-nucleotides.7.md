@@ -48,6 +48,15 @@ The gap symbol '-' is listed for completeness only: vsearch *writes*
 it in alignment outputs, but never accepts it in input sequences
 (a fatal error in both fasta and fastq files).
 
+vsearch reads nucleotide sequences only; amino acid sequences are not
+supported. A protein input is nevertheless not rejected, because many
+one-letter amino acid codes are also valid nucleotide symbols in the
+table above: the residues that are not are stripped with a warning,
+and the remainder is read as a much shorter nucleotide sequence. A
+60-residue protein can thus become a 35-symbol sequence, silently. The
+stripping warning carries a reminder to that effect; results computed
+from such an input are meaningless.
+
 How these symbols behave when two sequences are compared is a separate
 matter, described in
 [`vsearch-pairwise_alignment_parameters(7)`](./vsearch-pairwise_alignment_parameters.7.md):
