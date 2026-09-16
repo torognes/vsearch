@@ -9,18 +9,21 @@ vsearch \-\-maskfasta --- mask low-complexity regions in fasta sequences (deprec
 
 # SYNOPSIS
 
-| **vsearch** **\-\-maskfasta** _fastafile_ **\-\-output** _filename_ \[_options_]
+| **vsearch** **\-\-maskfasta** _fastxfile_ **\-\-output** _filename_ \[_options_]
 
 
 # DESCRIPTION
 
 **This command is deprecated. Use `--fastx_mask` instead** (see
-[`vsearch-fastx_mask(1)`](./vsearch-fastx_mask.1.md)), which accepts
-both fasta and fastq input.
+[`vsearch-fastx_mask(1)`](./vsearch-fastx_mask.1.md)), which can also
+write fastq output with `--fastqout`, preserving the quality values of a
+fastq input. `--maskfasta` reads fastq too, but writes fasta only.
 
 The vsearch command `--maskfasta` masks low-complexity regions and
-simple repeats in sequences from a fasta file (see
-[`vsearch-fasta(5)`](../formats/vsearch-fasta.5.md)). The output file
+simple repeats in the sequences of the fasta- or fastq-formatted
+*fastxfile* (quality values are ignored; see
+[`vsearch-fasta(5)`](../formats/vsearch-fasta.5.md) and
+[`vsearch-fastq(5)`](../formats/vsearch-fastq.5.md)). The output file
 is specified with `--output`, in fasta format.
 
 Masking is controlled with the `--qmask` option, which accepts three

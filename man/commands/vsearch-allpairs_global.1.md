@@ -9,13 +9,14 @@ vsearch \-\-allpairs_global --- perform global pairwise alignments of all sequen
 
 # SYNOPSIS
 
-| **vsearch** **\-\-allpairs_global** _fastafile_ (**\-\-acceptall** | **\-\-id** _real_) (**\-\-alnout** | **\-\-blast6out** | **\-\-fastapairs** | **\-\-matched** | **\-\-notmatched** | **\-\-qsegout** | **\-\-samout** | **\-\-tsegout** | **\-\-uc** | **\-\-userout**) _filename_ \[_options_]
+| **vsearch** **\-\-allpairs_global** _fastxfile_ (**\-\-acceptall** | **\-\-id** _real_) (**\-\-alnout** | **\-\-blast6out** | **\-\-fastapairs** | **\-\-matched** | **\-\-notmatched** | **\-\-qsegout** | **\-\-samout** | **\-\-tsegout** | **\-\-uc** | **\-\-userout**) _filename_ \[_options_]
 
 
 # DESCRIPTION
 
 The vsearch command `--allpairs_global` performs optimal global pairwise
-alignments (Needleman-Wunsch) for all pairs of sequences in a fasta file.
+alignments (Needleman-Wunsch) for all pairs of sequences in the fasta- or
+fastq-formatted *fastxfile* (quality values are ignored).
 Each sequence is compared to all sequences that follow it in the file,
 for a total of n\*(n-1)/2 comparisons where n is the number of sequences.
 
