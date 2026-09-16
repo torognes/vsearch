@@ -58,7 +58,7 @@ of the UDB file format.
 
 `--makeudb_usearch` *fastxfile*
 : Read fasta or fastq sequences from *fastxfile* and create a UDB
-  database (quality values are ignored). This option is mandatory.
+  database (quality values are ignored).
 
 #(./fragments/option_output_makeudb.md)
 

@@ -55,7 +55,7 @@ See also `--uchime_denovo` for the original UCHIME algorithm and
 `--uchime2_denovo` *fastxfile*
 : Detect chimeras *de novo* in the fasta- or fastq-formatted
   *fastxfile* (quality values are ignored) using
-  the UCHIME2 algorithm. This option is mandatory.
+  the UCHIME2 algorithm.
 
 At least one of the following output options must be specified:
 

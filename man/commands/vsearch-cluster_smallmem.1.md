@@ -51,8 +51,7 @@ command writes quality values.
 `--cluster_smallmem` *fastxfile*
 : Read and clusterize sequences from the fasta- or fastq-formatted
   *fastxfile* (quality values are ignored). Sequences must be sorted by
-  decreasing length, unless `--usersort` is used. This option is
-  mandatory.
+  decreasing length, unless `--usersort` is used.
 
 #(./fragments/option_id.md)
 
