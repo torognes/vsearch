@@ -940,8 +940,13 @@ auto search_acceptable_aligned(struct searchinfo_s const & searchinfo,
          false, so such a hit was rejected even at the default --mid of 0.
          Zero letter pairs means no identity to measure: let the hit through
          unless the user asked for a positive floor, keeping --mid a true
-         no-op at its default. No such alignment could be produced through
-         the CLI, so this is insurance, not a user-visible fix. */
+         no-op at its default. Such an alignment does reach this test: two
+         sequences sharing no column at all are laid end to end rather than
+         aligned, because a terminal gap column costs --gapext (1 by
+         default) per base where a mismatch costs --mismatch (4), so gapping
+         the pair apart outscores comparing it. Two unrelated 40-mers under
+         --allpairs_global --id 0.0 report 40I40D, zero aligned columns; the
+         guard is load-bearing, not insurance. */
       (letter_pair_identity(hit) >= parameters.opt_mid) and
       /* maxdiffs */
       (difference_count(hit) <= parameters.opt_maxdiffs))
