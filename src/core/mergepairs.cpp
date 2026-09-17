@@ -488,6 +488,12 @@ auto optimize(merge_data_t & a_read_pair,
   auto best_score = 0.0;
   int64_t best_i = 0;
   int64_t best_diffs = 0;
+  /* the number of aligned positions actually compared at best_i. It equals
+     best_i only when neither read overhangs the other; when one of them does,
+     best_i counts the overhanging bases too, which are never compared. The
+     maxdiffpct test below is specified on the overlap region (see the manual),
+     so it divides by this value, not by best_i. */
+  int64_t best_overlap = 0;
 
   auto hits = 0;
 
@@ -580,6 +586,7 @@ auto optimize(merge_data_t & a_read_pair,
               best_score = score;
               best_i = i;
               best_diffs = diffs;
+              best_overlap = overlap;
             }
         }
     }
@@ -602,7 +609,7 @@ auto optimize(merge_data_t & a_read_pair,
       return 0;
     }
 
-  if ((100.0 * static_cast<double>(best_diffs) / static_cast<double>(best_i)) > parameters.opt_fastq_maxdiffpct)
+  if ((100.0 * static_cast<double>(best_diffs) / static_cast<double>(best_overlap)) > parameters.opt_fastq_maxdiffpct)
     {
       a_read_pair.reason = Reason::maxdiffpct;
       return 0;
