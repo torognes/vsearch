@@ -15,31 +15,10 @@ file from a fasta reference database with `--makeudb_usearch` allows
 subsequent search commands (such as `--usearch_global`) to load the index
 directly, avoiding the cost of recomputing it at each run.
 
-How much that saves scales with the size of the reference database, and
-depends on how many cores the search can use. Preparing a fasta reference
-costs roughly 10 to 12 seconds per gigabyte of fasta with every core
-busy, but 55 to 85 seconds per gigabyte on a single core: masking is
-multi-threaded, the index build is not. Loading the same database from a
-UDB costs about 3 to 4 seconds per gigabyte of the original fasta,
-whatever the core count, since that path reads a finished index instead
-of building one. The saving is therefore some 6 to 8 seconds per gigabyte
-when all cores are busy, and 50 to 80 seconds per gigabyte on one core.
-The single-core figure is the one to use when a query file is split
-across several concurrent single-threaded vsearch processes, as each of
-them pays the full preparation.
-
-Building the UDB costs 60 to 90 seconds per gigabyte, once. It therefore
-repays itself after about ten searches on a many-core machine, or after
-the second search on a single core. The file is some four times larger
-than the fasta it was built from (3.7 times for short amplicons, 4.5
-times for full-length references), since it carries the k-mer index as
-well as the sequences.
-
-These figures were measured on a 24-core desktop processor with the
-database in the page cache, over reference sets from 17 MB to 1.1 GB, and
-are meant as orders of magnitude: the underlying cost follows the number
-of nucleotides rather than the size of the file, so a database of long
-sequences with short headers sits at the top of each range.
+In our tests, building a UDB file repays itself after about ten searches
+on a many-core machine, or after the second search on a single core. The
+UDB file is some 3 to 5 times larger than the fasta it was built from,
+since it carries the k-mer index as well as the sequences.
 
 A UDB is not always interchangeable with the fasta file it was built
 from. `--makeudb_usearch` masks with *dust* by default and stores the
