@@ -491,8 +491,8 @@ auto optimize(merge_data_t & a_read_pair,
   /* the number of aligned positions actually compared at best_i. It equals
      best_i only when neither read overhangs the other; when one of them does,
      best_i counts the overhanging bases too, which are never compared. The
-     maxdiffpct test below is specified on the overlap region (see the manual),
-     so it divides by this value, not by best_i. */
+     maxdiffpct and minovlen tests below are both specified on the overlap
+     region (see the manual), so they use this value, not best_i. */
   int64_t best_overlap = 0;
 
   auto hits = 0;
@@ -630,7 +630,7 @@ auto optimize(merge_data_t & a_read_pair,
   /* the effective minimum overlap is at least 5: the CLI path requires it and
      the library entry (mergepairs_single) threads a Parameters copy clamped to
      >= 5, so this reads the effective value from parameters (E1). */
-  if (best_i < parameters.opt_fastq_minovlen)
+  if (best_overlap < parameters.opt_fastq_minovlen)
     {
       a_read_pair.reason = Reason::minovlen;
       return 0;
