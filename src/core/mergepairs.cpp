@@ -597,7 +597,19 @@ auto optimize(merge_data_t & a_read_pair,
       return 0;
     }
 
-  if ((not parameters.opt_fastq_allowmergestagger) and (best_i > a_read_pair.fwd_trunc))
+  /* A pair is staggered when a read runs past the other's 5' end, and
+     best_i exceeds a read's length exactly when that read is the one being
+     run past. Testing fwd_trunc alone caught only the reverse read's 3'
+     overhang; with reads of equal length the two cases coincide, but once
+     truncation makes the forward read the longer one (--fastq_truncqual,
+     --fastq_trunclen*, or unequal input), the mirror case slipped through
+     and was merged with the forward overhang silently dropped. Testing the
+     shorter read covers both directions; equivalently, best_overlap <
+     best_i, since the overlap falls short of the offset by exactly the two
+     overhangs. */
+  auto const shorter_read = std::min(a_read_pair.fwd_trunc, a_read_pair.rev_trunc);
+
+  if ((not parameters.opt_fastq_allowmergestagger) and (best_i > shorter_read))
     {
       a_read_pair.reason = Reason::staggered;
       return 0;
