@@ -1,0 +1,197 @@
+name: Source distribution
+
+# Builds the source distribution, proves it is buildable on its own, and
+# attaches it to the GitHub release.
+#
+# It exists because the autotools output is no longer tracked. The tarball
+# GitHub generates by itself (the "Source code (tar.gz)" link, a plain
+# snapshot of the git tree) therefore carries configure.ac and the
+# Makefile.am files but no configure, and building from it needs autoconf
+# and automake. The tarball built here is the one to point people at: 'make
+# dist' puts the generated build files in it, and the manual pages and NEWS
+# as well, so it builds with nothing but a C++ compiler and make.
+#
+# Reproducibility comes from pinning, not from using an old autoconf: a
+# release tarball's configure is a self-contained shell script, and
+# AM_MAINTAINER_MODE([disable]) leaves the rebuild rules' dependencies
+# commented out, so no consumer ever runs an autotools program whatever
+# version produced it (the verify job below proves exactly that). Pin the
+# runner image to a dated label instead of ubuntu-latest if you want two
+# releases to be byte-comparable; the tool versions are recorded in the log
+# either way. Note that automake 1.17 and later emit 'ARFLAGS = cr' where
+# 1.16 emitted 'cru', which is what the ARFLAGS="cr" override in the build
+# recipes works around.
+
+on:
+  release:
+    types: [published]
+  # A manual run builds and verifies the tarball without touching any
+  # release. Give it a tag to attach the result to a release that already
+  # exists -- the first release made under this workflow, or a re-run after
+  # a failure.
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Existing release tag to attach the tarball to (leave empty to only build it)"
+        required: false
+        default: ""
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  dist:
+    name: Build the tarball
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v6
+
+    # pandoc generates the manual pages and NEWS. 'make dist' ships both, and
+    # the dist-hook in Makefile.am refuses to build a distribution missing
+    # either, so this is a hard requirement here -- and only here.
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y autoconf automake g++ make pandoc libbz2-dev zlib1g-dev
+
+    # Recorded so a tarball can be traced back to the toolchain that made it.
+    - name: Record the toolchain
+      run: |
+        autoconf --version | head -n 1
+        automake --version | head -n 1
+        pandoc --version | head -n 1
+
+    - name: Build the distribution
+      run: |
+        ./autogen.sh
+        ./configure
+        make dist
+
+    # A release tag that disagrees with configure.ac means the version bump
+    # was forgotten, and every artefact of the release would carry the old
+    # number. Catch it here rather than in a user's bug report.
+    - name: Check the version
+      run: |
+        version=$(sed -n 's/^AC_INIT(\[vsearch\], *\[\([^]]*\)\].*/\1/p' configure.ac)
+        echo "configure.ac declares ${version}"
+        test -f "vsearch-${version}.tar.gz"
+        if [ "${{ github.event_name }}" = "release" ] ; then
+          tag="${{ github.event.release.tag_name }}"
+          if [ "${tag}" != "v${version}" ] ; then
+            echo "::error::release tag ${tag} does not match configure.ac version ${version}" >&2
+            exit 1
+          fi
+        fi
+        sha256sum "vsearch-${version}.tar.gz" | tee "vsearch-${version}.tar.gz.sha256"
+
+    - name: Upload the tarball
+      uses: actions/upload-artifact@v7
+      with:
+        name: source-distribution
+        path: |
+          vsearch-*.tar.gz
+          vsearch-*.tar.gz.sha256
+
+  verify:
+    name: Build it with nothing but a compiler
+    needs: dist
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+    - name: Download the tarball
+      uses: actions/download-artifact@v7
+      with:
+        name: source-distribution
+
+    # Deliberately no autoconf, no automake and no pandoc: this job stands in
+    # for a user who has only a compiler, and the point is to prove the
+    # tarball needs nothing else. The runner images ship autoconf and automake
+    # anyway, so their absence cannot be arranged -- the build log is scanned
+    # below instead, which is the stronger check. pandoc can be removed, and
+    # is, so that the manual in the tarball is the one shipped rather than one
+    # regenerated here.
+    - name: Install a minimal toolchain
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y g++ make libbz2-dev zlib1g-dev
+        sudo apt-get remove -y pandoc || true
+        if command -v pandoc >/dev/null 2>&1 ; then
+          echo "::error::pandoc is still on PATH; this job must build without it" >&2
+          exit 1
+        fi
+
+    - name: Unpack
+      run: |
+        tarball=$(ls vsearch-*.tar.gz)
+        sha256sum -c "${tarball}.sha256"
+        tar xzf "${tarball}"
+
+    # The manual has to come out of the tarball ready-made: a user building a
+    # release has no pandoc to generate it, and the README promises it is
+    # there.
+    - name: Check the manual is shipped
+      run: |
+        cd vsearch-*/
+        pages=$(ls man/manpages/vsearch*.1 man/manpages/vsearch*.5 man/manpages/vsearch*.7 | wc -l)
+        echo "${pages} manual pages shipped"
+        test "${pages}" -gt 0
+        test -f NEWS
+
+    # Touching the autotools sources makes them newer than the generated
+    # files, which is what would fire automake's rebuild rules if
+    # AM_MAINTAINER_MODE([disable]) were not holding them down. git does not
+    # preserve mtimes either, so this is a user's ordinary situation, not a
+    # contrived one.
+    - name: Build
+      run: |
+        cd vsearch-*/
+        touch configure.ac Makefile.am src/Makefile.am man/Makefile.am completion/Makefile.am
+        ./configure CFLAGS="-O2" CXXFLAGS="-O2"
+        make -j$(nproc) 2>&1 | tee "${RUNNER_TEMP}/build.log"
+        exit "${PIPESTATUS[0]}"
+
+    - name: Check that no autotools program ran
+      run: |
+        count=$(grep -ciE 'aclocal|automake|autoconf|autoreconf|autom4te' "${RUNNER_TEMP}/build.log" || true)
+        echo "autotools invocations in the build log: ${count}"
+        if [ "${count}" != "0" ] ; then
+          grep -inE 'aclocal|automake|autoconf|autoreconf|autom4te' "${RUNNER_TEMP}/build.log" >&2
+          echo "::error::the tarball regenerated its build system; it is not self-contained" >&2
+          exit 1
+        fi
+
+    - name: Check the binary
+      run: |
+        cd vsearch-*/
+        version=$(sed -n 's/^AC_INIT(\[vsearch\], *\[\([^]]*\)\].*/\1/p' configure.ac)
+        bin/vsearch --version 2>&1 | head -n 1
+        bin/vsearch --version 2>&1 | head -n 1 | grep -q "vsearch v${version}_"
+
+  publish:
+    name: Attach it to the release
+    needs: [dist, verify]
+    if: github.event_name == 'release' || inputs.tag != ''
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    permissions:
+      contents: write
+
+    steps:
+    - name: Download the tarball
+      uses: actions/download-artifact@v7
+      with:
+        name: source-distribution
+
+    - name: Upload to the release
+      env:
+        GH_TOKEN: ${{ github.token }}
+      run: |
+        gh release upload "${{ github.event.release.tag_name || inputs.tag }}" \
+           vsearch-*.tar.gz vsearch-*.tar.gz.sha256 \
+           --repo "${{ github.repository }}" --clobber
