@@ -159,6 +159,24 @@ jobs:
             apt-get install -y -qq g++ make zlib1g-dev libbz2-dev ${{ matrix.target.pkgs }}
             g++ --version | head -n 1
             ldd --version | head -n 1
+            # Debian ships mingw-w64 twice, as a win32 and a posix threading
+            # model, and picks win32 by default; Ubuntu picks posix. The win32
+            # libstdc++ is built without gthreads, so <thread>, <mutex> and
+            # <condition_variable> are empty headers and utils/threads.hpp
+            # fails to compile -- which is what moving this build off
+            # ubuntu-latest exposed. Select posix, as Ubuntu does. The guard
+            # keeps this a no-op for every non-Windows target.
+            if [ -x /usr/bin/x86_64-w64-mingw32-g++-posix ] ; then
+              update-alternatives --set x86_64-w64-mingw32-gcc /usr/bin/x86_64-w64-mingw32-gcc-posix
+              update-alternatives --set x86_64-w64-mingw32-g++ /usr/bin/x86_64-w64-mingw32-g++-posix
+              x86_64-w64-mingw32-g++ -v 2>&1 | grep -E "Thread model|gcc version"
+              # Fail in two seconds with a readable message rather than three
+              # minutes into the build with two hundred lines of template noise.
+              x86_64-w64-mingw32-g++ -v 2>&1 | grep -q "Thread model: posix" || {
+                echo "::error::mingw-w64 is on the win32 threading model; C++11 <thread> is unavailable" >&2
+                exit 1
+              }
+            fi
             sh /work/.github/scripts/build-asset.sh
           '
 
