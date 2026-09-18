@@ -52,15 +52,15 @@ In the example below, VSEARCH will identify sequences in the file database.fsa t
 **Source distribution** To download the source distribution from a [release](https://github.com/torognes/vsearch/releases) and build the executable and the documentation, use the following commands:
 
 ```
-wget https://github.com/torognes/vsearch/archive/v2.32.0.tar.gz
-tar xzf v2.32.0.tar.gz
+wget https://github.com/torognes/vsearch/releases/download/v2.32.0/vsearch-2.32.0.tar.gz
+tar xzf vsearch-2.32.0.tar.gz
 cd vsearch-2.32.0
 ./configure CFLAGS="-O3" CXXFLAGS="-O3"
 make ARFLAGS="cr"
 sudo make install
 ```
 
-You may customize the installation directory using the `--prefix=DIR` option to `configure`. If the compression libraries [zlib](https://www.zlib.net) and/or [bzip2](https://www.sourceware.org/bzip2/) are installed on the system, they will be detected automatically and support for compressed files will be included in vsearch (see section **Dependencies** below). Support for compressed files may be disabled using the `--disable-zlib` and `--disable-bzip2` options to `configure`. The manual pages are generated from markdown sources with [pandoc](https://pandoc.org/): a release tarball ships them ready-made and needs no pandoc, while building them from a git checkout does. `configure` reports whether it found pandoc, and a build without it simply produces no manual (`--disable-manpages` asks for that explicitly). It is recommended to run configure with the options `CFLAGS="-O3"` and `CXXFLAGS="-O3"`. Other  options may also be applied to `configure`, please run `configure -h` to see them all. The GCC C++ (`g++`) compiler (or `clang`) and `make` are required to build vsearch. The generated build files (`configure`, `Makefile.in`, ...) are shipped and are authoritative, so GNU autoconf and automake are **not** needed for an ordinary build; they are only required if you modify `configure.ac` or a `Makefile.am` and regenerate the build system by running `./autogen.sh` (autoconf version 2.63 or later). Version 3.82 or later of `make` may be required on Linux, while version 3.81 is sufficient on macOS.
+You may customize the installation directory using the `--prefix=DIR` option to `configure`. If the compression libraries [zlib](https://www.zlib.net) and/or [bzip2](https://www.sourceware.org/bzip2/) are installed on the system, they will be detected automatically and support for compressed files will be included in vsearch (see section **Dependencies** below). Support for compressed files may be disabled using the `--disable-zlib` and `--disable-bzip2` options to `configure`. The manual pages are generated from markdown sources with [pandoc](https://pandoc.org/): a release tarball ships them ready-made and needs no pandoc, while building them from a git checkout does. `configure` reports whether it found pandoc, and a build without it simply produces no manual (`--disable-manpages` asks for that explicitly). It is recommended to run configure with the options `CFLAGS="-O3"` and `CXXFLAGS="-O3"`. Other  options may also be applied to `configure`, please run `configure -h` to see them all. The GCC C++ (`g++`) compiler (or `clang`) and `make` are required to build vsearch. The source distribution above ships the generated build files (`configure`, `Makefile.in`, ...), so GNU autoconf and automake are **not** needed to build it. They are needed to build from a git checkout, which does not track those files: run `./autogen.sh` first (autoconf version 2.63 or later), as shown below. The same applies after modifying `configure.ac` or a `Makefile.am`. Version 3.82 or later of `make` may be required on Linux, while version 3.81 is sufficient on macOS.
 
 **Out-of-tree (VPATH) builds** `configure` and `make` may be run from a separate, initially empty directory instead of the source tree. All object files, libraries and the final binary are then written under that build directory, leaving the source tree pristine, and several builds (for example debug and release, or different cross-compilation targets) can coexist from a single checkout:
 
@@ -74,13 +74,14 @@ To build VSEARCH on Debian and similar Linux distributions (Ubuntu etc) you'll n
 
 To build VSEARCH on Fedora and similar Linux distributions (RHEL, Centos etc) you'll need the following packages: autoconf, automake, bzip2-devel, gcc-c++, make, zlib-devel.
 
-Of these, `autoconf` and `automake` are only needed if you regenerate the build system with `./autogen.sh` (e.g. after editing `configure.ac` or a `Makefile.am`); an ordinary build from the shipped files does not require them.
+Of these, `autoconf` and `automake` are needed to build from a git checkout, which generates the build system with `./autogen.sh`, and after editing `configure.ac` or a `Makefile.am`. A build from the source distribution does not require them, since it ships the generated files.
 
 Instead of downloading the source distribution as a compressed archive, you could clone the repo and build it as shown below. The options to `configure` as described above are still valid.
 
 ```
 git clone https://github.com/torognes/vsearch.git
 cd vsearch
+./autogen.sh
 ./configure CFLAGS="-O3" CXXFLAGS="-O3"
 make ARFLAGS="cr"
 sudo make install
@@ -88,7 +89,7 @@ sudo make install
 
 **Binary distribution**: Starting with version 1.4.0, binary distribution files containing pre-compiled binaries as well as the documentation will be made available as part of each [release](https://github.com/torognes/vsearch/releases). The included executables include support for input files compressed by zlib and bzip2 (with files usually ending in `.gz` or `.bz2`).
 
-Binary distributions are provided for x86-64 systems running GNU/Linux, macOS (version 10.7 or higher) or Windows (64-bit, version 7 or higher), 64-bit AMDv8 (aarch64) systems running GNU/Linux or macOS, as well as POWER8 (ppc64le), 64-bit little-endian RISC-V (risv64), and 64-bit little endian MIPS (mips64el) systems running GNU/Linux. A universal macOS binary is also provided. In addition, an x86_64 binary built for the discontinued RHEL 7 and CentOS 7 linux distributions is provided. The other Linux binaries are built on Debian 11 (oldstable, Bullseye). Static binaries are available for all Linux architectures except x86_64, these can be used on systems that do not have all the necessary libraries installed. The Windows binary was built with cross compilation using [Mingw-w64](http://mingw-w64.org/).
+Binary distributions are provided for x86-64 systems running GNU/Linux, macOS (version 10.7 or higher) or Windows (64-bit, version 7 or higher), 64-bit AMDv8 (aarch64) systems running GNU/Linux or macOS, as well as POWER8 (ppc64le), 64-bit little-endian RISC-V (risv64), and 64-bit little endian MIPS (mips64el) systems running GNU/Linux. A universal macOS binary is also provided. In addition, an x86_64 binary built for the discontinued RHEL 7 and CentOS 7 linux distributions is provided. The other Linux binaries are built on Debian 11 (oldoldstable, Bullseye). Binaries whose name ends in `-static` are available for all Linux architectures except x86_64: they carry the C++ runtime (`libstdc++`/`libgcc`) inside the executable, so they run on systems whose own C++ runtime is older than the one they were built with. They still use the system C library, and the compression libraries are still loaded at run time, so they read gzip and bzip2 input like every other binary. The Windows binary was built with cross compilation using [Mingw-w64](http://mingw-w64.org/).
 
 Download the appropriate executable for your system using the following commands if you are using a Linux or macOS system:
 
@@ -200,7 +201,7 @@ doi: [10.7717/peerj.2584](https://doi.org/10.7717/peerj.2584)
 
 ## Dependencies
 
-Compiling VSEARCH requires either GCC (`g++`) or `clang` and `make`. The autotools (autoconf/automake) are not needed for an ordinary build — the generated build files are shipped — and are only required to regenerate the build system with `./autogen.sh`. Optionally, the header files for the following two optional libraries are required if support for gzip and bzip2 compressed FASTA and FASTQ input files is needed:
+Compiling VSEARCH requires either GCC (`g++`) or `clang` and `make`. The autotools (autoconf/automake) are not needed to build the source distribution, which ships the generated build files, and are required to build from a git checkout, which generates them with `./autogen.sh`. Optionally, the header files for the following two optional libraries are required if support for gzip and bzip2 compressed FASTA and FASTQ input files is needed:
 
 * libz (zlib library) (`zlib.h` header file, available as `zlib1g-dev` on Debian-based distributions) (optional)
 * libbz2 (bzip2lib library) (`bzlib.h` header file, available as `libbz2-dev`on Debian-based distributions) (optional)

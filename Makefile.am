@@ -1,6 +1,9 @@
 AUTOMAKE_OPTIONS = foreign
 SUBDIRS = src man completion
-EXTRA_DIST = autogen.sh
+# automake distributes README.md by itself but knows nothing about the
+# licence files, so 'make dist' shipped GPL sources with no licence text
+# in them. The binary release assets carry both files too.
+EXTRA_DIST = autogen.sh LICENSE.txt LICENSE_GNU_GPL3.txt
 
 # NEWS is the release history as plain text, rendered by pandoc from the
 # very fragment vsearch-history(7) is built from, so the two cannot drift.

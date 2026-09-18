@@ -67,7 +67,7 @@ The three components are also available individually as
 ### Static library
 
 ```bash
-# The generated build files are shipped and authoritative; no autoreconf needed.
+./autogen.sh                 # from a git checkout only; a tarball ships the build files
 ./configure
 make -C src libvsearch.a
 ```
@@ -85,7 +85,7 @@ For projects that build vsearch as a dependency via CMake:
 include(ExternalProject)
 ExternalProject_Add(vsearch_build
     SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/path/to/vsearch
-    CONFIGURE_COMMAND ./configure --disable-pdfman --disable-zlib --disable-bzip2
+    CONFIGURE_COMMAND sh -c "./autogen.sh && ./configure --disable-pdfman --disable-zlib --disable-bzip2"
     BUILD_COMMAND make -C src libvsearch.a
     BUILD_IN_SOURCE TRUE
     INSTALL_COMMAND ""
@@ -96,12 +96,13 @@ On macOS cross-compilation (arm64 runner targeting x86_64), pass
 `-arch x86_64` via `CXXFLAGS` and `CFLAGS`, and set
 `--host=x86_64-apple-darwin` on the configure command.
 
-The generated autotools files are committed to the repository and are
-authoritative: maintainer mode is disabled (`AM_MAINTAINER_MODE`), so
-`autoreconf` is not required at build time and `make` will not attempt to
-regenerate them (no matching autoconf/automake version is needed, and
-timestamps no longer matter). Run `./autogen.sh` (or `autoreconf -fi`)
-only if you modify `configure.ac` or a `Makefile.am`.
+The generated autotools files are not tracked in git. Run `./autogen.sh`
+(or `autoreconf -fi`) once after cloning, and again after modifying
+`configure.ac` or a `Makefile.am`. A release tarball ships them, so
+building from one needs no autoconf or automake at all. Either way,
+maintainer mode is disabled (`AM_MAINTAINER_MODE`), so `make` will not
+attempt to regenerate them at build time: no matching autoconf/automake
+version is needed, and timestamps do not matter.
 
 ### Link dependencies
 

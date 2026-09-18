@@ -33,6 +33,35 @@ __pycache__/
 /src/Makefile
 /man/Makefile
 /completion/Makefile
+
+# The autotools output (configure, the Makefile.in files, aclocal.m4 and the
+# auxiliary scripts autoreconf installs) is generated from configure.ac and
+# the Makefile.am files, and is not tracked. Two maintainers on two operating
+# systems never hold the same autoconf/automake version, so tracking it meant
+# a few thousand lines of unauthored churn on every regeneration, and a
+# committed copy that silently drifted behind its own sources. Build from a
+# git checkout with ./autogen.sh (autoconf and automake required, 2.63 or
+# later); build from a release tarball with ./configure alone, since 'make
+# dist' puts the generated files -- and the manual pages -- in it.
+/aclocal.m4
+/compile
+/config.guess
+/config.h.in
+/config.h.in~
+/config.sub
+/configure
+/depcomp
+/install-sh
+/missing
+/ar-lib
+/test-driver
+/Makefile.in
+/src/Makefile.in
+/man/Makefile.in
+/completion/Makefile.in
+
+# the source distribution built by 'make dist'
+/vsearch-*.tar.gz
 .vscode
 .DS_Store
 .Tpo

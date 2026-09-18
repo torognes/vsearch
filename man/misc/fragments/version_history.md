@@ -1,4 +1,4 @@
-**v2.32.0** released September 17th, 2026
+**v2.32.0** released September 18th, 2026
 :   Includes the following changes:
 
     - fix: `--gapopen`/`--gapext` `*` now forbid gaps at the match/merge
