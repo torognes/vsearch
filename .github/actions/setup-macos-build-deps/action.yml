@@ -2,8 +2,8 @@ name: Set up macOS build dependencies
 description: >
   Put autoconf and automake on PATH without letting Homebrew upgrade anything
   that is already installed, and quieten the runner's pre-tapped taps. Used by
-  every macOS job in build-and-test.yml and build-all.yml, which all ran an
-  identical copy of this script before.
+  every macOS job in build-and-test.yml, which all ran an identical copy of
+  this script before.
 
 runs:
   using: composite
