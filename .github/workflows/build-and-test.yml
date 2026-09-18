@@ -82,6 +82,64 @@ jobs:
         make -C api_examples SANITIZE=1 test
 
 
+  linux-gcc-legacy:
+    # Guard the oldest supported compilers. Their images are long-EOL Debian
+    # releases -- jessie for GCC 4.9, wheezy for GCC 4.8 -- whose glibc (2.19
+    # and 2.13) predates the 2.28 that the Node.js runtime behind every
+    # JavaScript action needs, so a `container:` job could not so much as run
+    # actions/checkout. Driving the build with `docker run` from an ordinary
+    # runner keeps every action on the host and asks the container for nothing
+    # but a compiler: the images already ship autoconf, automake, zlib.h and
+    # bzlib.h, so no package is installed and the container needs no network
+    # (jessie and wheezy are served from archive.debian.org now, and getting
+    # apt-get to talk to it is a job in itself). pandoc is absent, so configure
+    # reports that it is building without the manual pages; that is expected.
+    #
+    # The test suite then runs on the host against the binary the container
+    # built -- a binary linked against glibc 2.19 runs on the runner's much
+    # newer one -- because rejecting new code is only half of what an old
+    # compiler can do to us. The other half is miscompiling it, and only
+    # running the tests catches that.
+    #
+    # run_legacy_gcc.sh is the local equivalent of this job.
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    strategy:
+      fail-fast: false
+      matrix:
+        gcc: [ "4.8", "4.9" ]
+
+    name: linux-gcc-legacy (GCC ${{ matrix.gcc }})
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v6
+
+    - name: Build with GCC ${{ matrix.gcc }}
+      run: |
+        docker run --rm -v "$PWD":/w -w /w gcc:${{ matrix.gcc }} bash -c '
+          set -e
+          g++ --version | head -1
+          ./autogen.sh
+          ./configure CFLAGS="-O2" CXXFLAGS="-O2"
+          make clean
+          make ARFLAGS="cr" -j$(nproc)
+          bin/vsearch -v
+        '
+        # The container runs as root, so everything it just wrote is
+        # root-owned. Hand the workspace back before the host-side steps
+        # touch it.
+        sudo chown -R "$(id -u):$(id -g)" .
+
+    - name: Run tests
+      run: |
+        export PATH=$PWD/bin:$PATH
+        git clone --depth 1 --branch ${{ github.event_name == 'pull_request' && github.base_ref || github.ref_name }} https://github.com/frederic-mahe/vsearch-tests
+        cd vsearch-tests
+        bash ./run_all_tests.sh
+
+
   cross-build:
     runs-on: ubuntu-latest
     timeout-minutes: 20
