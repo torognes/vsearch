@@ -122,6 +122,8 @@ public:
   char * opt_db = nullptr;
   char * opt_dbmatched = nullptr;
   char * opt_dbnotmatched = nullptr;
+  char * opt_denoise_errin = nullptr;
+  char * opt_denoise_errout = nullptr;
   char * opt_fastaout = nullptr;
   char * opt_fastaout_rev = nullptr;
   char * opt_fastaout_discarded = nullptr;
@@ -284,6 +286,10 @@ public:
   double    opt_sintax_cutoff                = 0.0;
   double    opt_target_cov                   = 0.0;
   double    opt_unoise_alpha                 = 2.0;
+  double    opt_denoise_omega_a              = 1e-40;
+  double    opt_denoise_omega_c              = 1e-40;
+  int64_t   opt_denoise_maxconsist           = 10;
+  bool      opt_denoise_indels_model         = false;  // --denoise_indels ignore|model
   double    opt_weak_id                      = 10.0;
   double    opt_xn                           = 8.0;
 

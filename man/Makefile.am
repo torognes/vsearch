@@ -43,6 +43,7 @@ GENERATED_MANS = \
   manpages/vsearch-fastq.5 \
   manpages/vsearch-fastq_chars.1 \
   manpages/vsearch-fastq_convert.1 \
+  manpages/vsearch-fastq_denoise.1 \
   manpages/vsearch-fastq_eestats.1 \
   manpages/vsearch-fastq_eestats2.1 \
   manpages/vsearch-fastq_filter.1 \

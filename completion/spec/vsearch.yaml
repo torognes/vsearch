@@ -25,6 +25,7 @@
 enums:
   mask_method: [none, dust, soft]
   strand: [plus, both]
+  denoise_indels: [ignore, model]
 
 # ---------------------------------------------------------------------------
 # File-extension filters for INPUT files
@@ -74,6 +75,8 @@ commands:
   # FASTA <-> FASTQ
   - --fasta2fastq
   - --fastq_convert
+  # FASTQ denoising
+  - --fastq_denoise
   # FASTQ analysis
   - --fastq_chars
   - --fastq_stats
@@ -265,6 +268,10 @@ options:
     command: true
     arg: { type: file, ftype: fastq }
     desc: "convert between FASTQ file formats"
+  - name: --fastq_denoise
+    command: true
+    arg: { type: file, ftype: fastq }
+    desc: "correct sequencing errors with a learnt error model"
   - name: --fastq_chars
     command: true
     arg: { type: file, ftype: fastq }
@@ -501,6 +508,26 @@ options:
   - name: --fastq_tail
     arg: { type: int }
     desc: "min length of tails to count for fastq_chars (4)"
+
+  # -------------------- Parameters: fastq_denoise --------------------
+  - name: --denoise_errin
+    arg: { type: file }
+    desc: "read the error model from file instead of learning it"
+  - name: --denoise_errout
+    arg: { type: file }
+    desc: "write the error model to file"
+  - name: --denoise_indels
+    arg: { type: enum, values: denoise_indels }
+    desc: "ignore indels as DADA2 does, or model them (ignore)"
+  - name: --denoise_maxconsist
+    arg: { type: int }
+    desc: "maximum number of self-consistency rounds (10)"
+  - name: --denoise_omega_a
+    arg: { type: real }
+    desc: "p-value threshold for new partitions (1e-40)"
+  - name: --denoise_omega_c
+    arg: { type: real }
+    desc: "p-value threshold below which reads are not corrected (1e-40)"
 
   # -------------------- Parameters: fastq_eestats(2) --------------------
   - name: --ee_cutoffs
@@ -1782,6 +1809,37 @@ command_options:
     - --relabel_sha1
     - --sample
     - --sizein
+    - --sizeout
+    - --threads
+    - --xee
+    - --xlength
+    - --xsize
+  --fastq_denoise:
+    - --bzip2_decompress
+    - --denoise_errin
+    - --denoise_errout
+    - --denoise_indels
+    - --denoise_maxconsist
+    - --denoise_omega_a
+    - --denoise_omega_c
+    - --fasta_width
+    - --fastaout
+    - --fastq_ascii
+    - --fastq_qmax
+    - --fastq_qmin
+    - --fastqout
+    - --fastqout_discarded
+    - --gzip_decompress
+    - --label_suffix
+    - --lengthout
+    - --log
+    - --no_progress
+    - --quiet
+    - --relabel
+    - --relabel_keep
+    - --relabel_md5
+    - --relabel_self
+    - --relabel_sha1
     - --sizeout
     - --threads
     - --xee

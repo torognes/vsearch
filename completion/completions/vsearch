@@ -40,7 +40,7 @@ _vsearch() {
     cmd=""
     for ((i=1; i<COMP_CWORD; i++)); do
         case "${COMP_WORDS[i]}" in
-            --chimeras_denovo|--uchime_denovo|--uchime2_denovo|--uchime3_denovo|--uchime_ref|--cluster_fast|--cluster_size|--cluster_smallmem|--cluster_unoise|--sff_convert|--derep_fulllength|--derep_id|--derep_prefix|--derep_smallmem|--fastx_uniques|--rereplicate|--fasta2fastq|--fastq_convert|--fastq_chars|--fastq_stats|--fastq_eestats|--fastq_eestats2|--fastx_mask|--maskfasta|--orient|--fastq_join|--fastq_mergepairs|--fastx_syncpairs|--allpairs_global|--cut|--fastx_revcomp|--scramble|--search_exact|--usearch_global|--shuffle|--sortbylength|--sortbysize|--fastx_getseq|--fastx_getseqs|--fastx_getsubseq|--fastx_subsample|--sintax|--fastx_filter|--fastq_filter|--makeudb_usearch|--udb2fasta|--udbinfo|--udbstats|--help|--version)
+            --chimeras_denovo|--uchime_denovo|--uchime2_denovo|--uchime3_denovo|--uchime_ref|--cluster_fast|--cluster_size|--cluster_smallmem|--cluster_unoise|--sff_convert|--derep_fulllength|--derep_id|--derep_prefix|--derep_smallmem|--fastx_uniques|--rereplicate|--fasta2fastq|--fastq_convert|--fastq_denoise|--fastq_chars|--fastq_stats|--fastq_eestats|--fastq_eestats2|--fastx_mask|--maskfasta|--orient|--fastq_join|--fastq_mergepairs|--fastx_syncpairs|--allpairs_global|--cut|--fastx_revcomp|--scramble|--search_exact|--usearch_global|--shuffle|--sortbylength|--sortbysize|--fastx_getseq|--fastx_getseqs|--fastx_getsubseq|--fastx_subsample|--sintax|--fastx_filter|--fastq_filter|--makeudb_usearch|--udb2fasta|--udbinfo|--udbstats|--help|--version)
                 cmd="${COMP_WORDS[i]}"
                 break ;;
         esac
@@ -48,6 +48,9 @@ _vsearch() {
 
     # ---- Complete the value for a value-taking option ----
     case "$prev" in
+        --denoise_indels)
+            COMPREPLY=( $(compgen -W "ignore model" -- "$cur") )
+            return ;;
         --dbmask|--qmask)
             COMPREPLY=( $(compgen -W "none dust soft" -- "$cur") )
             return ;;
@@ -60,7 +63,7 @@ _vsearch() {
         --db)  # fasta_or_udb input
             _vsearch_filedir "fasta|fa|fna|ffn|udb|fasta.gz|fa.gz|fna.gz|ffn.gz|fasta.bz2|fa.bz2|fna.bz2|ffn.bz2"
             return ;;
-        --fastq_chars|--fastq_convert|--fastq_eestats|--fastq_eestats2|--fastq_filter|--fastq_join|--fastq_mergepairs|--fastq_stats|--reverse)  # fastq input
+        --fastq_chars|--fastq_convert|--fastq_denoise|--fastq_eestats|--fastq_eestats2|--fastq_filter|--fastq_join|--fastq_mergepairs|--fastq_stats|--reverse)  # fastq input
             _vsearch_filedir "fastq|fq|fastq.gz|fq.gz|fastq.bz2|fq.bz2"
             return ;;
         --cluster_fast|--cluster_size|--cluster_smallmem|--cluster_unoise|--fastx_filter|--fastx_getseq|--fastx_getseqs|--fastx_getsubseq|--fastx_mask|--fastx_revcomp|--fastx_subsample|--fastx_syncpairs|--fastx_uniques|--orient|--scramble|--sintax)  # fastx input
@@ -72,13 +75,13 @@ _vsearch() {
         --udb2fasta|--udbinfo|--udbstats)  # udb input
             _vsearch_filedir "udb"
             return ;;
-        --label_words|--labels)  # any file
+        --denoise_errin|--denoise_errout|--label_words|--labels)  # any file
             _vsearch_filedir ""
             return ;;
         --alnout|--biomout|--blast6out|--borderline|--centroids|--chimeras|--consout|--dbmatched|--dbnotmatched|--eetabbedout|--fastaout|--fastaout_discarded|--fastaout_discarded_rev|--fastaout_notmerged_fwd|--fastaout_notmerged_rev|--fastaout_orphans|--fastaout_orphans_rev|--fastaout_rev|--fastapairs|--fastqout|--fastqout_discarded|--fastqout_discarded_rev|--fastqout_notmerged_fwd|--fastqout_notmerged_rev|--fastqout_orphans|--fastqout_orphans_rev|--fastqout_rev|--lcaout|--log|--matched|--mothur_shared_out|--msaout|--nonchimeras|--notmatched|--notmatchedfq|--otutabout|--output|--profile|--qsegout|--samout|--tabbedout|--tsegout|--uc|--uchimealns|--uchimeout|--userout)  # output file
             _vsearch_filedir ""
             return ;;
-        --abskew|--alignwidth|--band|--chimeras_diff_pct|--chimeras_length_min|--chimeras_parents_max|--chimeras_parts|--clusters|--cut_pattern|--dn|--ee_cutoffs|--fasta_width|--fastq_ascii|--fastq_asciiout|--fastq_maxdiffpct|--fastq_maxdiffs|--fastq_maxee|--fastq_maxee_rate|--fastq_maxlen|--fastq_maxmergelen|--fastq_maxns|--fastq_minlen|--fastq_minmergelen|--fastq_minovlen|--fastq_minqual|--fastq_qmax|--fastq_qmaxout|--fastq_qmin|--fastq_qminout|--fastq_stripleft|--fastq_stripright|--fastq_tail|--fastq_truncee|--fastq_truncee_rate|--fastq_trunclen|--fastq_trunclen_keep|--fastq_truncqual|--gapext|--gapopen|--hspw|--id|--iddef|--idprefix|--idsuffix|--join_padgap|--join_padgapq|--label|--label_field|--label_suffix|--label_word|--lca_cutoff|--length_cutoffs|--match|--max_unmasked_pct|--maxaccepts|--maxdiffs|--maxgaps|--maxhits|--maxid|--maxqsize|--maxqt|--maxrejects|--maxseqlength|--maxsize|--maxsizeratio|--maxsl|--maxsubs|--maxuniquesize|--mid|--min_unmasked_pct|--mincols|--mindiffs|--mindiv|--minh|--minhsp|--minqt|--minseqlength|--minsize|--minsizeratio|--minsl|--mintsize|--minuniquesize|--minwordmatches|--mismatch|--pattern|--query_cov|--randseed|--read_separators|--relabel|--rowlen|--sample|--sample_pct|--sample_size|--scramble_kmer|--sintax_cutoff|--slots|--subseq_end|--subseq_start|--target_cov|--threads|--topn|--unoise_alpha|--userfields|--weak_id|--wordlength|--xdrop_nw|--xn)
+        --abskew|--alignwidth|--band|--chimeras_diff_pct|--chimeras_length_min|--chimeras_parents_max|--chimeras_parts|--clusters|--cut_pattern|--denoise_maxconsist|--denoise_omega_a|--denoise_omega_c|--dn|--ee_cutoffs|--fasta_width|--fastq_ascii|--fastq_asciiout|--fastq_maxdiffpct|--fastq_maxdiffs|--fastq_maxee|--fastq_maxee_rate|--fastq_maxlen|--fastq_maxmergelen|--fastq_maxns|--fastq_minlen|--fastq_minmergelen|--fastq_minovlen|--fastq_minqual|--fastq_qmax|--fastq_qmaxout|--fastq_qmin|--fastq_qminout|--fastq_stripleft|--fastq_stripright|--fastq_tail|--fastq_truncee|--fastq_truncee_rate|--fastq_trunclen|--fastq_trunclen_keep|--fastq_truncqual|--gapext|--gapopen|--hspw|--id|--iddef|--idprefix|--idsuffix|--join_padgap|--join_padgapq|--label|--label_field|--label_suffix|--label_word|--lca_cutoff|--length_cutoffs|--match|--max_unmasked_pct|--maxaccepts|--maxdiffs|--maxgaps|--maxhits|--maxid|--maxqsize|--maxqt|--maxrejects|--maxseqlength|--maxsize|--maxsizeratio|--maxsl|--maxsubs|--maxuniquesize|--mid|--min_unmasked_pct|--mincols|--mindiffs|--mindiv|--minh|--minhsp|--minqt|--minseqlength|--minsize|--minsizeratio|--minsl|--mintsize|--minuniquesize|--minwordmatches|--mismatch|--pattern|--query_cov|--randseed|--read_separators|--relabel|--rowlen|--sample|--sample_pct|--sample_size|--scramble_kmer|--sintax_cutoff|--slots|--subseq_end|--subseq_start|--target_cov|--threads|--topn|--unoise_alpha|--userfields|--weak_id|--wordlength|--xdrop_nw|--xn)
             return ;;
     esac
 
@@ -120,6 +123,8 @@ _vsearch() {
             opts="--bzip2_decompress --fastq_asciiout --fastq_qmaxout --fastqout --gzip_decompress --label_suffix --lengthout --log --no_progress --quiet --relabel --relabel_keep --relabel_md5 --relabel_self --relabel_sha1 --sample --sizein --sizeout --threads --xee --xlength --xsize";;
         --fastq_convert)
             opts="--bzip2_decompress --fastq_ascii --fastq_asciiout --fastq_qmax --fastq_qmaxout --fastq_qmin --fastq_qminout --fastq_solexa --fastqout --gzip_decompress --label_suffix --lengthout --log --no_progress --quiet --relabel --relabel_keep --relabel_md5 --relabel_self --relabel_sha1 --sample --sizein --sizeout --threads --xee --xlength --xsize";;
+        --fastq_denoise)
+            opts="--bzip2_decompress --denoise_errin --denoise_errout --denoise_indels --denoise_maxconsist --denoise_omega_a --denoise_omega_c --fasta_width --fastaout --fastq_ascii --fastq_qmax --fastq_qmin --fastqout --fastqout_discarded --gzip_decompress --label_suffix --lengthout --log --no_progress --quiet --relabel --relabel_keep --relabel_md5 --relabel_self --relabel_sha1 --sizeout --threads --xee --xlength --xsize";;
         --fastq_chars)
             opts="--bzip2_decompress --fastq_tail --gzip_decompress --log --no_progress --quiet --threads";;
         --fastq_stats)
@@ -185,7 +190,7 @@ _vsearch() {
         --version)
             opts="--log --quiet --threads";;
         *)
-            opts="--allpairs_global --chimeras_denovo --cluster_fast --cluster_size --cluster_smallmem --cluster_unoise --cut --derep_fulllength --derep_id --derep_prefix --derep_smallmem --fasta2fastq --fastq_chars --fastq_convert --fastq_eestats --fastq_eestats2 --fastq_filter --fastq_join --fastq_mergepairs --fastq_stats --fastx_filter --fastx_getseq --fastx_getseqs --fastx_getsubseq --fastx_mask --fastx_revcomp --fastx_subsample --fastx_syncpairs --fastx_uniques --help --makeudb_usearch --maskfasta --orient --rereplicate --scramble --search_exact --sff_convert --shuffle --sintax --sortbylength --sortbysize --uchime2_denovo --uchime3_denovo --uchime_denovo --uchime_ref --udb2fasta --udbinfo --udbstats --usearch_global --version -h -v";;
+            opts="--allpairs_global --chimeras_denovo --cluster_fast --cluster_size --cluster_smallmem --cluster_unoise --cut --derep_fulllength --derep_id --derep_prefix --derep_smallmem --fasta2fastq --fastq_chars --fastq_convert --fastq_denoise --fastq_eestats --fastq_eestats2 --fastq_filter --fastq_join --fastq_mergepairs --fastq_stats --fastx_filter --fastx_getseq --fastx_getseqs --fastx_getsubseq --fastx_mask --fastx_revcomp --fastx_subsample --fastx_syncpairs --fastx_uniques --help --makeudb_usearch --maskfasta --orient --rereplicate --scramble --search_exact --sff_convert --shuffle --sintax --sortbylength --sortbysize --uchime2_denovo --uchime3_denovo --uchime_denovo --uchime_ref --udb2fasta --udbinfo --udbstats --usearch_global --version -h -v";;
     esac
     COMPREPLY=( $(compgen -W "$opts" -- "$cur") )
 }

@@ -70,7 +70,7 @@
   /*       0         1         2         3         4         5         6         7          */
   /*       01234567890123456789012345678901234567890123456789012345678901234567890123456789 */
   // C++17 refactoring: deduce the size with CTAD and drop this constant
-  static constexpr std::size_t help_line_count = 562;
+  static constexpr std::size_t help_line_count = 581;
   static constexpr std::array<char const *, help_line_count> help_message =
     {{
       "\n",
@@ -260,6 +260,25 @@
       "  --fastq_qminout INT         minimum base quality value for FASTQ output (0)\n",
       " Output\n",
       "  --fastqout FILENAME         FASTQ output filename for converted sequences\n",
+      "\n",
+      "FASTQ denoising (correction of sequencing errors)\n",
+      "  --fastq_denoise FILENAME    correct reads with an error model learnt from them\n",
+      " Parameters\n",
+      "  --denoise_errin FILENAME    read the error model instead of learning it\n",
+      "  --denoise_indels STRING     ignore indels as DADA2, or model them (ignore)\n",
+      "  --denoise_maxconsist INT    maximum number of self-consistency rounds (10)\n",
+      "  --denoise_omega_a REAL      p-value threshold for new sequences (1e-40)\n",
+      "  --denoise_omega_c REAL      p-value threshold for correcting reads (1e-40)\n",
+      "  --fastq_ascii INT           FASTQ input quality score ASCII base char (33)\n",
+      "  --fastq_qmax INT            maximum base quality value for FASTQ input (41)\n",
+      "  --fastq_qmin INT            minimum base quality value for FASTQ input (0)\n",
+      "  --threads INT               number of threads to use, zero for all cores (0)\n",
+      " Output\n",
+      "  --denoise_errout FILENAME   output the error model to a tab-separated file\n",
+      "  --fastaout FILENAME         FASTA output filename for denoised sequences\n",
+      "  --fastqout FILENAME         FASTQ output filename for corrected reads\n",
+      "  --fastqout_discarded FN     FASTQ output filename for uncorrected reads\n",
+      "  --sizeout                   write abundance of denoised sequences to FASTA\n",
       "\n",
       "FASTQ format detection and quality analysis\n",
       "  --fastq_chars FILENAME      analyse FASTQ file for version and quality range\n",
