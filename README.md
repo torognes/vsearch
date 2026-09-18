@@ -183,6 +183,8 @@ Thanks to Daniel McDonald (with help from Anthropic's Claude) there is now an AP
 
 **QIIME 2 plugin** Thanks to the [QIIME 2](https://github.com/qiime2) team, there is now a plugin called [q2-vsearch](https://github.com/qiime2/q2-vsearch) for [QIIME 2](https://qiime2.org).
 
+**Rsearch R package** Thanks to [Cassandra Stamsaas](https://github.com/CassandraHjo) and colleagues, there is now an R package called [Rsearch](https://github.com/CassandraHjo/Rsearch) offering a user-friendly interface to VSEARCH from within [R](https://www.r-project.org/), with additional visualization and parameter tuning tools ([Stamsaas et al. 2026](https://doi.org/10.64898/2026.09.10.750626)).
+
 
 ## Converting output to a biom file for use in QIIME and other software
 
@@ -401,3 +403,8 @@ doi:[10.1016/j.cub.2014.02.050](https://doi.org/10.1016/j.cub.2014.02.050)
 **Faster Smith-Waterman database searches by inter-sequence SIMD parallelisation.**
 *BMC Bioinformatics*, 12: 221.
 doi:[10.1186/1471-2105-12-221](https://doi.org/10.1186/1471-2105-12-221)
+
+* Stamsaas C, Rognes T, Rudi K, Snipen L, Vinje H (2026)
+**Rsearch: An R interface to VSEARCH supporting visualization and parameter tuning.**
+*bioRxiv*.
+doi:[10.64898/2026.09.10.750626](https://doi.org/10.64898/2026.09.10.750626)
