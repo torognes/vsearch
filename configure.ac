@@ -45,6 +45,58 @@ AC_PROG_INSTALL
 # native library on macOS), which a bare -lpthread does not do portably.
 CXXFLAGS="$CXXFLAGS -pthread"
 
+# Warning flags that are not universal. vsearch supports compilers as old as
+# GCC 4.8, which predates several of the warnings src/Makefile.am asks for,
+# and the two spellings fail differently: an unknown *positive* -W option is
+# a hard error in GCC, so an --enable-debug build there would not even start,
+# while an unknown -Wno-* option is accepted silently and then reported once
+# per translation unit as soon as any other diagnostic fires. Probe the
+# flags rather than test compiler versions, so the lists in src/Makefile.am
+# stay free to name the newest warnings and each workaround disappears by
+# itself once the supported floor moves past the compiler that needed it.
+VSEARCH_WARN_SUPPRESS=
+VSEARCH_WARN_DEBUG_RECENT=
+vsearch_saved_CXXFLAGS="$CXXFLAGS"
+
+# Debug-only warnings introduced by GCC 6 (-Wduplicated-branches,
+# -Wduplicated-cond, -Wnull-dereference) and GCC 7 (-Wformat-overflow).
+for vsearch_warning in -Wduplicated-branches -Wduplicated-cond \
+                       -Wformat-overflow -Wnull-dereference; do
+  AC_MSG_CHECKING([whether $CXX accepts $vsearch_warning])
+  CXXFLAGS="$vsearch_saved_CXXFLAGS -std=c++11 $vsearch_warning"
+  AC_COMPILE_IFELSE([AC_LANG_PROGRAM([], [])],
+    [AC_MSG_RESULT([yes])
+     VSEARCH_WARN_DEBUG_RECENT="$VSEARCH_WARN_DEBUG_RECENT $vsearch_warning"],
+    [AC_MSG_RESULT([no])])
+done
+
+# A -Wno-* option has to be probed through its positive spelling: that is
+# the one an older compiler rejects. -Wignored-attributes arrived in GCC 6.
+AC_MSG_CHECKING([whether $CXX accepts -Wignored-attributes])
+CXXFLAGS="$vsearch_saved_CXXFLAGS -std=c++11 -Wignored-attributes"
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM([], [])],
+  [AC_MSG_RESULT([yes])
+   VSEARCH_WARN_SUPPRESS="$VSEARCH_WARN_SUPPRESS -Wno-ignored-attributes"],
+  [AC_MSG_RESULT([no])])
+
+# GCC before 5 reports -Wmissing-field-initializers (implied by -Wextra) for
+# "T value {}", which initializes every member and leaves nothing to report
+# (GCC PR 36750). That is about a thousand diagnostics on 4.8 and 4.9, enough
+# to bury the ones worth reading, so suppress it exactly where the bug is --
+# detected by behaviour, not by version number.
+AC_MSG_CHECKING([whether $CXX warns about a value-initialized aggregate])
+CXXFLAGS="$vsearch_saved_CXXFLAGS -std=c++11 -Wextra -Werror"
+AC_COMPILE_IFELSE(
+  [AC_LANG_PROGRAM([[struct Aggregate { int first; int second; };]],
+                   [[Aggregate const value {}; (void) value.first;]])],
+  [AC_MSG_RESULT([no])],
+  [AC_MSG_RESULT([yes])
+   VSEARCH_WARN_SUPPRESS="$VSEARCH_WARN_SUPPRESS -Wno-missing-field-initializers"])
+
+CXXFLAGS="$vsearch_saved_CXXFLAGS"
+AC_SUBST([VSEARCH_WARN_SUPPRESS])
+AC_SUBST([VSEARCH_WARN_DEBUG_RECENT])
+
 # Checks for libraries.
 AC_CHECK_LIB([dl], [dlopen])
 AC_CHECK_LIB([psapi], [GetProcessMemoryInfo])
