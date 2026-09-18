@@ -1,0 +1,341 @@
+name: Release binaries
+
+# Builds the fourteen pre-compiled assets a release carries and attaches them
+# to it. Replaces a manual procedure: the v2.31.0 assets were packed by hand
+# with bsdtar on macOS, which is why every Linux tarball shipped an
+# AppleDouble ._LICENSE_GNU_GPL3.txt and com.apple.metadata xattrs.
+#
+# Three decisions shape this file.
+#
+# 1. Every asset is built from the SOURCE TARBALL, not from the checkout. The
+#    tarball ships configure and the 63 manual pages, so no job needs
+#    autoconf, automake or pandoc -- which is what lets the macOS jobs drop
+#    the Homebrew dance in .github/actions/setup-macos-build-deps, and what
+#    lets the CentOS 7 job work at all. It also means every release tests its
+#    own source distribution on fourteen platforms.
+#
+# 2. Containers are entered with "docker run", not with a job-level
+#    "container:". GitHub injects its own Node runtime into a container job to
+#    run actions/checkout and friends, and node20 needs glibc >= 2.28. The
+#    CentOS 7 image is glibc 2.17, so a container job there cannot start at
+#    all. Running the build inside "docker run" from an ordinary runner keeps
+#    every JS action on the host, where it is guaranteed to work, and keeps
+#    all the container jobs uniform.
+#
+# 3. The "-static" assets are linked -static-libstdc++ -static-libgcc, NOT
+#    -static. A fully static glibc binary segfaults at startup on any host
+#    whose glibc differs from the build host's, because DynamicLibraries()
+#    dlopen()s libz.so.1 and the process then holds two glibcs; measured, the
+#    crash is in _dl_init called from __dlopen called from the constructor,
+#    and it hits every command, not just compressed input. Static libstdc++
+#    removes the dependency that actually bites users on old systems, keeps
+#    dlopen working, and leaves glibc portability to the old build base.
+#    NOTE: the asset names are unchanged so that existing download URLs keep
+#    working, so "-static" now means "no libstdc++/libgcc dependency" rather
+#    than "no dependencies at all". Renaming them is a maintainer decision.
+
+on:
+  release:
+    types: [published]
+  # A manual run builds and verifies every asset without touching a release.
+  # Give it a tag to attach the results to a release that already exists.
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Existing release tag to attach the assets to (leave empty to only build them)"
+        required: false
+        default: ""
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  # Pinned deliberately. debian:11 is end-of-life (2026-08-31) and that is the
+  # point: its glibc 2.31 is the floor the hand-built assets already had.
+  # manylinux2014 is CentOS 7.9 -- glibc 2.17 with a modern GCC -- and stands
+  # in for the old ubi7 asset, because the ubi7 image's own repositories no
+  # longer carry gcc-c++ ("No package gcc-c++ available").
+  DEBIAN_IMAGE: docker.io/library/debian:11
+  CENTOS7_IMAGE: quay.io/pypa/manylinux2014_x86_64
+
+jobs:
+  dist:
+    name: Source distribution
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    outputs:
+      version: ${{ steps.build.outputs.version }}
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v6
+
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y autoconf automake g++ make pandoc libbz2-dev zlib1g-dev
+
+    - name: Build the tarball
+      id: build
+      run: |
+        ./autogen.sh
+        ./configure
+        make dist
+        version=$(sed -n 's/^AC_INIT(\[vsearch\], *\[\([^]]*\)\].*/\1/p' configure.ac)
+        test -f "vsearch-${version}.tar.gz"
+        echo "version=${version}" >> "$GITHUB_OUTPUT"
+        if [ "${{ github.event_name }}" = "release" ] ; then
+          tag="${{ github.event.release.tag_name }}"
+          if [ "${tag}" != "v${version}" ] ; then
+            echo "::error::release tag ${tag} does not match configure.ac version ${version}" >&2
+            exit 1
+          fi
+        fi
+
+    - name: Upload
+      uses: actions/upload-artifact@v7
+      with:
+        name: source-distribution
+        path: vsearch-*.tar.gz
+
+  debian:
+    name: ${{ matrix.target.asset }}
+    needs: dist
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    strategy:
+      fail-fast: false
+      matrix:
+        # libsimde-dev only where it is actually included: src/arch/intrinsics.hpp
+        # reaches <simde/x86/avx512.h> only when the target is neither x86_64
+        # nor __PPC__ nor __aarch64__, i.e. mips64el and riscv64 alone.
+        target:
+          - { asset: linux-x86_64,          host: "",                      pkgs: "",                                         ld: "" }
+          - { asset: linux-aarch64,         host: aarch64-linux-gnu,       pkgs: "g++-aarch64-linux-gnu",                    ld: "" }
+          - { asset: linux-aarch64-static,  host: aarch64-linux-gnu,       pkgs: "g++-aarch64-linux-gnu",                    ld: "-static-libstdc++ -static-libgcc" }
+          - { asset: linux-ppc64le,         host: powerpc64le-linux-gnu,   pkgs: "g++-powerpc64le-linux-gnu",                ld: "" }
+          - { asset: linux-ppc64le-static,  host: powerpc64le-linux-gnu,   pkgs: "g++-powerpc64le-linux-gnu",                ld: "-static-libstdc++ -static-libgcc" }
+          - { asset: linux-mips64el,        host: mips64el-linux-gnuabi64, pkgs: "g++-mips64el-linux-gnuabi64 libsimde-dev", ld: "" }
+          - { asset: linux-mips64el-static, host: mips64el-linux-gnuabi64, pkgs: "g++-mips64el-linux-gnuabi64 libsimde-dev", ld: "-static-libstdc++ -static-libgcc" }
+          - { asset: linux-riscv64,         host: riscv64-linux-gnu,       pkgs: "g++-riscv64-linux-gnu libsimde-dev",       ld: "" }
+          - { asset: linux-riscv64-static,  host: riscv64-linux-gnu,       pkgs: "g++-riscv64-linux-gnu libsimde-dev",       ld: "-static-libstdc++ -static-libgcc" }
+          - { asset: win-x86_64,            host: x86_64-w64-mingw32,      pkgs: "mingw-w64 libz-mingw-w64-dev zip",         ld: "", binary: vsearch.exe, format: zip }
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v6
+
+    - name: Download the source distribution
+      uses: actions/download-artifact@v7
+      with:
+        name: source-distribution
+
+    - name: Unpack
+      run: tar xzf "vsearch-${{ needs.dist.outputs.version }}.tar.gz"
+
+    # bullseye is EOL: apt-get update still succeeds because the indices are
+    # served, but the bullseye-security pool is already 404 and the install of
+    # g++ then fails on libc6-dev. archive.debian.org has no bullseye-security
+    # Release file yet. The image ships snapshot.debian.org lines commented out
+    # for exactly this case; they also pin the package set, which is what we
+    # want for a release build.
+    - name: Build ${{ matrix.target.asset }}
+      run: |
+        docker run --rm -v "$PWD":/work -w /work \
+          -e SRCDIR="/work/vsearch-${{ needs.dist.outputs.version }}" \
+          -e ASSET="${{ matrix.target.asset }}" \
+          -e HOST="${{ matrix.target.host }}" \
+          -e LDFLAGS_EXTRA="${{ matrix.target.ld }}" \
+          -e BINARY="${{ matrix.target.binary }}" \
+          -e FORMAT="${{ matrix.target.format }}" \
+          -e OUTDIR=/work/assets \
+          "${DEBIAN_IMAGE}" bash -c '
+            set -eu
+            sed -i "s|^# deb http://snapshot|deb http://snapshot|" /etc/apt/sources.list
+            sed -i "s|^deb http://deb.debian.org|# deb http://deb.debian.org|" /etc/apt/sources.list
+            apt-get -o Acquire::Check-Valid-Until=false update -qq
+            apt-get install -y -qq g++ make zlib1g-dev libbz2-dev ${{ matrix.target.pkgs }}
+            g++ --version | head -n 1
+            ldd --version | head -n 1
+            sh /work/.github/scripts/build-asset.sh
+          '
+
+    - name: Verify
+      env:
+        ASSET: ${{ matrix.target.asset }}
+        LD: ${{ matrix.target.ld }}
+      run: .github/scripts/verify-asset.sh "assets" "${{ needs.dist.outputs.version }}"
+
+    - name: Upload
+      uses: actions/upload-artifact@v7
+      with:
+        name: asset-${{ matrix.target.asset }}
+        path: assets/*
+
+  centos7:
+    name: linux-x86_64-ubi7
+    needs: dist
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v6
+
+    - name: Download the source distribution
+      uses: actions/download-artifact@v7
+      with:
+        name: source-distribution
+
+    - name: Unpack
+      run: tar xzf "vsearch-${{ needs.dist.outputs.version }}.tar.gz"
+
+    - name: Build
+      run: |
+        docker run --rm -v "$PWD":/work -w /work \
+          -e SRCDIR="/work/vsearch-${{ needs.dist.outputs.version }}" \
+          -e ASSET=linux-x86_64-ubi7 \
+          -e LDFLAGS_EXTRA="-static-libstdc++ -static-libgcc" \
+          -e OUTDIR=/work/assets \
+          "${CENTOS7_IMAGE}" bash -c '
+            set -eu
+            yum -y install bzip2-devel >/dev/null
+            g++ --version | head -n 1
+            ldd --version | head -n 1
+            sh /work/.github/scripts/build-asset.sh
+          '
+
+    - name: Verify
+      env:
+        ASSET: linux-x86_64-ubi7
+        LD: "-static-libstdc++ -static-libgcc"
+        MAX_GLIBC: "2.17"
+      run: .github/scripts/verify-asset.sh "assets" "${{ needs.dist.outputs.version }}"
+
+    - name: Upload
+      uses: actions/upload-artifact@v7
+      with:
+        name: asset-linux-x86_64-ubi7
+        path: assets/*
+
+  macos:
+    name: ${{ matrix.target.asset }}
+    needs: dist
+    runs-on: ${{ matrix.target.runner }}
+    timeout-minutes: 30
+
+    strategy:
+      fail-fast: false
+      matrix:
+        target:
+          - { asset: macos-aarch64, runner: macos-latest }
+          - { asset: macos-x86_64,  runner: macos-15-intel }
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v6
+
+    - name: Download the source distribution
+      uses: actions/download-artifact@v7
+      with:
+        name: source-distribution
+
+    # No Homebrew step: building from the tarball needs no autoconf, no
+    # automake and no pandoc, and the macOS SDK already provides zlib.h and
+    # bzlib.h. MACOSX_DEPLOYMENT_TARGET is pinned to 10.9 by configure.ac.
+    - name: Build
+      env:
+        ASSET: ${{ matrix.target.asset }}
+        LDFLAGS_EXTRA: "-static-libstdc++"
+        OUTDIR: assets
+      run: |
+        tar xzf "vsearch-${{ needs.dist.outputs.version }}.tar.gz"
+        SRCDIR="$PWD/vsearch-${{ needs.dist.outputs.version }}" \
+        OUTDIR="$PWD/assets" \
+          sh .github/scripts/build-asset.sh
+
+    - name: Check the binary runs
+      run: |
+        tar xzf "assets/vsearch-${{ needs.dist.outputs.version }}-${{ matrix.target.asset }}.tar.gz"
+        "vsearch-${{ needs.dist.outputs.version }}-${{ matrix.target.asset }}/bin/vsearch" --version
+
+    - name: Upload
+      uses: actions/upload-artifact@v7
+      with:
+        name: asset-${{ matrix.target.asset }}
+        path: assets/*
+
+  macos-universal:
+    name: macos-universal
+    needs: [dist, macos]
+    runs-on: macos-latest
+    timeout-minutes: 15
+
+    steps:
+    - name: Download the two macOS assets
+      uses: actions/download-artifact@v7
+      with:
+        pattern: asset-macos-*
+        merge-multiple: true
+
+    # lipo joins the two single-architecture binaries; everything else in the
+    # asset (the manual, the licences) is architecture-independent, so the
+    # arm64 tree is reused as the template rather than built a third time.
+    - name: Combine
+      run: |
+        version="${{ needs.dist.outputs.version }}"
+        for arch in aarch64 x86_64 ; do
+          tar xzf "vsearch-${version}-macos-${arch}.tar.gz"
+        done
+        universal="vsearch-${version}-macos-universal"
+        rm -rf "${universal}" && cp -R "vsearch-${version}-macos-aarch64" "${universal}"
+        lipo -create -output "${universal}/bin/vsearch" \
+             "vsearch-${version}-macos-aarch64/bin/vsearch" \
+             "vsearch-${version}-macos-x86_64/bin/vsearch"
+        lipo -info "${universal}/bin/vsearch"
+        "${universal}/bin/vsearch" --version
+        mkdir -p assets
+        tar --format=ustar -czf "assets/${universal}.tar.gz" "${universal}"
+
+    - name: Upload
+      uses: actions/upload-artifact@v7
+      with:
+        name: asset-macos-universal
+        path: assets/*
+
+  publish:
+    name: Attach the assets to the release
+    needs: [dist, debian, centos7, macos, macos-universal]
+    if: github.event_name == 'release' || inputs.tag != ''
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    permissions:
+      contents: write
+
+    steps:
+    - name: Download every asset
+      uses: actions/download-artifact@v7
+      with:
+        pattern: asset-*
+        merge-multiple: true
+
+    # Fourteen, no more and no less: a silently missing asset is exactly the
+    # kind of thing nobody notices until a user reports a dead link.
+    - name: Check the set is complete
+      run: |
+        ls -l
+        count=$(ls vsearch-*.tar.gz vsearch-*.zip 2>/dev/null | wc -l)
+        echo "${count} assets"
+        test "${count}" -eq 14 || { echo "::error::expected 14 assets, found ${count}" >&2; exit 1; }
+        sha256sum vsearch-*.tar.gz vsearch-*.zip | tee SHA256SUMS
+
+    - name: Upload to the release
+      env:
+        GH_TOKEN: ${{ github.token }}
+      run: |
+        gh release upload "${{ github.event.release.tag_name || inputs.tag }}" \
+           vsearch-*.tar.gz vsearch-*.zip SHA256SUMS \
+           --repo "${{ github.repository }}" --clobber
