@@ -5,7 +5,7 @@ RUN apk add --no-cache \
         libstdc++ zlib-dev bzip2-dev \
         autoconf automake make g++ && \
     ./autogen.sh && \
-    ./configure CFLAGS="-O2" CXXFLAGS="-O2" && \
+    ./configure CFLAGS="-O3" CXXFLAGS="-O3" && \
     make clean && \
     make && \
     make install && \

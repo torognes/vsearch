@@ -1,6 +1,6 @@
 bin_PROGRAMS = $(top_builddir)/bin/vsearch
 
-AM_CFLAGS = -Wall -Wextra -Wpedantic -Wno-ignored-attributes
+AM_CFLAGS = -Wall -Wextra -Wpedantic $(VSEARCH_WARN_SUPPRESS)
 
 # Conditionally set profiling based on ENABLE_PROFILING
 if ENABLE_PROFILING
@@ -31,11 +31,17 @@ if ENABLE_DEBUG
 #   equivalent. These paths are only compiled when cross-building for
 #   POWER/ARM.
 AM_CFLAGS += -UNDEBUG -D_GLIBCXX_DEBUG -Wcast-align -Wdate-time \
-             -Wdouble-promotion -Wduplicated-branches -Wduplicated-cond -Wfloat-equal \
-             -Wformat=2 -Wformat-overflow -Wlogical-op -Wnull-dereference \
+             -Wdouble-promotion -Wfloat-equal \
+             -Wformat=2 -Wlogical-op \
              -Wshadow -Wuninitialized \
              -Wunsafe-loop-optimizations -Wunused -Wunused-macros -Wvla \
-             -Wno-ignored-attributes
+             $(VSEARCH_WARN_DEBUG_RECENT) $(VSEARCH_WARN_SUPPRESS)
+             # $(VSEARCH_WARN_DEBUG_RECENT): -Wduplicated-branches,
+             # -Wduplicated-cond, -Wformat-overflow and -Wnull-dereference,
+             # each passed by configure only when the compiler has it. GCC
+             # gained them in 6 and 7, and naming one unconditionally makes
+             # an --enable-debug build fail outright on GCC 4.8/4.9, where an
+             # unknown positive -W option is an error rather than a warning.
              # -Wno-ignored-attributes: ignore warnings due to
              # std::array<__m128i> (__m128i is declared with
              # alignment attributes which are ignored by the

@@ -28,7 +28,7 @@ VSEARCH stands for vectorized search, as the tool takes advantage of parallelism
 
 Various packages, plugins and wrappers for VSEARCH are also available from other sources - see [below](https://github.com/torognes/vsearch#packages-plugins-and-wrappers).
 
-The source code compiles correctly with `gcc` (versions 4.8.5 to 14.0)
+The source code compiles correctly with `gcc` (version 4.8.5 and later)
 and `llvm-clang` (3.8 to 19.0). The source code should also compile on
 [FreeBSD](https://www.freebsd.org/) and
 [NetBSD](https://www.netbsd.org/) systems.
@@ -55,18 +55,18 @@ In the example below, VSEARCH will identify sequences in the file database.fsa t
 wget https://github.com/torognes/vsearch/releases/download/v2.32.0/vsearch-2.32.0.tar.gz
 tar xzf vsearch-2.32.0.tar.gz
 cd vsearch-2.32.0
-./configure CFLAGS="-O3" CXXFLAGS="-O3"
+./configure
 make ARFLAGS="cr"
 sudo make install
 ```
 
-You may customize the installation directory using the `--prefix=DIR` option to `configure`. If the compression libraries [zlib](https://www.zlib.net) and/or [bzip2](https://www.sourceware.org/bzip2/) are installed on the system, they will be detected automatically and support for compressed files will be included in vsearch (see section **Dependencies** below). Support for compressed files may be disabled using the `--disable-zlib` and `--disable-bzip2` options to `configure`. The manual pages are generated from markdown sources with [pandoc](https://pandoc.org/): a release tarball ships them ready-made and needs no pandoc, while building them from a git checkout does. `configure` reports whether it found pandoc, and a build without it simply produces no manual (`--disable-manpages` asks for that explicitly). It is recommended to run configure with the options `CFLAGS="-O3"` and `CXXFLAGS="-O3"`. Other  options may also be applied to `configure`, please run `configure -h` to see them all. The GCC C++ (`g++`) compiler (or `clang`) and `make` are required to build vsearch. The source distribution above ships the generated build files (`configure`, `Makefile.in`, ...), so GNU autoconf and automake are **not** needed to build it. They are needed to build from a git checkout, which does not track those files: run `./autogen.sh` first (autoconf version 2.63 or later), as shown below. The same applies after modifying `configure.ac` or a `Makefile.am`. Version 3.82 or later of `make` may be required on Linux, while version 3.81 is sufficient on macOS.
+You may customize the installation directory using the `--prefix=DIR` option to `configure`. If the compression libraries [zlib](https://www.zlib.net) and/or [bzip2](https://www.sourceware.org/bzip2/) are installed on the system, they will be detected automatically and support for compressed files will be included in vsearch (see section **Dependencies** below). Support for compressed files may be disabled using the `--disable-zlib` and `--disable-bzip2` options to `configure`. The manual pages are generated from markdown sources with [pandoc](https://pandoc.org/): a release tarball ships them ready-made and needs no pandoc, while building them from a git checkout does. `configure` reports whether it found pandoc, and a build without it simply produces no manual (`--disable-manpages` asks for that explicitly). `configure` compiles at `-O3` by default, which is the level vsearch is tested and released with; passing `CFLAGS` or `CXXFLAGS` replaces that default entirely, so a build that needs its own flags should name an optimization level among them. Other  options may also be applied to `configure`, please run `configure -h` to see them all. The GCC C++ (`g++`) compiler, version 4.8 or later, (or `clang`) and `make` are required to build vsearch. The source distribution above ships the generated build files (`configure`, `Makefile.in`, ...), so GNU autoconf and automake are **not** needed to build it. They are needed to build from a git checkout, which does not track those files: run `./autogen.sh` first (autoconf version 2.63 or later), as shown below. The same applies after modifying `configure.ac` or a `Makefile.am`. Version 3.82 or later of `make` may be required on Linux, while version 3.81 is sufficient on macOS.
 
 **Out-of-tree (VPATH) builds** `configure` and `make` may be run from a separate, initially empty directory instead of the source tree. All object files, libraries and the final binary are then written under that build directory, leaving the source tree pristine, and several builds (for example debug and release, or different cross-compilation targets) can coexist from a single checkout:
 
 ```
 mkdir build && cd build
-../configure CFLAGS="-O3" CXXFLAGS="-O3"
+../configure
 make ARFLAGS="cr"
 ```
 
@@ -82,7 +82,7 @@ Instead of downloading the source distribution as a compressed archive, you coul
 git clone https://github.com/torognes/vsearch.git
 cd vsearch
 ./autogen.sh
-./configure CFLAGS="-O3" CXXFLAGS="-O3"
+./configure
 make ARFLAGS="cr"
 sudo make install
 ```
@@ -203,7 +203,11 @@ doi: [10.7717/peerj.2584](https://doi.org/10.7717/peerj.2584)
 
 ## Dependencies
 
-Compiling VSEARCH requires either GCC (`g++`) or `clang` and `make`. The autotools (autoconf/automake) are not needed to build the source distribution, which ships the generated build files, and are required to build from a git checkout, which generates them with `./autogen.sh`. Optionally, the header files for the following two optional libraries are required if support for gzip and bzip2 compressed FASTA and FASTQ input files is needed:
+Compiling VSEARCH requires a C++ compiler and `make`. The code is written in C++11, and the oldest supported compiler is GCC 4.8: that version and every more recent one will do, as will `clang`. GCC 4.8 and 4.9 are built and tested by the `linux-gcc-legacy` continuous integration job, and `run_legacy_gcc.sh` runs the same two builds locally.
+
+The autotools are needed as well: `autoconf` (version 2.63 or later) and `automake` generate the build system (`configure`, the `Makefile.in` files) from `configure.ac` and the `Makefile.am` files, which a git checkout does not track. Run `./autogen.sh` before `./configure`, and again after editing `configure.ac` or a `Makefile.am`. Only a build from the source distribution can do without them, since the release tarball ships the generated files.
+
+Optionally, the header files for the following two optional libraries are required if support for gzip and bzip2 compressed FASTA and FASTQ input files is needed:
 
 * libz (zlib library) (`zlib.h` header file, available as `zlib1g-dev` on Debian-based distributions) (optional)
 * libbz2 (bzip2lib library) (`bzlib.h` header file, available as `libbz2-dev`on Debian-based distributions) (optional)

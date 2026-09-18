@@ -250,8 +250,8 @@ auto fill_results(View<struct hit> const hits,
   std::transform(hits.begin(),
                  std::next(hits.begin(), static_cast<std::ptrdiff_t>(reported)),
                  results.begin(),
-                 [query_length, &db](struct hit const & hit) -> struct search_result_s {
-                   struct search_result_s result {};
+                 [query_length, &db](struct hit const & hit) -> search_result_s {
+                   search_result_s result {};
                    result.target = hit.target;
                    result.id = hit.id;
                    result.matches = hit.matches;
