@@ -137,6 +137,11 @@ system-wide.
 **[`vsearch-fastq_convert(1)`](./commands/vsearch-fastq_convert.1.md)**
 : Convert between fastq encoding variants.
 
+**[`vsearch-fastq_denoise(1)`](./commands/vsearch-fastq_denoise.1.md)**
+: Correct sequencing errors in amplicon reads with an error model
+  learnt from the reads (DADA2 algorithm), optionally treating indels
+  as potential variants.
+
 **[`vsearch-fastq_eestats(1)`](./commands/vsearch-fastq_eestats.1.md)**
 : Report per-position quality and expected error statistics.
 

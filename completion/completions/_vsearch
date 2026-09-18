@@ -12,7 +12,7 @@ _vsearch() {
     # Walk the command line for an action flag
     for w in "${words[@]:1:$CURRENT-1}"; do
         case "$w" in
-            --chimeras_denovo|--uchime_denovo|--uchime2_denovo|--uchime3_denovo|--uchime_ref|--cluster_fast|--cluster_size|--cluster_smallmem|--cluster_unoise|--sff_convert|--derep_fulllength|--derep_id|--derep_prefix|--derep_smallmem|--fastx_uniques|--rereplicate|--fasta2fastq|--fastq_convert|--fastq_chars|--fastq_stats|--fastq_eestats|--fastq_eestats2|--fastx_mask|--maskfasta|--orient|--fastq_join|--fastq_mergepairs|--fastx_syncpairs|--allpairs_global|--cut|--fastx_revcomp|--scramble|--search_exact|--usearch_global|--shuffle|--sortbylength|--sortbysize|--fastx_getseq|--fastx_getseqs|--fastx_getsubseq|--fastx_subsample|--sintax|--fastx_filter|--fastq_filter|--makeudb_usearch|--udb2fasta|--udbinfo|--udbstats|--help|--version)
+            --chimeras_denovo|--uchime_denovo|--uchime2_denovo|--uchime3_denovo|--uchime_ref|--cluster_fast|--cluster_size|--cluster_smallmem|--cluster_unoise|--sff_convert|--derep_fulllength|--derep_id|--derep_prefix|--derep_smallmem|--fastx_uniques|--rereplicate|--fasta2fastq|--fastq_convert|--fastq_denoise|--fastq_chars|--fastq_stats|--fastq_eestats|--fastq_eestats2|--fastx_mask|--maskfasta|--orient|--fastq_join|--fastq_mergepairs|--fastx_syncpairs|--allpairs_global|--cut|--fastx_revcomp|--scramble|--search_exact|--usearch_global|--shuffle|--sortbylength|--sortbysize|--fastx_getseq|--fastx_getseqs|--fastx_getsubseq|--fastx_subsample|--sintax|--fastx_filter|--fastq_filter|--makeudb_usearch|--udb2fasta|--udbinfo|--udbstats|--help|--version)
                 cmd="$w"; break ;;
         esac
     done
@@ -890,6 +890,40 @@ _vsearch() {
             '--relabel_sha1[relabel with sha1 digest of normalized sequence]' \
             '--sample[sample identifier added to output labels]:string:' \
             '--sizein[propagate abundance annotation from input]' \
+            '--sizeout[write abundance annotation to output]' \
+            '--threads[number of threads to use, zero for all cores (0)]:n:' \
+            '--xee[remove expected errors (ee) info from output]' \
+            '--xlength[strip sequence length annotation from output labels]' \
+            '--xsize[strip abundance information in output]'
+            ;;
+        --fastq_denoise)
+        _arguments -s \
+            '--fastq_denoise[correct sequencing errors with a learnt error model]:file:_files -g '\''*.(fastq|fq|fastq.gz|fq.gz|fastq.bz2|fq.bz2)'\''' \
+            '--bzip2_decompress[decompress input with bzip2 (required if pipe)]' \
+            '--denoise_errin[read the error model from file instead of learning it]:file:_files' \
+            '--denoise_errout[write the error model to file]:file:_files' \
+            '--denoise_indels[ignore indels as DADA2 does, or model them (ignore)]:value:(ignore model)' \
+            '--denoise_maxconsist[maximum number of self-consistency rounds (10)]:n:' \
+            '--denoise_omega_a[p-value threshold for new partitions (1e-40)]:x:' \
+            '--denoise_omega_c[p-value threshold below which reads are not corrected (1e-40)]:x:' \
+            '--fasta_width[width of FASTA seq lines, 0 for no wrap (80)]:n:' \
+            '--fastaout[FASTA output filename]:file:_files' \
+            '--fastq_ascii[FASTQ input quality score ASCII base char (33)]:n:' \
+            '--fastq_qmax[maximum base quality value for FASTQ input (41)]:n:' \
+            '--fastq_qmin[minimum base quality value for FASTQ input (0)]:n:' \
+            '--fastqout[FASTQ output filename]:file:_files' \
+            '--fastqout_discarded[FASTQ filename for discarded sequences]:file:_files' \
+            '--gzip_decompress[decompress input with gzip (required if pipe)]' \
+            '--label_suffix[suffix to append to label]:string:' \
+            '--lengthout[write sequence length annotation to output labels]' \
+            '--log[write messages, timing and memory info to file]:file:_files' \
+            '--no_progress[do not show progress indicator]' \
+            '--quiet[output just warnings and fatal errors to stderr]' \
+            '--relabel[relabel sequences with this prefix string]:string:' \
+            '--relabel_keep[keep the old label after the new when relabelling]' \
+            '--relabel_md5[relabel with md5 digest of normalized sequence]' \
+            '--relabel_self[relabel with the sequence itself as label]' \
+            '--relabel_sha1[relabel with sha1 digest of normalized sequence]' \
             '--sizeout[write abundance annotation to output]' \
             '--threads[number of threads to use, zero for all cores (0)]:n:' \
             '--xee[remove expected errors (ee) info from output]' \
@@ -1956,6 +1990,7 @@ _vsearch() {
             '--rereplicate[rereplicate sequences in given FASTA file]:file:_files -g '\''*.(fasta|fa|fna|ffn|fasta.gz|fa.gz|fna.gz|ffn.gz|fasta.bz2|fa.bz2|fna.bz2|ffn.bz2)'\''' \
             '--fasta2fastq[convert from FASTA to FASTQ with fake quality scores]:file:_files -g '\''*.(fasta|fa|fna|ffn|fasta.gz|fa.gz|fna.gz|ffn.gz|fasta.bz2|fa.bz2|fna.bz2|ffn.bz2)'\''' \
             '--fastq_convert[convert between FASTQ file formats]:file:_files -g '\''*.(fastq|fq|fastq.gz|fq.gz|fastq.bz2|fq.bz2)'\''' \
+            '--fastq_denoise[correct sequencing errors with a learnt error model]:file:_files -g '\''*.(fastq|fq|fastq.gz|fq.gz|fastq.bz2|fq.bz2)'\''' \
             '--fastq_chars[analyse FASTQ file for version and quality range]:file:_files -g '\''*.(fastq|fq|fastq.gz|fq.gz|fastq.bz2|fq.bz2)'\''' \
             '--fastq_stats[report statistics on FASTQ file]:file:_files -g '\''*.(fastq|fq|fastq.gz|fq.gz|fastq.bz2|fq.bz2)'\''' \
             '--fastq_eestats[quality score and expected error statistics]:file:_files -g '\''*.(fastq|fq|fastq.gz|fq.gz|fastq.bz2|fq.bz2)'\''' \

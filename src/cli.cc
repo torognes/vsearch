@@ -519,8 +519,8 @@ namespace {
   }
 
 
-  constexpr auto number_of_commands = std::size_t{52};
-  constexpr auto number_of_options = std::size_t{258};
+  constexpr auto number_of_commands = std::size_t{53};
+  constexpr auto number_of_options = std::size_t{265};
   constexpr auto max_number_of_options_per_command = std::size_t{100};
 
   enum
@@ -559,6 +559,12 @@ namespace {
       option_dbmask,
       option_dbmatched,
       option_dbnotmatched,
+      option_denoise_errin,
+      option_denoise_errout,
+      option_denoise_indels,
+      option_denoise_maxconsist,
+      option_denoise_omega_a,
+      option_denoise_omega_c,
       option_derep_fulllength,
       option_derep_id,
       option_derep_prefix,
@@ -584,6 +590,7 @@ namespace {
       option_fastq_asciiout,
       option_fastq_chars,
       option_fastq_convert,
+      option_fastq_denoise,
       option_fastq_eeout,
       option_fastq_eestats,
       option_fastq_eestats2,
@@ -838,6 +845,12 @@ namespace {
       {"dbmask",                     true },
       {"dbmatched",                  true },
       {"dbnotmatched",               true },
+      {"denoise_errin",               true },
+      {"denoise_errout",              true },
+      {"denoise_indels",              true },
+      {"denoise_maxconsist",          true },
+      {"denoise_omega_a",             true },
+      {"denoise_omega_c",             true },
       {"derep_fulllength",           true },
       {"derep_id",                   true },
       {"derep_prefix",               true },
@@ -863,6 +876,7 @@ namespace {
       {"fastq_asciiout",             true },
       {"fastq_chars",                true },
       {"fastq_convert",              true },
+      {"fastq_denoise",              true },
       {"fastq_eeout",                false },
       {"fastq_eestats",              true },
       {"fastq_eestats2",             true },
@@ -1836,6 +1850,39 @@ namespace {
         option_relabel_sha1,
         option_sample,
         option_sizein,
+        option_sizeout,
+        option_threads,
+        option_xee,
+        option_xlength,
+        option_xsize,
+        -1, },
+
+      { option_fastq_denoise,
+        option_bzip2_decompress,
+        option_denoise_errin,
+        option_denoise_errout,
+        option_denoise_indels,
+        option_denoise_maxconsist,
+        option_denoise_omega_a,
+        option_denoise_omega_c,
+        option_fasta_width,
+        option_fastaout,
+        option_fastq_ascii,
+        option_fastq_qmax,
+        option_fastq_qmin,
+        option_fastqout,
+        option_fastqout_discarded,
+        option_gzip_decompress,
+        option_label_suffix,
+        option_lengthout,
+        option_log,
+        option_no_progress,
+        option_quiet,
+        option_relabel,
+        option_relabel_keep,
+        option_relabel_md5,
+        option_relabel_self,
+        option_relabel_sha1,
         option_sizeout,
         option_threads,
         option_xee,
@@ -3045,6 +3092,7 @@ namespace {
       Command::fasta2fastq,       // option_fasta2fastq
       Command::fastq_chars,       // option_fastq_chars
       Command::fastq_convert,     // option_fastq_convert
+      Command::fastq_denoise,     // option_fastq_denoise
       Command::fastq_eestats,     // option_fastq_eestats
       Command::fastq_eestats2,    // option_fastq_eestats2
       Command::fastq_filter,      // option_fastq_filter
@@ -4187,6 +4235,45 @@ namespace {
             parameters.opt_no_progress = true;
             break;
 
+          case option_fastq_denoise:
+            parameters.input_filename = optarg;
+            break;
+
+          case option_denoise_errin:
+            parameters.opt_denoise_errin = optarg;
+            break;
+
+          case option_denoise_errout:
+            parameters.opt_denoise_errout = optarg;
+            break;
+
+          case option_denoise_indels:
+            if (are_same_string(optarg, "ignore"))
+              {
+                parameters.opt_denoise_indels_model = false;
+              }
+            else if (are_same_string(optarg, "model"))
+              {
+                parameters.opt_denoise_indels_model = true;
+              }
+            else
+              {
+                fatal("The argument to --denoise_indels must be ignore or model");
+              }
+            break;
+
+          case option_denoise_maxconsist:
+            parameters.opt_denoise_maxconsist = args_getlong(optarg);
+            break;
+
+          case option_denoise_omega_a:
+            parameters.opt_denoise_omega_a = args_getdouble(optarg);
+            break;
+
+          case option_denoise_omega_c:
+            parameters.opt_denoise_omega_c = args_getdouble(optarg);
+            break;
+
           case option_fastq_eestats2:
             parameters.input_filename = optarg;
             break;
@@ -4596,6 +4683,9 @@ namespace {
       case Command::cluster_size:
       case Command::cluster_smallmem:
       case Command::cluster_unoise:
+      /* Partially: the comparisons of all uniques with a new center are
+         parallel; dereplication, error-model fitting and output are serial. */
+      case Command::fastq_denoise:
       case Command::fastq_mergepairs:
       case Command::fastx_mask:
       /* Partially: only its masking phase is parallel (apply_masking ->

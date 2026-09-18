@@ -10,7 +10,7 @@
 # ---------------------------------------------------------------------------
 
 function __vsearch_current_command --description 'Echo the action flag on the line, if any'
-    set -l cmds --chimeras_denovo --uchime_denovo --uchime2_denovo --uchime3_denovo --uchime_ref --cluster_fast --cluster_size --cluster_smallmem --cluster_unoise --sff_convert --derep_fulllength --derep_id --derep_prefix --derep_smallmem --fastx_uniques --rereplicate --fasta2fastq --fastq_convert --fastq_chars --fastq_stats --fastq_eestats --fastq_eestats2 --fastx_mask --maskfasta --orient --fastq_join --fastq_mergepairs --fastx_syncpairs --allpairs_global --cut --fastx_revcomp --scramble --search_exact --usearch_global --shuffle --sortbylength --sortbysize --fastx_getseq --fastx_getseqs --fastx_getsubseq --fastx_subsample --sintax --fastx_filter --fastq_filter --makeudb_usearch --udb2fasta --udbinfo --udbstats --help --version
+    set -l cmds --chimeras_denovo --uchime_denovo --uchime2_denovo --uchime3_denovo --uchime_ref --cluster_fast --cluster_size --cluster_smallmem --cluster_unoise --sff_convert --derep_fulllength --derep_id --derep_prefix --derep_smallmem --fastx_uniques --rereplicate --fasta2fastq --fastq_convert --fastq_denoise --fastq_chars --fastq_stats --fastq_eestats --fastq_eestats2 --fastx_mask --maskfasta --orient --fastq_join --fastq_mergepairs --fastx_syncpairs --allpairs_global --cut --fastx_revcomp --scramble --search_exact --usearch_global --shuffle --sortbylength --sortbysize --fastx_getseq --fastx_getseqs --fastx_getsubseq --fastx_subsample --sintax --fastx_filter --fastq_filter --makeudb_usearch --udb2fasta --udbinfo --udbstats --help --version
     for word in (commandline -opc)
         if contains -- $word $cmds
             echo $word
@@ -53,6 +53,7 @@ complete -c vsearch -n '__vsearch_no_command' -l fastx_uniques -rfa '(__fish_com
 complete -c vsearch -n '__vsearch_no_command' -l rereplicate -rfa '(__fish_complete_suffix .fasta .fa .fna .ffn .fasta.gz .fa.gz .fna.gz .ffn.gz .fasta.bz2 .fa.bz2 .fna.bz2 .ffn.bz2)' -d 'rereplicate sequences in given FASTA file'
 complete -c vsearch -n '__vsearch_no_command' -l fasta2fastq -rfa '(__fish_complete_suffix .fasta .fa .fna .ffn .fasta.gz .fa.gz .fna.gz .ffn.gz .fasta.bz2 .fa.bz2 .fna.bz2 .ffn.bz2)' -d 'convert from FASTA to FASTQ with fake quality scores'
 complete -c vsearch -n '__vsearch_no_command' -l fastq_convert -rfa '(__fish_complete_suffix .fastq .fq .fastq.gz .fq.gz .fastq.bz2 .fq.bz2)' -d 'convert between FASTQ file formats'
+complete -c vsearch -n '__vsearch_no_command' -l fastq_denoise -rfa '(__fish_complete_suffix .fastq .fq .fastq.gz .fq.gz .fastq.bz2 .fq.bz2)' -d 'correct sequencing errors with a learnt error model'
 complete -c vsearch -n '__vsearch_no_command' -l fastq_chars -rfa '(__fish_complete_suffix .fastq .fq .fastq.gz .fq.gz .fastq.bz2 .fq.bz2)' -d 'analyse FASTQ file for version and quality range'
 complete -c vsearch -n '__vsearch_no_command' -l fastq_stats -rfa '(__fish_complete_suffix .fastq .fq .fastq.gz .fq.gz .fastq.bz2 .fq.bz2)' -d 'report statistics on FASTQ file'
 complete -c vsearch -n '__vsearch_no_command' -l fastq_eestats -rfa '(__fish_complete_suffix .fastq .fq .fastq.gz .fq.gz .fastq.bz2 .fq.bz2)' -d 'quality score and expected error statistics'
@@ -949,6 +950,39 @@ complete -c vsearch -n '__vsearch_command_is --fastq_convert' -l threads -x -d '
 complete -c vsearch -n '__vsearch_command_is --fastq_convert' -l xee -f -d 'remove expected errors (ee) info from output'
 complete -c vsearch -n '__vsearch_command_is --fastq_convert' -l xlength -f -d 'strip sequence length annotation from output labels'
 complete -c vsearch -n '__vsearch_command_is --fastq_convert' -l xsize -f -d 'strip abundance information in output'
+
+# --- --fastq_denoise ---
+complete -c vsearch -n '__vsearch_command_is --fastq_denoise' -l fastq_denoise -rfa '(__fish_complete_suffix .fastq .fq .fastq.gz .fq.gz .fastq.bz2 .fq.bz2)' -d 'correct sequencing errors with a learnt error model'
+complete -c vsearch -n '__vsearch_command_is --fastq_denoise' -l bzip2_decompress -f -d 'decompress input with bzip2 (required if pipe)'
+complete -c vsearch -n '__vsearch_command_is --fastq_denoise' -l denoise_errin -r -d 'read the error model from file instead of learning it'
+complete -c vsearch -n '__vsearch_command_is --fastq_denoise' -l denoise_errout -r -d 'write the error model to file'
+complete -c vsearch -n '__vsearch_command_is --fastq_denoise' -l denoise_indels -x -a 'ignore model' -d 'ignore indels as DADA2 does, or model them (ignore)'
+complete -c vsearch -n '__vsearch_command_is --fastq_denoise' -l denoise_maxconsist -x -d 'maximum number of self-consistency rounds (10)'
+complete -c vsearch -n '__vsearch_command_is --fastq_denoise' -l denoise_omega_a -x -d 'p-value threshold for new partitions (1e-40)'
+complete -c vsearch -n '__vsearch_command_is --fastq_denoise' -l denoise_omega_c -x -d 'p-value threshold below which reads are not corrected (1e-40)'
+complete -c vsearch -n '__vsearch_command_is --fastq_denoise' -l fasta_width -x -d 'width of FASTA seq lines, 0 for no wrap (80)'
+complete -c vsearch -n '__vsearch_command_is --fastq_denoise' -l fastaout -rF -d 'FASTA output filename'
+complete -c vsearch -n '__vsearch_command_is --fastq_denoise' -l fastq_ascii -x -d 'FASTQ input quality score ASCII base char (33)'
+complete -c vsearch -n '__vsearch_command_is --fastq_denoise' -l fastq_qmax -x -d 'maximum base quality value for FASTQ input (41)'
+complete -c vsearch -n '__vsearch_command_is --fastq_denoise' -l fastq_qmin -x -d 'minimum base quality value for FASTQ input (0)'
+complete -c vsearch -n '__vsearch_command_is --fastq_denoise' -l fastqout -rF -d 'FASTQ output filename'
+complete -c vsearch -n '__vsearch_command_is --fastq_denoise' -l fastqout_discarded -rF -d 'FASTQ filename for discarded sequences'
+complete -c vsearch -n '__vsearch_command_is --fastq_denoise' -l gzip_decompress -f -d 'decompress input with gzip (required if pipe)'
+complete -c vsearch -n '__vsearch_command_is --fastq_denoise' -l label_suffix -x -d 'suffix to append to label'
+complete -c vsearch -n '__vsearch_command_is --fastq_denoise' -l lengthout -f -d 'write sequence length annotation to output labels'
+complete -c vsearch -n '__vsearch_command_is --fastq_denoise' -l log -rF -d 'write messages, timing and memory info to file'
+complete -c vsearch -n '__vsearch_command_is --fastq_denoise' -l no_progress -f -d 'do not show progress indicator'
+complete -c vsearch -n '__vsearch_command_is --fastq_denoise' -l quiet -f -d 'output just warnings and fatal errors to stderr'
+complete -c vsearch -n '__vsearch_command_is --fastq_denoise' -l relabel -x -d 'relabel sequences with this prefix string'
+complete -c vsearch -n '__vsearch_command_is --fastq_denoise' -l relabel_keep -f -d 'keep the old label after the new when relabelling'
+complete -c vsearch -n '__vsearch_command_is --fastq_denoise' -l relabel_md5 -f -d 'relabel with md5 digest of normalized sequence'
+complete -c vsearch -n '__vsearch_command_is --fastq_denoise' -l relabel_self -f -d 'relabel with the sequence itself as label'
+complete -c vsearch -n '__vsearch_command_is --fastq_denoise' -l relabel_sha1 -f -d 'relabel with sha1 digest of normalized sequence'
+complete -c vsearch -n '__vsearch_command_is --fastq_denoise' -l sizeout -f -d 'write abundance annotation to output'
+complete -c vsearch -n '__vsearch_command_is --fastq_denoise' -l threads -x -d 'number of threads to use, zero for all cores (0)'
+complete -c vsearch -n '__vsearch_command_is --fastq_denoise' -l xee -f -d 'remove expected errors (ee) info from output'
+complete -c vsearch -n '__vsearch_command_is --fastq_denoise' -l xlength -f -d 'strip sequence length annotation from output labels'
+complete -c vsearch -n '__vsearch_command_is --fastq_denoise' -l xsize -f -d 'strip abundance information in output'
 
 # --- --fastq_chars ---
 complete -c vsearch -n '__vsearch_command_is --fastq_chars' -l fastq_chars -rfa '(__fish_complete_suffix .fastq .fq .fastq.gz .fq.gz .fastq.bz2 .fq.bz2)' -d 'analyse FASTQ file for version and quality range'

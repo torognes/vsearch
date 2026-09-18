@@ -125,6 +125,7 @@ commands/derep_prefix.hpp \
 commands/derep_smallmem.hpp \
 os/dynlibs.hpp \
 commands/fastq_eestats.hpp \
+commands/fastq_denoise.hpp \
 commands/fastq_eestats2.hpp \
 core/eestats.hpp \
 commands/fasta2fastq.hpp \
@@ -350,6 +351,7 @@ commands/derep_prefix.cpp \
 commands/derep_smallmem.cpp \
 os/dynlibs.cpp \
 commands/fastq_eestats.cpp \
+commands/fastq_denoise.cpp \
 commands/fastq_eestats2.cpp \
 core/eestats.cpp \
 core/quality_range.cpp \
