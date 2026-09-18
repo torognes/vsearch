@@ -488,6 +488,12 @@ auto optimize(merge_data_t & a_read_pair,
   auto best_score = 0.0;
   int64_t best_i = 0;
   int64_t best_diffs = 0;
+  /* the number of aligned positions actually compared at best_i. It equals
+     best_i only when neither read overhangs the other; when one of them does,
+     best_i counts the overhanging bases too, which are never compared. The
+     maxdiffpct and minovlen tests below are both specified on the overlap
+     region (see the manual), so they use this value, not best_i. */
+  int64_t best_overlap = 0;
 
   auto hits = 0;
 
@@ -580,6 +586,7 @@ auto optimize(merge_data_t & a_read_pair,
               best_score = score;
               best_i = i;
               best_diffs = diffs;
+              best_overlap = overlap;
             }
         }
     }
@@ -590,7 +597,19 @@ auto optimize(merge_data_t & a_read_pair,
       return 0;
     }
 
-  if ((not parameters.opt_fastq_allowmergestagger) and (best_i > a_read_pair.fwd_trunc))
+  /* A pair is staggered when a read runs past the other's 5' end, and
+     best_i exceeds a read's length exactly when that read is the one being
+     run past. Testing fwd_trunc alone caught only the reverse read's 3'
+     overhang; with reads of equal length the two cases coincide, but once
+     truncation makes the forward read the longer one (--fastq_truncqual,
+     --fastq_trunclen*, or unequal input), the mirror case slipped through
+     and was merged with the forward overhang silently dropped. Testing the
+     shorter read covers both directions; equivalently, best_overlap <
+     best_i, since the overlap falls short of the offset by exactly the two
+     overhangs. */
+  auto const shorter_read = std::min(a_read_pair.fwd_trunc, a_read_pair.rev_trunc);
+
+  if ((not parameters.opt_fastq_allowmergestagger) and (best_i > shorter_read))
     {
       a_read_pair.reason = Reason::staggered;
       return 0;
@@ -602,7 +621,7 @@ auto optimize(merge_data_t & a_read_pair,
       return 0;
     }
 
-  if ((100.0 * static_cast<double>(best_diffs) / static_cast<double>(best_i)) > parameters.opt_fastq_maxdiffpct)
+  if ((100.0 * static_cast<double>(best_diffs) / static_cast<double>(best_overlap)) > parameters.opt_fastq_maxdiffpct)
     {
       a_read_pair.reason = Reason::maxdiffpct;
       return 0;
@@ -623,7 +642,7 @@ auto optimize(merge_data_t & a_read_pair,
   /* the effective minimum overlap is at least 5: the CLI path requires it and
      the library entry (mergepairs_single) threads a Parameters copy clamped to
      >= 5, so this reads the effective value from parameters (E1). */
-  if (best_i < parameters.opt_fastq_minovlen)
+  if (best_overlap < parameters.opt_fastq_minovlen)
     {
       a_read_pair.reason = Reason::minovlen;
       return 0;

@@ -45,11 +45,10 @@ unclamped posterior. The merged scores are written with the *input*
 offset, `--fastq_ascii`: this is the only command whose output encoding
 tracks its input encoding, and it does not accept `--fastq_asciiout`.
 
-Staggered pairs — where the 3' end of the reverse read extends past the 5'
-end of the forward read — are discarded by default. Use
-`--fastq_allowmergestagger` to allow them; the overhanging portions of
-both reads are excluded from the merged sequence, which then covers the
-overlap only.
+Staggered pairs — where the 3' end of one read extends past the 5' end of
+the other — are discarded by default. Use `--fastq_allowmergestagger` to
+allow them; the overhanging portions of both reads are excluded from the
+merged sequence, which then covers the overlap only.
 
 Reads can be pre-filtered with `--fastq_truncqual`, `--fastq_minlen`,
 `--fastq_maxlen` (the length bounds apply after truncation), and
