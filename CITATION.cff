@@ -37,10 +37,10 @@ preferred-citation:
     given-names: "Frédéric"
     orcid: "https://orcid.org/0000-0002-2808-0984"
   doi: "10.7717/peerj.2584"
-  journal: "Peer Journal"
+  journal: "PeerJ"
   day: 18
   month: 10
   start: e2584 # First page number
-  title: "VSEARCH: a versatile open source tool for metagenomic"
+  title: "VSEARCH: a versatile open source tool for metagenomics"
   volume: 4
   year: 2016
