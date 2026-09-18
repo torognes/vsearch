@@ -34,9 +34,39 @@ AC_SUBST(MACOSX_DEPLOYMENT_TARGET)
 MACOSX_DEPLOYMENT_TARGET="10.9"
 
 # Checks for programs.
+# Whether the user set the compilation flags has to be recorded before
+# AC_PROG_CXX and AC_PROG_CC substitute defaults of their own; the
+# optimization default below is applied only when they did not. AC_PROG_CC is
+# named here rather than left to the AC_REQUIRE inside AM_PROG_CC_C_O, so that
+# CFLAGS has its default by the time that block runs.
+vsearch_cflags_set="${CFLAGS+yes}"
+vsearch_cxxflags_set="${CXXFLAGS+yes}"
 AC_PROG_CXX
+AC_PROG_CC
 AC_PROG_RANLIB
 AC_PROG_INSTALL
+
+# Optimization default. Autoconf's own is "-g -O2"; vsearch has recommended
+# -O3 in README.md and built its release binaries with it since the SIMD
+# aligner's strict-aliasing miscompile (issue #589) was fixed at the root and
+# the -fno-tree-partial-pre workaround was dropped. -O2 survived here only as
+# an autoconf convention, so an ordinary build was slower than the one the
+# documentation asked for. Raise the level and change nothing else: -g stays,
+# so a distribution still gets debug symbols out of an ordinary build, and any
+# CFLAGS/CXXFLAGS the user passes still win outright.
+AC_MSG_CHECKING([whether $CXX accepts -O3])
+vsearch_saved_CXXFLAGS="$CXXFLAGS"
+CXXFLAGS="$CXXFLAGS -O3"
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM([], [])],
+  [AC_MSG_RESULT([yes])
+   vsearch_have_O3=yes],
+  [AC_MSG_RESULT([no])
+   vsearch_have_O3=no])
+CXXFLAGS="$vsearch_saved_CXXFLAGS"
+AS_IF([test "x$vsearch_have_O3" = xyes], [
+  AS_IF([test "x$vsearch_cxxflags_set" != xyes], [CXXFLAGS="-g -O3"])
+  AS_IF([test "x$vsearch_cflags_set" != xyes], [CFLAGS="-g -O3"])
+])
 
 # Threading support for C++11 std::thread. The -pthread flag is applied
 # at both compile and link time (CXXFLAGS is used for linking too): it

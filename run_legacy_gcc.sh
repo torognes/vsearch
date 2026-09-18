@@ -87,7 +87,7 @@ tar -C /src --exclude=./.git -cf - . | tar -C /build -xf -
 cd /build
 g++ --version | head -1
 ./autogen.sh
-./configure CFLAGS="-O2" CXXFLAGS="-O2" ${CONFIGURE_ARGS}
+./configure CFLAGS="-O3" CXXFLAGS="-O3" ${CONFIGURE_ARGS}
 make ARFLAGS="cr" -j"${JOBS:-$(nproc)}"
 bin/vsearch --version
 '
