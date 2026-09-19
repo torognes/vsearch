@@ -18,6 +18,11 @@
 # except that the monolithic man/vsearch.1 and doc/vsearch_manual.pdf are
 # replaced by the modular manual, sectioned so that "man -M ./man vsearch"
 # works straight from the unpacked archive.
+#
+# The completion/ folder is the second departure, and it closes a gap rather
+# than opening one: README.md has told users to copy completion/vsearch and
+# friends out of the binary distribution since ed71d158 (2026-09-03), two
+# weeks before this script existed, and nothing was ever packing them.
 set -eu
 
 : "${SRCDIR:?SRCDIR is required}"
@@ -54,8 +59,25 @@ cp ".stage/bin/${BINARY}" "${dirname}/bin/"
 cp -R .stage/share/man "${dirname}/man"
 cp README.md LICENSE.txt LICENSE_GNU_GPL3.txt "${dirname}/"
 
+# The completion scripts, flattened out of the three per-shell directories
+# 'make install' spreads them over: README.md tells the reader of a binary
+# distribution to copy completion/vsearch, completion/_vsearch or
+# completion/vsearch.fish, not to go walking share/bash-completion/. Each file
+# already carries the name its shell looks up, so flattening is only a move.
+# Missing means --disable-completion leaked into the build, or the install
+# directories moved: either way the asset would silently lose a documented
+# folder, so stop here rather than ship it.
+mkdir -p "${dirname}/completion"
+for script in share/bash-completion/completions/vsearch \
+              share/zsh/site-functions/_vsearch \
+              share/fish/vendor_completions.d/vsearch.fish ; do
+  test -f ".stage/${script}" || { echo "${script} was not installed" >&2; exit 1; }
+  cp ".stage/${script}" "${dirname}/completion/"
+done
+
 pages=$(find "${dirname}/man" -type f | wc -l)
-echo "packaged ${dirname}: $(wc -c < "${dirname}/bin/${BINARY}") byte binary, ${pages} manual pages"
+scripts=$(find "${dirname}/completion" -type f | wc -l)
+echo "packaged ${dirname}: $(wc -c < "${dirname}/bin/${BINARY}") byte binary, ${pages} manual pages, ${scripts} completion scripts"
 test "${pages}" -gt 0 || { echo "no manual pages in the asset" >&2; exit 1; }
 
 mkdir -p "${OUTDIR}"
