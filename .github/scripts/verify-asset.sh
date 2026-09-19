@@ -40,6 +40,12 @@ test "${pages}" -gt 0 || fail "no manual pages"
 for f in README.md LICENSE.txt LICENSE_GNU_GPL3.txt ; do
   test -f "${root}/${f}" || fail "${f} is missing"
 done
+# Checked by name, not by count: each script is installed under the name its
+# shell looks up, so a rename would leave the folder looking complete while
+# completion silently never triggers.
+for f in completion/vsearch completion/_vsearch completion/vsearch.fish ; do
+  test -s "${root}/${f}" || fail "${f} is missing or empty"
+done
 # the hand-built assets carried these; a Linux CI job must not reintroduce them
 test "$(find "${root}" -name '._*' | wc -l)" -eq 0 || fail "AppleDouble files in the archive"
 
@@ -47,7 +53,7 @@ binary="${root}/bin/vsearch"
 test -f "${binary}" || binary="${root}/bin/vsearch.exe"
 test -f "${binary}" || { fail "no binary in bin/" ; exit 1 ; }
 
-echo "${ASSET}: ${pages} manual pages, $(wc -c < "${binary}") byte binary"
+echo "${ASSET}: ${pages} manual pages, $(find "${root}/completion" -type f 2>/dev/null | wc -l) completion scripts, $(wc -c < "${binary}") byte binary"
 
 # --- ELF checks (skipped for the Windows PE asset) ------------------------
 case "${ASSET}" in
