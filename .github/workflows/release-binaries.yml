@@ -160,12 +160,16 @@ jobs:
             g++ --version | head -n 1
             ldd --version | head -n 1
             # Debian ships mingw-w64 twice, as a win32 and a posix threading
-            # model, and picks win32 by default; Ubuntu picks posix. The win32
+            # model, and picks win32 by default. Up to GCC 12 the win32
             # libstdc++ is built without gthreads, so <thread>, <mutex> and
             # <condition_variable> are empty headers and utils/threads.hpp
             # fails to compile -- which is what moving this build off
-            # ubuntu-latest exposed. Select posix, as Ubuntu does. The guard
-            # keeps this a no-op for every non-Windows target.
+            # ubuntu-latest exposed. bullseye is GCC 10, so select posix.
+            # GCC 13 implements all three on native Win32 primitives, so the
+            # model name stopped being evidence of capability there: if this
+            # image is ever bumped past bullseye, re-test rather than assume
+            # this block is still needed. The guard keeps it a no-op for
+            # every non-Windows target.
             if [ -x /usr/bin/x86_64-w64-mingw32-g++-posix ] ; then
               update-alternatives --set x86_64-w64-mingw32-gcc /usr/bin/x86_64-w64-mingw32-gcc-posix
               update-alternatives --set x86_64-w64-mingw32-g++ /usr/bin/x86_64-w64-mingw32-g++-posix
