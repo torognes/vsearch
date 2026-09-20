@@ -3,16 +3,12 @@ WORKDIR /opt/vsearch
 COPY . .
 RUN yum update -y
 RUN yum -y install \
-    autoconf \
-    automake \
     bzip2-devel \
     gcc-c++ \
     make \
     simde-devel \
     zlib-devel
-RUN ./autogen.sh
-RUN ./configure CFLAGS="-O2" CXXFLAGS="-O2"
 RUN make clean
-RUN make ARFLAGS="cr"
+RUN make CFLAGS="-O2" CXXFLAGS="-O2"
 RUN make install
 ENTRYPOINT ["/usr/local/bin/vsearch"]

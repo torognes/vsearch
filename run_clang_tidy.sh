@@ -8,7 +8,7 @@
 # it once with `bear` (regenerate after adding/removing files or changing flags):
 #
 #     make clean
-#     bear -- make -j ARFLAGS="cr"
+#     bear -- make -j
 #
 # Then check the file(s) you touched, from anywhere in the tree:
 #
@@ -47,7 +47,7 @@ while [ "${dir}" != "/" ]; do
 done
 if [ -z "${build_dir}" ]; then
   echo "error: no compile_commands.json found at or above ${PWD}" >&2
-  echo "       run 'make clean && bear -- make -j ARFLAGS=\"cr\"' first" >&2
+  echo "       run 'make clean && bear -- make -j' first" >&2
   exit 2
 fi
 

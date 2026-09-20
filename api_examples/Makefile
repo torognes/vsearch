@@ -28,7 +28,7 @@ CXXFLAGS += -fsanitize=address,undefined -fno-omit-frame-pointer -g
 endif
 
 # The same rule applies to _GLIBCXX_DEBUG, and getting it wrong is quieter than
-# a link error. ../src/Makefile.am adds -D_GLIBCXX_DEBUG under --enable-debug;
+# a link error. ../src/Makefile adds -D_GLIBCXX_DEBUG under DEBUG=1;
 # that macro replaces std::vector with std::__debug::vector, which is a
 # different size, so struct Parameters has a different layout on each side of
 # the boundary. An example built without it against a library built with it

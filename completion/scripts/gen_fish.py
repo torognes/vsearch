@@ -1,6 +1,6 @@
 """Generate the fish completion script for vsearch.
 
-Writes to stdout. Invoked from completion/Makefile.am:
+Writes to stdout. Invoked from completion/Makefile:
     cd scripts && python3 gen_fish.py > ../completions/vsearch.fish
 """
 

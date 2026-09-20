@@ -121,7 +121,14 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        gcc: [ "4.8", "4.9" ]
+        # "4.8.5", not "4.8", and the patch version is load-bearing. The
+        # floating gcc:4.8 tag was published as a Docker image manifest v2
+        # schema 1, a format Docker 29 refuses to pull by default and will
+        # drop entirely; the pull fails with exit 125 before the container
+        # ever starts. gcc:4.8.5 is the same image -- GCC 4.8.5, GNU make
+        # 3.81, Debian 7 wheezy -- published as schema 2. gcc:4.9 is already
+        # a v2 manifest list and needs no pin. Do not "tidy" this back.
+        gcc: [ "4.8.5", "4.9" ]
 
     name: linux-gcc-legacy (GCC ${{ matrix.gcc }})
 
