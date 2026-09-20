@@ -1,0 +1,17 @@
+# Files that exist for developing vsearch, not for building it. 'make dist'
+# uses 'git archive', which honours export-ignore, so these stay out of the
+# release source tarball -- matching what automake's EXTRA_DIST lists shipped
+# before the move to a hand-written build system.
+.gitattributes  export-ignore
+.gitignore      export-ignore
+.github/        export-ignore
+dockerfiles/    export-ignore
+Dockerfile      export-ignore
+.dockerignore   export-ignore
+run_clang_tidy.sh  export-ignore
+run_legacy_gcc.sh  export-ignore
+_config.yml     export-ignore
+
+# Deliberately NOT ignored, although automake did not ship them: api_examples/
+# and LIBRARY_API.md document the static library, which is a feature of the
+# source distribution, and CITATION.cff is how the release asks to be cited.

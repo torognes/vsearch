@@ -17,7 +17,6 @@ __pycache__/
 /api_examples/example_merge
 /api_examples/example_reinit
 /api_examples/example_search
-/autom4te.cache
 /bin
 /docs
 # The modular manual pages, and the PDF renderings produced from them by
@@ -25,43 +24,14 @@ __pycache__/
 # sources in man/ and are not tracked. 'make dist' ships the pages anyway,
 # so building from a release tarball needs no pandoc.
 /man/manpages
-/config.h
-/config.log
-/config.status
-/stamp-h1
-/Makefile
-/src/Makefile
-/man/Makefile
-/completion/Makefile
-
-# The autotools output (configure, the Makefile.in files, aclocal.m4 and the
-# auxiliary scripts autoreconf installs) is generated from configure.ac and
-# the Makefile.am files, and is not tracked. Two maintainers on two operating
-# systems never hold the same autoconf/automake version, so tracking it meant
-# a few thousand lines of unauthored churn on every regeneration, and a
-# committed copy that silently drifted behind its own sources. Build from a
-# git checkout with ./autogen.sh (autoconf and automake required, 2.63 or
-# later); build from a release tarball with ./configure alone, since 'make
-# dist' puts the generated files -- and the manual pages -- in it.
-/aclocal.m4
-/compile
-/config.guess
-/config.h.in
-/config.h.in~
-/config.sub
-/configure
-/depcomp
-/install-sh
-/missing
-/ar-lib
-/test-driver
-/Makefile.in
-/src/Makefile.in
-/man/Makefile.in
-/completion/Makefile.in
+# Objects, the generated config.h and the dependency files: one tree per
+# target triple and build flavour (see src/Makefile). Several flavours and
+# cross targets coexist there, which is what the out-of-tree autotools
+# builds used to be for.
+/src/build
 
 # the source distribution built by 'make dist'
-/vsearch-*.tar.gz
+/dist
 .vscode
 .DS_Store
 .Tpo
