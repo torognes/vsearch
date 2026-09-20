@@ -17,14 +17,15 @@
 #     bash run_legacy_gcc.sh 4.8.5 4.9 # both, in that order
 #
 # The official gcc images are old Debian releases (jessie for 4.9, wheezy for
-# 4.8) and already carry everything the build needs -- autoconf, automake,
-# zlib.h and bzlib.h -- so nothing is installed and the container never needs
-# the network. pandoc is absent, so configure reports that it is building
-# without the manual pages; that is expected and not an error.
+# 4.8.5) and already carry everything the build needs -- zlib.h and bzlib.h --
+# so nothing is installed and the container never needs the network. They also
+# pin the oldest supported GNU make, 3.81 on wheezy and 4.0 on jessie, which
+# matters now that make is the build system rather than autoconf's output.
+# pandoc is absent, so the manual is not built; that is expected, not an error.
 #
 # The build runs on a copy of the tree made inside the container, so it leaves
-# your own configure output, object files and bin/vsearch untouched. Nothing is
-# written to the source directory, which is mounted read-only.
+# your own object files and bin/vsearch untouched. Nothing is written to the
+# source directory, which is mounted read-only.
 #
 # Exit status is 0 when every requested compiler builds, 1 otherwise, so this
 # can gate a script or a pre-commit hook.
@@ -33,7 +34,7 @@
 #   ENGINE        container engine             (default: podman, else docker)
 #   IMAGE_PREFIX  image name, version appended (default: docker.io/library/gcc:)
 #   JOBS          make -j value                (default: the container's nproc)
-#   CONFIGURE_ARGS  extra ./configure arguments      (default: none)
+#   MAKE_ARGS     extra make arguments           (default: none)
 #   STRICT        set to 1 to fail on compiler warnings as well as on errors
 #                 (default: 0 -- GCC 4.8 emits one known -Wpedantic warning,
 #                 for the pointer-to-function cast dlsym forces on us in
@@ -60,11 +61,11 @@ fi
 
 IMAGE_PREFIX="${IMAGE_PREFIX:-docker.io/library/gcc:}"
 STRICT="${STRICT:-0}"
-CONFIGURE_ARGS="${CONFIGURE_ARGS:-}"
+MAKE_ARGS="${MAKE_ARGS:-}"
 
 # Locate the source root: the directory holding this script.
 source_dir="$(cd "$(dirname "$0")" && pwd)"
-if [ ! -f "${source_dir}/configure.ac" ]; then
+if [ ! -f "${source_dir}/src/Makefile" ]; then
   echo "error: ${source_dir} does not look like the vsearch source tree" >&2
   exit 2
 fi
@@ -80,7 +81,7 @@ fi
 # large, unreadable from inside an isolated build and of no use to make.
 # ':z' relabels the mount for SELinux; it is ignored where SELinux is not in
 # use, and docker accepts it too.
-# shellcheck disable=SC2016  # JOBS and CONFIGURE_ARGS are passed in with -e
+# shellcheck disable=SC2016  # JOBS and MAKE_ARGS are passed in with -e
 # and must expand inside the container, not here.
 build_script='
 set -e
@@ -88,9 +89,8 @@ mkdir /build
 tar -C /src --exclude=./.git -cf - . | tar -C /build -xf -
 cd /build
 g++ --version | head -1
-./autogen.sh
-./configure CFLAGS="-O3" CXXFLAGS="-O3" ${CONFIGURE_ARGS}
-make ARFLAGS="cr" -j"${JOBS:-$(nproc)}"
+make --version | head -1
+make CFLAGS="-O3" CXXFLAGS="-O3" ${MAKE_ARGS} -j"${JOBS:-$(nproc)}"
 bin/vsearch --version
 '
 
@@ -107,7 +107,7 @@ for version in "${versions[@]}"; do
   "${ENGINE}" run --rm \
     -v "${source_dir}":/src:ro,z \
     -e JOBS="${JOBS:-}" \
-    -e CONFIGURE_ARGS="${CONFIGURE_ARGS}" \
+    -e MAKE_ARGS="${MAKE_ARGS}" \
     "${image}" \
     bash -c "${build_script}" 2>&1 | tee "${log}"
   build_status="${PIPESTATUS[0]}"

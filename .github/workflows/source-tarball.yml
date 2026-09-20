@@ -48,7 +48,7 @@ jobs:
       uses: actions/checkout@v6
 
     # pandoc generates the manual pages and NEWS. 'make dist' ships both, and
-    # the dist-hook in Makefile.am refuses to build a distribution missing
+    # the 'dist' target refuses to build a distribution missing
     # either, so this is a hard requirement here -- and only here.
     - name: Install dependencies
       run: |
