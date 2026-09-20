@@ -1,0 +1,20 @@
+## The releases the online manual is published for, newest first.
+##
+## One git tag per line; '#' starts a comment and blank lines are
+## ignored. Each tag listed here is checked out by the GitHub Pages
+## workflow, rebuilt, and published at /vsearch/<tag>/, so that a user
+## running an older vsearch can read the manual of the version they
+## actually have.
+##
+## This list is a property of the deployment, not of any release: a tag
+## cannot know about the versions published after it, so the file is
+## read from the branch being deployed and never from the tags
+## themselves. Adding a release is a step of the release procedure,
+## next to the version bump in configure.ac.
+##
+## v2.32.0 is the oldest version that can be listed. Earlier tags carry
+## the pre-2.32.0 manual toolchain -- the hacker theme, pandoc without
+## definition lists, pages with no YAML front matter -- and would
+## publish a folder that looks nothing like the rest of the site.
+
+v2.32.0
