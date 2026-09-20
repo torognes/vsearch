@@ -370,6 +370,12 @@ $(CONFIG): Makefile
 print-bin:
 	@echo $(BIN)
 
+# "make print-<VARIABLE>" echoes one variable, so CI can assert on the flags
+# without parsing a build log -- a "make -n | grep" says nothing at all once
+# the tree is up to date, which would be a vacuous pass.
+print-%:
+	@echo '$($*)'
+
 clean:
 	$(RM) -r build libvsearch.a $(PROG)
 
