@@ -150,6 +150,34 @@ differences in output or in accepted input, not accidents.
 - vsearch adds the command `--cluster_size`, which sorts sequences by
   decreasing abundance before clustering.
 
+The `--tabbedout` report of `--fastq_mergepairs` follows the file usearch
+writes for that option, with the same one-line-per-pair shape and the same
+`result=merged` or `result=notmerged` ending each line. It differs in five
+ways, all deliberate (see
+[`vsearch-fastq_mergepairs(1)`](../commands/vsearch-fastq_mergepairs.1.md)):
+
+- vsearch reports the percentage of *differences* in the overlap
+  (`diffpct=`), where usearch reports the percentage of *identity*
+  (`pctid=`). The two are complements, for the same reason `--fastq_pctid`
+  and `--fastq_maxdiffpct` are (see OPTIONS SPELLED DIFFERENTLY above); the
+  field is named after the option that bounds it.
+- The three components of `aln=` are never negative. A pair whose reads run
+  past each other is reported with a separate `stagger=` field giving the
+  bases trimmed, where usearch encodes the same information as a negative
+  first or third component of `aln=` -- which cannot be read by splitting the
+  value on `-`.
+- `trunc=` reports the read lengths that *remain* after `--fastq_truncqual`,
+  where usearch's `tailf=` and `tailr=` report the number of bases *removed*.
+- `relabel=` gives the label the merged sequence was written with, including
+  any `;size=`, `;ee=` or `;length=` annotation requested. usearch has no
+  such annotations, so its `relabel=` is always a bare label.
+- Lines appear in input order whatever `--threads` is set to. usearch emits
+  them in the order its threads finish, unless `-threads 1` is given.
+
+usearch also reports a `minq=` field, for its `-fastq_minqual`. vsearch has
+`--fastq_minqual`, but `--fastq_mergepairs` does not accept it (only
+`--fastq_filter` and `--fastx_filter` do), so no such field is written.
+
 vsearch also provides commands and options that usearch does not; they
 are listed in [`vsearch(1)`](../index.1.md) and described one page per
 command.

@@ -166,8 +166,8 @@ the score-drop rule.
 At least one output option is required: one of the merged-read
 outputs below, one of the not-merged outputs
 (`--fastaout_notmerged_fwd`, `--fastaout_notmerged_rev`,
-`--fastqout_notmerged_fwd`, `--fastqout_notmerged_rev`), or
-`--eetabbedout` (see the following sections).
+`--fastqout_notmerged_fwd`, `--fastqout_notmerged_rev`),
+`--eetabbedout`, or `--tabbedout` (see the following sections).
 
 #(./fragments/option_fastaout_mergepairs.md)
 
@@ -258,6 +258,8 @@ outputs below, one of the not-merged outputs
 #(./fragments/option_sizein.md)
 
 #(./fragments/option_sizeout.md)
+
+#(./fragments/option_tabbedout_mergepairs.md)
 
 #(./fragments/option_threads.md)
 
