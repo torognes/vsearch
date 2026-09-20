@@ -67,8 +67,6 @@ The three components are also available individually as
 ### Static library
 
 ```bash
-./autogen.sh                 # from a git checkout only; a tarball ships the build files
-./configure
 make -C src libvsearch.a
 ```
 
@@ -85,24 +83,35 @@ For projects that build vsearch as a dependency via CMake:
 include(ExternalProject)
 ExternalProject_Add(vsearch_build
     SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/path/to/vsearch
-    CONFIGURE_COMMAND sh -c "./autogen.sh && ./configure --disable-pdfman --disable-zlib --disable-bzip2"
-    BUILD_COMMAND make -C src libvsearch.a
+    CONFIGURE_COMMAND ""
+    BUILD_COMMAND make -C src libvsearch.a ZLIB=0 BZIP2=0
     BUILD_IN_SOURCE TRUE
     INSTALL_COMMAND ""
 )
 ```
 
-On macOS cross-compilation (arm64 runner targeting x86_64), pass
-`-arch x86_64` via `CXXFLAGS` and `CFLAGS`, and set
-`--host=x86_64-apple-darwin` on the configure command.
+There is no configure step, and nothing to generate: the build system is
+four hand-written Makefiles, tracked like any other source file. A git
+checkout and a release tarball build identically.
 
-The generated autotools files are not tracked in git. Run `./autogen.sh`
-(or `autoreconf -fi`) once after cloning, and again after modifying
-`configure.ac` or a `Makefile.am`. A release tarball ships them, so
-building from one needs no autoconf or automake at all. Either way,
-maintainer mode is disabled (`AM_MAINTAINER_MODE`), so `make` will not
-attempt to regenerate them at build time: no matching autoconf/automake
-version is needed, and timestamps do not matter.
+Cross-compilation is expressed by naming the compiler, because
+`src/Makefile` asks it what it targets with `-dumpmachine` and picks the
+architecture and OS backends from the answer, deriving the C compiler,
+`ar` and `ranlib` to match:
+
+```bash
+make -C src libvsearch.a CXX=aarch64-linux-gnu-g++
+```
+
+On macOS this matters more than it looks. `-arch x86_64` in `CXXFLAGS`
+does **not** change what `-dumpmachine` reports, so an arm64 host would
+select the aarch64 backend while compiling x86-64 code. Put the target in
+the compiler instead:
+
+```bash
+make -C src libvsearch.a CXX="clang++ --target=x86_64-apple-darwin" \
+                         CC="clang --target=x86_64-apple-darwin"
+```
 
 ### Link dependencies
 
@@ -111,10 +120,13 @@ Required:
 - `-lpthread` (threading primitives)
 - `-ldl` (dynamic library loading)
 
-Optional (detected at configure time, can be disabled):
+Optional, and **not** link dependencies: zlib and bzip2 are opened at run
+time with `dlopen`, so neither `-lz` nor `-lbz2` appears on any link line.
+What is detected at build time is only the presence of their headers,
+which decides whether the support is compiled in at all:
 
-- `-lz` (zlib — `--disable-zlib` to omit)
-- `-lbz2` (bzip2 — `--disable-bzip2` to omit)
+- `zlib.h` (gzip input — `make ZLIB=0` to omit)
+- `bzlib.h` (bzip2 input — `make BZIP2=0` to omit)
 
 ### Include path
 
@@ -1185,14 +1197,25 @@ Clang). SIMD instruction flags (`-msse2`, `-mssse3`) are applied when
 
 ### Build configuration flags
 
-| Flag | Effect |
+Passed on the `make` command line, not to a configure script.
+
+| Variable | Effect |
 |------|--------|
-| `--disable-zlib` | Omit gzip support |
-| `--disable-bzip2` | Omit bzip2 support |
-| `--disable-pdfman` | Skip PDF manual generation |
-| `--enable-debug` | Debug build: assertions on, `_GLIBCXX_DEBUG`, extra warnings |
-| `--enable-sanitize` | Address and undefined-behaviour sanitizers (native builds only) |
-| `--enable-profiling` | Profiling build (`-pg -O1`) |
+| `ZLIB=0` | Omit gzip support |
+| `BZIP2=0` | Omit bzip2 support |
+| `MANPAGES=0` | Do not build or install the manual pages |
+| `COMPLETION=0` | Do not install the shell completion scripts |
+| `DEBUG=1` | Debug build: assertions on, `_GLIBCXX_DEBUG`, extra warnings |
+| `SANITIZE=1` | Address and undefined-behaviour sanitizers (native builds only); combines with any flavour |
+| `PROFILE=1` | Profiling build (`-pg -O1`) |
+| `COVERAGE=1` | Coverage build (`--coverage`) |
+| `PREFIX=DIR` | Installation prefix (default `/usr/local`) |
+| `CXX=`, `CC=` | Compiler; also selects the cross target |
+
+A consumer linking against `libvsearch.a` has to build it with the same
+flavour it links with. `DEBUG=1` in particular changes the layout of
+`std::vector` through `_GLIBCXX_DEBUG`, so mixing a debug library with a
+release consumer miscompiles silently rather than failing to link.
 
 ---
 

@@ -55,35 +55,40 @@ In the example below, VSEARCH will identify sequences in the file database.fsa t
 wget https://github.com/torognes/vsearch/releases/download/v2.32.0/vsearch-2.32.0.tar.gz
 tar xzf vsearch-2.32.0.tar.gz
 cd vsearch-2.32.0
-./configure
-make ARFLAGS="cr"
+make
 sudo make install
 ```
 
-You may customize the installation directory using the `--prefix=DIR` option to `configure`. If the compression libraries [zlib](https://www.zlib.net) and/or [bzip2](https://www.sourceware.org/bzip2/) are installed on the system, they will be detected automatically and support for compressed files will be included in vsearch (see section **Dependencies** below). Support for compressed files may be disabled using the `--disable-zlib` and `--disable-bzip2` options to `configure`. The manual pages are generated from markdown sources with [pandoc](https://pandoc.org/): a release tarball ships them ready-made and needs no pandoc, while building them from a git checkout does. `configure` reports whether it found pandoc, and a build without it simply produces no manual (`--disable-manpages` asks for that explicitly). `configure` compiles at `-O3` by default, which is the level vsearch is tested and released with; passing `CFLAGS` or `CXXFLAGS` replaces that default entirely, so a build that needs its own flags should name an optimization level among them. Other  options may also be applied to `configure`, please run `configure -h` to see them all. The GCC C++ (`g++`) compiler, version 4.8 or later, (or `clang`) and `make` are required to build vsearch. The source distribution above ships the generated build files (`configure`, `Makefile.in`, ...), so GNU autoconf and automake are **not** needed to build it. They are needed to build from a git checkout, which does not track those files: run `./autogen.sh` first (autoconf version 2.63 or later), as shown below. The same applies after modifying `configure.ac` or a `Makefile.am`. Version 3.82 or later of `make` may be required on Linux, while version 3.81 is sufficient on macOS.
+There is no `configure` step: vsearch is built by four plain Makefiles, and everything that used to be configured is a variable you pass to `make`. You may customize the installation directory with `make install PREFIX=DIR`. If the compression libraries [zlib](https://www.zlib.net) and/or [bzip2](https://www.sourceware.org/bzip2/) are installed on the system, they will be detected automatically and support for compressed files will be included in vsearch (see section **Dependencies** below); `make ZLIB=0` and `make BZIP2=0` disable them. The manual pages are generated from markdown sources with [pandoc](https://pandoc.org/): a release tarball ships them ready-made and needs no pandoc, while building them from a git checkout does, and a build without it simply produces no manual (`make MANPAGES=0` asks for that explicitly). vsearch compiles at `-O3` by default, which is the level it is tested and released with; `CFLAGS` and `CXXFLAGS` are appended after the defaults rather than replacing them, so `make CXXFLAGS=-O2` lowers the optimization level and leaves everything else in place.
 
-**Out-of-tree (VPATH) builds** `configure` and `make` may be run from a separate, initially empty directory instead of the source tree. All object files, libraries and the final binary are then written under that build directory, leaving the source tree pristine, and several builds (for example debug and release, or different cross-compilation targets) can coexist from a single checkout:
+The GCC C++ (`g++`) compiler, version 4.8 or later, (or `clang`) and GNU `make` are required. Autoconf and automake are **not**, for either the release tarball or a git checkout. GNU make 3.81 is enough; note that FreeBSD's `make` is not GNU make, so build with `gmake` there.
 
+Cross-compiling needs a cross compiler and nothing else — no `--host=`, no toolchain file. The Makefile asks the compiler what it targets and derives the C compiler, `ar` and `ranlib` from it:
+
+```sh
+make CXX=x86_64-w64-mingw32-g++
 ```
-mkdir build && cd build
-../configure
-make ARFLAGS="cr"
+
+**Several builds from one checkout** Object files go under `src/build/<target-triple>-<flavour>/`, so a debug and a release build, or several cross-compilation targets, coexist without rebuilding each other:
+
+```sh
+make                                  # src/build/x86_64-linux-gnu-release/
+make DEBUG=1                          # src/build/x86_64-linux-gnu-debug/
+make CXX=aarch64-linux-gnu-g++        # src/build/aarch64-linux-gnu-release/
 ```
 
-To build VSEARCH on Debian and similar Linux distributions (Ubuntu etc) you'll need the following packages: autoconf, automake, g++, libbz2-dev, make, zlib1g-dev. Include libsimde-dev to build on riscv64 or mips64el.
+The binary is always written to `bin/`, so successive builds do overwrite it; pass `BINDIR=` to keep several (`make BINDIR=bin/aarch64 CXX=aarch64-linux-gnu-g++`). The flavours are `DEBUG`, `PROFILE` and `COVERAGE`, plus `SANITIZE=1`, which combines with any of them.
 
-To build VSEARCH on Fedora and similar Linux distributions (RHEL, Centos etc) you'll need the following packages: autoconf, automake, bzip2-devel, gcc-c++, make, zlib-devel.
+To build VSEARCH on Debian and similar Linux distributions (Ubuntu etc) you'll need the following packages: g++, libbz2-dev, make, zlib1g-dev. Include libsimde-dev to build on riscv64 or mips64el.
 
-Of these, `autoconf` and `automake` are needed to build from a git checkout, which generates the build system with `./autogen.sh`, and after editing `configure.ac` or a `Makefile.am`. A build from the source distribution does not require them, since it ships the generated files.
+To build VSEARCH on Fedora and similar Linux distributions (RHEL, Centos etc) you'll need the following packages: bzip2-devel, gcc-c++, make, zlib-devel.
 
-Instead of downloading the source distribution as a compressed archive, you could clone the repo and build it as shown below. The options to `configure` as described above are still valid.
+Instead of downloading the source distribution as a compressed archive, you could clone the repo and build it as shown below. A checkout builds exactly like the tarball, except that generating the manual needs pandoc; the variables described above still apply.
 
 ```
 git clone https://github.com/torognes/vsearch.git
 cd vsearch
-./autogen.sh
-./configure
-make ARFLAGS="cr"
+make
 sudo make install
 ```
 
@@ -128,11 +133,11 @@ platform.
 
 VSEARCH ships completion scripts for **bash**, **zsh** and **fish**, in the [`completion`](./completion) folder. Once installed, pressing the <kbd>Tab</kbd> key while typing a vsearch command line suggests the available commands; once a command is on the line, only the options that this command accepts are offered, values are suggested for options that take a fixed set (`--qmask`, `--dbmask`, `--strand`), and options expecting a file name complete file names, filtered by extension where that makes sense.
 
-`make install` installs all three, in the standard locations for each shell (`$PREFIX/share/bash-completion/completions`, `$PREFIX/share/zsh/site-functions` and `$PREFIX/share/fish/vendor_completions.d`). Distributions that place them elsewhere can say so at configure time, and `--disable-completion` skips them entirely:
+`make install` installs all three, in the standard locations for each shell (`$PREFIX/share/bash-completion/completions`, `$PREFIX/share/zsh/site-functions` and `$PREFIX/share/fish/vendor_completions.d`). Distributions that place them elsewhere can say so, and `COMPLETION=0` skips them entirely:
 
 ```sh
-./configure --with-bashcompdir=/etc/bash_completion.d
-./configure --disable-completion
+make install bashcompdir=/etc/bash_completion.d
+make install COMPLETION=0
 ```
 
 **From the binary distribution**, or to enable completion for a single user without installing system-wide, copy the file your shell needs (or create a symbolic link to it) from the `completion` folder:
@@ -205,7 +210,7 @@ doi: [10.7717/peerj.2584](https://doi.org/10.7717/peerj.2584)
 
 Compiling VSEARCH requires a C++ compiler and `make`. The code is written in C++11, and the oldest supported compiler is GCC 4.8: that version and every more recent one will do, as will `clang`. GCC 4.8 and 4.9 are built and tested by the `linux-gcc-legacy` continuous integration job, and `run_legacy_gcc.sh` runs the same two builds locally.
 
-The autotools are needed as well: `autoconf` (version 2.63 or later) and `automake` generate the build system (`configure`, the `Makefile.in` files) from `configure.ac` and the `Makefile.am` files, which a git checkout does not track. Run `./autogen.sh` before `./configure`, and again after editing `configure.ac` or a `Makefile.am`. Only a build from the source distribution can do without them, since the release tarball ships the generated files.
+`make` must be GNU make; version 3.81 is enough, and it is what the GCC 4.8 job builds with. FreeBSD's `make` is BSD make, so use `gmake` there. Nothing else is required: the build system is four hand-written Makefiles, tracked like any other source file, so there is no generation step and no autoconf or automake.
 
 Optionally, the header files for the following two optional libraries are required if support for gzip and bzip2 compressed FASTA and FASTQ input files is needed:
 
@@ -230,8 +235,6 @@ VSEARCH includes code derived from Tatusov and Lipman's DUST program that is in 
 VSEARCH includes public domain code written by Alexander Peslyak for the MD5 message digest algorithm.
 
 VSEARCH includes public domain code written by Steve Reid and others for the SHA1 message digest algorithm.
-
-The VSEARCH distribution includes code from GNU Autoconf which normally is available under the GNU General Public License, but may be distributed with the special autoconf configure script exception.
 
 VSEARCH may include code from the [zlib](https://www.zlib.net) library copyright Jean-loup Gailly and Mark Adler, distributed under the [zlib license](https://www.zlib.net/zlib_license.html).
 
