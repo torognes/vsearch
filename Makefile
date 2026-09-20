@@ -49,6 +49,11 @@ BINDIR ?= bin
 # must not be installed alongside the native one.
 BIN := $(shell $(MAKE) -s -C src print-bin)
 
+# The '+' prefix on every use below marks the line as a recursive make.
+# GNU make before 4.4 looks for the literal text "$(MAKE)" in the recipe
+# *before* expanding it, so hiding it behind a variable stops the
+# jobserver being passed down: "make -j24" then builds src/ with -j1 and
+# says "jobserver unavailable" on its way past. The '+' says it outright.
 MAKE_SRC = $(MAKE) -C src VERSION=$(VERSION) BINDIR=$(abspath $(BINDIR))
 
 .PHONY: all vsearch lib manual install install-bin install-man \
@@ -57,14 +62,14 @@ MAKE_SRC = $(MAKE) -C src VERSION=$(VERSION) BINDIR=$(abspath $(BINDIR))
 all: vsearch $(if $(filter 1,$(MANPAGES)),manual)
 
 vsearch:
-	$(MAKE_SRC)
+	+$(MAKE_SRC)
 
 manual:
 	$(MAKE) -C man
 
 # The library archive, for embedding vsearch in another program.
 lib:
-	$(MAKE_SRC) lib
+	+$(MAKE_SRC) lib
 
 install: install-bin install-doc \
          $(if $(filter 1,$(MANPAGES)),install-man) \
@@ -111,7 +116,7 @@ check:
 	$(MAKE) -C completion check
 
 clean:
-	$(MAKE_SRC) clean
+	+$(MAKE_SRC) clean
 	$(RM) -r dist
 
 distclean: clean
