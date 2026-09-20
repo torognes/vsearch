@@ -21,6 +21,9 @@ Source code and binaries are available at
 
 These manual pages are also published online at
 [https://torognes.github.io/vsearch/](https://torognes.github.io/vsearch/).
+That address always serves the manual of the current release; the
+manuals of earlier releases are listed at
+[https://torognes.github.io/vsearch/versions/](https://torognes.github.io/vsearch/versions/).
 
 
 # COPYRIGHT
