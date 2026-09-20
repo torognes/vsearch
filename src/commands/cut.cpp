@@ -396,8 +396,8 @@ namespace {
 auto cut(struct Parameters const & parameters) -> void {
   ckeck_if_output_is_set(parameters);
 
-  auto input_handle = fasta_open(parameters.input_filename, parameters);
-  assert(input_handle != nullptr);  // verified by fasta_open()
+  auto input_handle = fastx_open(parameters.input_filename, parameters);
+  assert(input_handle != nullptr);  // verified by fastx_open()
 
   auto fastaout = open_output_files(parameters);
 

@@ -4,18 +4,19 @@
 
 # NAME
 
-vsearch \-\-cut --- use a restriction pattern to cut fasta sequences
+vsearch \-\-cut --- use a restriction pattern to cut fasta or fastq sequences
 
 
 # SYNOPSIS
 
-| **vsearch** **\-\-cut** *fastafile* \-\-cut_pattern *pattern* (\-\-fastaout | \-\-fastaout_rev | \-\-fastaout_discarded | \-\-fastaout_discarded_rev) *outputfile* \[*options*]
+| **vsearch** **\-\-cut** *fastxfile* \-\-cut_pattern *pattern* (\-\-fastaout | \-\-fastaout_rev | \-\-fastaout_discarded | \-\-fastaout_discarded_rev) *outputfile* \[*options*]
 
 
 # DESCRIPTION
 
 The vsearch command `--cut` uses a restriction pattern to cut input
-fasta sequences. Input sequences are cut into fragments at **each**
+fasta or fastq sequences (quality values are ignored, all outputs are
+in fasta format). Input sequences are cut into fragments at **each**
 restriction site matching the pattern given with the option
 `--cut_pattern`. Restriction patterns are only searched on the forward
 (or normal) strand, not on the reverse strand.
