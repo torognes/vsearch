@@ -591,6 +591,14 @@ auto optimize(merge_data_t & a_read_pair,
         }
     }
 
+  /* Record the chosen alignment before the gate cascade below, which returns 0
+     on every rejection: the caller would otherwise be left with no way to tell
+     a pair that failed a gate from one that never aligned. Reporting only, and
+     off the per-base loop above. */
+  a_read_pair.alignment_offset = best_i;
+  a_read_pair.alignment_diffs = best_diffs;
+  a_read_pair.alignment_overlap = best_overlap;
+
   if (hits > 1)
     {
       a_read_pair.reason = Reason::repeat;
@@ -680,6 +688,14 @@ auto process(merge_data_t & a_read_pair,
 {
   a_read_pair.merged = false;
   a_read_pair.quality_out_of_range = false;
+  /* cleared here, not in optimize(): the slots of a chunk are reused for pair
+     after pair, and a pair rejected before optimize() runs -- or one that
+     leaves through the quality early return below -- would otherwise carry
+     the previous occupant's alignment. Same reason read_pair() clears
+     'merged'. */
+  a_read_pair.alignment_offset = 0;
+  a_read_pair.alignment_diffs = 0;
+  a_read_pair.alignment_overlap = 0;
 
   auto skip = false;
 

@@ -151,6 +151,17 @@ struct merge_data_s
   int64_t fwd_errors = 0;
   int64_t rev_errors = 0;
   int64_t offset = 0;
+  /* The alignment optimize() settled on, kept whether or not the pair went on
+     to merge: 'offset' above is the same quantity, but it is only assigned
+     from optimize()'s return value, which is 0 on every rejection path, so it
+     cannot describe a pair that failed one of the gates. These three are set
+     once optimize() has chosen its best diagonal and survive the rejection
+     that may follow, which is what lets --tabbedout report the alignment of a
+     pair that did not merge. All zero when no diagonal ever qualified; a
+     reader must test alignment_overlap before dividing by it. */
+  int64_t alignment_offset = 0;
+  int64_t alignment_diffs = 0;
+  int64_t alignment_overlap = 0;
   bool merged = false;
   Reason reason = Reason::undefined;
   /* Set by the merge core (process/get_qual) when a FASTQ quality value falls
