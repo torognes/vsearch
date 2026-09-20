@@ -14,7 +14,7 @@
 #
 #     bash run_legacy_gcc.sh           # both compilers
 #     bash run_legacy_gcc.sh 4.9       # just one
-#     bash run_legacy_gcc.sh 4.8 4.9   # both, in that order
+#     bash run_legacy_gcc.sh 4.8.5 4.9 # both, in that order
 #
 # The official gcc images are old Debian releases (jessie for 4.9, wheezy for
 # 4.8) and already carry everything the build needs -- autoconf, automake,
@@ -41,7 +41,9 @@
 
 set -u
 
-DEFAULT_VERSIONS=(4.9 4.8)
+# "4.8.5", not "4.8": the floating gcc:4.8 tag is a schema-1 image
+# manifest, which Docker 29 refuses to pull. Same image, schema-2 tag.
+DEFAULT_VERSIONS=(4.9 4.8.5)
 
 ENGINE="${ENGINE:-}"
 if [ -z "${ENGINE}" ]; then
