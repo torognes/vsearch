@@ -9,7 +9,12 @@
 # probes, and the warning flags that older compilers reject are probed
 # rather than guessed.
 
-VERSION ?= 2.32.0
+# The top-level Makefile passes this down; "make -C src" on its own (which is
+# how the library is built) reads the same file itself.
+VERSION ?= $(shell cat ../VERSION 2>/dev/null)
+ifeq ($(VERSION),)
+  $(error cannot read the version number from ../VERSION)
+endif
 
 # GNU make defaults CXX to "g++", which does not exist on a stock FreeBSD:
 # the base compiler is clang, installed as "c++" (and "cc").  autoconf's

@@ -10,7 +10,13 @@
 #
 #   make CXX=x86_64-w64-mingw32-g++
 
-VERSION := 2.32.0
+# The version number lives in one tracked file, so that the Makefiles, the
+# release-tag check in CI and anyone grepping for it all read the same thing.
+# It used to be AC_INIT's second argument in configure.ac.
+VERSION := $(shell cat VERSION)
+ifeq ($(VERSION),)
+  $(error cannot read the version number from ./VERSION)
+endif
 
 PREFIX      ?= /usr/local
 exec_prefix := $(PREFIX)
