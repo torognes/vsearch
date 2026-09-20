@@ -173,6 +173,9 @@ ways, all deliberate (see
   such annotations, so its `relabel=` is always a bare label.
 - Lines appear in input order whatever `--threads` is set to. usearch emits
   them in the order its threads finish, unless `-threads 1` is given.
+- The first field is the whole header of the forward read, description
+  included, which is the label the merged-read outputs of the command carry.
+  usearch truncates its first field at the first blank.
 
 usearch also reports a `minq=` field, for its `-fastq_minqual`. vsearch has
 `--fastq_minqual`, but `--fastq_mergepairs` does not accept it (only

@@ -2,7 +2,8 @@
 : Write to *filename* a report of how each pair of reads fared, one line
   per input pair, whether or not it merged. Pairs appear in input order,
   whatever the value of `--threads`. Each line is a sequence of
-  tab-separated tokens: the label of the forward read, then a token for
+  tab-separated tokens: the header of the forward read, description
+  included and never truncated, then a token for
   each value the merging pipeline computed, then the reason the pair was
   rejected if it was, then `result=merged` or `result=notmerged`. A value
   token is present only when the stage producing it was reached, so a pair
