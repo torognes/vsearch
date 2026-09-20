@@ -621,7 +621,13 @@ auto optimize(merge_data_t & a_read_pair,
       return 0;
     }
 
-  if ((100.0 * static_cast<double>(best_diffs) / static_cast<double>(best_overlap)) > parameters.opt_fastq_maxdiffpct)
+  /* best_overlap is zero when no diagonal ever qualified, which is the same
+     condition the kmers test below reports. The division was then 0/0, and
+     the NaN it produced compared false, so the pair fell through to that
+     test -- correct, but by accident. The guard states the intent, and makes
+     the pair reach the reason that actually describes it. */
+  if ((best_overlap > 0) and
+      ((100.0 * static_cast<double>(best_diffs) / static_cast<double>(best_overlap)) > parameters.opt_fastq_maxdiffpct))
     {
       a_read_pair.reason = Reason::maxdiffpct;
       return 0;
