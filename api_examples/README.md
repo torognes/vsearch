@@ -10,8 +10,6 @@ Build the vsearch static library and executable:
 
 ```bash
 cd ..
-./autogen.sh                # from a git checkout only; a tarball ships the build files
-./configure
 make -C src libvsearch.a    # static library for examples
 make -C src                 # executable for ground truth comparison
 ```
@@ -23,7 +21,7 @@ make
 ```
 
 The examples and the library must agree on `_GLIBCXX_DEBUG`, which
-`--enable-debug` adds to the library: it changes the layout of `std::vector`,
+`DEBUG=1` adds to the library: it changes the layout of `std::vector`,
 and therefore of `struct Parameters`, so mixing the two links cleanly and then
 misbehaves at run time. `make` detects which kind of `libvsearch.a` it is
 linking against and matches it, so no flag is needed; pass `GLIBCXX_DEBUG=1`
