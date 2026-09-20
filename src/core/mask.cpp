@@ -107,11 +107,6 @@ struct DustRegion {
 };
 
 
-/* Ceiling for the overflow contract worst_region() asserts in its inner loop. At file
-   scope so that a release build, where the assert compiles away, does not see
-   it as an unused local. */
-constexpr auto max_sum = dust_window * dust_window / 2;  // 2048
-
 /* An exact bound on what a start position can still score, used by worst_region() to
    skip the starts that provably cannot produce a region.
 
@@ -142,6 +137,13 @@ auto worst_region(View<char> const window) -> DustRegion
   static constexpr auto reach_threshold = 2 * per_position_cost;
   static constexpr auto word_count = 1U << (2U * dust_word);  // 64
   static constexpr auto bitmask = word_count - 1;
+  /* Ceiling for the overflow contract asserted in the inner loop below. The
+     static_assert states the headroom that assert exists to protect, and is
+     also what keeps a release build, where the assert compiles away, from
+     seeing the constant as unused. */
+  static constexpr auto max_sum = dust_window * dust_window / 2;  // 2048
+  static_assert(max_sum <= std::numeric_limits<int>::max() / score_scale,
+                "score_scale * sum must fit in an int");
   /* words[] is indexed by position < window_length below, so a longer window
      would run off the array; dust_core() passes at most dust_window by
      construction */
