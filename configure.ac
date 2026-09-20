@@ -2,6 +2,11 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ([2.63])
+# The version below is the one place a release is numbered. Once the
+# release is tagged, add that tag to man/versions.txt as well: that is
+# what publishes its manual at https://torognes.github.io/vsearch/<tag>/
+# and lists it on the version index, so that users who stay on this
+# release keep a manual that describes it.
 AC_INIT([vsearch], [2.32.0], [torognes@ifi.uio.no], [vsearch], [https://github.com/torognes/vsearch])
 AC_CANONICAL_TARGET
 AM_INIT_AUTOMAKE([subdir-objects])
