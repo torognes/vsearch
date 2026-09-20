@@ -1933,6 +1933,7 @@ command_options:
     - --sample
     - --sizein
     - --sizeout
+    - --tabbedout
     - --threads
     - --xee
     - --xlength

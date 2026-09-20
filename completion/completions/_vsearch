@@ -1131,6 +1131,7 @@ _vsearch() {
             '--sample[sample identifier added to output labels]:string:' \
             '--sizein[propagate abundance annotation from input]' \
             '--sizeout[write abundance annotation to output]' \
+            '--tabbedout[output to tab-separated file]:file:_files' \
             '--threads[number of threads to use, zero for all cores (0)]:n:' \
             '--xee[remove expected errors (ee) info from output]' \
             '--xlength[strip sequence length annotation from output labels]' \
