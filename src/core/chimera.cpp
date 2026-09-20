@@ -2566,7 +2566,7 @@ auto chimera(ChimeraMode const mode, struct Parameters const & parameters) -> vo
           state.dbindex.add_all_sequences(parameters.opt_dbmask, state.db, parameters);
         }
 
-      state.query_fasta_h = fasta_open(parameters.input_filename, parameters);
+      state.query_fasta_h = fastx_open(parameters.input_filename, parameters);
       progress_total = state.query_fasta_h->get_size();
 
       /* The query file is parsed inside the worker threads
