@@ -1,19 +1,26 @@
 # Build and deploy the vsearch manual to GitHub Pages.
 #
-# The site holds two manuals, because the one people are pointed to must
-# describe the vsearch they actually have: every installed copy names
-# https://torognes.github.io/vsearch/ in the AVAILABILITY section of its
-# manual pages, and a site built from dev would answer them with options
-# and defaults no release has yet.
+# The site holds several manuals, because the one people are pointed to
+# must describe the vsearch they actually have: every installed copy
+# names https://torognes.github.io/vsearch/ in the AVAILABILITY section
+# of its manual pages, and a site built from dev would answer them with
+# options and defaults no release has yet.
 #
-#   https://torognes.github.io/vsearch/       the released manual, master
-#   https://torognes.github.io/vsearch/dev/   the development manual, dev
+#   https://torognes.github.io/vsearch/          the released manual, master
+#   https://torognes.github.io/vsearch/dev/      the development manual, dev
+#   https://torognes.github.io/vsearch/<tag>/    one archived release per tag
 #
-# GitHub Pages serves one site per repository, so these are two folders
-# of a single site rather than two deployments. That is why this workflow
-# checks out both branches on every run, whichever one was pushed: each
-# deployment replaces the whole site, so a run that rebuilt only the
-# pushed branch would erase the other manual.
+# The archived manuals answer the other half of the same problem: a
+# reader still running an older vsearch follows the address their own
+# manual pages name and lands on a manual describing a release they do
+# not have. The releases to publish are listed in man/versions.txt.
+#
+# GitHub Pages serves one site per repository, so these are folders of a
+# single site rather than separate deployments. That is why this workflow
+# checks out both branches on every run, whichever one was pushed, and
+# rebuilds every archived manual as well: each deployment replaces the
+# whole site, so a run that rebuilt only the pushed branch would erase
+# everything else.
 #
 # Which file runs is decided by the branch that was pushed, so this
 # workflow has to exist on master as well as on dev to do its job. Until
@@ -43,8 +50,127 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  # Which releases have an archived manual. A matrix cannot be built
+  # from a file, so the list has to be read by a job of its own and
+  # handed on as JSON.
+  #
+  # The list is read from master, and so is the generator that builds
+  # the archived manuals below. Both belong to the deployment rather
+  # than to any tag -- a tag cannot know about the versions published
+  # after it, and the tags predating this feature have a generator that
+  # does not know the "version" channel. Taking both from master also
+  # means the archive and the version index pointing at it appear
+  # together: until this reaches master, man/versions.txt is not there,
+  # this job reports none, and the site is exactly what it was before.
+  versions:
+    runs-on: ubuntu-latest
+    outputs:
+      tags: ${{ steps.read.outputs.tags }}
+      any: ${{ steps.read.outputs.any }}
+    steps:
+      - name: Check out the released manual
+        uses: actions/checkout@v6
+        with:
+          ref: master
+          path: released
+      - name: Read the list of published versions
+        id: read
+        run: |
+          set -euo pipefail
+          if [ ! -r released/man/versions.txt ] ; then
+            echo "master carries no man/versions.txt yet: no archived manual to publish."
+            echo "tags=[]" >> "${GITHUB_OUTPUT}"
+            echo "any=false" >> "${GITHUB_OUTPUT}"
+            exit 0
+          fi
+          # the generator answers for the format of the file it owns, so
+          # that this workflow does not carry a second parser free to
+          # drift from it
+          tags="$(cd released/man && bash ./scripts/generate_online_documentation.sh --versions)"
+          json="$(printf '%s\n' "${tags}" | jq -R -s -c 'split("\n") | map(select(length > 0))')"
+          echo "tags=${json}" >> "${GITHUB_OUTPUT}"
+          if [ "${json}" = "[]" ] ; then
+            echo "any=false" >> "${GITHUB_OUTPUT}"
+          else
+            echo "any=true" >> "${GITHUB_OUTPUT}"
+          fi
+          echo "archived manuals to build: ${json}"
+
+  # One archived manual per listed release, each its own Jekyll site.
+  #
+  # They are built here rather than in the build job below because
+  # actions/jekyll-build-pages is a "uses" step, and a "uses" step cannot
+  # be run once per entry of a list. A matrix can, it uses the very same
+  # action the two branch manuals are built with -- rather than a
+  # hand-rolled jekyll invocation that could render them differently --
+  # and the legs run in parallel, so the wall-clock cost of the archive
+  # does not grow with every release.
+  archived:
+    needs: versions
+    if: needs.versions.outputs.any == 'true'
+    runs-on: ubuntu-latest
+    strategy:
+      # one broken tag should not hide whether the others are fine
+      fail-fast: false
+      matrix:
+        tag: ${{ fromJSON(needs.versions.outputs.tags) }}
+    steps:
+      - name: Check out the generator
+        uses: actions/checkout@v6
+        with:
+          ref: master
+          path: released
+      - name: Check out the archived release
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ matrix.tag }}
+          path: archive
+      # the per-version half of the check the released manual gets in the
+      # build job: a tag from before the modular toolchain would publish
+      # a folder that looks nothing like the rest of the site, and would
+      # do it without failing
+      - name: Check the tag against the modular toolchain
+        run: |
+          grep -q 'just-the-docs' archive/_config.yml || {
+            echo "::error::${{ matrix.tag }} predates the modular manual toolchain."
+            echo "::error::v2.32.0 is the oldest release that can be published; see man/versions.txt."
+            exit 1
+          }
+      - name: Install pandoc
+        run: |
+          sudo apt update
+          sudo apt install -y pandoc
+      # Only man/scripts/ is overlaid. The tag keeps its own _config.yml,
+      # and with it the theme version its release was published with, so
+      # what is rebuilt is that release's manual and not its rendering.
+      - name: Generate the archived manual
+        run: |
+          set -euo pipefail
+          rm -rf archive/man/scripts
+          cp -a released/man/scripts archive/man/scripts
+          cd archive/man
+          bash ./scripts/generate_online_documentation.sh version "${{ matrix.tag }}"
+      - name: Build the archived manual
+        uses: actions/jekyll-build-pages@v1
+        with:
+          source: ./archive/docs
+          destination: ./_site
+      - name: Upload the archived manual
+        uses: actions/upload-artifact@v4
+        with:
+          name: archived-${{ matrix.tag }}
+          path: ./_site
+          retention-days: 1
+
   # Build job
   build:
+    needs: [versions, archived]
+    # the archived job is skipped when nothing is listed, and a skipped
+    # dependency would otherwise skip this job with it
+    if: >-
+      always() && needs.versions.result == 'success'
+      && needs.archived.result != 'failure'
+      && needs.archived.result != 'cancelled'
     runs-on: ubuntu-latest
     steps:
       - name: Check out the released manual
@@ -102,6 +228,26 @@ jobs:
         with:
           source: ./development/docs
           destination: ./_site/dev
+      # For the same reason the two builds above are ordered: the
+      # archived manuals are placed into _site only once nothing is
+      # going to empty it again. They are copied rather than built,
+      # having been built by the archived job.
+      - name: Collect the archived manuals
+        if: needs.versions.outputs.any == 'true'
+        uses: actions/download-artifact@v4
+        with:
+          pattern: archived-*
+          path: ./archived
+      - name: Place the archived manuals in the site
+        if: needs.versions.outputs.any == 'true'
+        run: |
+          set -euo pipefail
+          for folder in ./archived/archived-* ; do
+            tag="${folder##*/archived-}"
+            mkdir -p "_site/${tag}"
+            cp -a "${folder}/." "_site/${tag}/"
+            echo "${tag}: $(find "_site/${tag}" -name '*.html' | wc -l) pages"
+          done
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v5
 
