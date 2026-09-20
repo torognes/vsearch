@@ -3,24 +3,21 @@ name: Source distribution
 # Builds the source distribution, proves it is buildable on its own, and
 # attaches it to the GitHub release.
 #
-# It exists because the autotools output is no longer tracked. The tarball
-# GitHub generates by itself (the "Source code (tar.gz)" link, a plain
-# snapshot of the git tree) therefore carries configure.ac and the
-# Makefile.am files but no configure, and building from it needs autoconf
-# and automake. The tarball built here is the one to point people at: 'make
-# dist' puts the generated build files in it, and the manual pages and NEWS
-# as well, so it builds with nothing but a C++ compiler and make.
+# It exists because the tarball GitHub generates by itself (the "Source code
+# (tar.gz)" link, a plain snapshot of the git tree) carries neither the
+# generated manual pages nor NEWS, and carries a good deal of development
+# scaffolding that a reader of the source has no use for. The tarball built
+# here is the one to point people at: 'make dist' adds the 63 manual pages
+# and NEWS, and drops everything .gitattributes marks export-ignore, so it
+# builds with nothing but a C++ compiler and GNU make -- no pandoc, and no
+# git either, although 'make dist' itself needs one.
 #
-# Reproducibility comes from pinning, not from using an old autoconf: a
-# release tarball's configure is a self-contained shell script, and
-# AM_MAINTAINER_MODE([disable]) leaves the rebuild rules' dependencies
-# commented out, so no consumer ever runs an autotools program whatever
-# version produced it (the verify job below proves exactly that). Pin the
-# runner image to a dated label instead of ubuntu-latest if you want two
-# releases to be byte-comparable; the tool versions are recorded in the log
-# either way. Note that automake 1.17 and later emit 'ARFLAGS = cr' where
-# 1.16 emitted 'cru', which is what the ARFLAGS="cr" override in the build
-# recipes works around.
+# The build system is now four hand-written Makefiles, so there is no
+# generator to pin and no rebuild rules that could fire on a consumer's
+# machine. What the verify job below still has to prove is the other half of
+# that promise: that the tarball is complete (the manual is in it) and that
+# nothing in it reaches for a tool the tarball's own README does not ask
+# for.
 
 on:
   release:
@@ -56,33 +53,33 @@ jobs:
     - name: Install dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y autoconf automake g++ make pandoc libbz2-dev zlib1g-dev
+        sudo apt-get install -y g++ make pandoc libbz2-dev zlib1g-dev
 
     # Recorded so a tarball can be traced back to the toolchain that made it.
     - name: Record the toolchain
       run: |
-        autoconf --version | head -n 1
-        automake --version | head -n 1
+        make --version | head -n 1
         pandoc --version | head -n 1
 
     - name: Build the distribution
       run: |
-        ./autogen.sh
-        ./configure
         make dist
+        # 'make dist' writes into dist/; move it to the workspace root, which
+        # is where the verify and publish jobs expect to find it.
+        mv dist/vsearch-*.tar.gz .
 
-    # A release tag that disagrees with configure.ac means the version bump
+    # A release tag that disagrees with VERSION means the version bump
     # was forgotten, and every artefact of the release would carry the old
     # number. Catch it here rather than in a user's bug report.
     - name: Check the version
       run: |
-        version=$(sed -n 's/^AC_INIT(\[vsearch\], *\[\([^]]*\)\].*/\1/p' configure.ac)
-        echo "configure.ac declares ${version}"
+        version=$(cat VERSION)
+        echo "VERSION declares ${version}"
         test -f "vsearch-${version}.tar.gz"
         if [ "${{ github.event_name }}" = "release" ] ; then
           tag="${{ github.event.release.tag_name }}"
           if [ "${tag}" != "v${version}" ] ; then
-            echo "::error::release tag ${tag} does not match configure.ac version ${version}" >&2
+            echo "::error::release tag ${tag} does not match VERSION (${version})" >&2
             exit 1
           fi
         fi
@@ -108,13 +105,10 @@ jobs:
       with:
         name: source-distribution
 
-    # Deliberately no autoconf, no automake and no pandoc: this job stands in
-    # for a user who has only a compiler, and the point is to prove the
-    # tarball needs nothing else. The runner images ship autoconf and automake
-    # anyway, so their absence cannot be arranged -- the build log is scanned
-    # below instead, which is the stronger check. pandoc can be removed, and
-    # is, so that the manual in the tarball is the one shipped rather than one
-    # regenerated here.
+    # Deliberately no pandoc: this job stands in for a user who has only a
+    # compiler, and the point is to prove the tarball needs nothing else.
+    # Removing pandoc also makes the manual it checks the one that shipped,
+    # rather than one regenerated here.
     - name: Install a minimal toolchain
       run: |
         sudo apt-get update
@@ -142,33 +136,50 @@ jobs:
         test "${pages}" -gt 0
         test -f NEWS
 
-    # Touching the autotools sources makes them newer than the generated
-    # files, which is what would fire automake's rebuild rules if
-    # AM_MAINTAINER_MODE([disable]) were not holding them down. git does not
-    # preserve mtimes either, so this is a user's ordinary situation, not a
-    # contrived one.
+    # The tarball must carry no development scaffolding: everything
+    # .gitattributes marks export-ignore has to be absent, or 'make dist'
+    # silently stopped honouring it (it would, if the rule ever went back to
+    # 'git ls-files', which does not read that attribute).
+    - name: Check the tarball carries no development files
+      run: |
+        cd vsearch-*/
+        status=0
+        for path in .github dockerfiles Dockerfile .dockerignore \
+                    run_clang_tidy.sh run_legacy_gcc.sh _config.yml \
+                    .gitignore .gitattributes ; do
+          if [ -e "${path}" ] ; then
+            echo "::error::${path} should have been export-ignored" >&2
+            status=1
+          fi
+        done
+        exit "${status}"
+
+    # Touching the markdown sources makes them newer than the manual pages
+    # generated from them, which is a user's ordinary situation -- git does
+    # not preserve mtimes, and nor does unpacking into an existing tree. With
+    # no pandoc on PATH the build must still succeed, using the pages the
+    # tarball ships, rather than trying to regenerate them and failing.
     - name: Build
       run: |
         cd vsearch-*/
-        touch configure.ac Makefile.am src/Makefile.am man/Makefile.am completion/Makefile.am
-        ./configure CFLAGS="-O3" CXXFLAGS="-O3"
+        touch man/index.1.md man/commands/*.md man/formats/*.md man/misc/*.md
         make -j$(nproc) 2>&1 | tee "${RUNNER_TEMP}/build.log"
         exit "${PIPESTATUS[0]}"
 
-    - name: Check that no autotools program ran
+    - name: Check that nothing tried to regenerate the manual
       run: |
-        count=$(grep -ciE 'aclocal|automake|autoconf|autoreconf|autom4te' "${RUNNER_TEMP}/build.log" || true)
-        echo "autotools invocations in the build log: ${count}"
+        count=$(grep -ci 'pandoc\|generate_manpages' "${RUNNER_TEMP}/build.log" || true)
+        echo "manual-generation attempts in the build log: ${count}"
         if [ "${count}" != "0" ] ; then
-          grep -inE 'aclocal|automake|autoconf|autoreconf|autom4te' "${RUNNER_TEMP}/build.log" >&2
-          echo "::error::the tarball regenerated its build system; it is not self-contained" >&2
+          grep -in 'pandoc\|generate_manpages' "${RUNNER_TEMP}/build.log" >&2
+          echo "::error::the tarball tried to rebuild its manual; it is not self-contained" >&2
           exit 1
         fi
 
     - name: Check the binary
       run: |
         cd vsearch-*/
-        version=$(sed -n 's/^AC_INIT(\[vsearch\], *\[\([^]]*\)\].*/\1/p' configure.ac)
+        version=$(cat VERSION)
         bin/vsearch --version 2>&1 | head -n 1
         bin/vsearch --version 2>&1 | head -n 1 | grep -q "vsearch v${version}_"
 

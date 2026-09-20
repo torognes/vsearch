@@ -8,8 +8,8 @@ name: Release binaries
 # Three decisions shape this file.
 #
 # 1. Every asset is built from the SOURCE TARBALL, not from the checkout. The
-#    tarball ships configure and the 63 manual pages, so no job needs
-#    autoconf, automake or pandoc -- which is what lets the macOS jobs drop
+#    tarball ships the Makefiles and the 63 manual pages, so no job needs
+#    pandoc -- which is what let the macOS jobs drop
 #    the Homebrew dance in .github/actions/setup-macos-build-deps, and what
 #    lets the CentOS 7 job work at all. It also means every release tests its
 #    own source distribution on fourteen platforms.
@@ -74,21 +74,22 @@ jobs:
     - name: Install dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y autoconf automake g++ make pandoc libbz2-dev zlib1g-dev
+        sudo apt-get install -y g++ make pandoc libbz2-dev zlib1g-dev
 
     - name: Build the tarball
       id: build
       run: |
-        ./autogen.sh
-        ./configure
         make dist
-        version=$(sed -n 's/^AC_INIT(\[vsearch\], *\[\([^]]*\)\].*/\1/p' configure.ac)
+        version=$(cat VERSION)
+        # 'make dist' writes into dist/; move it to the workspace root, which
+        # is where every later job expects to find it.
+        mv "dist/vsearch-${version}.tar.gz" .
         test -f "vsearch-${version}.tar.gz"
         echo "version=${version}" >> "$GITHUB_OUTPUT"
         if [ "${{ github.event_name }}" = "release" ] ; then
           tag="${{ github.event.release.tag_name }}"
           if [ "${tag}" != "v${version}" ] ; then
-            echo "::error::release tag ${tag} does not match configure.ac version ${version}" >&2
+            echo "::error::release tag ${tag} does not match VERSION (${version})" >&2
             exit 1
           fi
         fi
@@ -264,9 +265,9 @@ jobs:
       with:
         name: source-distribution
 
-    # No Homebrew step: building from the tarball needs no autoconf, no
-    # automake and no pandoc, and the macOS SDK already provides zlib.h and
-    # bzlib.h. MACOSX_DEPLOYMENT_TARGET is pinned to 10.9 by configure.ac.
+    # No Homebrew step: building from the tarball needs no pandoc, and the
+    # macOS SDK already provides zlib.h and bzlib.h.
+    # MACOSX_DEPLOYMENT_TARGET is pinned to 10.9 by src/Makefile.
     - name: Build
       env:
         ASSET: ${{ matrix.target.asset }}

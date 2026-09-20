@@ -8,7 +8,7 @@
 #
 #   SRCDIR    unpacked vsearch-<version>/ directory            (required)
 #   ASSET     asset base name, e.g. linux-aarch64-static       (required)
-#   HOST      cross triple for --host=, empty for a native build
+#   HOST      cross triple, empty for a native build; names the compiler
 #   LDFLAGS_EXTRA  appended to LDFLAGS, e.g. -static-libstdc++ -static-libgcc
 #   BINARY    name of the built binary            (default: vsearch)
 #   FORMAT    tar | zip                           (default: tar)
@@ -33,26 +33,44 @@ BINARY="${BINARY:-vsearch}"
 FORMAT="${FORMAT:-tar}"
 OUTDIR="${OUTDIR:-$(pwd)}"
 
-version=$(sed -n 's/^AC_INIT(\[vsearch\], *\[\([^]]*\)\].*/\1/p' "${SRCDIR}/configure.ac")
-test -n "${version}" || { echo "cannot read the version from configure.ac" >&2; exit 1; }
+version=$(cat "${SRCDIR}/VERSION" 2>/dev/null)
+test -n "${version}" || { echo "cannot read the version from VERSION" >&2; exit 1; }
 dirname="vsearch-${version}-${ASSET}"
 
 cd "${SRCDIR}"
 
-# --host= is what selects the architecture and OS backends in src/Makefile.am,
-# so it must be passed even when the compiler is already a cross compiler.
+# Naming the compiler is the whole cross-compilation recipe: src/Makefile
+# takes the target from "$(CXX) -dumpmachine" and selects the architecture and
+# OS backends from it, deriving CC, ar and ranlib to match. -O3 is already the
+# default; it is spelled out because a release should not depend on that.
 set -- CXXFLAGS="-O3" CFLAGS="-O3"
-test -z "${HOST}" || set -- "$@" --host="${HOST}"
+test -z "${HOST}" || set -- "$@" CXX="${HOST}-g++"
 test -z "${LDFLAGS_EXTRA}" || set -- "$@" LDFLAGS="${LDFLAGS_EXTRA}"
 
-./configure "$@"
-make -j"$(getconf _NPROCESSORS_ONLN 2>/dev/null || echo 2)"
+make "$@" -j"$(getconf _NPROCESSORS_ONLN 2>/dev/null || echo 2)"
+
+# A release asset is exactly where a silently mixed-toolchain build must not
+# reach: vsearch has two C translation units, make's built-in default for CC
+# is the host compiler, and a linker will accept its objects into a cross link
+# without a word. Assert the whole tree is one object format before packing.
+if [ -n "${HOST}" ] ; then
+  sh ci/check-object-formats.sh \
+     "src/build/$("${HOST}-g++" -dumpmachine)-release" "${HOST}-g++"
+fi
 
 # Staging through 'make install' rather than copying by hand: it is the same
 # code path distributions use, and it is what places the manual under
 # share/man/man{1,5,7} for us.
+#
+# "$@" has to be repeated here, and leaving it off is not a cosmetic slip.
+# configure recorded --host= in the Makefile it generated, so every later
+# make inherited the choice; a hand-written Makefile holds no state between
+# invocations, so a bare "make install" re-enters src/ as a *native* build
+# and overwrites the cross binary with one for the host -- silently, since
+# the asset still packs and still looks right. It also decides whether the
+# top level asks for bin/vsearch or bin/vsearch.exe.
 rm -rf "${PWD}/.stage" "${PWD}/${dirname:?}"
-make install DESTDIR="${PWD}/.stage" prefix=/
+make "$@" install DESTDIR="${PWD}/.stage" PREFIX=""
 
 mkdir -p "${dirname}/bin"
 cp ".stage/bin/${BINARY}" "${dirname}/bin/"
