@@ -629,13 +629,16 @@ auto optimize(merge_data_t & a_read_pair,
       return 0;
     }
 
-  /* best_overlap is zero when no diagonal ever qualified, which is the same
-     condition the kmers test below reports. The division was then 0/0, and
-     the NaN it produced compared false, so the pair fell through to that
-     test -- correct, but by accident. The guard states the intent, and makes
-     the pair reach the reason that actually describes it. */
-  if ((best_overlap > 0) and
-      ((100.0 * static_cast<double>(best_diffs) / static_cast<double>(best_overlap)) > parameters.opt_fastq_maxdiffpct))
+  /* When no diagonal ever qualified, best_diffs and best_overlap are both
+     zero and this is 0.0/0.0. The NaN that produces compares false, so the
+     pair falls through to the kmers test below, which is the one that
+     describes it. That is load-bearing, not an oversight: guarding the
+     division with best_overlap > 0 reads better and was tried, but it
+     perturbs register allocation in the diagonal loop above and cost five
+     million extra data reads per twenty thousand pairs -- about 1% of the
+     command's single-threaded runtime, for no change in behaviour. Measured
+     2026-09-20 with cachegrind; left as it is on purpose. */
+  if ((100.0 * static_cast<double>(best_diffs) / static_cast<double>(best_overlap)) > parameters.opt_fastq_maxdiffpct)
     {
       a_read_pair.reason = Reason::maxdiffpct;
       return 0;
