@@ -34,6 +34,29 @@
 # shellcheck disable=SC1091
 source "$(dirname "${0}")/manpage_tools.sh" || exit 1
 
+## The releases listed in ./versions.txt, one tag per line, with the
+## comments and the blank lines removed. The file is read from the
+## checkout being built, and the workflow feeds the same one to every
+## archived build, because the list is a property of the deployment: a
+## tag cannot know about the versions published after it.
+published_versions() {
+    [ -r ./versions.txt ] || return 0
+    sed -e 's/#.*//' -e 's/[[:space:]]//g' ./versions.txt | grep -v '^$' || true
+}
+
+## The workflow has to loop over the same releases this script writes
+## the version index from. Answering for the file format here, rather
+## than spelling the parser out a second time in the workflow, is what
+## keeps the two from drifting apart.
+##
+## Answered before the dependency check below, because reading a list of
+## tags needs none of the tools a conversion does: the workflow asks for
+## it from a job that has no reason to install pandoc.
+if [ "${1:-}" = "--versions" ] ; then
+    published_versions
+    exit 0
+fi
+
 ## check dependencies
 require_commands pandoc awk || exit 1
 
@@ -189,16 +212,6 @@ section_page() {
     echo "# ${1}"
     echo
     echo "${3}"
-}
-
-## The releases listed in ./versions.txt, one tag per line, with the
-## comments and the blank lines removed. The file is read from the
-## checkout being built, and the workflow feeds the same one to every
-## archived build, because the list is a property of the deployment: a
-## tag cannot know about the versions published after it.
-published_versions() {
-    [ -r ./versions.txt ] || return 0
-    sed -e 's/#.*//' -e 's/[[:space:]]//g' ./versions.txt | grep -v '^$' || true
 }
 
 ## The index the banner of every page links to. It is written for the
