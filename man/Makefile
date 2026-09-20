@@ -25,9 +25,30 @@ FRAGMENTS := $(wildcard commands/fragments/*.md formats/fragments/*.md \
                         misc/fragments/*.md)
 
 HAVE_PANDOC := $(shell command -v pandoc 2>/dev/null)
+# A release tarball ships the pages, so having them is as good as having
+# pandoc: either way there is a manual to install.
+HAVE_PAGES := $(wildcard manpages/vsearch.1)
 
-.PHONY: all regenerate-manpages clean
+.PHONY: all regenerate-manpages clean maintainer-clean
+
+ifeq (,$(HAVE_PANDOC)$(HAVE_PAGES))
+
+# Neither pandoc nor a shipped manual. Say so and build nothing: the manual
+# is optional, and taking the whole build down over it would be wrong.
+# configure behaved exactly this way -- AC_MSG_WARN, then BUILD_MANPAGES
+# false, so the pages were neither built nor installed -- and README.md
+# still promises it: "a build without it simply produces no manual".
+all:
+	@echo "Note: pandoc was not found, so the manual pages are not built." >&2
+	@echo "      vsearch itself is unaffected and 'make install' will skip" >&2
+	@echo "      them. Install pandoc to build the manual from a git" >&2
+	@echo "      checkout; a release tarball ships it ready-made." >&2
+
+else
+
 all: $(MANPAGES) $(if $(HAVE_PANDOC),../NEWS)
+
+endif
 
 ifdef HAVE_PANDOC
 
@@ -47,13 +68,14 @@ manpages/vsearch-%.7: misc/vsearch-%.7.md $(FRAGMENTS)
 
 else
 
-# No pandoc.  A page that is already here (the release-tarball case) counts
-# as up to date and this never runs; a missing one says why rather than
-# "No rule to make target".
+# No pandoc, but the pages are here -- the release-tarball case, the only
+# one that reaches this branch. They have no prerequisites, so they count as
+# up to date and nothing runs. A page genuinely missing from a tarball is a
+# packaging fault, and this says so rather than "No rule to make target".
 $(MANPAGES):
-	@echo "Error: the manual pages are generated from markdown by pandoc," >&2
-	@echo "       which was not found.  Install pandoc, or build from a" >&2
-	@echo "       release tarball, which ships them ready-made." >&2
+	@echo "Error: $@ is missing and pandoc, which generates it from the" >&2
+	@echo "       markdown sources, was not found. A release tarball should" >&2
+	@echo "       have shipped this page; install pandoc to rebuild it." >&2
 	@exit 1
 
 endif
