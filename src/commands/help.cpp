@@ -381,7 +381,7 @@
       "  --acceptall                 output all pairwise alignments\n",
       "\n",
       "Restriction site cutting\n",
-      "  --cut FILENAME              filename of FASTA formatted input sequences\n",
+      "  --cut FILENAME              filename of FASTA or FASTQ input sequences\n",
       " Parameters\n",
       "  --cut_pattern STRING        pattern to match with ^ and _ at cut sites\n",
       " Output\n",

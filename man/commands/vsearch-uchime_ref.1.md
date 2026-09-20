@@ -9,14 +9,15 @@ vsearch \-\-uchime_ref --- detect chimeras using a reference database
 
 # SYNOPSIS
 
-| **vsearch** **\-\-uchime_ref** _fastafile_ (**\-\-borderline** | **\-\-chimeras** | **\-\-nonchimeras** | **\-\-uchimealns** | **\-\-uchimeout**) _filename_ **\-\-db** _dbfile_ \[_options_]
+| **vsearch** **\-\-uchime_ref** _fastxfile_ (**\-\-borderline** | **\-\-chimeras** | **\-\-nonchimeras** | **\-\-uchimealns** | **\-\-uchimeout**) _filename_ **\-\-db** _dbfile_ \[_options_]
 
 
 # DESCRIPTION
 
 The vsearch command `--uchime_ref` detects chimeric sequences present
-in the fasta-formatted *fastafile* by comparing them against a
-reference database of chimera-free sequences (option `--db`).
+in the fasta- or fastq-formatted *fastxfile* (quality values are
+ignored) by comparing them against a reference database of
+chimera-free sequences (option `--db`).
 Sequences are compared on their *plus* strand only; `--strand both`
 is not supported by `--uchime_ref` and is rejected.
 
@@ -56,9 +57,9 @@ reference database.
 
 ## mandatory options
 
-`--uchime_ref` *fastafile*
-: Detect chimeras in the fasta-formatted *fastafile* using a
-  reference database.
+`--uchime_ref` *fastxfile*
+: Detect chimeras in the fasta- or fastq-formatted *fastxfile*
+  (quality values are ignored) using a reference database.
 
 #(./fragments/option_db_uchime_ref.md)
 
