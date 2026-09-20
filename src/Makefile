@@ -269,7 +269,8 @@ LIB_SOURCES := $(COMMON_SOURCES) utils/fatal_throw.cpp
 # cross targets -- coexist from one checkout without a "make clean" between
 # them.  $(BINDIR) is separate because every recipe, CI job and test runner
 # expects the binary at bin/vsearch; a cross job that wants to keep several
-# passes "make BINDIR=../bin/$(TRIPLE)".
+# passes "make BINDIR=bin/<triple>" at the top level, which hands an
+# absolute path down so that it means the same here as it does there.
 BUILDDIR ?= build/$(TRIPLE)-$(FLAVOUR)
 BINDIR   ?= ../bin
 EXE_DIR  := $(BUILDDIR)/exe

@@ -39,25 +39,32 @@ RM              ?= rm -f
 MANPAGES   ?= 1
 COMPLETION ?= 1
 
+# Where the finished binary lands, relative to this directory. A cross
+# matrix that wants to keep several at once passes BINDIR=bin/<triple>; the
+# path handed to src/ is absolute, so that it means the same thing there.
+BINDIR ?= bin
+
 # Ask src/ what the binary is called rather than guessing: only src/Makefile
 # knows the target triple, and a stale vsearch.exe from an earlier cross build
 # must not be installed alongside the native one.
 BIN := $(shell $(MAKE) -s -C src print-bin)
 
-.PHONY: all vsearch manual install install-bin install-man install-completion \
-        install-doc uninstall check clean distclean dist
+MAKE_SRC = $(MAKE) -C src VERSION=$(VERSION) BINDIR=$(abspath $(BINDIR))
+
+.PHONY: all vsearch lib manual install install-bin install-man \
+        install-completion install-doc uninstall check clean distclean dist
 
 all: vsearch $(if $(filter 1,$(MANPAGES)),manual)
 
 vsearch:
-	$(MAKE) -C src VERSION=$(VERSION)
+	$(MAKE_SRC)
 
 manual:
 	$(MAKE) -C man
 
 # The library archive, for embedding vsearch in another program.
 lib:
-	$(MAKE) -C src VERSION=$(VERSION) lib
+	$(MAKE_SRC) lib
 
 install: install-bin install-doc \
          $(if $(filter 1,$(MANPAGES)),install-man) \
@@ -65,7 +72,7 @@ install: install-bin install-doc \
 
 install-bin: vsearch
 	$(MKDIR_P) $(DESTDIR)$(bindir)
-	$(INSTALL_PROGRAM) bin/$(BIN) $(DESTDIR)$(bindir)
+	$(INSTALL_PROGRAM) $(BINDIR)/$(BIN) $(DESTDIR)$(bindir)
 
 # Sectioned, so that "man -M <dir> vsearch" works straight from an unpacked
 # binary tarball.  The section is the page's own suffix.
@@ -104,12 +111,12 @@ check:
 	$(MAKE) -C completion check
 
 clean:
-	$(MAKE) -C src clean
+	$(MAKE_SRC) clean
 	$(RM) -r dist
 
 distclean: clean
 	$(MAKE) -C man maintainer-clean
-	$(RM) -r bin
+	$(RM) -r $(BINDIR)
 
 # The release source tarball: the committed tree minus what .gitattributes
 # marks export-ignore, plus the two generated, distributed artefacts (the
