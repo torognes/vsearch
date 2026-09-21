@@ -31,16 +31,6 @@ act on (see
 
 # COMMANDS NOT IMPLEMENTED
 
-`search_global`
-: usearch's exhaustive database search, as opposed to the heuristic
-  `usearch_global`. vsearch has no separate command for it because the
-  heuristics can be switched off:
-  `--usearch_global --maxaccepts 0 --maxrejects 0 --minwordmatches 0`
-  compares every query to every target. The first two remove the early
-  stop, the third removes the word pre-filter that selects candidates,
-  and the alignment itself is always a full dynamic programming
-  alignment. Expect the runtime that implies.
-
 `cluster_otus`
 : Not implemented, and there is no exact equivalent. It combines greedy
   clustering with chimera filtering (the UPARSE-OTU algorithm), so the
@@ -169,6 +159,16 @@ as QIIME 1, are rejected outright rather than ignored:
 Corrections and extensions vsearch applies on purpose. They are
 differences in output or in accepted input, not accidents.
 
+- `--search_global` ignores `--maxaccepts` and `--maxrejects`, which
+  usearch honours. An exhaustive search has no ranked candidate order
+  for an early stop to cut short, so honouring them would make the
+  reported hits depend on how the database happens to be sorted, which
+  is the one property the command exists to remove. They are accepted
+  and have no effect, so a command line written for `--usearch_global`
+  can be reused unchanged; `--maxhits` limits how many hits are
+  reported. `--search_global` also defaults `--minseqlength` to 1 rather
+  than 32, nothing in it requiring a sequence to hold a whole word (see
+  [`vsearch-search_global(1)`](../commands/vsearch-search_global.1.md)).
 - With `--blast6out` and `--output_no_hits`, usearch reports 13 fields
   for a query with no match, where the format has 12. vsearch reports
   the 12 the format calls for.

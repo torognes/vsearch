@@ -202,6 +202,9 @@ system-wide.
 **[`vsearch-search_exact(1)`](./commands/vsearch-search_exact.1.md)**
 : Search for exact full-length matches against a database.
 
+**[`vsearch-search_global(1)`](./commands/vsearch-search_global.1.md)**
+: Exhaustively search sequences against a reference database.
+
 **[`vsearch-usearch_global(1)`](./commands/vsearch-usearch_global.1.md)**
 : Search sequences against a reference database using global alignment.
 
