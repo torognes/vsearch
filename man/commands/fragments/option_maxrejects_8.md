@@ -2,4 +2,6 @@
 : Set the maximum number of non-matching target sequences to consider
   before stopping the search for a given query. The default value is
   8. Use together with `--maxaccepts`. If both `--maxaccepts` and
-  `--maxrejects` are set to 0, the complete database is searched.
+  `--maxrejects` are set to 0, the complete database is searched, save
+  for the targets the word pre-filter removes beforehand (see
+  `--minwordmatches`).

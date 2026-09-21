@@ -221,23 +221,15 @@ other search commands, but have no effect with `--allpairs_global`.
 
 #(./fragments/option_band.md)
 
-#(./fragments/option_maxaccepts.md)
-: Ignored: every following sequence is aligned, with no early
-  termination.
+#(./fragments/option_maxaccepts_ignored.md)
 
-#(./fragments/option_maxrejects.md)
-: Ignored: every following sequence is aligned, with no early
-  termination.
+#(./fragments/option_maxrejects_ignored.md)
 
-#(./fragments/option_minwordmatches.md)
-: Ignored: `--allpairs_global` has no *k*-mer pre-filtering stage.
+#(./fragments/option_minwordmatches_ignored.md)
 
-#(./fragments/option_weak_id.md)
-: Ignored: only accepted alignments are reported; weak hits are never
-  written.
+#(./fragments/option_weak_id_ignored.md)
 
-#(./fragments/option_wordlength_8.md)
-: Ignored: `--allpairs_global` builds no *k*-mer index.
+#(./fragments/option_wordlength_ignored.md)
 
 #(./fragments/option_fulldp.md)
 

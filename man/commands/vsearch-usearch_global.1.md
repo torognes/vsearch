@@ -82,7 +82,7 @@ option.
 
 #(./fragments/option_iddef.md)
 
-#(./fragments/option_maxaccepts.md)
+#(./fragments/option_maxaccepts_search.md)
 
 #(./fragments/option_maxrejects.md)
 
