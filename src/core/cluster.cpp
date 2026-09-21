@@ -400,6 +400,12 @@ auto relabel_otu(int const clusterno, View<char> const sequence, struct Paramete
     {
       return std::string(parameters.opt_relabel) + std::to_string(clusterno + 1);
     }
+  if (parameters.opt_relabel_at)
+    {
+      /* --relabel @: the ticker here counts clusters, not records, which is
+         what the OTU names of --otutabout and its siblings are numbered by */
+      return parameters.opt_relabel_sample + '.' + std::to_string(clusterno + 1);
+    }
   if (parameters.opt_relabel_self)
     {
       return {sequence.data(), sequence.size()};
@@ -418,6 +424,17 @@ auto relabel_otu(int const clusterno, View<char> const sequence, struct Paramete
 }
 
 
+/* Whether any --relabel* option asks for a name of our own, rather than the
+   record's own header, in the OTU table. Exactly the set relabel_otu() above
+   answers for: when this is false it would return an empty string. */
+auto otu_is_relabelled(struct Parameters const & parameters) -> bool
+{
+  return (parameters.opt_relabel != nullptr) or parameters.opt_relabel_at or
+    parameters.opt_relabel_self or parameters.opt_relabel_sha1 or
+    parameters.opt_relabel_md5;
+}
+
+
 auto cluster_core_results_hit(struct cluster_cli_state_s & state,
                               struct hit const * best,
                               int const clusterno,
@@ -432,7 +449,7 @@ auto cluster_core_results_hit(struct cluster_cli_state_s & state,
 
   if (needs_otu_table(state.parameters))
     {
-      if ((state.parameters.opt_relabel != nullptr) or state.parameters.opt_relabel_self or state.parameters.opt_relabel_sha1 or state.parameters.opt_relabel_md5)
+      if (otu_is_relabelled(state.parameters))
         {
           std::string const label = relabel_otu(clusterno,
                                                  db.sequence_view(static_cast<uint64_t>(best->target)),
@@ -545,7 +562,7 @@ auto cluster_core_results_nohit(struct cluster_cli_state_s & state,
 
   if (needs_otu_table(state.parameters))
     {
-      if ((state.parameters.opt_relabel != nullptr) or state.parameters.opt_relabel_self or state.parameters.opt_relabel_sha1 or state.parameters.opt_relabel_md5)
+      if (otu_is_relabelled(state.parameters))
         {
           std::string const label = relabel_otu(clusterno, qsequence, state.parameters);
           state.otutable.add(query_head, make_view(label), qsize);
