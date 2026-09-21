@@ -16,8 +16,9 @@ complex software, usearch is not free from quirks and inconsistencies.
 We decided not to reproduce some of them, and, for complete
 transparency, this page documents the differences that matter when a
 usearch command line is ported to vsearch: commands vsearch does not
-implement, options it spells differently, options it accepts and
-ignores, options it rejects, and behaviours it changed on purpose.
+implement, commands and options it spells differently, options it
+accepts and ignores, options it rejects, and behaviours it changed on
+purpose.
 
 Two differences are broad enough to state first. vsearch works with
 nucleotide sequences only; amino acid sequences are not supported (see
@@ -46,11 +47,8 @@ act on (see
   closest vsearch route is a clustering command followed by a
   chimera-detection command, run separately. usearch's own manual
   considers 97% OTU clustering obsolete for most purposes, and
-  recommends denoising instead. That route is available here:
-  usearch's `unoise3` corresponds to `--cluster_unoise` followed by
-  `--uchime3_denovo`, which performs the chimera removal that
-  `unoise3` folds into a single command (see
-  [`vsearch-cluster_unoise(1)`](../commands/vsearch-cluster_unoise.1.md)).
+  recommends denoising instead --- a route vsearch does provide (see
+  `unoise3` in the next section).
 
 `search_pcr`, `search_oligodb`
 : Not implemented. Extracting the region between two primers is not
@@ -71,6 +69,47 @@ act on (see
 : Not implemented. `--sintax` writes per-query classifications; summing
   them per rank is left to downstream tools (see
   [`vsearch-sintax(1)`](../commands/vsearch-sintax.1.md)).
+
+
+# COMMANDS SPELLED DIFFERENTLY
+
+The operation is available, under another name, or as an option of
+another command.
+
+`unoise3`
+: `--cluster_unoise`, then `--uchime3_denovo`. usearch denoises and
+  removes chimeras in a single command; vsearch splits the two, so the
+  chimera step is a separate run (see
+  [`vsearch-cluster_unoise(1)`](../commands/vsearch-cluster_unoise.1.md)).
+
+`otutab`
+: `--usearch_global` with `--otutabout`. The OTU sequences that usearch
+  passes with `-otus` or `-zotus` are the `--db` here, and the identity
+  threshold that usearch fixes at 0.97 by default is the usual `--id`
+  (see
+  [`vsearch-usearch_global(1)`](../commands/vsearch-usearch_global.1.md)).
+  `--search_exact` also writes `--otutabout`, when only exact matches
+  should count.
+
+`fastx_truncate`
+: `--fastx_filter`, whose `--fastq_stripleft`, `--fastq_stripright` and
+  `--fastq_trunclen` perform the same trimming; `--fastq_trunclen_keep`
+  keeps the sequences that are shorter than the requested length,
+  where usearch discards them. Padding (`-padlen`, `-padq`) has no
+  equivalent (see
+  [`vsearch-fastx_filter(1)`](../commands/vsearch-fastx_filter.1.md)).
+
+`fastx_orient`
+: `--orient`. usearch 11 accepts both spellings, `orient` and
+  `fastx_orient`; usearch 12 keeps only the second (see
+  [`vsearch-orient(1)`](../commands/vsearch-orient.1.md)).
+
+`cluster_fast` with `-sort size`
+: `--cluster_size`. vsearch names the sort order rather than passing
+  it: `--cluster_fast` sorts by decreasing length, `--cluster_size` by
+  decreasing abundance, and `--cluster_smallmem` does not sort at all,
+  expecting its input already sorted by decreasing length (see
+  [`vsearch-cluster_size(1)`](../commands/vsearch-cluster_size.1.md)).
 
 
 # OPTIONS SPELLED DIFFERENTLY
