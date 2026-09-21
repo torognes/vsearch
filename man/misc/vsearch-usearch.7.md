@@ -44,7 +44,13 @@ act on (see
 : Not implemented, and there is no exact equivalent. It combines greedy
   clustering with chimera filtering (the UPARSE-OTU algorithm), so the
   closest vsearch route is a clustering command followed by a
-  chimera-detection command, run separately.
+  chimera-detection command, run separately. usearch's own manual
+  considers 97% OTU clustering obsolete for most purposes, and
+  recommends denoising instead. That route is available here:
+  usearch's `unoise3` corresponds to `--cluster_unoise` followed by
+  `--uchime3_denovo`, which performs the chimera removal that
+  `unoise3` folds into a single command (see
+  [`vsearch-cluster_unoise(1)`](../commands/vsearch-cluster_unoise.1.md)).
 
 `search_pcr`, `search_oligodb`
 : Not implemented. Extracting the region between two primers is not
