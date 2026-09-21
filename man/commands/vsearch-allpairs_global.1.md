@@ -221,7 +221,7 @@ other search commands, but have no effect with `--allpairs_global`.
 
 #(./fragments/option_band.md)
 
-#(./fragments/option_maxaccepts.md)
+#(./fragments/option_maxaccepts_search.md)
 : Ignored: every following sequence is aligned, with no early
   termination.
 
