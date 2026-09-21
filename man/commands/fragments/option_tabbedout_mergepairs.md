@@ -43,7 +43,10 @@
       including any annotation added by `--relabel`, `--sizeout`,
       `--fastq_eeout` or `--lengthout`. Present only for merged pairs, as
       nothing was written for the others. The first field of the line
-      always remains the input label.
+      always remains the input label. With `--relabel @` and an input
+      named `sampleB_R1.fastq`, for instance, a merged pair labelled
+      `pair1` on input yields `relabel=sampleB.1` while the first field
+      of its line is still `pair1`.
 
   When a pair is not merged, exactly one of the following tokens names the
   reason, immediately before `result=notmerged`:

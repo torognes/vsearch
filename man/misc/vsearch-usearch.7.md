@@ -149,6 +149,20 @@ differences in output or in accepted input, not accidents.
   [`vsearch-fastx_mask(1)`](../commands/vsearch-fastx_mask.1.md)).
 - vsearch adds the command `--cluster_size`, which sorts sequences by
   decreasing abundance before clustering.
+- `--relabel @`, which derives a sample identifier from the input file
+  name, is accepted by every command that accepts `--relabel`. usearch
+  honours `-relabel @` for `fastq_filter` and `fastq_mergepairs` only,
+  and takes it as a literal `@` prefix everywhere else, so a command
+  such as `--fastx_uniques` writes '>sampleA.1' where usearch writes
+  '>@1'. vsearch also refuses `--relabel @` on standard input, which has
+  no file name to derive from, and warns when the name yields an empty
+  identifier; usearch cannot read standard input at all. The derivation
+  itself follows usearch's implementation rather than its documentation
+  (see `--relabel` in any command's manual page).
+- The output-label column of `--fastx_uniques --tabbedout` follows
+  `--relabel_md5`, `--relabel_self` and `--relabel_sha1` as well as
+  `--relabel`. usearch has none of those three options, so the column is
+  byte-identical to its own whenever `-relabel` is what was given.
 
 The `--tabbedout` report of `--fastq_mergepairs` follows the file usearch
 writes for that option, with the same one-line-per-pair shape and the same
