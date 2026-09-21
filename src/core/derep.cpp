@@ -557,69 +557,51 @@ namespace {
         {
           auto const & cluster = hashtable[i];
 
-          if (parameters.opt_relabel != nullptr) {
+          /* Column 2 names the cluster: the centroid's own header, or the
+             substitute --relabel asks for. Note that it is the bare label --
+             the ;size= and friends that --sizeout adds to the fasta header
+             are deliberately not repeated here. */
+          auto emit_cluster_name = [&]() -> void
+          {
+            if (parameters.opt_relabel != nullptr)
+              {
+                std::fputs(parameters.opt_relabel, fp_tabbedout);
+                fprint_integer(fp_tabbedout, i + 1);
+                return;
+              }
             fprint(fp_tabbedout, make_view(cluster.header));
-            fprint(fp_tabbedout, '\t');
-            std::fputs(parameters.opt_relabel, fp_tabbedout);
-            fprint_integer(fp_tabbedout, i + 1);
-            fprint(fp_tabbedout, '\t');
-            fprint_integer(fp_tabbedout, i);
-            fprint(fp_tabbedout, '\t');
-            fprint_integer(fp_tabbedout, static_cast<uint64_t>(0));
-            fprint(fp_tabbedout, '\t');
-            fprint_integer(fp_tabbedout, cluster.count);
-            fprint(fp_tabbedout, '\t');
-            fprint(fp_tabbedout, make_view(cluster.header));
-            fprint(fp_tabbedout, '\n');
-          } else {
-            fprint(fp_tabbedout, make_view(cluster.header));
-            fprint(fp_tabbedout, '\t');
-            fprint(fp_tabbedout, make_view(cluster.header));
-            fprint(fp_tabbedout, '\t');
-            fprint_integer(fp_tabbedout, i);
-            fprint(fp_tabbedout, '\t');
-            fprint_integer(fp_tabbedout, static_cast<uint64_t>(0));
-            fprint(fp_tabbedout, '\t');
-            fprint_integer(fp_tabbedout, cluster.count);
-            fprint(fp_tabbedout, '\t');
-            fprint(fp_tabbedout, make_view(cluster.header));
-            fprint(fp_tabbedout, '\n');
-          }
+          };
 
-          uint64_t j = 1;
+          /* One line per record of the cluster, the centroid first. The six
+             columns are the same on all of them and differ only in column 1,
+             whose record the line is about, and column 4, its rank within the
+             cluster (0 for the centroid). */
+          auto emit_line = [&](std::string const & member_header,
+                               uint64_t const rank) -> void
+          {
+            fprint(fp_tabbedout, make_view(member_header));
+            fprint(fp_tabbedout, '\t');
+            emit_cluster_name();
+            fprint(fp_tabbedout, '\t');
+            fprint_integer(fp_tabbedout, i);
+            fprint(fp_tabbedout, '\t');
+            fprint_integer(fp_tabbedout, rank);
+            fprint(fp_tabbedout, '\t');
+            fprint_integer(fp_tabbedout, cluster.count);
+            fprint(fp_tabbedout, '\t');
+            fprint(fp_tabbedout, make_view(cluster.header));
+            fprint(fp_tabbedout, '\n');
+          };
+
+          emit_line(cluster.header, 0);
+
+          uint64_t rank = 1;
           for (auto next = nextseqtab[cluster.seqno_first];
                next != terminal;
                next = nextseqtab[next])
             {
-              if (parameters.opt_relabel != nullptr) {
-                fprint(fp_tabbedout, make_view(headertab[next]));
-                fprint(fp_tabbedout, '\t');
-                std::fputs(parameters.opt_relabel, fp_tabbedout);
-                fprint_integer(fp_tabbedout, i + 1);
-                fprint(fp_tabbedout, '\t');
-                fprint_integer(fp_tabbedout, i);
-                fprint(fp_tabbedout, '\t');
-                fprint_integer(fp_tabbedout, j);
-                fprint(fp_tabbedout, '\t');
-                fprint_integer(fp_tabbedout, cluster.count);
-                fprint(fp_tabbedout, '\t');
-                fprint(fp_tabbedout, make_view(cluster.header));
-                fprint(fp_tabbedout, '\n');
-              } else {
-                fprint(fp_tabbedout, make_view(headertab[next]));
-                fprint(fp_tabbedout, '\t');
-                fprint(fp_tabbedout, make_view(cluster.header));
-                fprint(fp_tabbedout, '\t');
-                fprint_integer(fp_tabbedout, i);
-                fprint(fp_tabbedout, '\t');
-                fprint_integer(fp_tabbedout, j);
-                fprint(fp_tabbedout, '\t');
-                fprint_integer(fp_tabbedout, cluster.count);
-                fprint(fp_tabbedout, '\t');
-                fprint(fp_tabbedout, make_view(cluster.header));
-                fprint(fp_tabbedout, '\n');
-              }
-              ++j;
+              emit_line(headertab[next], rank);
+              ++rank;
             }
 
           progress.update(i);
