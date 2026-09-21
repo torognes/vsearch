@@ -152,8 +152,8 @@ differences in output or in accepted input, not accidents.
 
 The `--tabbedout` report of `--fastq_mergepairs` follows the file usearch
 writes for that option, with the same one-line-per-pair shape and the same
-`result=merged` or `result=notmerged` ending each line. It differs in five
-ways, all deliberate (see
+`result=merged` or `result=notmerged` ending each line. It differs in the
+following ways, all deliberate (see
 [`vsearch-fastq_mergepairs(1)`](../commands/vsearch-fastq_mergepairs.1.md)):
 
 - vsearch reports the percentage of *differences* in the overlap
