@@ -569,6 +569,13 @@ namespace {
                 fprint_integer(fp_tabbedout, i + 1);
                 return;
               }
+            if (parameters.opt_relabel_at)
+              {
+                fprint(fp_tabbedout, make_view(parameters.opt_relabel_sample));
+                fprint(fp_tabbedout, '.');
+                fprint_integer(fp_tabbedout, i + 1);
+                return;
+              }
             fprint(fp_tabbedout, make_view(cluster.header));
           };
 
