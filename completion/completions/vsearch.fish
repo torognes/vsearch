@@ -1176,6 +1176,7 @@ complete -c vsearch -n '__vsearch_command_is --fastq_mergepairs' -l reverse -rfa
 complete -c vsearch -n '__vsearch_command_is --fastq_mergepairs' -l sample -x -d 'sample identifier added to output labels'
 complete -c vsearch -n '__vsearch_command_is --fastq_mergepairs' -l sizein -f -d 'propagate abundance annotation from input'
 complete -c vsearch -n '__vsearch_command_is --fastq_mergepairs' -l sizeout -f -d 'write abundance annotation to output'
+complete -c vsearch -n '__vsearch_command_is --fastq_mergepairs' -l tabbedout -rF -d 'output to tab-separated file'
 complete -c vsearch -n '__vsearch_command_is --fastq_mergepairs' -l threads -x -d 'number of threads to use, zero for all cores (0)'
 complete -c vsearch -n '__vsearch_command_is --fastq_mergepairs' -l xee -f -d 'remove expected errors (ee) info from output'
 complete -c vsearch -n '__vsearch_command_is --fastq_mergepairs' -l xlength -f -d 'strip sequence length annotation from output labels'

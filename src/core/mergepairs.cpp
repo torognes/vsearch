@@ -465,10 +465,29 @@ auto merge(merge_data_t & a_read_pair, QualityTables const & tables,
 
 
 namespace {
+/* What the diagonal search settled on, returned by value rather than written
+   onto the read pair. The distinction is not cosmetic: storing these three
+   into a_read_pair from inside optimize() -- even after the diagonal loop has
+   finished -- stops the compiler keeping the read pair's members in registers
+   across that loop, and costs it about 250 extra data reads per pair, some 5
+   million over twenty thousand pairs. Returned in registers it costs nothing
+   measurable. Measured with cachegrind on 2026-09-20.
+
+   Deliberately no default member initialisers: C++11 would then refuse the
+   aggregate initialisation used at every return site below. */
+struct Alignment
+{
+  int64_t offset;   /* the best diagonal found, whatever the verdict */
+  int64_t diffs;    /* mismatches over the overlap at that diagonal */
+  int64_t overlap;  /* aligned length there; zero when nothing qualified */
+  bool accepted;    /* false when a gate below rejected the pair */
+};
+
+
 auto optimize(merge_data_t & a_read_pair,
               struct kh_handle_s & kmerhash,
               QualityTables const & tables,
-              struct Parameters const & parameters) -> int64_t
+              struct Parameters const & parameters) -> Alignment
 {
   /* Merge-acceptance thresholds, relaxed for short overlaps. Derived here from
      the run's opt_fastq_minovlen (threaded via parameters; clamped to >= 5 by
@@ -594,7 +613,7 @@ auto optimize(merge_data_t & a_read_pair,
   if (hits > 1)
     {
       a_read_pair.reason = Reason::repeat;
-      return 0;
+      return Alignment{best_i, best_diffs, best_overlap, false};
     }
 
   /* A pair is staggered when a read runs past the other's 5' end, and
@@ -612,31 +631,40 @@ auto optimize(merge_data_t & a_read_pair,
   if ((not parameters.opt_fastq_allowmergestagger) and (best_i > shorter_read))
     {
       a_read_pair.reason = Reason::staggered;
-      return 0;
+      return Alignment{best_i, best_diffs, best_overlap, false};
     }
 
   if (best_diffs > parameters.opt_fastq_maxdiffs)
     {
       a_read_pair.reason = Reason::maxdiffs;
-      return 0;
+      return Alignment{best_i, best_diffs, best_overlap, false};
     }
 
+  /* When no diagonal ever qualified, best_diffs and best_overlap are both
+     zero and this is 0.0/0.0. The NaN that produces compares false, so the
+     pair falls through to the kmers test below, which is the one that
+     describes it. That is load-bearing, not an oversight: guarding the
+     division with best_overlap > 0 reads better and was tried, but it
+     perturbs register allocation in the diagonal loop above and cost five
+     million extra data reads per twenty thousand pairs -- about 1% of the
+     command's single-threaded runtime, for no change in behaviour. Measured
+     2026-09-20 with cachegrind; left as it is on purpose. */
   if ((100.0 * static_cast<double>(best_diffs) / static_cast<double>(best_overlap)) > parameters.opt_fastq_maxdiffpct)
     {
       a_read_pair.reason = Reason::maxdiffpct;
-      return 0;
+      return Alignment{best_i, best_diffs, best_overlap, false};
     }
 
   if (kmers == 0)
     {
       a_read_pair.reason = Reason::nokmers;
-      return 0;
+      return Alignment{best_i, best_diffs, best_overlap, false};
     }
 
   if (best_score < merge_minscore)
     {
       a_read_pair.reason = Reason::minscore;
-      return 0;
+      return Alignment{best_i, best_diffs, best_overlap, false};
     }
 
   /* the effective minimum overlap is at least 5: the CLI path requires it and
@@ -645,7 +673,7 @@ auto optimize(merge_data_t & a_read_pair,
   if (best_overlap < parameters.opt_fastq_minovlen)
     {
       a_read_pair.reason = Reason::minovlen;
-      return 0;
+      return Alignment{best_i, best_diffs, best_overlap, false};
     }
 
   int const mergelen = static_cast<int>(a_read_pair.fwd_trunc + a_read_pair.rev_trunc - best_i);
@@ -653,16 +681,16 @@ auto optimize(merge_data_t & a_read_pair,
   if (mergelen < parameters.opt_fastq_minmergelen)
     {
       a_read_pair.reason = Reason::minmergelen;
-      return 0;
+      return Alignment{best_i, best_diffs, best_overlap, false};
     }
 
   if (mergelen > parameters.opt_fastq_maxmergelen)
     {
       a_read_pair.reason = Reason::maxmergelen;
-      return 0;
+      return Alignment{best_i, best_diffs, best_overlap, false};
     }
 
-  return best_i;
+  return Alignment{best_i, best_diffs, best_overlap, true};
 }
 }  // anonymous namespace
 
@@ -790,12 +818,24 @@ auto process(merge_data_t & a_read_pair,
         }
     }
 
-  a_read_pair.offset = 0;
+  /* all zero when the pair never reached the aligner, which is what the
+     report needs to see: no alignment to describe */
+  Alignment alignment = {0, 0, 0, false};
 
   if (not skip)
     {
-      a_read_pair.offset = optimize(a_read_pair, kmerhash, tables, parameters);
+      alignment = optimize(a_read_pair, kmerhash, tables, parameters);
     }
+
+  /* the search result, kept whatever the verdict, so that a pair rejected by
+     one of optimize()'s gates can still be described */
+  a_read_pair.alignment_offset = alignment.offset;
+  a_read_pair.alignment_diffs = alignment.diffs;
+  a_read_pair.alignment_overlap = alignment.overlap;
+
+  /* and the offset the rest of the pipeline acts on, which stays zero unless
+     the alignment passed every gate */
+  a_read_pair.offset = alignment.accepted ? alignment.offset : 0;
 
   if (a_read_pair.offset > 0)
     {

@@ -1997,6 +1997,7 @@ namespace {
         option_sample,
         option_sizein,
         option_sizeout,
+        option_tabbedout,
         option_threads,
         option_xee,
         option_xlength,

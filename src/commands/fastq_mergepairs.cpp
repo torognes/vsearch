@@ -217,6 +217,7 @@ struct mergepairs_cli_state_s
   vsearch::OutputPair notmerged_rev_out;
 
   std::FILE * fp_eetabbedout = nullptr;
+  std::FILE * fp_tabbedout = nullptr;
 
   std::unique_ptr<fastx_s> fastq_fwd;
   std::unique_ptr<fastx_s> fastq_rev;
@@ -291,6 +292,176 @@ auto fprintf_ee_value(std::FILE * output_handle, double const expected_error) ->
   } else {
     std::fprintf(output_handle, "%.4lf", expected_error);
   }
+}
+
+
+/* The one token naming why a pair was not merged, or nullptr when there is
+   none to name. A switch, not a chain of tests, so that -Wswitch reports a
+   Reason added without a token for it.
+
+   'ok' has nothing to report, and neither of the other two can reach output:
+   Reason::indel has never been assigned (the 2017 ungapped local alignment
+   cannot see an indel, and that case folds into minscore), and 'undefined'
+   only survives a cooperative abort, which fatal()s before anything is
+   written. */
+auto tabbedout_reason_token(Reason const reason) -> char const *
+{
+  switch (reason)
+    {
+    case Reason::undefined:
+    case Reason::ok:
+    case Reason::indel:
+      return nullptr;
+
+    case Reason::minlen:       return "tooshort";
+    case Reason::maxlen:       return "toolong";
+    case Reason::maxns:        return "toomanyns";
+    case Reason::nokmers:      return "nokmers";
+    case Reason::repeat:       return "multiplealns";
+    case Reason::staggered:    return "nostagger";
+    case Reason::maxdiffs:     return "toomanydiffs";
+    case Reason::maxdiffpct:   return "toomanydiffpct";
+    case Reason::minscore:     return "lowscore";
+    case Reason::minovlen:     return "alntooshort";
+    case Reason::minmergelen:  return "mergetooshort";
+    case Reason::maxmergelen:  return "mergetoolong";
+    case Reason::maxee:        return "toohighee";
+    }
+  return nullptr;  /* unreachable: the switch is exhaustive over Reason */
+}
+
+
+/* --tabbedout: one line per input pair, merged or not, in the order the pairs
+   were read. The line is a sequence of self-describing tab-separated tokens:
+   the input label, then the values each stage of the pipeline produced, then
+   the reason the pair was rejected if it was, then 'result='. A value token
+   is present only when the stage that computes it was reached, so the arity
+   varies with how far the pair got, and the reason (when there is one) always
+   sits immediately before the verdict.
+
+   The vocabulary and the deliberate divergences from usearch's file of the
+   same name are documented in vsearch-fastq_mergepairs(1) and
+   vsearch-usearch(7). */
+auto write_tabbedout_line(struct mergepairs_cli_state_s const & state,
+                          merge_data_t const & a_read_pair) -> void
+{
+  auto * const output_handle = state.fp_tabbedout;
+
+  fprint(output_handle,
+         make_view(a_read_pair.fwd_header).first(static_cast<std::size_t>(a_read_pair.fwd_header_length)));
+
+  fprint(output_handle, "\tlen=");
+  fprint_integer(output_handle, a_read_pair.fwd_length);
+  fprint(output_handle, '-');
+  fprint_integer(output_handle, a_read_pair.rev_length);
+
+  /* only when --fastq_truncqual actually shortened a read; the lengths kept,
+     to read as a pair with the input lengths above */
+  if ((a_read_pair.fwd_trunc != a_read_pair.fwd_length) or
+      (a_read_pair.rev_trunc != a_read_pair.rev_length))
+    {
+      fprint(output_handle, "\ttrunc=");
+      fprint_integer(output_handle, a_read_pair.fwd_trunc);
+      fprint(output_handle, '-');
+      fprint_integer(output_handle, a_read_pair.rev_trunc);
+    }
+
+  /* zero when no diagonal ever qualified, and then nothing below it is
+     meaningful -- the percentage would divide by it */
+  if (a_read_pair.alignment_overlap > 0)
+    {
+      /* the offset spans both 3' overhangs and the overlap, so taking them
+         off a read's length leaves what it contributes outside the overlap.
+         Same arithmetic as optimize() and merge(). */
+      auto const fwd_3prime = std::max(static_cast<int64_t>(0),
+                                       a_read_pair.alignment_offset - a_read_pair.rev_trunc);
+      auto const rev_3prime = std::max(static_cast<int64_t>(0),
+                                       a_read_pair.alignment_offset - a_read_pair.fwd_trunc);
+      auto const left = a_read_pair.fwd_trunc - fwd_3prime - a_read_pair.alignment_overlap;
+      auto const right = a_read_pair.rev_trunc - rev_3prime - a_read_pair.alignment_overlap;
+      auto const merge_length = a_read_pair.fwd_trunc + a_read_pair.rev_trunc - a_read_pair.alignment_offset;
+
+      /* the three parts of the alignment tile the merged fragment exactly */
+      assert(left >= 0);
+      assert(right >= 0);
+      assert(left + a_read_pair.alignment_overlap + right == merge_length);
+      /* and when the pair went on to merge, that is the fragment written */
+      assert((not a_read_pair.merged) or (merge_length == a_read_pair.merged_length));
+
+      fprint(output_handle, "\taln=");
+      fprint_integer(output_handle, left);
+      fprint(output_handle, '-');
+      fprint_integer(output_handle, a_read_pair.alignment_overlap);
+      fprint(output_handle, '-');
+      fprint_integer(output_handle, right);
+
+      /* the bases a stagger costs: trimmed when the pair merges, and what
+         made it staggered when it does not. vsearch trims them, so the
+         components of aln= above stay non-negative. */
+      if ((fwd_3prime > 0) or (rev_3prime > 0))
+        {
+          fprint(output_handle, "\tstagger=");
+          fprint_integer(output_handle, fwd_3prime);
+          fprint(output_handle, '-');
+          fprint_integer(output_handle, rev_3prime);
+        }
+
+      fprint(output_handle, "\tdiffs=");
+      fprint_integer(output_handle, a_read_pair.alignment_diffs);
+
+      fprint(output_handle, "\tdiffpct=");
+      std::fprintf(output_handle, "%.1f",
+                   100.0 * static_cast<double>(a_read_pair.alignment_diffs)
+                   / static_cast<double>(a_read_pair.alignment_overlap));
+
+      fprint(output_handle, "\tmergelen=");
+      fprint_integer(output_handle, merge_length);
+    }
+
+  /* merge() resets and refills the expected errors, so they describe this
+     pair only once it has run -- which is exactly when optimize() returned a
+     usable offset */
+  if (a_read_pair.offset > 0)
+    {
+      fprint(output_handle, "\tee=");
+      fprintf_ee_value(output_handle, a_read_pair.ee_merged);
+    }
+
+  auto const * const reason_token = tabbedout_reason_token(a_read_pair.reason);
+  if (reason_token != nullptr)
+    {
+      fprint(output_handle, '\t');
+      std::fputs(reason_token, output_handle);
+    }
+
+  /* The verdict, and -- for a merged pair -- the label its record was written
+     with, --relabel and the annotations included. That label comes from the
+     shared writer, so the field is what --fastqout received rather than a
+     second spelling of it, and state.merged is this pair's ordinal because
+     keep() has already counted it. Nothing was written for a pair that did
+     not merge, so it has no label to report.
+
+     One branch for both, rather than a test for the label and another for
+     the verdict: they ask the same question. The verdict is spelled as two
+     literals rather than a ternary because the two differ in length, which
+     would decay them to char const *, and fprint does not take that. */
+  if (a_read_pair.merged)
+    {
+      fprint(output_handle, "\trelabel=");
+      OutputAnnotations annotations {
+        static_cast<uint64_t>(a_read_pair.fwd_abundance), state.merged};
+      annotations.expected_error = a_read_pair.ee_merged;
+      fprint_header_annotations(output_handle,
+                                make_view(a_read_pair.merged_sequence).first(static_cast<std::size_t>(a_read_pair.merged_length)),
+                                make_view(a_read_pair.fwd_header).first(static_cast<std::size_t>(a_read_pair.fwd_header_length)),
+                                annotations,
+                                state.parameters);
+      fprint(output_handle, "\tresult=merged\n");
+    }
+  else
+    {
+      fprint(output_handle, "\tresult=notmerged\n");
+    }
 }
 
 
@@ -533,6 +704,16 @@ auto keep_or_discard(struct mergepairs_cli_state_s & state, merge_data_t const &
   else
     {
       discard(state, a_read_pair);
+    }
+
+  /* after the branch, not before it: the relabel= field needs this pair's
+     ordinal, and keep() is what advances it. This runs from
+     chunk_perform_write(), which takes the chunks in order and the pairs
+     within a chunk in order, so the file is in input order at any --threads
+     value. */
+  if (state.fp_tabbedout != nullptr)
+    {
+      write_tabbedout_line(state, a_read_pair);
     }
 }
 
@@ -1021,6 +1202,8 @@ auto fastq_mergepairs(struct Parameters const & parameters) -> void
   state.notmerged_rev_out.fasta = open_optional_output_file(parameters.opt_fastaout_notmerged_rev, OutputOption{"--fastaout_notmerged_rev"});
   OutputFileHandle eetabbedout_handle = open_optional_output_file(parameters.opt_eetabbedout, OutputOption{"--eetabbedout"});
   fp_eetabbedout = eetabbedout_handle.get();
+  OutputFileHandle tabbedout_handle = open_optional_output_file(parameters.opt_tabbedout, OutputOption{"--tabbedout"});
+  state.fp_tabbedout = tabbedout_handle.get();
 
   /* precompute merged quality values */
 
@@ -1063,6 +1246,7 @@ auto fastq_mergepairs(struct Parameters const & parameters) -> void
 
   /* reset() is a no-op on an empty handle, so unopened outputs need
      no guard. */
+  tabbedout_handle.reset();
   eetabbedout_handle.reset();
   state.notmerged_rev_out.fasta.reset();
   state.notmerged_fwd_out.fasta.reset();
