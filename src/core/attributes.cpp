@@ -276,6 +276,17 @@ auto fprint_header_annotations(std::FILE * const output_handle,
     {
       fprint_seq_digest_md5(output_handle, sequence);
     }
+  else if (parameters.opt_relabel_at and (annotations.ordinal > 0))
+    {
+      /* --relabel @: the sample identifier, a period, then the same ticker
+         --relabel uses. The period is usearch's, and is the one part of the
+         format its documentation states correctly. An identifier that came
+         out empty is printed as such, giving '.1' -- cli.cc has already
+         warned. */
+      fprint(output_handle, make_view(parameters.opt_relabel_sample));
+      fprint(output_handle, '.');
+      fprint_integer(output_handle, annotations.ordinal);
+    }
   else if ((parameters.opt_relabel != nullptr) and (annotations.ordinal > 0))
     {
       std::fputs(parameters.opt_relabel, output_handle);
@@ -399,8 +410,16 @@ auto fprint_header_annotations(std::FILE * const output_handle,
       std::fprintf(output_handle, "%.4lf", annotations.score);
     }
 
+  /* the two ticker-based modes replace the header only when they have an
+     ordinal to count with, which is the same condition the chain above used
+     to choose them */
+  auto const ticker_replaced_the_header =
+    ((parameters.opt_relabel != nullptr) or parameters.opt_relabel_at) and
+    (annotations.ordinal > 0);
+
   if (parameters.opt_relabel_keep and
-      (((parameters.opt_relabel != nullptr) and (annotations.ordinal > 0)) or parameters.opt_relabel_sha1 or parameters.opt_relabel_md5 or parameters.opt_relabel_self))
+      (ticker_replaced_the_header or parameters.opt_relabel_sha1 or
+       parameters.opt_relabel_md5 or parameters.opt_relabel_self))
     {
       fprint(output_handle, ' ');
       fprint(output_handle, header);
