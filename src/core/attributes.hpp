@@ -166,3 +166,24 @@ auto fprint_header_annotations(std::FILE * output_handle,
                                View<char> header,
                                OutputAnnotations const & annotations,
                                struct Parameters const & parameters) -> void;
+
+
+/* Emit the substituted label alone -- the part of a header that a --relabel*
+   option replaces -- without the annotation tail fprint_header_annotations()
+   goes on to append. Returns false when no such option is active, having
+   emitted nothing, so the caller can fall back to the record's own header.
+
+   It exists because the label and the annotations are wanted separately in
+   two places: a fasta or fastq header takes both, while the cluster-name
+   column of --tabbedout takes the label and deliberately not the ';size='
+   that --sizeout adds to the header.
+
+   'ordinal' is the ticker the two prefix modes count with. Callers number
+   different things -- records in a fasta header, clusters in a --tabbedout
+   column -- so each passes its own, and a non-positive value turns those two
+   modes off, which is how a call site with no ticker to offer asks for the
+   header to be kept. The digest and self modes ignore it. */
+auto fprint_substituted_label(std::FILE * output_handle,
+                              View<char> sequence,
+                              int64_t ordinal,
+                              struct Parameters const & parameters) -> bool;

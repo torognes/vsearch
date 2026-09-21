@@ -563,20 +563,13 @@ namespace {
              are deliberately not repeated here. */
           auto emit_cluster_name = [&]() -> void
           {
-            if (parameters.opt_relabel != nullptr)
+            if (not fprint_substituted_label(fp_tabbedout,
+                                             make_view(cluster.seq),
+                                             static_cast<int64_t>(i + 1),
+                                             parameters))
               {
-                std::fputs(parameters.opt_relabel, fp_tabbedout);
-                fprint_integer(fp_tabbedout, i + 1);
-                return;
+                fprint(fp_tabbedout, make_view(cluster.header));
               }
-            if (parameters.opt_relabel_at)
-              {
-                fprint(fp_tabbedout, make_view(parameters.opt_relabel_sample));
-                fprint(fp_tabbedout, '.');
-                fprint_integer(fp_tabbedout, i + 1);
-                return;
-              }
-            fprint(fp_tabbedout, make_view(cluster.header));
           };
 
           /* One line per record of the cluster, the centroid first. The six
