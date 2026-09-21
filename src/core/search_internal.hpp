@@ -65,6 +65,7 @@
    paths (core/search.cpp). Not part of the public library API, so they live in
    this internal header rather than core/search.hpp. */
 
+#include "core/searchcore.hpp"  // enum struct Prefilter
 #include "utils/view.hpp"
 #include <cstdint>  // int64_t
 
@@ -75,9 +76,14 @@ auto populate_si(struct searchinfo_s & si,
                  int64_t qsize,
                  int strand) -> void;
 
+/* `prefilter` says which of the two engine drivers this thread will run, and
+   so what it has to allocate: the k-mer one needs a counter per database
+   sequence and a candidate heap, the exhaustive one needs neither, and sizes
+   its hit buffer to grow rather than to the worst case. */
 auto search_thread_init(struct searchinfo_s & si, int seqcount, int tophits,
                         struct Parameters const & parameters,
                         struct Dbindex const & dbindex,
-                        struct Database const & db) -> void;
+                        struct Database const & db,
+                        Prefilter prefilter) -> void;
 
 auto search_thread_exit(struct searchinfo_s & si) -> void;

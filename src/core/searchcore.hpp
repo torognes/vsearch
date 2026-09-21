@@ -274,6 +274,29 @@ auto search_topscores(struct searchinfo_s * searchinfo) -> void;
 
 auto search_onequery(struct searchinfo_s * searchinfo, Masking seqmask) -> void;
 
+/* Which candidate set a query is compared against, and so which of the two
+   drivers above runs and what the per-thread init has to allocate.
+
+   kmer: the targets the word pre-filter selects and ranks (--usearch_global,
+   the clustering commands, the chimera detection, sintax). Needs the k-mer
+   index, the per-sequence counter array and the candidate heap.
+   none: every database sequence, in database order (--search_global). Needs
+   none of those three, which is most of what the search allocates.
+
+   An enum rather than a bool so the call sites read as the choice they make.
+   It lives here, beside the drivers it selects between, rather than in the
+   command that introduced it: core must not include a commands header. */
+enum struct Prefilter : unsigned char { kmer, none };
+
+/* The exhaustive counterpart of search_onequery: no query k-mers are
+   sampled, no candidates are ranked, and every database sequence is offered
+   to the same accept/align/finalize machinery in database order. The hit
+   buffer is compacted between alignment batches, so it holds the hits kept
+   so far plus at most one batch rather than one entry per database sequence
+   -- which is what keeps a brute-force search over a large database from
+   allocating a hit buffer the size of that database, per thread. */
+auto search_onequery_exhaustive(struct searchinfo_s * searchinfo) -> void;
+
 /* both return a mutable pointer into si_p's or si_m's hit buffer -- the caller
    moves the winning alignment string out of it -- so neither can take a
    pointer-to-const searchinfo_s */

@@ -70,17 +70,10 @@
    rather than a public one (the convention core/search_internal.hpp,
    core/derep_internal.hpp and core/cluster_internal.hpp already follow). */
 
-/* Which candidate set a query is compared against.
+#include "core/searchcore.hpp"  // enum struct Prefilter
 
-   kmer: the targets the word pre-filter selects and ranks (--usearch_global).
-   none: every database sequence, in database order (--search_global), which
-   is what makes that command exhaustive and its result independent of how the
-   database happens to be sorted.
-
-   An enum rather than a bool so the two call sites read as the choice they
-   make. "enum struct" rather than "enum class": the members are public
-   either way, and this codebase spells it the first way. */
-enum struct Prefilter : unsigned char { kmer, none };
-
+/* Prefilter -- which candidate set a query is compared against, the one thing
+   the two commands differ in -- is defined in core/searchcore.hpp, beside the
+   two engine drivers it selects between. */
 auto run_global_search(struct Parameters const & parameters,
                        Prefilter prefilter) -> void;

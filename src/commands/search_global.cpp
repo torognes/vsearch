@@ -60,7 +60,8 @@
 
 
 #include "commands/search_global.hpp"
-#include "commands/global_search_internal.hpp"
+#include "commands/global_search_internal.hpp"  // run_global_search
+#include "core/searchcore.hpp"  // enum struct Prefilter
 
 
 /* --search_global: the exhaustive counterpart of --usearch_global. Every

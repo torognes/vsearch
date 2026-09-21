@@ -281,8 +281,16 @@ static auto search_query(struct search_cli_state_s & state, uint64_t const t) ->
       /* mask query */
       apply_masking(si->qsequence, state.parameters.opt_qmask, state.parameters);
 
-      /* perform search */
-      search_onequery(si, state.parameters.opt_qmask);
+      /* perform search: against the candidates the word pre-filter ranks, or
+         against the whole database */
+      if (state.prefilter == Prefilter::kmer)
+        {
+          search_onequery(si, state.parameters.opt_qmask);
+        }
+      else
+        {
+          search_onequery_exhaustive(si);
+        }
     }
 
   std::vector<struct hit> hits;
@@ -389,11 +397,11 @@ static auto search_thread_worker_run(struct search_cli_state_s & state) -> void
      empty si_minus needs no emptiness test of its own. */
   for (auto & si : si_plus)
     {
-      search_thread_init(si, seqcount, tophits, state.effective_parameters, state.dbindex, state.db);
+      search_thread_init(si, seqcount, tophits, state.effective_parameters, state.dbindex, state.db, state.prefilter);
     }
   for (auto & si : si_minus)
     {
-      search_thread_init(si, seqcount, tophits, state.effective_parameters, state.dbindex, state.db);
+      search_thread_init(si, seqcount, tophits, state.effective_parameters, state.dbindex, state.db, state.prefilter);
     }
 
   /* run the worker pool over the input file */
@@ -473,9 +481,18 @@ static auto search_prep(struct search_cli_state_s & state) -> void
 
   bool const is_udb = udb_detect_isudb(state.parameters.opt_db);
 
+  /* An exhaustive search never consults the k-mer index, so it does not build
+     or load one: a UDB is read for its sequences alone, and a fasta database
+     is read and masked but not indexed. That is the bulk of what a search
+     allocates before the first query -- on a 60 Mbp database the index is
+     some four times the size of the sequences themselves -- and all of it
+     would be built to be ignored. */
+  auto const udb_usage = (state.prefilter == Prefilter::kmer)
+    ? UdbUse::search : UdbUse::sequences;
+
   if (is_udb)
     {
-      udb_read(state.parameters.opt_db, UdbUse::search, state.dbindex, state.db, state.effective_parameters);
+      udb_read(state.parameters.opt_db, udb_usage, state.dbindex, state.db, state.effective_parameters);
       results_show_samheader(state.fp_samout.get(), state.parameters.opt_db, state.db, state.parameters);
       // memory-intensive: the entire database is now held in memory
       state.seqcount = static_cast<int>(state.db.getsequencecount());
@@ -487,8 +504,11 @@ static auto search_prep(struct search_cli_state_s & state) -> void
       apply_masking(state.db, state.parameters.opt_dbmask, state.parameters);
       // memory-intensive: the entire database is now held in memory
       state.seqcount = static_cast<int>(state.db.getsequencecount());
-      state.dbindex.prepare(state.parameters.opt_dbmask, state.db, state.effective_parameters);
-      state.dbindex.add_all_sequences(state.parameters.opt_dbmask, state.db, state.effective_parameters);
+      if (state.prefilter == Prefilter::kmer)
+        {
+          state.dbindex.prepare(state.parameters.opt_dbmask, state.db, state.effective_parameters);
+          state.dbindex.add_all_sequences(state.parameters.opt_dbmask, state.db, state.effective_parameters);
+        }
     }
 
   /* tophits = the maximum number of hits we need to store */
