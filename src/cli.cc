@@ -71,6 +71,7 @@
 #include "utils/compare_strings_nocase.hpp"  // are_same_string
 #include "utils/fatal.hpp"  // fatal
 #include "utils/quality_encoding.hpp"  // sanger_ascii_offset
+#include "utils/sample_identifier.hpp"  // vsearch::sample_identifier
 #include "utils/warn.hpp"  // vsearch::warn
 #include <algorithm>  // std::count, std::any_of
 #include <array>
@@ -5124,6 +5125,66 @@ namespace {
       }
   }
 
+
+  /* The one argument of --relabel that is not a literal prefix: '@' asks for
+     the sample identifier derived from the input file name (usearch
+     compatibility, torognes/vsearch#202). Only the whole argument counts --
+     "@x", "x@" and "@@" stay literal, as they do in usearch. */
+  constexpr char const * relabel_at_argument = "@";
+
+  /* Resolve '@' into that identifier, once. The header printer runs for every
+     record written, so deriving it there would rebuild a std::string per
+     record.
+
+     Runs after validate_option_values(), which is what lets its "Specify only
+     one of --relabel, --relabel_self, ..." check reject --relabel @
+     --relabel_md5 while knowing nothing about '@': at that point the option is
+     still spelled in opt_relabel. Clearing opt_relabel here afterwards leaves
+     exactly one of the five relabel modes selected, which is the invariant
+     every consumer switches on. */
+  auto resolve_relabel_at(struct Parameters & parameters) -> void
+  {
+    if ((parameters.opt_relabel == nullptr) or
+        (std::strcmp(parameters.opt_relabel, relabel_at_argument) != 0))
+      {
+        return;
+      }
+
+    /* No command means no input file name. The missing-command error is the
+       one the user needs; a complaint about --relabel would bury it. */
+    if (parameters.input_filename == nullptr)
+      {
+        return;
+      }
+
+    /* Standard input has no name to derive from, and is the one case that
+       errors: '>-.1' is a header nobody asked for, and a refusal can be
+       relaxed later where a silent fallback could not be tightened. The other
+       stream spellings -- /dev/stdin, the /dev/fd/N of a process
+       substitution, a named pipe -- do have names, and a named pipe called
+       'runA_1.fifo' is exactly the case whose name should be used, so they
+       are treated as the ordinary paths they are. */
+    if (std::strcmp(parameters.input_filename, "-") == 0)
+      {
+        fatal("--relabel @ requires a file name; standard input ('-') has none");
+      }
+
+    parameters.opt_relabel_sample = vsearch::sample_identifier(parameters.input_filename);
+    parameters.opt_relabel_at = true;
+    parameters.opt_relabel = nullptr;
+
+    /* A name starting with '_' or '.' derives nothing. usearch allows that
+       silently and writes '>.1'; vsearch writes the same record and says why,
+       as --sample already does when its own argument truncates to nothing. */
+    if (parameters.opt_relabel_sample.empty())
+      {
+        vsearch::warn(std::string {"--relabel @ derived an empty sample identifier from '"} +
+                      parameters.input_filename +
+                      "': labels will be '.1', '.2', ...");
+      }
+  }
+
+
   /* Apply the generic sentinel fixups and the command-specific defaults
      (minsize, abskew, minseqlength, sintax label handling). */
   auto apply_command_defaults(std::vector<bool> const & options_selected,
@@ -5473,6 +5534,8 @@ auto args_init(int const argc, char ** argv, struct Parameters & parameters) -> 
   resolve_quality_bound_defaults(options_selected, command, parameters);
 
   validate_option_values(options_selected, command, parameters);
+
+  resolve_relabel_at(parameters);
 
   apply_command_defaults(options_selected, command, parameters);
 

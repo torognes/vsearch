@@ -140,6 +140,11 @@ public:
   char * opt_log = nullptr;
   char * opt_output = nullptr;
   char * opt_relabel = nullptr;
+  /* Not an option of its own: the identifier --relabel @ derives from
+     input_filename, resolved once in args_init() rather than rebuilt per
+     record. Owned, because unlike every pointer around it there is no argv
+     string to point at. Empty is a legal value (see opt_relabel_at). */
+  std::string opt_relabel_sample;
   char * opt_read_separators = nullptr;
   char * opt_reverse = nullptr;
   char * opt_sample = nullptr;
@@ -202,6 +207,10 @@ public:
   bool opt_join_padgapq_set_by_user = false;
   bool opt_notrunclabels = false;
   bool opt_quiet = true;   // library default (quiet); the CLI overrides in args_init
+  /* --relabel @ was given: label records with opt_relabel_sample, a period
+     and the ordinal. A flag rather than a sentinel in opt_relabel, because
+     an empty identifier is legal and would be indistinguishable from one. */
+  bool opt_relabel_at = false;
   bool opt_relabel_keep = false;
   bool opt_relabel_md5 = false;
   bool opt_relabel_self = false;
