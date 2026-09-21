@@ -1,40 +1,55 @@
-% vsearch-usearch_global(1) version 2.32.0 | vsearch manual
+% vsearch-search_global(1) version 2.32.0 | vsearch manual
 % Torbjørn Rognes, Tomás Flouri, and Frédéric Mahé
 #(./fragments/date.md)
 
 # NAME
 
-vsearch \-\-usearch_global --- search sequences against a reference database
+vsearch \-\-search_global --- exhaustively search sequences against a reference database
 
 
 # SYNOPSIS
 
-| **vsearch** **\-\-usearch_global** _fastxfile_ **\-\-db** _filename_ **\-\-id** _real_ (**\-\-alnout** | **\-\-biomout** | **\-\-blast6out** | **\-\-dbmatched** | **\-\-dbnotmatched** | **\-\-fastapairs** | **\-\-lcaout** | **\-\-matched** | **\-\-mothur_shared_out** | **\-\-notmatched** | **\-\-otutabout** | **\-\-qsegout** | **\-\-samout** | **\-\-tsegout** | **\-\-uc** | **\-\-userout**) _filename_ \[_options_]
+| **vsearch** **\-\-search_global** _fastxfile_ **\-\-db** _filename_ **\-\-id** _real_ (**\-\-alnout** | **\-\-biomout** | **\-\-blast6out** | **\-\-dbmatched** | **\-\-dbnotmatched** | **\-\-fastapairs** | **\-\-lcaout** | **\-\-matched** | **\-\-mothur_shared_out** | **\-\-notmatched** | **\-\-otutabout** | **\-\-qsegout** | **\-\-samout** | **\-\-tsegout** | **\-\-uc** | **\-\-userout**) _filename_ \[_options_]
 
 
 # DESCRIPTION
 
-The vsearch command `--usearch_global` searches the query sequences in a
+The vsearch command `--search_global` searches the query sequences in a
 fasta or fastq file against a reference database (`--db`), using global
-pairwise alignment (Needleman-Wunsch). The database can be a fasta or
-fastq file, or a preformatted UDB database (see
-[`vsearch-makeudb_usearch(1)`](./vsearch-makeudb_usearch.1.md)).
+pairwise alignment (Needleman-Wunsch). It is the exhaustive counterpart
+of [`vsearch-usearch_global(1)`](./vsearch-usearch_global.1.md): **every
+database sequence is aligned against every query**. No *k*-mer index is
+built, no pre-filter selects candidates, and the search does not stop
+early. A hit is therefore found whatever its identity, and the results do
+not depend on the order the database happens to be in.
 
-For each query, vsearch first pre-filters the database by counting shared
-k-mers (words), then performs global pairwise alignments on the most
-promising candidates. By default, the search stops after `--maxaccepts`
-hits are accepted or `--maxrejects` candidates fail the identity threshold.
-Setting both to 0 considers every candidate the pre-filter kept; add
-`--minwordmatches 0` to drop the pre-filter as well and compare the query
-against the whole database. Using values of `--id`
-below 0.5 is unlikely to capture additional hits due to the k-mer
-pre-filter.
+The database can be a fasta or fastq file, or a preformatted UDB database
+(see [`vsearch-makeudb_usearch(1)`](./vsearch-makeudb_usearch.1.md)); of a
+UDB, only the sequences are read, the index it carries being of no use
+here.
 
-An exhaustive search is what
-[`vsearch-search_global(1)`](./vsearch-search_global.1.md) does by
-design, and it is the better way to ask for one: the three options above
-still build the *k*-mer index and still size their buffers for the
-pre-filtered search, where `--search_global` does neither.
+This is slow. Expect a runtime proportional to the number of queries
+times the size of the database: as an order of magnitude, about five
+seconds per query against 200,000 references of 300 nucleotides on one
+core. The command is multi-threaded, and the work divides cleanly, but no
+thread count turns an exhaustive search into a quick one. Use
+`--usearch_global` for routine work, and `--search_global` when you need
+the guarantee that nothing was skipped --- typically on a small database,
+or at an identity threshold too low for the pre-filter to respect.
+
+**Mind the volume of output.** `--maxhits` defaults to 0, meaning
+unlimited, and a low `--id` accepts nearly everything, so a run can write
+one line *per database sequence and per query*: a thousand queries against
+a database of 200,000 references is 2 x 10^8 lines. Set `--maxhits`, or
+`--top_hits_only`, unless you really want them all.
+
+**Mind what a low identity means.** Global alignment of two unrelated
+sequences of similar length routinely reports 30% to 45% identity, because
+the aligner still has to line them up end to end. Such hits are the
+command working as designed, not a defect, and they are exactly the hits
+`--usearch_global` never shows you. An identity threshold below roughly
+0.5 will return them in quantity (see also
+[`vsearch-pairwise_alignment_parameters(7)`](../misc/vsearch-pairwise_alignment_parameters.7.md)).
 
 Alignment is global, not local: a query is aligned end-to-end against a
 target rather than searched for as a subsequence, and at most one
@@ -46,7 +61,10 @@ calls for a local-alignment tool instead.
 The identity threshold is set with `--id`. By default, only the *plus*
 strand of the query is compared to the database; use `--strand both` to
 also check the reverse complement. Masking is applied with `--qmask`
-(queries) and `--dbmask` (database).
+(queries) and `--dbmask` (database); with soft masking it has no effect on
+the alignment here, since masking only ever steered the *k*-mer index, but
+together with `--hardmask` it replaces the masked bases with Ns and does
+change the result.
 
 At least one output option must be specified. This command is
 multi-threaded: the queries are distributed over the available threads,
@@ -58,7 +76,8 @@ when more than one thread is used. The `--biomout`, `--dbmatched`,
 assembled after the search, or written in database order, and keep a
 stable order. The results themselves do not depend on the thread count.
 
-To illustrate a search at 97% identity:
+To illustrate a search at 97% identity, where the second query has no
+target above the threshold but is still compared to every one of them:
 
 ```text
 Query file:    Database:       Results (--blast6out):
@@ -79,7 +98,7 @@ option.
 
 #(./fragments/option_db_usearch_global.md)
 
-#(./fragments/option_id_search.md)
+#(./fragments/option_id_search_global.md)
 
 
 ## core options
@@ -87,10 +106,6 @@ option.
 #(./fragments/option_dbmask.md)
 
 #(./fragments/option_iddef.md)
-
-#(./fragments/option_maxaccepts_search.md)
-
-#(./fragments/option_maxrejects.md)
 
 #(./fragments/option_qmask.md)
 
@@ -165,15 +180,13 @@ option.
 
 #(./fragments/option_minqt.md)
 
-#(./fragments/option_minseqlength_32.md)
+#(./fragments/option_minseqlength_1.md)
 
 #(./fragments/option_minsizeratio.md)
 
 #(./fragments/option_minsl.md)
 
 #(./fragments/option_mintsize.md)
-
-#(./fragments/option_minwordmatches.md)
 
 #(./fragments/option_mothur_shared_out.md)
 
@@ -239,8 +252,6 @@ option.
 
 #(./fragments/option_weak_id.md)
 
-#(./fragments/option_wordlength_8.md)
-
 #(./fragments/option_xee.md)
 
 #(./fragments/option_xlength.md)
@@ -249,9 +260,6 @@ option.
 
 
 ## pairwise alignment options
-
-These options modify the pairwise alignment scoring model. Modify with
-caution.
 
 #(./fragments/option_gapext.md)
 
@@ -264,8 +272,9 @@ caution.
 
 ## ignored options
 
-These options are accepted for compatibility with usearch but have no
-effect.
+These options are accepted for compatibility with usearch, or so that a
+command line written for `--usearch_global` can be reused unchanged, but
+have no effect.
 
 #(./fragments/option_band.md)
 
@@ -273,74 +282,81 @@ effect.
 
 #(./fragments/option_hspw.md)
 
+#(./fragments/option_maxaccepts_ignored_search_global.md)
+
+#(./fragments/option_maxrejects_ignored_search_global.md)
+
 #(./fragments/option_minhsp.md)
+
+#(./fragments/option_minwordmatches_ignored_search_global.md)
 
 #(./fragments/option_pattern.md)
 
 #(./fragments/option_slots.md)
+
+#(./fragments/option_wordlength_ignored_search_global.md)
 
 #(./fragments/option_xdrop_nw.md)
 
 
 # EXAMPLES
 
-Search query sequences against a reference database at 97% identity and
-write the results in BLAST-like tabular format:
+Search a small set of queries against a reference database, reporting
+every hit above 50% identity:
 
 ```sh
 vsearch \
-    --usearch_global queries.fasta \
-    --db reference.fasta \
-    --id 0.97 \
-    --blast6out results.tsv
+    --search_global queries.fasta \
+    --db references.fasta \
+    --id 0.5 \
+    --blast6out hits.tsv
 ```
 
-Search both strands, report all hits per query (up to `--maxaccepts`), and
-write matching query sequences to a fasta file:
+Keep only the best hit per query, which is the usual way to tame the
+output of an exhaustive search:
 
 ```sh
 vsearch \
-    --usearch_global queries.fasta \
-    --db reference.fasta \
-    --id 0.97 \
-    --strand both \
-    --maxaccepts 5 \
-    --matched matched.fasta \
-    --notmatched unmatched.fasta
+    --search_global queries.fasta \
+    --db references.fasta \
+    --id 0.5 \
+    --maxhits 1 \
+    --blast6out best_hit.tsv
 ```
 
-Classify query sequences against a taxonomically annotated database and
-write last common ancestor assignments:
+Find the remote relatives of a handful of sequences, at an identity too
+low for the word pre-filter of `--usearch_global` to respect, and write
+the alignments so they can be inspected:
 
 ```sh
 vsearch \
-    --usearch_global queries.fasta \
-    --db silva_tax.fasta \
-    --id 0.97 \
-    --maxaccepts 10 \
-    --top_hits_only \
-    --lcaout taxonomy.tsv \
+    --search_global orphans.fasta \
+    --db references.fasta \
+    --id 0.4 \
+    --maxhits 10 \
     --alnout alignments.txt
 ```
 
-Build an OTU table from multiple samples (sequences labelled with
-`;sample=` annotations) against a set of OTU centroids:
+Search both strands, against a preformatted UDB database (only its
+sequences are read):
 
 ```sh
 vsearch \
-    --usearch_global reads.fasta \
-    --db otus.fasta \
-    --id 0.97 \
-    --otutabout otu_table.tsv
+    --search_global queries.fasta \
+    --db references.udb \
+    --id 0.7 \
+    --strand both \
+    --userout hits.tsv \
+    --userfields query+target+id+qstrand
 ```
 
 
 # SEE ALSO
 
+[`vsearch-usearch_global(1)`](./vsearch-usearch_global.1.md),
 [`vsearch-allpairs_global(1)`](./vsearch-allpairs_global.1.md),
-[`vsearch-search_global(1)`](./vsearch-search_global.1.md),
+[`vsearch-search_exact(1)`](./vsearch-search_exact.1.md),
 [`vsearch-makeudb_usearch(1)`](./vsearch-makeudb_usearch.1.md),
-[`vsearch-sintax(1)`](./vsearch-sintax.1.md),
 [`vsearch-cigar(5)`](../formats/vsearch-cigar.5.md),
 [`vsearch-fasta(5)`](../formats/vsearch-fasta.5.md),
 [`vsearch-fastq(5)`](../formats/vsearch-fastq.5.md),

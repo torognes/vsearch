@@ -62,6 +62,7 @@
 #include "vsearch.hpp"
 #include <memory>  // std::unique_ptr
 #include "commands/usearch_global.hpp"
+#include "commands/global_search_internal.hpp"  // enum struct Prefilter
 #include "core/attributes.hpp"  // struct OutputAnnotations
 #include "core/db.hpp"
 #include "core/match_counts.hpp"  // vsearch::MatchCounts, vsearch::print_match_counts
@@ -109,9 +110,16 @@ struct search_cli_state_s
      searchcore) keep reading the globals — the library session/batch entries
      have no Parameters. */
   struct Parameters const & parameters;
+  /* which candidate set a query is compared against: the pre-filter's pick
+     (--usearch_global) or the whole database (--search_global). The only
+     difference between the two commands this struct serves. */
+  Prefilter prefilter;
   /* a copy of parameters with opt_maxaccepts/opt_maxrejects clamped to the
      database size (search_prep); si->parameters points here so the shared
-     searchcore reads the clamped values without a mutated global (E1). */
+     searchcore reads the clamped values without a mutated global (E1). For
+     --search_global it also carries the exhaustive configuration, which is
+     what makes the options steering the pre-filter ignored rather than
+     rejected (search_prep). */
   struct Parameters effective_parameters;
   struct Database db;  /* the sequence database this run owns (RAII); si->db points here */
   struct Dbindex dbindex;  /* the k-mer index this run owns (RAII); si->dbindex points here */
@@ -155,7 +163,8 @@ struct search_cli_state_s
   int count_notmatched = 0;
   Progress * progress = nullptr;  /* the owner's progress bar; worker updates it under mutex_output */
 
-  explicit search_cli_state_s(struct Parameters const & params) : parameters(params) {}
+  search_cli_state_s(struct Parameters const & params, Prefilter const how)
+    : parameters(params), prefilter(how) {}
 };
 
 
@@ -272,8 +281,16 @@ static auto search_query(struct search_cli_state_s & state, uint64_t const t) ->
       /* mask query */
       apply_masking(si->qsequence, state.parameters.opt_qmask, state.parameters);
 
-      /* perform search */
-      search_onequery(si, state.parameters.opt_qmask);
+      /* perform search: against the candidates the word pre-filter ranks, or
+         against the whole database */
+      if (state.prefilter == Prefilter::kmer)
+        {
+          search_onequery(si, state.parameters.opt_qmask);
+        }
+      else
+        {
+          search_onequery_exhaustive(si);
+        }
     }
 
   std::vector<struct hit> hits;
@@ -380,11 +397,11 @@ static auto search_thread_worker_run(struct search_cli_state_s & state) -> void
      empty si_minus needs no emptiness test of its own. */
   for (auto & si : si_plus)
     {
-      search_thread_init(si, seqcount, tophits, state.effective_parameters, state.dbindex, state.db);
+      search_thread_init(si, seqcount, tophits, state.effective_parameters, state.dbindex, state.db, state.prefilter);
     }
   for (auto & si : si_minus)
     {
-      search_thread_init(si, seqcount, tophits, state.effective_parameters, state.dbindex, state.db);
+      search_thread_init(si, seqcount, tophits, state.effective_parameters, state.dbindex, state.db, state.prefilter);
     }
 
   /* run the worker pool over the input file */
@@ -409,6 +426,32 @@ static auto search_thread_worker_run(struct search_cli_state_s & state) -> void
 
 static auto search_prep(struct search_cli_state_s & state) -> void
 {
+  /* The configuration the search engine reads, as opposed to the one the user
+     gave: resolved here, before the database is read, because the index is
+     built against it too. For --usearch_global it is the user's, plus the
+     database-size clamp applied at the end of this function. */
+  state.effective_parameters = state.parameters;
+
+  if (state.prefilter == Prefilter::none)
+    {
+      /* --search_global compares every query against every target, so the
+         three options that bound the pre-filtered search are ignored: the
+         word threshold that selects candidates, and the two counters that
+         stop the scan early. Overriding them here, on the engine's copy
+         rather than on the user's, is what "ignored" means for this command
+         -- the option stays accepted so a command line moved over from
+         --usearch_global keeps working, and it simply has no effect.
+
+         Zero is the "no bound" spelling for all three: minwordmatches 0 asks
+         a candidate for no shared words at all, and maxaccepts/maxrejects 0
+         are clamped up to the database size below. The index is built from
+         this same copy, so dbindex.minwordmatches agrees with what
+         search_topscores asserts against. */
+      state.effective_parameters.opt_minwordmatches = 0;
+      state.effective_parameters.opt_maxaccepts = 0;
+      state.effective_parameters.opt_maxrejects = 0;
+    }
+
   /* open output files */
 
   state.fp_alnout = open_optional_output_file(state.parameters.opt_alnout, OutputOption{"--alnout"});
@@ -438,9 +481,18 @@ static auto search_prep(struct search_cli_state_s & state) -> void
 
   bool const is_udb = udb_detect_isudb(state.parameters.opt_db);
 
+  /* An exhaustive search never consults the k-mer index, so it does not build
+     or load one: a UDB is read for its sequences alone, and a fasta database
+     is read and masked but not indexed. That is the bulk of what a search
+     allocates before the first query -- on a 60 Mbp database the index is
+     some four times the size of the sequences themselves -- and all of it
+     would be built to be ignored. */
+  auto const udb_usage = (state.prefilter == Prefilter::kmer)
+    ? UdbUse::search : UdbUse::sequences;
+
   if (is_udb)
     {
-      udb_read(state.parameters.opt_db, UdbUse::search, state.dbindex, state.db, state.parameters);
+      udb_read(state.parameters.opt_db, udb_usage, state.dbindex, state.db, state.effective_parameters);
       results_show_samheader(state.fp_samout.get(), state.parameters.opt_db, state.db, state.parameters);
       // memory-intensive: the entire database is now held in memory
       state.seqcount = static_cast<int>(state.db.getsequencecount());
@@ -452,8 +504,11 @@ static auto search_prep(struct search_cli_state_s & state) -> void
       apply_masking(state.db, state.parameters.opt_dbmask, state.parameters);
       // memory-intensive: the entire database is now held in memory
       state.seqcount = static_cast<int>(state.db.getsequencecount());
-      state.dbindex.prepare(state.parameters.opt_dbmask, state.db, state.parameters);
-      state.dbindex.add_all_sequences(state.parameters.opt_dbmask, state.db, state.parameters);
+      if (state.prefilter == Prefilter::kmer)
+        {
+          state.dbindex.prepare(state.parameters.opt_dbmask, state.db, state.effective_parameters);
+          state.dbindex.add_all_sequences(state.parameters.opt_dbmask, state.db, state.effective_parameters);
+        }
     }
 
   /* tophits = the maximum number of hits we need to store */
@@ -462,8 +517,8 @@ static auto search_prep(struct search_cli_state_s & state) -> void
      "all"). Apply the clamp to a local Parameters copy that is threaded to the
      workers via si->parameters, rather than mutating the shared config globals
      (E1 trap-writer): the shared searchcore reads the clamped values through
-     si->parameters. */
-  state.effective_parameters = state.parameters;
+     si->parameters. The copy itself was made at the top of this function,
+     because the index is built from it too. */
   if ((state.effective_parameters.opt_maxrejects == 0) ||
       (state.effective_parameters.opt_maxrejects > state.seqcount))
     {
@@ -493,12 +548,13 @@ static auto search_done(struct search_cli_state_s & state) -> void
 }
 
 
-auto usearch_global(struct Parameters const & parameters) -> void
+auto run_global_search(struct Parameters const & parameters,
+                       Prefilter const prefilter) -> void
 {
   /* Per-invocation state, owned here and threaded through the worker pool and
      the output helper (E4). Aliased by reference so the long body below reads
      unchanged; the workers receive `state`, not file-static globals. */
-  struct search_cli_state_s state(parameters);
+  struct search_cli_state_s state(parameters, prefilter);
   auto & si_plus = state.si_plus;
   auto & si_minus = state.si_minus;
   auto & seqcount = state.seqcount;
@@ -635,4 +691,15 @@ auto usearch_global(struct Parameters const & parameters) -> void
   fp_dbnotmatched.reset();
 
   search_done(state);
+}
+
+
+/* --usearch_global: the heuristic global search. The word pre-filter picks
+   and ranks the candidates, and --maxaccepts / --maxrejects stop the scan
+   once enough of them have been settled. The exhaustive counterpart is
+   --search_global (commands/search_global.cpp), which shares the run above
+   and differs only in the candidate set. */
+auto usearch_global(struct Parameters const & parameters) -> void
+{
+  run_global_search(parameters, Prefilter::kmer);
 }

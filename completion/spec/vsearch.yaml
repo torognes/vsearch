@@ -98,6 +98,7 @@ commands:
   - --scramble
   # Searching
   - --search_exact
+  - --search_global
   - --usearch_global
   # Shuffling / sorting
   - --shuffle
@@ -325,6 +326,10 @@ options:
     command: true
     arg: { type: file, ftype: fasta }
     desc: "queries for exact match search"
+  - name: --search_global
+    command: true
+    arg: { type: file, ftype: fasta }
+    desc: "queries for exhaustive global alignment search"
   - name: --usearch_global
     command: true
     arg: { type: file, ftype: fasta }
@@ -2444,6 +2449,101 @@ command_options:
     - --xee
     - --xlength
     - --xsize
+  --search_global:
+    - --alnout
+    - --band
+    - --biomout
+    - --blast6out
+    - --bzip2_decompress
+    - --db
+    - --dbmask
+    - --dbmatched
+    - --dbnotmatched
+    - --fasta_width
+    - --fastapairs
+    - --fulldp
+    - --gapext
+    - --gapopen
+    - --gzip_decompress
+    - --hardmask
+    - --hspw
+    - --id
+    - --iddef
+    - --idprefix
+    - --idsuffix
+    - --label_suffix
+    - --lca_cutoff
+    - --lcaout
+    - --leftjust
+    - --lengthout
+    - --log
+    - --match
+    - --matched
+    - --maxaccepts
+    - --maxdiffs
+    - --maxgaps
+    - --maxhits
+    - --maxid
+    - --maxqsize
+    - --maxqt
+    - --maxrejects
+    - --maxseqlength
+    - --maxsizeratio
+    - --maxsl
+    - --maxsubs
+    - --mid
+    - --mincols
+    - --minhsp
+    - --minqt
+    - --minseqlength
+    - --minsizeratio
+    - --minsl
+    - --mintsize
+    - --minwordmatches
+    - --mismatch
+    - --mothur_shared_out
+    - --n_mismatch
+    - --no_progress
+    - --notmatched
+    - --notrunclabels
+    - --otutabout
+    - --output_no_hits
+    - --pattern
+    - --qmask
+    - --qsegout
+    - --query_cov
+    - --quiet
+    - --relabel
+    - --relabel_keep
+    - --relabel_md5
+    - --relabel_self
+    - --relabel_sha1
+    - --rightjust
+    - --rowlen
+    - --samheader
+    - --samout
+    - --sample
+    - --self
+    - --selfid
+    - --sizein
+    - --sizeout
+    - --slots
+    - --strand
+    - --target_cov
+    - --threads
+    - --top_hits_only
+    - --tsegout
+    - --uc
+    - --uc_allhits
+    - --userfields
+    - --userout
+    - --weak_id
+    - --wordlength
+    - --xdrop_nw
+    - --xee
+    - --xlength
+    - --xsize
+
   --sff_convert:
     - --fastq_asciiout
     - --fastq_qmaxout

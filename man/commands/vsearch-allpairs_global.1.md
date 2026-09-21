@@ -281,6 +281,7 @@ vsearch \
 
 # SEE ALSO
 
+[`vsearch-search_global(1)`](./vsearch-search_global.1.md),
 [`vsearch-usearch_global(1)`](./vsearch-usearch_global.1.md),
 [`vsearch-cigar(5)`](../formats/vsearch-cigar.5.md),
 [`vsearch-fasta(5)`](../formats/vsearch-fasta.5.md),

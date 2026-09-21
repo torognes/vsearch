@@ -1122,6 +1122,101 @@ auto align_delayed(struct searchinfo_s * searchinfo) -> void
 
   searchinfo->finalized = searchinfo->hit_count;
 }
+
+
+/* The two numbers describing a candidate before it is aligned: which database
+   sequence it is, and how many of the query's k-mers it shares. They travel
+   together and are both plain unsigned ints, so they are named in a struct
+   rather than passed as two adjacent swappable arguments -- the shape
+   KmerEvidence and CounterSlice use above, and what clang-tidy's
+   bugprone-easily-swappable-parameters asks for. No default member
+   initializers: they would make this a non-aggregate before C++14, and the
+   call sites brace-initialize it. */
+struct Candidate
+{
+  unsigned int seqno;
+  unsigned int shared_kmers;
+};
+
+
+/* Append one candidate to the hit buffer and run the accept/reject criteria
+   that do not need an alignment. Returns whether it survived them, which is
+   what the caller counts towards the next alignment batch -- a rejected
+   candidate still occupies a hit, so that align_delayed's pass over the
+   batch sees it and tallies it.
+
+   Shared by the two drivers below. They differ only in where the candidate
+   comes from (the ranked heap, or the database in order) and therefore in
+   what shared_kmers holds: the number the pre-filter counted, or zero,
+   because an exhaustive search counts none. Nothing downstream reads the
+   field -- no userfield exposes it -- so zero is a value, not a placeholder
+   for one that got lost. */
+auto begin_candidate(struct searchinfo_s * const searchinfo,
+                     Candidate const candidate) -> bool
+{
+  auto const target = candidate.seqno;
+  /* the whole buffer, not make_hits_span()'s live prefix: this appends at
+     the fill position, one past the last hit of the query so far */
+  struct hit * const hit = &make_span(searchinfo->hits_v)[static_cast<std::size_t>(searchinfo->hit_count)];
+
+  hit->target = static_cast<int>(target);
+  hit->count = candidate.shared_kmers;
+  hit->strand = searchinfo->strand;
+  hit->rejected = false;
+  hit->accepted = false;
+  hit->aligned = false;
+  hit->weak = false;
+  hit->nwalignment.clear();
+
+  /* Test some accept/reject criteria before alignment */
+  bool const survives = search_acceptable_unaligned(*searchinfo, static_cast<int>(target));
+  if (not survives)
+    {
+      hit->rejected = true;
+    }
+
+  searchinfo->hit_count++;
+  return survives;
+}
+
+
+/* Drop the finalized hits that will not be reported, keeping the rest in
+   place. search_joinhits keeps exactly the accepted and the weak ones, and
+   then sorts what it kept, so removing the others here changes no output --
+   and it is what bounds the hit buffer of an exhaustive search, which would
+   otherwise grow one entry per database sequence.
+
+   Only ever called with every hit finalized (right after align_delayed), so
+   the survivors are settled and `finalized` follows the new fill level. */
+auto compact_hits(struct searchinfo_s * const searchinfo) -> void
+{
+  assert(searchinfo->finalized == searchinfo->hit_count);
+  auto const hits = make_hits_span(searchinfo);
+  auto const kept_end = std::remove_if(hits.begin(), hits.end(),
+                                       [](struct hit const & hit) -> bool {
+                                         return not (hit.accepted or hit.weak);
+                                       });
+  searchinfo->hit_count = static_cast<int>(std::distance(hits.begin(), kept_end));
+  searchinfo->finalized = searchinfo->hit_count;
+}
+
+
+/* Make room for one more candidate. The pre-filtered search sizes its buffer
+   once, to the worst case its two counters allow; an exhaustive one cannot,
+   so it grows in blocks and relies on compact_hits to keep the high-water
+   mark near the number of hits actually kept. A block rather than the
+   vector's own doubling, so that a query matching nothing never reallocates
+   past the first one. */
+auto reserve_one_hit(struct searchinfo_s * const searchinfo) -> void
+{
+  constexpr auto growth_block = std::size_t{256};
+  static_assert(growth_block > MAXDELAYED,
+                "a block must hold a whole alignment batch");
+  if (static_cast<std::size_t>(searchinfo->hit_count) == searchinfo->hits_v.size())
+    {
+      searchinfo->hits_v.resize(searchinfo->hits_v.size() + growth_block);
+    }
+}
 }  // anonymous namespace
 
 
@@ -1162,30 +1257,10 @@ auto search_onequery(struct searchinfo_s * searchinfo, Masking const seqmask) ->
     {
       elem_t const e = searchinfo->m.pop_last();
 
-      /* the whole buffer, not make_hits_span()'s live prefix: this appends at
-         the fill position, one past the last hit of the query so far */
-      struct hit * const hit = &make_span(searchinfo->hits_v)[static_cast<std::size_t>(searchinfo->hit_count)];
-
-      hit->target = static_cast<int>(e.seqno);
-      hit->count = e.count;
-      hit->strand = searchinfo->strand;
-      hit->rejected = false;
-      hit->accepted = false;
-      hit->aligned = false;
-      hit->weak = false;
-      hit->nwalignment.clear();
-
-      /* Test some accept/reject criteria before alignment */
-      if (search_acceptable_unaligned(*searchinfo, static_cast<int>(e.seqno)))
+      if (begin_candidate(searchinfo, Candidate{e.seqno, e.count}))
         {
           ++delayed;
         }
-      else
-        {
-          hit->rejected = true;
-        }
-
-      searchinfo->hit_count++;
 
       if (delayed == MAXDELAYED)
         {
@@ -1196,6 +1271,64 @@ auto search_onequery(struct searchinfo_s * searchinfo, Masking const seqmask) ->
   if (delayed > 0)
     {
       align_delayed(searchinfo);
+    }
+
+  searchinfo->lma.reset();  // frees the aligner (also freed by ~searchinfo_s on unwind)
+}
+
+
+auto search_onequery_exhaustive(struct searchinfo_s * searchinfo) -> void
+{
+  /* The whole database is the candidate set, so there is no k-mer sample to
+     take, nothing to rank, and no early stop: every target is offered to the
+     same accept/align/finalize machinery search_onequery drives, in database
+     order. searchinfo->dbindex is not read at all on this path, which is why
+     the caller need not build an index. */
+  searchinfo->hit_count = 0;
+
+  search16_qprep(*searchinfo->s, View<char>{searchinfo->qsequence});
+
+  struct Scoring const scoring = scoring_from_options(*searchinfo->parameters);
+
+  searchinfo->lma = make_unique<LinearMemoryAligner>(scoring);
+
+  searchinfo->accepts = 0;
+  searchinfo->rejects = 0;
+  searchinfo->finalized = 0;
+
+  auto const seqcount = searchinfo->db->getsequencecount();
+
+  /* align_delayed stops settling a batch once either counter reaches its
+     bound. The caller clamps both to the database size, and a query has at
+     most that many candidates in total, so neither can be reached before the
+     last of them has been settled -- the batch tail it would otherwise skip
+     cannot exist here. */
+  assert(searchinfo->parameters->opt_maxaccepts >= static_cast<int64_t>(seqcount));
+  assert(searchinfo->parameters->opt_maxrejects >= static_cast<int64_t>(seqcount));
+
+  int delayed = 0;
+
+  for (uint64_t target = 0; target < seqcount; ++target)
+    {
+      reserve_one_hit(searchinfo);
+
+      /* no shared-k-mer count to report: none was computed */
+      if (begin_candidate(searchinfo, Candidate{static_cast<unsigned int>(target), 0}))
+        {
+          ++delayed;
+        }
+
+      if (delayed == MAXDELAYED)
+        {
+          align_delayed(searchinfo);
+          delayed = 0;
+          compact_hits(searchinfo);
+        }
+    }
+  if (delayed > 0)
+    {
+      align_delayed(searchinfo);
+      compact_hits(searchinfo);
     }
 
   searchinfo->lma.reset();  // frees the aligner (also freed by ~searchinfo_s on unwind)

@@ -133,7 +133,8 @@ auto populate_si(struct searchinfo_s & si,
 auto search_thread_init(struct searchinfo_s & si, int const seqcount, int const tophits,
                         struct Parameters const & parameters,
                         struct Dbindex const & dbindex,
-                        struct Database const & db) -> void
+                        struct Database const & db,
+                        Prefilter const prefilter) -> void
 {
   /* thread specific initialiation */
   si.parameters = &parameters;  /* searchcore reads config through the si (E1) */
@@ -142,11 +143,26 @@ auto search_thread_init(struct searchinfo_s & si, int const seqcount, int const 
   /* si->uh (a Uniquer value member) is ready to use as default-constructed */
   /* kmers/hits/qsequence are the searchinfo_s vectors themselves (RAII), so a
      fatal() unwinding out of a partial init or a query frees them. */
-  static constexpr auto overflow_padding = 16U;  // 16 * sizeof(count_t) = 32 bytes headroom
-  si.kmers_v.reserve(static_cast<size_t>(seqcount) + overflow_padding);
-  si.kmers_v.resize(static_cast<size_t>(seqcount));
-  si.m = Minheap(tophits);
-  si.hits_v.resize(static_cast<size_t>(tophits) * static_cast<size_t>(number_of_strands(parameters.opt_strand)));
+  if (prefilter == Prefilter::kmer)
+    {
+      static constexpr auto overflow_padding = 16U;  // 16 * sizeof(count_t) = 32 bytes headroom
+      si.kmers_v.reserve(static_cast<size_t>(seqcount) + overflow_padding);
+      si.kmers_v.resize(static_cast<size_t>(seqcount));
+      si.m = Minheap(tophits);
+      si.hits_v.resize(static_cast<size_t>(tophits) * static_cast<size_t>(number_of_strands(parameters.opt_strand)));
+    }
+  else
+    {
+      /* An exhaustive search reads neither the counter array nor the heap, so
+         it allocates neither -- together they are one count_t and one elem_t
+         per database sequence, per thread. Its hit buffer cannot be sized to
+         a worst case either: without the two counters the worst case is the
+         whole database, which is the allocation this command exists to avoid.
+         It starts at one block and grows only as hits are actually kept
+         (reserve_one_hit and compact_hits, core/searchcore.cpp). */
+      static constexpr auto initial_hits = std::size_t{256};
+      si.hits_v.resize(initial_hits);
+    }
   si.qsize = 1;
   si.query_head = View<char>{nullptr, 0};
   si.qsequence = Span<char>{};
@@ -222,13 +238,13 @@ auto search_session_init(struct search_session_s * ss, struct Parameters const &
   ss->tophits = std::min(ss->tophits, ss->seqcount);
 
   ss->si_plus = make_unique<searchinfo_s>();
-  search_thread_init(*ss->si_plus, ss->seqcount, ss->tophits, parameters, *ss->dbindex, *ss->db);
+  search_thread_init(*ss->si_plus, ss->seqcount, ss->tophits, parameters, *ss->dbindex, *ss->db, Prefilter::kmer);
   ss->si_plus->strand = 0;
 
   if (parameters.opt_strand)
     {
       ss->si_minus = make_unique<searchinfo_s>();
-      search_thread_init(*ss->si_minus, ss->seqcount, ss->tophits, parameters, *ss->dbindex, *ss->db);
+      search_thread_init(*ss->si_minus, ss->seqcount, ss->tophits, parameters, *ss->dbindex, *ss->db, Prefilter::kmer);
       ss->si_minus->strand = 1;
     }
 }
@@ -505,11 +521,11 @@ auto search_batch(struct Parameters const & parameters,
      index made -- and an empty batch_si_minus needs no emptiness test. */
   for (auto & si : ctx.batch_si_plus)
     {
-      search_thread_init(si, seqcount, tophits, parameters, dbindex, db);
+      search_thread_init(si, seqcount, tophits, parameters, dbindex, db, Prefilter::kmer);
     }
   for (auto & si : ctx.batch_si_minus)
     {
-      search_thread_init(si, seqcount, tophits, parameters, dbindex, db);
+      search_thread_init(si, seqcount, tophits, parameters, dbindex, db, Prefilter::kmer);
     }
 
   /* run all queries through the worker pool (work-stealing on next_query) */
