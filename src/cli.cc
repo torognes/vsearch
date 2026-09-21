@@ -520,8 +520,8 @@ namespace {
   }
 
 
-  constexpr auto number_of_commands = std::size_t{52};
-  constexpr auto number_of_options = std::size_t{258};
+  constexpr auto number_of_commands = std::size_t{53};
+  constexpr auto number_of_options = std::size_t{259};
   constexpr auto max_number_of_options_per_command = std::size_t{100};
 
   enum
@@ -734,6 +734,7 @@ namespace {
       option_scramble,
       option_scramble_kmer,
       option_search_exact,
+      option_search_global,
       option_self,
       option_selfid,
       option_sff_clip,
@@ -1013,6 +1014,7 @@ namespace {
       {"scramble",                   true },
       {"scramble_kmer",              true },
       {"search_exact",               true },
+      {"search_global",              true },
       {"self",                       false },
       {"selfid",                     false },
       {"sff_clip",                   false },
@@ -2555,6 +2557,111 @@ namespace {
         option_xsize,
         -1, },
 
+      /* --search_global is --usearch_global without the k-mer pre-filter, so
+         this row is that one with a different primary option. The options
+         that only steer the index it does not build -- --maxaccepts,
+         --maxrejects, --minwordmatches, --wordlength, --slots and --pattern
+         -- stay accepted rather than rejected, so that a command line moved
+         over from --usearch_global keeps working; the manual page lists them
+         as ignored. --qmask and --dbmask are NOT in that group: they are
+         inert for alignment while masking is soft, but --hardmask turns the
+         masked bases into N and then they change the alignment. */
+      { option_search_global,
+        option_alnout,
+        option_band,
+        option_biomout,
+        option_blast6out,
+        option_bzip2_decompress,
+        option_db,
+        option_dbmask,
+        option_dbmatched,
+        option_dbnotmatched,
+        option_fasta_width,
+        option_fastapairs,
+        option_fulldp,
+        option_gapext,
+        option_gapopen,
+        option_gzip_decompress,
+        option_hardmask,
+        option_hspw,
+        option_id,
+        option_iddef,
+        option_idprefix,
+        option_idsuffix,
+        option_label_suffix,
+        option_lca_cutoff,
+        option_lcaout,
+        option_leftjust,
+        option_lengthout,
+        option_log,
+        option_match,
+        option_matched,
+        option_maxaccepts,
+        option_maxdiffs,
+        option_maxgaps,
+        option_maxhits,
+        option_maxid,
+        option_maxqsize,
+        option_maxqt,
+        option_maxrejects,
+        option_maxseqlength,
+        option_maxsizeratio,
+        option_maxsl,
+        option_maxsubs,
+        option_mid,
+        option_mincols,
+        option_minhsp,
+        option_minqt,
+        option_minseqlength,
+        option_minsizeratio,
+        option_minsl,
+        option_mintsize,
+        option_minwordmatches,
+        option_mismatch,
+        option_mothur_shared_out,
+        option_n_mismatch,
+        option_no_progress,
+        option_notmatched,
+        option_notrunclabels,
+        option_otutabout,
+        option_output_no_hits,
+        option_pattern,
+        option_qmask,
+        option_qsegout,
+        option_query_cov,
+        option_quiet,
+        option_relabel,
+        option_relabel_keep,
+        option_relabel_md5,
+        option_relabel_self,
+        option_relabel_sha1,
+        option_rightjust,
+        option_rowlen,
+        option_samheader,
+        option_samout,
+        option_sample,
+        option_self,
+        option_selfid,
+        option_sizein,
+        option_sizeout,
+        option_slots,
+        option_strand,
+        option_target_cov,
+        option_threads,
+        option_top_hits_only,
+        option_tsegout,
+        option_uc,
+        option_uc_allhits,
+        option_userfields,
+        option_userout,
+        option_weak_id,
+        option_wordlength,
+        option_xdrop_nw,
+        option_xee,
+        option_xlength,
+        option_xsize,
+        -1, },
+
       { option_sff_convert,
         option_fastq_asciiout,
         option_fastq_qmaxout,
@@ -3070,6 +3177,7 @@ namespace {
       Command::rereplicate,       // option_rereplicate
       Command::scramble,          // option_scramble
       Command::search_exact,      // option_search_exact
+      Command::search_global,     // option_search_global
       Command::sff_convert,       // option_sff_convert
       Command::shuffle,           // option_shuffle
       Command::sintax,            // option_sintax
@@ -3147,7 +3255,7 @@ namespace {
     count is not spelled out here: it follows from output_options above and
     from the command's own valid_options row.
   */
-  constexpr std::array<int, 13> commands_requiring_an_output =
+  constexpr std::array<int, 14> commands_requiring_an_output =
     {{
       option_allpairs_global,
       option_chimeras_denovo,
@@ -3157,6 +3265,7 @@ namespace {
       option_cluster_unoise,
       option_fastq_mergepairs,
       option_search_exact,
+      option_search_global,
       option_uchime2_denovo,
       option_uchime3_denovo,
       option_uchime_denovo,
@@ -4033,6 +4142,10 @@ namespace {
             parameters.input_filename = optarg;
             break;
 
+          case option_search_global:
+            parameters.input_filename = optarg;
+            break;
+
           case option_fastx_mask:
             parameters.input_filename = optarg;
             break;
@@ -4609,6 +4722,7 @@ namespace {
       case Command::makeudb_usearch:
       case Command::maskfasta:
       case Command::search_exact:
+      case Command::search_global:
       case Command::sintax:
       case Command::uchime_ref:
       case Command::usearch_global:
@@ -5394,6 +5508,21 @@ namespace {
       }
 
     if (command == Command::usearch_global)
+      {
+        if (parameters.opt_db == nullptr)
+          {
+            fatal("Database filename not specified with --db");
+          }
+
+        if ((parameters.opt_id < 0.0) or (parameters.opt_id > 1.0))
+          {
+            fatal("Identity between 0.0 and 1.0 must be specified with --id");
+          }
+      }
+
+    /* the same two requirements as --usearch_global: the pre-filter is what
+       differs between the two commands, not what they need to run */
+    if (command == Command::search_global)
       {
         if (parameters.opt_db == nullptr)
           {

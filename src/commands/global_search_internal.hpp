@@ -58,77 +58,29 @@
 
 */
 
-// Command-line interface: parse and validate the user-supplied options,
-// populate the global opt_* variables and the Parameters struct, and report
-// usage errors. Extracted from vsearch.cc to keep the argument-parsing
-// machinery separate from the command dispatch and the main program.
 
 #pragma once
 
+/* Shared entry point of the two global-alignment search commands. They differ
+   in one thing only -- which database sequences a query is compared against --
+   so they share the whole run: the same output files, the same OTU table, the
+   same worker pool, the same per-hit writers. The body lives in
+   commands/usearch_global.cpp; commands/search_global.cpp is the second entry
+   point into it. Not part of the public library API, hence an internal header
+   rather than a public one (the convention core/search_internal.hpp,
+   core/derep_internal.hpp and core/cluster_internal.hpp already follow). */
 
-/* The single command a run performs, resolved by the CLI parser (from the
-   requested command option) and returned to main() for the command dispatcher.
-   One enumerator per dispatch handler: the --h/--help and --v/--version option
-   aliases each collapse to a single command. Command::none means no (or no
-   valid) command was requested. The underlying type is fixed to int for a
-   stable, non-narrowing representation. This is CLI dispatch state, so it is
-   deliberately kept out of the public Parameters/library surface. */
-enum struct Command : int
-  {
-    none,
-    help,
-    version,
-    allpairs_global,
-    usearch_global,
-    search_exact,
-    search_global,
-    sintax,
-    orient,
-    cluster_fast,
-    cluster_smallmem,
-    cluster_size,
-    cluster_unoise,
-    uchime_denovo,
-    uchime2_denovo,
-    uchime3_denovo,
-    uchime_ref,
-    chimeras_denovo,
-    derep_fulllength,
-    derep_prefix,
-    derep_id,
-    derep_smallmem,
-    fastq_chars,
-    fastq_stats,
-    fastq_filter,
-    fastx_filter,
-    fastq_convert,
-    fastq_eestats,
-    fastq_eestats2,
-    fastq_join,
-    fastq_mergepairs,
-    fastx_uniques,
-    fastx_mask,
-    fastx_revcomp,
-    fastx_syncpairs,
-    fastx_getseq,
-    fastx_getseqs,
-    fastx_getsubseq,
-    fastx_subsample,
-    fasta2fastq,
-    cut,
-    scramble,
-    shuffle,
-    sortbylength,
-    sortbysize,
-    rereplicate,
-    maskfasta,
-    sff_convert,
-    makeudb_usearch,
-    udb2fasta,
-    udbinfo,
-    udbstats,
-  };
+/* Which candidate set a query is compared against.
 
-// Parse the command line, set the matching fields in parameters, validate the
-// requested command and its options, and return the resolved command.
-auto args_init(int argc, char ** argv, struct Parameters & parameters) -> Command;
+   kmer: the targets the word pre-filter selects and ranks (--usearch_global).
+   none: every database sequence, in database order (--search_global), which
+   is what makes that command exhaustive and its result independent of how the
+   database happens to be sorted.
+
+   An enum rather than a bool so the two call sites read as the choice they
+   make. "enum struct" rather than "enum class": the members are public
+   either way, and this codebase spells it the first way. */
+enum struct Prefilter : unsigned char { kmer, none };
+
+auto run_global_search(struct Parameters const & parameters,
+                       Prefilter prefilter) -> void;
