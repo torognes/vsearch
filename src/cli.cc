@@ -83,7 +83,7 @@
 #include <cstdio>  // fprintf, stderr, stdout
 #include <cstdlib>  // exit, EXIT_FAILURE
 #include <cstring>  // std::strlen
-#include <string>  // std::to_string
+#include <string>  // std::string, std::to_string
                     // option (no_argument, required_argument)
 #ifdef __NetBSD__
 /* Alters behavior, but NetBSD 7 does not have getopt_long_only() */
@@ -3368,6 +3368,34 @@ namespace {
       }
   }
 
+  /* Recover the spelling the user actually typed for the option getopt has
+     just matched. getopt accepts any unambiguous abbreviation of a long option
+     name, so a command line can name an option vsearch never declared and
+     still run: --thread is taken for --threads. That is convenient, but it is
+     silent, and it is how --query was taken for --query_cov until --query was
+     given a declaration of its own (see case option_query below).
+
+     getopt has already consumed the option and, when it takes one, its
+     argument. For the separate form ("--name" "value") optarg is the next argv
+     entry, so the option itself is two back; for "--name=value" optarg points
+     inside the current entry, and for a flag optarg is null -- in both of
+     those the option is one back. getopt_long_only accepts a long option
+     written with one dash or two, hence the two-character test. */
+  auto typed_option_name(char * const * const argv) -> std::string
+  {
+    auto const offset = ((optarg != nullptr) and (optarg == argv[optind - 1])) ? 2 : 1;
+    assert(optind > offset);  // argv[0] is the program name, never an option
+    std::string name {argv[optind - offset]};
+    name.erase(0, name.compare(0, 2, "--") == 0 ? 2 : 1);
+    auto const equals = name.find('=');
+    if (equals != std::string::npos)
+      {
+        name.resize(equals);
+      }
+    return name;
+  }
+
+
   /* Parse the command line with getopt: set each recognised option's
      Parameters field, record which options were seen in the returned
      vector (indexed by the option_* enum), and terminate on an ambiguous
@@ -3388,6 +3416,19 @@ namespace {
           {
             options_selected[static_cast<size_t>(options_index)] = true;
           }
+
+        /* an option that was abbreviated rather than spelled out still names
+           exactly one option, so it is honoured; it is only reported */
+        {
+          auto const * const declared = long_options[static_cast<std::size_t>(options_index)].name;
+          auto const typed = typed_option_name(argv);
+          if (typed != declared)
+            {
+              vsearch::warn("Option --" + typed + " is an abbreviation of --"
+                            + declared + "; spell it out, as an abbreviation "
+                            "stops working when a new option makes it ambiguous");
+            }
+        }
 
         switch (options_index)
           {
