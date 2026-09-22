@@ -521,7 +521,7 @@ namespace {
 
 
   constexpr auto number_of_commands = std::size_t{53};
-  constexpr auto number_of_options = std::size_t{259};
+  constexpr auto number_of_options = std::size_t{260};
   constexpr auto max_number_of_options_per_command = std::size_t{100};
 
   enum
@@ -713,6 +713,7 @@ namespace {
       option_profile,
       option_qmask,
       option_qsegout,
+      option_query,
       option_query_cov,
       option_quiet,
       option_randseed,
@@ -993,6 +994,7 @@ namespace {
       {"profile",                    true },
       {"qmask",                      true },
       {"qsegout",                    true },
+      {"query",                      true },
       {"query_cov",                  true },
       {"quiet",                      false },
       {"randseed",                   true },
@@ -3623,6 +3625,23 @@ namespace {
           case option_fasta_width:
             parameters.opt_fasta_width = args_getlong(optarg);
             break;
+
+          /* --query is not a vsearch option: it is how usearch 5 named the
+             query file, which vsearch passes as the argument of the search
+             command itself. The name is declared in option_specs only so that
+             it stops being an abbreviation of another option: getopt accepts
+             any unambiguous prefix of a long option name, and "query_cov" was
+             the sole name beginning with "query", so --query silently meant
+             --query_cov and a query file reached args_getdouble() as the
+             anonymous "Illegal option argument". Declaring the name gives it an
+             exact match of its own, and this diagnostic. It belongs to no
+             valid_options row, and the fatal below fires during parsing, so no
+             command can ever accept it. */
+          case option_query:
+            fatal("--query is not a vsearch option: the query file is the "
+                  "argument of the search command itself, as in "
+                  "'--usearch_global queries.fasta'. To bound the fraction of "
+                  "the query covered by the alignment, spell out --query_cov");
 
           case option_query_cov:
             parameters.opt_query_cov = args_getdouble(optarg);
