@@ -382,9 +382,11 @@ jobs:
           # watcher reaps ONLY those fifoow-blocked writers — a targeted kill by
           # pid, never a broad `pkill -U runner`, which also kills the vmactions
           # SSH shell (ssh exits 143) and skips copyback — which lets the suite
-          # process exit. Pass/fail is then decided purely by FAIL lines in
-          # test.log; the teardown stall is not a failure. A stall with no
-          # fifoow writers is treated as a genuine hang and fails.
+          # process exit. Pass/fail is then decided by the SUMMARY line and the
+          # FAIL lines in test.log (see the block after the watcher); the
+          # teardown stall is not a failure, because the suite has printed its
+          # SUMMARY by then. A stall with no fifoow writers is treated as a
+          # genuine hang and fails.
           echo "========== Running tests... =========="
           suite_timeout=720
           rm -f vsearch-tests/test.log
@@ -394,6 +396,7 @@ jobs:
           stall=0
           reaped=0
           genuine_hang=0
+          abandoned=0
           while kill -0 "$suite_pid" 2>/dev/null; do
             sig=$(tail -n 20 vsearch-tests/test.log 2>/dev/null | grep -v '^[[:space:]]*$' | tail -n 1)
             if [ "$sig" != "$last_sig" ]; then
@@ -407,7 +410,8 @@ jobs:
                 ps -U runner -o pid,ppid,stat,wchan,command 2>/dev/null | head -n 30 | sed 's/^/    /'
                 # Reap ONLY the fifoow-blocked <() writers (see the note above):
                 # a targeted kill by pid, never a broad pkill. This lets the
-                # suite process unwind and exit; pass/fail comes from FAIL lines.
+                # suite process unwind and exit. If it does not, the suite was
+                # not in teardown and the log is partial -- see "abandoned".
                 fifoow_pids=$(ps -U runner -o pid,wchan 2>/dev/null | awk '$2 == "fifoow" { print $1 }')
                 if [ -n "$fifoow_pids" ]; then
                   echo "[$(date -u +%H:%M:%S)] reaping orphaned fifoow <() writers: $(echo $fifoow_pids | tr '\n' ' ')"
@@ -439,18 +443,42 @@ jobs:
           # runs used to lose their test.log artifact).
           if kill -0 "$suite_pid" 2>/dev/null; then
             echo "suite process still alive after reap; abandoning it to VM teardown."
+            abandoned=1
           else
             wait "$suite_pid" 2>/dev/null || true
           fi
           echo "========== Tests finished =========="
-          # Pass/fail = did any test report FAIL. The teardown stall is not a
-          # failure (all tests ran). A genuine hang (no fifoow writers) fails.
+          # Pass/fail = the suite ran to completion AND no test reported FAIL.
+          #
+          # "Ran to completion" has to be checked, not assumed. run_all_tests.sh
+          # prints exactly one SUMMARY line from an EXIT trap, so a run that
+          # finished always has one -- including a red run (SUMMARY: ABORTED)
+          # and a run whose *teardown* then stalls, which is why the stall is
+          # still not a failure. A run that is cut short mid-suite has neither a
+          # SUMMARY nor a FAIL line, and used to be reported GREEN on the FAIL
+          # check alone. That is not hypothetical: on 2026-09-21 a 30 s stall
+          # during orient made the watcher reap and break, the grace period
+          # expired on a suite that was still running, and the job passed on a
+          # two-thirds-complete log (6403 PASS, no SUMMARY) -- hiding a test
+          # that fails on FreeBSD and would equally have hidden a regression.
           echo "===== FAIL lines ====="
           if grep -E 'FAIL' vsearch-tests/test.log; then
             status=1
           else
             echo "(none)"
             status=0
+          fi
+          if ! grep -q 'SUMMARY: OK' vsearch-tests/test.log; then
+            echo "!!! The suite did not run to completion: no 'SUMMARY: OK' line."
+            echo "    last log line: $(tail -n 1 vsearch-tests/test.log 2>/dev/null)"
+            status=1
+          fi
+          if [ "$abandoned" -eq 1 ]; then
+            # The reap is meant to unblock a suite that has already finished its
+            # tests. If the suite is still alive after the grace period it was
+            # not in teardown, so whatever it had written is partial.
+            echo "!!! The suite was still running when it was abandoned after the reap."
+            status=1
           fi
           if [ "$genuine_hang" -eq 1 ]; then
             echo "!!! Genuine hang detected (stall with no fifoow writers)."
