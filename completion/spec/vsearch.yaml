@@ -687,6 +687,10 @@ options:
     arg: { type: string }
     hidden: true
     desc: "ignored"
+  - name: --query
+    arg: { type: string }
+    hidden: true
+    desc: "rejected: the query file is the search command's argument"
   - name: --query_cov
     arg: { type: real }
     desc: "reject if fraction of query seq. aligned lower"
