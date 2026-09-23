@@ -197,9 +197,17 @@ auto parameters_validate(struct Parameters const & parameters) -> void
       fatal("The argument to --wordlength must be in the range 3 to 15");
     }
 
-  if ((parameters.opt_iddef < 0) or (parameters.opt_iddef > 4))
+  if ((parameters.opt_iddef < 0) or (parameters.opt_iddef > iddef_score_based))
     {
-      fatal("The argument to --iddef must be in the range 0 to 4");
+      fatal("The argument to --iddef must be in the range 0 to 5");
+    }
+
+  /* the score-based identity counts the score deficit in units of
+     match - mismatch, which must be positive */
+  if ((parameters.opt_iddef == iddef_score_based) and
+      (parameters.opt_match <= parameters.opt_mismatch))
+    {
+      fatal("--iddef 5 requires --match to be greater than --mismatch");
     }
 
   if ((parameters.opt_chimeras_parents_max < 2) or

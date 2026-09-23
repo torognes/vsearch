@@ -265,7 +265,7 @@ _vsearch() {
             '--gzip_decompress[decompress input with gzip (required if pipe)]' \
             '--hardmask[mask by replacing with N instead of lower case]' \
             '--id[reject if identity lower; accepted values 0-1.0]:x:' \
-            '--iddef[id definition, 0-4 = CD-HIT, all, int, MBL, BLAST (2)]:n:' \
+            '--iddef[id definition, 0-5 = CD-HIT, all, int, MBL, BLAST, score (2)]:n:' \
             '--idprefix[reject if first n nucleotides do not match]:n:' \
             '--idsuffix[reject if last n nucleotides do not match]:n:' \
             '--label_suffix[suffix to append to label]:string:' \
@@ -357,7 +357,7 @@ _vsearch() {
             '--gzip_decompress[decompress input with gzip (required if pipe)]' \
             '--hardmask[mask by replacing with N instead of lower case]' \
             '--id[reject if identity lower; accepted values 0-1.0]:x:' \
-            '--iddef[id definition, 0-4 = CD-HIT, all, int, MBL, BLAST (2)]:n:' \
+            '--iddef[id definition, 0-5 = CD-HIT, all, int, MBL, BLAST, score (2)]:n:' \
             '--idprefix[reject if first n nucleotides do not match]:n:' \
             '--idsuffix[reject if last n nucleotides do not match]:n:' \
             '--label_suffix[suffix to append to label]:string:' \
@@ -449,7 +449,7 @@ _vsearch() {
             '--gzip_decompress[decompress input with gzip (required if pipe)]' \
             '--hardmask[mask by replacing with N instead of lower case]' \
             '--id[reject if identity lower; accepted values 0-1.0]:x:' \
-            '--iddef[id definition, 0-4 = CD-HIT, all, int, MBL, BLAST (2)]:n:' \
+            '--iddef[id definition, 0-5 = CD-HIT, all, int, MBL, BLAST, score (2)]:n:' \
             '--idprefix[reject if first n nucleotides do not match]:n:' \
             '--idsuffix[reject if last n nucleotides do not match]:n:' \
             '--label_suffix[suffix to append to label]:string:' \
@@ -542,7 +542,7 @@ _vsearch() {
             '--gzip_decompress[decompress input with gzip (required if pipe)]' \
             '--hardmask[mask by replacing with N instead of lower case]' \
             '--id[reject if identity lower; accepted values 0-1.0]:x:' \
-            '--iddef[id definition, 0-4 = CD-HIT, all, int, MBL, BLAST (2)]:n:' \
+            '--iddef[id definition, 0-5 = CD-HIT, all, int, MBL, BLAST, score (2)]:n:' \
             '--idprefix[reject if first n nucleotides do not match]:n:' \
             '--idsuffix[reject if last n nucleotides do not match]:n:' \
             '--label_suffix[suffix to append to label]:string:' \
@@ -1175,7 +1175,7 @@ _vsearch() {
             '--gzip_decompress[decompress input with gzip (required if pipe)]' \
             '--hardmask[mask by replacing with N instead of lower case]' \
             '--id[reject if identity lower; accepted values 0-1.0]:x:' \
-            '--iddef[id definition, 0-4 = CD-HIT, all, int, MBL, BLAST (2)]:n:' \
+            '--iddef[id definition, 0-5 = CD-HIT, all, int, MBL, BLAST, score (2)]:n:' \
             '--idprefix[reject if first n nucleotides do not match]:n:' \
             '--idsuffix[reject if last n nucleotides do not match]:n:' \
             '--label_suffix[suffix to append to label]:string:' \
@@ -1417,7 +1417,7 @@ _vsearch() {
             '--gzip_decompress[decompress input with gzip (required if pipe)]' \
             '--hardmask[mask by replacing with N instead of lower case]' \
             '--id[reject if identity lower; accepted values 0-1.0]:x:' \
-            '--iddef[id definition, 0-4 = CD-HIT, all, int, MBL, BLAST (2)]:n:' \
+            '--iddef[id definition, 0-5 = CD-HIT, all, int, MBL, BLAST, score (2)]:n:' \
             '--idprefix[reject if first n nucleotides do not match]:n:' \
             '--idsuffix[reject if last n nucleotides do not match]:n:' \
             '--label_suffix[suffix to append to label]:string:' \
@@ -1507,7 +1507,7 @@ _vsearch() {
             '--gzip_decompress[decompress input with gzip (required if pipe)]' \
             '--hardmask[mask by replacing with N instead of lower case]' \
             '--id[reject if identity lower; accepted values 0-1.0]:x:' \
-            '--iddef[id definition, 0-4 = CD-HIT, all, int, MBL, BLAST (2)]:n:' \
+            '--iddef[id definition, 0-5 = CD-HIT, all, int, MBL, BLAST, score (2)]:n:' \
             '--idprefix[reject if first n nucleotides do not match]:n:' \
             '--idsuffix[reject if last n nucleotides do not match]:n:' \
             '--label_suffix[suffix to append to label]:string:' \

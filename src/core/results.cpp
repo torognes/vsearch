@@ -568,6 +568,9 @@ auto print_userfield(std::FILE * output_handle,
     case Userfield::id4:
       std::fprintf(output_handle, "%.1f", (hit != nullptr) ? hit->id4 : 0.0);
       break;
+    case Userfield::id5:
+      std::fprintf(output_handle, "%.1f", (hit != nullptr) ? hit->id5 : 0.0);
+      break;
 
       /* new internal alignment coordinates */
 

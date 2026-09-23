@@ -137,6 +137,7 @@ struct hit
   double id2;
   double id3;
   double id4;
+  double id5;            /* score-based: see score_based_identity() */
 
   int shortest;          /* length of shortest of query and target */
   int longest;           /* length of longest of query and target */
@@ -319,6 +320,20 @@ auto search_acceptable_aligned(struct searchinfo_s const & searchinfo,
                                struct hit & hit) -> bool;
 
 auto align_trim(struct hit & hit, struct Parameters const & parameters) -> void;
+
+/* Score-based identity (--iddef 5), in percent: the score the alignment
+   falls short of a perfect ungapped alignment of the shorter sequence,
+   counted in mismatch equivalents (one mismatch costs match - mismatch)
+   and taken from the shorter length. The shorter length makes
+   match * shortest the highest score the pair can reach, so the identity
+   decreases only by what the scoring options charge: a substitution counts
+   as one mismatch, a gap as its --gapopen/--gapext cost over
+   match - mismatch, a pair involving an ambiguous symbol (scored zero) as
+   match / (match - mismatch). Equal to the CD-HIT definition on gapless
+   alignments without ambiguous symbols. Reads hit.nwscore and
+   hit.shortest; clamped to [0, 100]. */
+auto score_based_identity(struct hit const & hit,
+                          struct Parameters const & parameters) noexcept -> double;
 
 /* copies the accepted and weak hits of both strands into `hits`, then drops the
    alignment strings of the ones it did not copy -- hence the mutable si */
