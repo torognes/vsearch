@@ -230,7 +230,7 @@ else
   BIN        := vsearch
   ifeq ($(OS),macos)
     OS_SOURCES += os/macos/system_memory.cc os/macos/system_cpu.cc
-    export MACOSX_DEPLOYMENT_TARGET = 10.9
+    export MACOSX_DEPLOYMENT_TARGET = 11.0
   else ifeq ($(OS),freebsd)
     OS_SOURCES += os/freebsd/system_memory.cc os/freebsd/system_cpu.cc
   else

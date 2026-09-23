@@ -267,7 +267,7 @@ jobs:
 
     # No Homebrew step: building from the tarball needs no pandoc, and the
     # macOS SDK already provides zlib.h and bzlib.h.
-    # MACOSX_DEPLOYMENT_TARGET is pinned to 10.9 by src/Makefile.
+    # MACOSX_DEPLOYMENT_TARGET is pinned to 11.0 by src/Makefile.
     - name: Build
       env:
         ASSET: ${{ matrix.target.asset }}
