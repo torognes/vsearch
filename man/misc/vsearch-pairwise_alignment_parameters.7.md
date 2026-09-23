@@ -1,4 +1,4 @@
-% vsearch-pairwise_alignment_parameters(7) version 2.32.0 | vsearch file formats
+% vsearch-pairwise_alignment_parameters(7) version 2.33.0 | vsearch file formats
 % Torbjørn Rognes, Tomás Flouri, and Frédéric Mahé
 #(../commands/fragments/date.md)
 

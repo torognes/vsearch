@@ -16,8 +16,8 @@ authors:
   given-names: "Frédéric"
   orcid: "https://orcid.org/0000-0002-2808-0984"
 title: "VSEARCH: versatile open-source tool for microbiome analysis"
-version: 2.32.0
-date-released: 2026-09-18
+version: 2.33.0
+date-released: 2026-11-23
 url: "https://github.com/torognes/vsearch"
 preferred-citation:
   type: article
