@@ -192,6 +192,16 @@ differences in output or in accepted input, not accidents.
 - Low-complexity regions are masked with the DUST algorithm by default,
   and masking behaviour is more consistent (see
   [`vsearch-fastx_mask(1)`](../commands/vsearch-fastx_mask.1.md)).
+- This includes `--sintax`, which DUST-masks a fasta reference database
+  by default (`--dbmask dust`). usearch's `-sintax` masks nothing unless
+  `-dbmask` is given, so low-complexity reference regions can take part
+  in its classifications and not in vsearch's; `--dbmask none` restores
+  usearch's default. The two also treat lowercase letters differently:
+  vsearch's *dust* ignores the case of the input and masks only
+  low-complexity regions, whereas usearch's `-dbmask dust` keeps any
+  lowercase region masked as well, so an all-lowercase reference
+  database leaves every query unclassified in usearch
+  (see [`vsearch-sintax(1)`](../commands/vsearch-sintax.1.md)).
 - vsearch adds the command `--cluster_size`, which sorts sequences by
   decreasing abundance before clustering.
 - `--relabel @`, which derives a sample identifier from the input file
