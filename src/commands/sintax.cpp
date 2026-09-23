@@ -1278,6 +1278,7 @@ auto sintax(struct Parameters const & parameters) -> void
   else
     {
       state.db.read(parameters.opt_db, 0, parameters);
+      apply_masking(state.db, state.parameters.opt_dbmask, state.parameters);
     }
 
   seqcount = static_cast<int>(state.db.getsequencecount());
