@@ -52,9 +52,9 @@ In the example below, VSEARCH will identify sequences in the file database.fsa t
 **Source distribution** To download the source distribution from a [release](https://github.com/torognes/vsearch/releases) and build the executable and the documentation, use the following commands:
 
 ```
-wget https://github.com/torognes/vsearch/releases/download/v2.32.0/vsearch-2.32.0.tar.gz
-tar xzf vsearch-2.32.0.tar.gz
-cd vsearch-2.32.0
+wget https://github.com/torognes/vsearch/releases/download/v2.33.0/vsearch-2.33.0.tar.gz
+tar xzf vsearch-2.33.0.tar.gz
+cd vsearch-2.33.0
 make
 sudo make install
 ```
@@ -103,7 +103,7 @@ wget https://github.com/torognes/vsearch/releases/download/v{VERSION}/vsearch-{V
 tar xzf vsearch-{VERSION}-{OS}-{ARCH}.tar.gz
 ```
 
-Replace `{VERSION}` with the VSEARCH version number (e.g. `2.32.0`), `{OS}` with the target operating system (`linux` or `macos`), and `{ARCH}` with the architecture (`x86_64`, `aarch64`, `ppc64le`, `riscv64`, or `mips64el`). You could add `-static` after `{ARCH}` to get a statically compiled version for Linux (except x86_64). The name of the binary for the RHEL 7 and CentOS 7 Linux distributions ends in `-ubi7`.
+Replace `{VERSION}` with the VSEARCH version number (e.g. `2.33.0`), `{OS}` with the target operating system (`linux` or `macos`), and `{ARCH}` with the architecture (`x86_64`, `aarch64`, `ppc64le`, `riscv64`, or `mips64el`). You could add `-static` after `{ARCH}` to get a statically compiled version for Linux (except x86_64). The name of the binary for the RHEL 7 and CentOS 7 Linux distributions ends in `-ubi7`.
 
 Or, if you are using Windows, download and extract (unzip) the contents of this file:
 

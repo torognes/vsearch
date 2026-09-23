@@ -1,4 +1,4 @@
-% vsearch-fastq_eestats2(1) version 2.32.0 | vsearch manual
+% vsearch-fastq_eestats2(1) version 2.33.0 | vsearch manual
 % Torbjørn Rognes, Tomás Flouri, and Frédéric Mahé
 #(./fragments/date.md)
 
