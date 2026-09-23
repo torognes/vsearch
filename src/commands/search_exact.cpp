@@ -84,12 +84,15 @@
 #include "utils/threads.hpp"
 #include "utils/worker_loop.hpp"
 #include "utils/reverse_complement.hpp"
+#include "utils/maps/four_bit.hpp"  // vsearch::maps::four_bit::map
+#include "utils/score_4bit.hpp"  // vsearch::score_4bit, SubstitutionScores
 #include "utils/string_normalize.hpp"
 #include <algorithm>  // std::min
 #include <array>  // std::array
 #include <cstdint> // int64_t, uint64_t
 #include <cstdio>  // std::FILE, std::fprintf, std::size_t
 #include <mutex>  // std::mutex, std::lock_guard, std::unique_lock
+#include <numeric>  // std::accumulate
 #include <string>  // std::string, std::to_string
 #include <vector>
 
@@ -156,6 +159,26 @@ struct search_exact_state_s
 
 
 namespace {
+/* The alignment score of an exact match: the query against itself, column
+   by column, scored with the rule both aligners use (score_4bit), so that a
+   column holding an ambiguous symbol scores zero rather than --match, and
+   the raw userfield agrees with what --usearch_global reports for the same
+   pair. Query and target are identical up to case and U/T, which the 4-bit
+   codes do not distinguish, so a self column is the right model. */
+auto exact_match_score(View<char> const sequence,
+                       struct Parameters const & parameters) noexcept -> int64_t
+{
+  vsearch::SubstitutionScores<int64_t> const scores {parameters.opt_match,
+                                                     parameters.opt_mismatch,
+                                                     parameters.opt_n_mismatch,};
+  return std::accumulate(sequence.begin(), sequence.end(), int64_t{0},
+                         [&scores](int64_t const sum, char const nucleotide) -> int64_t {
+                           auto const code = vsearch::maps::four_bit::map(nucleotide);
+                           return sum + vsearch::score_4bit(code, code, scores);
+                         });
+}
+
+
 auto add_hit(struct searchinfo_s * si, uint64_t const seqno) -> void
 {
   if (search_acceptable_unaligned(*si, static_cast<int>(seqno)))
@@ -192,7 +215,7 @@ auto add_hit(struct searchinfo_s * si, uint64_t const seqno) -> void
       hp->count = 0;
 
       auto const qseqlen = static_cast<int>(si->qsequence.size());
-      hp->nwscore = static_cast<int>(static_cast<int64_t>(qseqlen) * si->parameters->opt_match);
+      hp->nwscore = static_cast<int>(exact_match_score(View<char>{si->qsequence}, *si->parameters));
       hp->nwdiff = 0;
       hp->nwgaps = 0;
       hp->nwindels = 0;
