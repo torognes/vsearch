@@ -607,7 +607,7 @@ counts into `result_counts`.
 | `opt_id` | `double` | 0.0 | Minimum identity threshold (0.0–1.0). |
 | `opt_maxaccepts` | `int64_t` | 1 | Stop after N accepted hits. |
 | `opt_maxrejects` | `int64_t` | 32 | Stop after N rejected candidates. |
-| `opt_iddef` | `int64_t` | 2 | Identity definition (0–4). |
+| `opt_iddef` | `int64_t` | 2 | Identity definition (0–5). |
 | `opt_wordlength` | `int64_t` | 8 | K-mer length for candidate selection. |
 | `opt_strand` | `bool` | `false` | `false` = plus strand only, `true` = both strands. |
 
@@ -899,7 +899,7 @@ interior). This matches the internal scoring convention.
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
 | `opt_id` | `double` | 0.0 | Minimum identity (0.0–1.0). |
-| `opt_iddef` | `int64_t` | 2 | Identity definition (0=CD-HIT, 1=edit distance, 2=default, 3=marine bio, 4=BLAST). |
+| `opt_iddef` | `int64_t` | 2 | Identity definition (0=CD-HIT, 1=edit distance, 2=default, 3=marine bio, 4=BLAST, 5=score-based; 5 requires `opt_match` > `opt_mismatch`). |
 | `opt_maxaccepts` | `int64_t` | 1 | Stop after N accepted hits. |
 | `opt_maxrejects` | `int64_t` | 32 | Stop after N rejected candidates. |
 | `opt_maxhits` | `int64_t` | 0 | Maximum total hits (0 = unlimited, resolved by fixups). |

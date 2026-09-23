@@ -10,6 +10,9 @@
     represent, so an N matches anything: a sequence aligned over a run
     of Ns is reported at 100% identity. Use `--n_mismatch` to count
     these columns as mismatches instead.
+    With `--iddef 5`, identity is computed from the alignment score, in
+    which such a column scores zero: each costs a third of a mismatch
+    with the default scores.
 
     Which pairs reach the alignment stage where `--id` is applied is
     decided beforehand by a *k*-mer pre-filter (see `--minwordmatches`

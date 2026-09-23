@@ -268,6 +268,14 @@ counted from zero rather than from one.
 : BLAST definition, equivalent to `id1` for global pairwise
   alignments. Always equal to `id1`.
 
+`id5`
+: Score-based definition, computed from the alignment score `raw`
+  rather than from column counts: 100 * (1.0 - [(`--match` * *L* -
+  `raw`) / ((`--match` - `--mismatch`) * *L*)]), where *L* is the
+  shortest sequence length, clamped to the range 0.0 to 100.0. Reported
+  whatever the value of `--iddef`, and 0.0 when `--match` is not
+  greater than `--mismatch`. See `--iddef`.
+
 
 ## Coverage
 
@@ -286,9 +294,13 @@ counted from zero rather than from one.
 
 `raw`
 : Raw alignment score (negative, zero, or positive integer). The score
-  is the sum of match rewards minus mismatch penalties, gap opening
-  penalties, and gap extension penalties, using the parameters set by
-  `--match`, `--mismatch`, `--gapopen`, and `--gapext`.
+  is the sum of the scores of the aligned pairs (`--match` for a match,
+  `--mismatch` for a mismatch, zero for a pair involving an ambiguous
+  symbol, or `--mismatch` for a pair involving an N when `--n_mismatch`
+  is given), minus the gap penalties set by `--gapopen` and `--gapext`.
+  A gap of length *k* costs its opening penalty plus (*k* - 1)
+  extension penalties. See
+  [`vsearch-pairwise_alignment_parameters(7)`](./vsearch-pairwise_alignment_parameters.7.md).
 
 `bits`
 : Bit score. Not computed for nucleotide alignments. Always 0.
@@ -334,7 +346,7 @@ vsearch \
     --userfields query+target+id+alnlen+mism
 ```
 
-Output all five identity definitions side by side for comparison:
+Output all six identity definitions side by side for comparison:
 
 ```sh
 vsearch \
@@ -342,7 +354,7 @@ vsearch \
     --db db.fasta \
     --id 0.0 \
     --userout identity_comparison.tsv \
-    --userfields query+target+id0+id1+id2+id3+id4
+    --userfields query+target+id0+id1+id2+id3+id4+id5
 ```
 
 Report each hit as a list of its differences alone, with the target

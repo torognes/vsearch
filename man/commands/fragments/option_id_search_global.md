@@ -10,6 +10,9 @@
     represent, so an N matches anything: a query aligned over a run of
     Ns is reported at 100% identity. Use `--n_mismatch` to count these
     columns as mismatches instead.
+    With `--iddef 5`, identity is computed from the alignment score, in
+    which such a column scores zero: each costs a third of a mismatch
+    with the default scores.
 
     Unlike `--usearch_global`, no *k*-mer pre-filter decides which pairs
     reach the alignment stage: every target is aligned, so `--id` alone

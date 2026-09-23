@@ -33,10 +33,11 @@ vsearch interprets symbols in DNA/RNA sequences according to the IUPAC
 coding system for nucleotides. See
 [`vsearch-nucleotides(7)`](./vsearch-nucleotides.7.md) for details.
 
-The alignment score is used solely to find the optimal alignment. The
-similarity percentage reported (and compared against `--id`) is
-computed from the resulting alignment, not from the score itself. The
-identity definition can be changed with `--iddef` (see below).
+The alignment score is used to find the optimal alignment. By
+default, the similarity percentage reported (and compared against
+`--id`) is computed from the columns of the resulting alignment, not
+from the score itself. The identity definition can be changed with
+`--iddef` (see below); `--iddef 5` computes it from the score.
 
 
 ## Matches and mismatches
@@ -197,6 +198,28 @@ I, R or E).
   target sequences.
 
 
+### Gap costs
+
+A gap of length *k* costs its opening penalty plus (*k* - 1) extension
+penalties: the opening penalty covers the first position of the gap,
+and each further position adds one extension penalty. With the default
+penalties, an internal gap of length 1 costs 20, and an internal gap of
+length 4 costs 20 + 3 × 2 = 26. With `--gapext 0I`, an internal gap
+costs 20 whatever its length.
+
+A gap is *terminal* when it is the first or the last operation of the
+alignment; any other gap is internal and pays the internal penalties.
+When two gaps follow each other at an end of the alignment, one in each
+sequence (for example, a gap in the query immediately followed by a
+gap in the target, after the last aligned pair), only the outermost of
+the two is terminal.
+
+The alignment score (userfield `raw`, see
+[`vsearch-userfields(7)`](./vsearch-userfields.7.md)) is the sum of the
+scores of the aligned pairs (`--match`, `--mismatch`, or zero for a
+pair involving an ambiguous symbol) minus the costs of the gaps.
+
+
 ## Identity definitions
 
 The identity percentage computed from a pairwise alignment can be
@@ -223,14 +246,27 @@ used when applying the `--id` threshold:
 : BLAST definition, equivalent to `--iddef 1` for global pairwise
   alignments.
 
+`--iddef` *5*
+: Score-based definition: 1.0 - [(`--match` * *L* - score) /
+  ((`--match` - `--mismatch`) * *L*)], where score is the alignment
+  score and *L* the shortest sequence length, clamped to the range 0.0
+  to 1.0. *L* * `--match` is the highest score the pair can reach; the
+  amount by which the alignment falls short of it is counted in
+  mismatch equivalents, one mismatch costing `--match` - `--mismatch`.
+  Each gap therefore weighs its own penalty (see *Gap costs* above),
+  and a column holding an ambiguous symbol, which scores zero, weighs
+  `--match` / (`--match` - `--mismatch`) of a mismatch. Requires
+  `--match` to be greater than `--mismatch`.
+
 Note that the `--iddef` choice has no effect on the score or selection
 of the optimal pairwise alignment. The identity is computed from the
 alignment after the fact.
 
-What counts as a matching column is the same for all five definitions,
+What counts as a matching column is the same for definitions 0 to 4,
 and follows the rules given above: a column holding an ambiguous symbol
 matches whenever the two symbols share at least one of the nucleotides
-they represent, unless `--n_mismatch` is given.
+they represent, unless `--n_mismatch` is given. Definition 5 counts no
+columns: it reads the score, in which such a column scores zero.
 
 
 # SEE ALSO
