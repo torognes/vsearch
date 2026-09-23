@@ -76,7 +76,7 @@ namespace {
 /* Name and field, side by side. Order is presentation only: the parser
    matches on the name and returns the enumerator sitting next to it, so
    entries may be inserted or reordered freely. */
-constexpr std::size_t userfield_count = 53;
+constexpr std::size_t userfield_count = 54;
 
 /* Adding a Userfield enumerator without adding its name here would leave the
    new field unparseable from the command line; tie the two counts together
@@ -134,6 +134,7 @@ auto valid_userfields()
     {"id2",      Userfield::id2},
     {"id3",      Userfield::id3},
     {"id4",      Userfield::id4},
+    {"id5",      Userfield::id5},
     {"qilo",     Userfield::qilo},
     {"qihi",     Userfield::qihi},
     {"tilo",     Userfield::tilo},

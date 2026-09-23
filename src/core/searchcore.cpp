@@ -573,6 +573,23 @@ auto search_topscores(struct searchinfo_s * searchinfo) -> void
 }
 
 
+auto score_based_identity(struct hit const & hit,
+                          struct Parameters const & parameters) noexcept -> double
+{
+  auto const mismatch_cost = parameters.opt_match - parameters.opt_mismatch;
+  if ((mismatch_cost <= 0) or (hit.shortest <= 0))
+    {
+      return 0.0;  // no meaningful value; --iddef 5 rejects such scoring
+    }
+  auto const shortest = static_cast<double>(hit.shortest);
+  auto const best_score = static_cast<double>(parameters.opt_match) * shortest;
+  auto const deficit = best_score - static_cast<double>(hit.nwscore);
+  auto const identity =
+    100.0 * (1.0 - (deficit / (static_cast<double>(mismatch_cost) * shortest)));
+  return std::min(100.0, std::max(0.0, identity));
+}
+
+
 auto align_trim(struct hit & hit, struct Parameters const & parameters) -> void
 {
   /* trim alignment and fill in info */
@@ -676,6 +693,8 @@ auto align_trim(struct hit & hit, struct Parameters const & parameters) -> void
   /* BLAST */
   hit.id4 = hit.nwalignmentlength > 0 ?
     100.0 * hit.matches / hit.nwalignmentlength : 0.0;
+  /* score-based */
+  hit.id5 = score_based_identity(hit, parameters);
 
   switch (parameters.opt_iddef)
     {
@@ -693,6 +712,9 @@ auto align_trim(struct hit & hit, struct Parameters const & parameters) -> void
       break;
     case 4:
       hit.id = hit.id4;
+      break;
+    case 5:
+      hit.id = hit.id5;
       break;
     default:
       break;

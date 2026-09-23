@@ -245,6 +245,9 @@ auto add_hit(struct searchinfo_s * si, uint64_t const seqno) -> void
 
       hp->shortest = qseqlen;
       hp->longest = qseqlen;
+      /* below 100 when the query holds ambiguous symbols, like the same
+         pair under --usearch_global */
+      hp->id5 = score_based_identity(*hp, *si->parameters);
 
       hp->aligned = true;
 
