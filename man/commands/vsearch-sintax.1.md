@@ -68,13 +68,13 @@ is multi-threaded.
 ## mandatory options
 
 #(./fragments/option_db_sintax.md)
-: Note: a UDB database is not interchangeable with the fasta file it was
-  built from. `vsearch-makeudb_usearch(1)` masks with *dust* by default and
-  stores the masked sequences, whereas `--sintax` never runs the DUST
-  algorithm on a fasta database (see `--dbmask` below). The same reference
-  therefore yields different classifications in its two forms. Build the UDB
-  with [`vsearch-makeudb_usearch(1)`](./vsearch-makeudb_usearch.1.md)
-  `--dbmask none` to obtain results identical to the fasta database.
+: Note: a UDB database stores sequences that were masked when it was
+  built, so it gives the same classifications as the fasta file it was
+  built from only when both were masked the same way. A UDB built by
+  [`vsearch-makeudb_usearch(1)`](./vsearch-makeudb_usearch.1.md) with its
+  default *dust* masking matches a fasta database used with the default
+  `--dbmask dust`; a UDB built with `--dbmask none` matches a fasta
+  database used with `--dbmask none` (see `--dbmask` below).
 
 #(./fragments/option_tabbedout_sintax.md)
 
@@ -82,11 +82,17 @@ is multi-threaded.
 ## core options
 
 #(./fragments/option_dbmask.md)
-: Note: `--sintax` does not run the DUST algorithm on the database:
-  masking only controls whether lowercase regions of the reference
-  sequences are ignored when indexing, so `dust` (the default) behaves
-  like `soft`. This option has no effect on a UDB database, whose
-  sequences were masked when the UDB was built (see `--db`).
+: Note: masked regions of the reference sequences are left out of the
+  *k*-mer index, so they play no part in classification. With *dust*
+  (the default), the case of the input is ignored: low-complexity
+  regions are masked and everything else is indexed, so an all-lowercase
+  reference database is classified against normally. With *soft*, every
+  lowercase region is masked instead, and a reference database written
+  in lowercase letters yields no *k*-mer at all: every query is then left
+  unclassified (vsearch warns about such database sequences). Use *none*
+  to index every region. Queries are never masked. This option has no
+  effect on a UDB database, whose sequences were masked when the UDB was
+  built (see `--db`).
 
 #(./fragments/option_randseed.md)
 

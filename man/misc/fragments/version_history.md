@@ -57,6 +57,12 @@
       aligners score as zero; it now agrees with `--usearch_global`.
     - fix: raw alignment scores above 2^31 wrapped around to negative
       values in the `raw` userfield.
+    - fix: `--sintax` did not apply its documented default `--dbmask
+      dust` to a fasta reference database, and behaved as with `--dbmask
+      soft` instead: an all-lowercase reference left every query
+      unclassified. The database is now DUST-masked, so classifications
+      can change, and a fasta database and the UDB built from it by
+      default now give the same results (issue #570).
     - improve: official support for GCC 4.8.5 and GCC 4.9, now built
       and tested by continuous integration.
     - improve: release assets now include the bash, zsh and fish shell
