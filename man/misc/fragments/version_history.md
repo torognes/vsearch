@@ -39,6 +39,10 @@
       `COMPLETION=0`, `DEBUG=1`), and `CFLAGS`/`CXXFLAGS` are appended
       to the defaults instead of replacing them.
     - change: vsearch is now compiled at `-O3` by default.
+    - change: the minimum macOS version targeted by the build is raised
+      from 10.9 (Mavericks) to 11.0 (Big Sur), which silences a clang
+      warning on recent macOS versions; macOS binaries now require
+      Big Sur or later (issue #657).
     - change: library API version 0.28.0. `struct hit` changes layout
       (64-bit `nwscore`, new `id5` field) and `Parameters` gains two
       fields for `--relabel @`: library users must recompile.
