@@ -1,3 +1,72 @@
+**v2.33.0** released November 23rd, 2026
+:   Includes the following changes:
+
+    - add: new command `--search_global`, an exhaustive global-alignment
+      search: every database sequence is aligned against every query,
+      with no word pre-filter and no early stop, so a hit is found
+      whatever its identity. No k-mer index is built, and memory does
+      not grow with the thread count (issue #132).
+    - add: new option `--tabbedout` for `--fastq_mergepairs`, reporting
+      for each input pair, merged or not, how far it got through the
+      merging pipeline and why it stopped. Lines are in input order at
+      any `--threads` value (issue #524).
+    - add: `--relabel @` relabels records with a sample identifier
+      derived from the input file name, as usearch does, for every
+      command accepting `--relabel` (issue #202).
+    - add: `--iddef 5`, a score-based identity definition that reflects
+      the scoring options (`--match`, `--mismatch`, `--gapopen`,
+      `--gapext`), and the matching `id5` userfield (issue #627).
+    - add: `--cut` and `--uchime_ref` now accept fastq input files;
+      quality values are ignored and outputs stay fasta (issue #496).
+    - add: a warning when an option is given as an abbreviation of its
+      full name (for instance `--thread` for `--threads`). The
+      abbreviation is still honoured.
+    - change: `--fastq_mergepairs` now rejects staggered pairs in both
+      directions under the default `--fastq_nostagger`. Previously a
+      forward read running past the reverse read's 5' end was merged
+      and its overhang silently dropped. Runs with truncated reads of
+      unequal lengths may report slightly fewer merged pairs.
+    - change: `--query` is now rejected with an explicit message.
+      Previously it was silently taken as an abbreviation of
+      `--query_cov`; `--que` and `--quer` are now ambiguous.
+    - change: the cluster-name column of `--fastx_uniques --tabbedout`
+      now follows `--relabel_md5`, `--relabel_sha1` and
+      `--relabel_self`, like the fasta headers already did.
+    - change: the build system is now a set of hand-written Makefiles;
+      autoconf and automake are no longer needed, and the version
+      number lives in the `VERSION` file. Configure switches become
+      make variables (`PREFIX=`, `ZLIB=0`, `MANPAGES=0`,
+      `COMPLETION=0`, `DEBUG=1`), and `CFLAGS`/`CXXFLAGS` are appended
+      to the defaults instead of replacing them.
+    - change: vsearch is now compiled at `-O3` by default.
+    - change: library API version 0.28.0. `struct hit` changes layout
+      (64-bit `nwscore`, new `id5` field) and `Parameters` gains two
+      fields for `--relabel @`: library users must recompile.
+    - fix: `--fastq_mergepairs` computed `--fastq_maxdiffpct` over the
+      alignment offset rather than the overlap, and tested
+      `--fastq_minovlen` against the offset too. With staggered pairs
+      or reads of unequal lengths, pairs above the documented limits
+      were merged (for instance a 9 nt overlap under the default
+      minimum of 10).
+    - fix: `--search_exact` reported a raw score of query length times
+      `--match` even for queries holding ambiguous symbols, which the
+      aligners score as zero; it now agrees with `--usearch_global`.
+    - fix: raw alignment scores above 2^31 wrapped around to negative
+      values in the `raw` userfield.
+    - improve: official support for GCC 4.8.5 and GCC 4.9, now built
+      and tested by continuous integration.
+    - improve: release assets now include the bash, zsh and fish shell
+      completion scripts.
+    - improve: the online manual is now also published for each
+      release, so that users of an older version can read the manual
+      of the version they have.
+    - improve: documentation of `--maxaccepts` for search commands
+      (issue #569), of gap costs and the raw score (issue #627), of the
+      usearch commands vsearch spells differently, and of the ignored
+      options of `--allpairs_global`; a reference to the Rsearch R
+      package.
+    - improve: code testing (new automatic tests in vsearch-tests).
+
 **v2.32.0** released September 18th, 2026
 :   Includes the following changes:
 
