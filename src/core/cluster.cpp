@@ -855,7 +855,7 @@ static auto evaluate_extra_hits(struct searchinfo_s & si,
 
                   hit->aligned = true;
                   hit->nwalignment = std::move(nwcigar);  // owned cigar (empty means no alignment)
-                  hit->nwscore = static_cast<int>(nwscore);
+                  hit->nwscore = nwscore;
                   hit->nwdiff = static_cast<int>(nwdiff);
                   hit->nwgaps = static_cast<int>(nwgaps);
                   hit->nwindels = static_cast<int>(nwindels);

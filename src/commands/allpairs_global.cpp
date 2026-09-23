@@ -360,7 +360,7 @@ static auto allpairs_thread_run(struct allpairs_state_s & state, uint64_t const 
             hit->aligned = true;
             hit->weak = false;
 
-            hit->nwscore = static_cast<int>(nwscore);
+            hit->nwscore = nwscore;
             hit->nwdiff = static_cast<int>(nwalignmentlength - nwmatches);
             hit->nwgaps = static_cast<int>(nwgaps);
             hit->nwindels = static_cast<int>(nwalignmentlength - nwmatches - nwmismatches);

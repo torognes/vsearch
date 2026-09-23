@@ -1092,7 +1092,7 @@ auto align_delayed(struct searchinfo_s * searchinfo) -> void
               hit.shortest = std::min(static_cast<int>(searchinfo->qsequence.size()), static_cast<int>(dseqlen));
               hit.longest = std::max(static_cast<int>(searchinfo->qsequence.size()), static_cast<int>(dseqlen));
               hit.nwalignment = std::move(nwcigar);  // owned cigar (empty means no alignment)
-              hit.nwscore = static_cast<int>(nwscore);
+              hit.nwscore = nwscore;
               hit.nwdiff = static_cast<int>(nwalignmentlength - nwmatches);
               hit.nwgaps = static_cast<int>(nwgaps);
               hit.nwindels = static_cast<int>(nwalignmentlength - nwmatches - nwmismatches);
