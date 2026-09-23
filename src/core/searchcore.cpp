@@ -61,6 +61,7 @@
 #include "utils/view.hpp"
 #include "core/mask.hpp"
 #include "vsearch.hpp"
+#include "parameters.hpp"  // iddef_score_based
 #include "arch/increment_counters.hpp"  // increment_counters_from_bitmap*
 #include "core/align_simd.hpp"
 #include "core/db.hpp"  // Database
@@ -713,7 +714,7 @@ auto align_trim(struct hit & hit, struct Parameters const & parameters) -> void
     case 4:
       hit.id = hit.id4;
       break;
-    case 5:
+    case iddef_score_based:
       hit.id = hit.id5;
       break;
     default:

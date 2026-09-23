@@ -72,6 +72,10 @@
 
 struct Parameters;
 
+/* --iddef 5, the score-based identity definition, which is also the
+   highest value --iddef accepts (0 to 4 count columns of the alignment) */
+constexpr int64_t iddef_score_based = 5;
+
 // Fatal unless the requested thread count is within the accepted range
 // (see the upper bound local to validate_thread_count()).
 auto validate_thread_count(int64_t threads) -> void;
