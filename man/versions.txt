@@ -10,7 +10,7 @@
 ## cannot know about the versions published after it, so the file is
 ## read from the branch being deployed and never from the tags
 ## themselves. Adding a release is a step of the release procedure,
-## next to the version bump in configure.ac.
+## next to the version bump in the VERSION file.
 ##
 ## v2.32.0 is the oldest version that can be listed. Earlier tags carry
 ## the pre-2.32.0 manual toolchain -- the hacker theme, pandoc without
