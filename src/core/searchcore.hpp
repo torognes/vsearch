@@ -70,6 +70,7 @@
 #include <array>
 #include <cassert>
 #include <cstddef>  // std::size_t
+#include <cstdint>  // int64_t
 #include <iterator>  // std::distance
 #include <memory>  // std::unique_ptr
 #include <string>  // std::string
@@ -106,7 +107,7 @@ struct hit
 
   /* info about global alignment, including terminal gaps */
 
-  int nwscore;           /* alignment score */
+  int64_t nwscore;       /* alignment score */
   int nwdiff;            /* indels and mismatches in global alignment */
   int nwgaps;            /* gaps in global alignment */
   int nwindels;          /* indels in global alignment */

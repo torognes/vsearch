@@ -215,7 +215,7 @@ auto add_hit(struct searchinfo_s * si, uint64_t const seqno) -> void
       hp->count = 0;
 
       auto const qseqlen = static_cast<int>(si->qsequence.size());
-      hp->nwscore = static_cast<int>(exact_match_score(View<char>{si->qsequence}, *si->parameters));
+      hp->nwscore = exact_match_score(View<char>{si->qsequence}, *si->parameters);
       hp->nwdiff = 0;
       hp->nwgaps = 0;
       hp->nwindels = 0;
