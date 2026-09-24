@@ -2631,14 +2631,6 @@ static auto chimera_thread_core(struct chimera_cli_state_s & state,
 
             ci->query_head = copy_into_scratch(query_record.header, ci->query_head_v);
             copy_into_scratch(query_record.sequence, ci->query_seq);
-
-            /* claim and advance in the same critical section (mutex_input),
-               so two workers can never claim the same query. The output
-               step reads the query's own number from its result. Denovo
-               detection still runs one worker (see chimera()): the index
-               has to grow in query order, which claiming alone does not
-               ensure. */
-            ++state.seqno;
           }
         else
           {
@@ -2646,6 +2638,14 @@ static auto chimera_thread_core(struct chimera_cli_state_s & state,
           }
       }
 
+    /* One more query claimed, in either mode: denovo takes its next query
+       number from state.seqno, and the --log summary counts the queries
+       with it. Claim and advance in the same critical section
+       (mutex_input), so two workers can never claim the same denovo query.
+       The output step reads the query's own number from its result. Denovo
+       detection still runs one worker (see chimera()): the index has to
+       grow in query order, which claiming alone does not ensure. */
+    ++state.seqno;
     return true;
   };
 
