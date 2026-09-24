@@ -74,6 +74,12 @@ struct topscore
 
 using elem_t = struct topscore;
 
+/* True when lhs ranks below rhs in the heap's order: fewer k-mer hits, then
+   a longer sequence, then a higher sequence number. The order the heap
+   itself uses (minheap.cpp), for callers that have to predict what it
+   would keep. */
+auto topscore_ranks_below(elem_t const & lhs, elem_t const & rhs) noexcept -> bool;
+
 /* A fixed-capacity min heap used to select and rank the best target
    sequences (see minheap.cpp for the ordering and usage details). */
 class Minheap
