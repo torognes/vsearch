@@ -2631,6 +2631,14 @@ static auto chimera_thread_core(struct chimera_cli_state_s & state,
 
             ci->query_head = copy_into_scratch(query_record.header, ci->query_head_v);
             copy_into_scratch(query_record.sequence, ci->query_seq);
+
+            /* claim and advance in the same critical section (mutex_input),
+               so two workers can never claim the same query. The output
+               step reads the query's own number from its result. Denovo
+               detection still runs one worker (see chimera()): the index
+               has to grow in query order, which claiming alone does not
+               ensure. */
+            ++state.seqno;
           }
         else
           {
@@ -2650,17 +2658,6 @@ static auto chimera_thread_core(struct chimera_cli_state_s & state,
     std::lock_guard<std::mutex> const output_lock(state.mutex_output);
 
     output_query_result(state, result, db);
-
-    /* state.seqno is claimed by has_work_to_claim() above under mutex_input,
-       but advanced here under mutex_output. Those are two different critical
-       sections, so this is only race-free because every denovo mode forces
-       opt_threads = 1 in chimera() below: with one worker the claim and the
-       increment cannot interleave. The uchime_ref path, the only
-       multi-threaded one, claims from the shared query handle instead and
-       never reads state.seqno in has_work_to_claim(). Parallelising a denovo
-       mode therefore means moving this increment into the claim, under
-       mutex_input, or two workers will claim the same query. */
-    ++state.seqno;
   };
 
   run_worker_loop(mutex_input, has_work_to_claim, process_query);
