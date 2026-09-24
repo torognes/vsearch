@@ -171,10 +171,28 @@ auto udb_detect_isudb(char const * filename) -> bool
      FreeBSD stat() of the path misreports such streams (/dev/stdin is a
      character device there, not a pipe), whereas fstat() on the opened
      descriptor reports the underlying pipe. open()+close() without a
-     read() does not consume pipe data, so bailing out for anything that
-     is not a regular file leaves the stream intact for the reader.
+     read() does not consume the data of a stream that stays open
+     elsewhere (stdin, or a /dev/fd/N entry duplicating an inherited
+     descriptor), so bailing out for anything that is not a regular file
+     leaves such a stream intact for the reader. A named FIFO is the
+     exception, and is never opened here (see below).
      open_input_file() also maps "-" to a duplicate of stdin (matching the
      reader), whereas stat() of the literal path "-" would fail. */
+
+  /* A named FIFO must not be opened here at all: this probe is a
+     separate open() from the reader's, and a FIFO's buffered data is
+     discarded when its last reader closes. If the writer has already
+     written and exited when the probe closes, the reader's own open()
+     then waits forever for a writer that will never come (a real named
+     pipe, or <() on FreeBSD, where bash implements it with one). Only
+     stat() of the path can tell without opening; a path that is not a
+     FIFO, or that stat() cannot resolve (such as "-"), takes the
+     descriptor route below. */
+  xstat_t path_status;
+  if ((xstat(filename, & path_status) == 0) and S_ISFIFO(path_status.st_mode))
+    {
+      return false;
+    }
 
   auto const input = open_input_file(filename);
   if (not input)
