@@ -40,7 +40,7 @@ act on (see
   recommends denoising instead --- a route vsearch does provide (see
   `unoise3` in the next section).
 
-`search_pcr`, `search_oligodb`
+`search_pcr`, `search_pcr2`, `search_oligodb`
 : Not implemented. Extracting the region between two primers is not
   something vsearch does; `--cut` cuts at a restriction pattern, which
   is a different operation (see
