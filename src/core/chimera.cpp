@@ -97,7 +97,7 @@
 #include <iterator>  // std::next
 #include <limits>
 #include <memory>
-#include <mutex>  // std::mutex, std::lock_guard, std::unique_lock
+#include <mutex>  // std::mutex, std::lock_guard
 #include <numeric>  // std::accumulate
 #include <string>  // std::string
 #include <utility>  // std::move
@@ -127,9 +127,10 @@ constexpr auto maxcandidates = few * maxparts;
 constexpr auto rejects = 16;
 constexpr auto chimera_id = 0.55;
 /* mutex_output, fp_uchimealns and fp_uchimeout are no longer file-static: they
-   live in chimera_cli_state_s and are injected into the detection core
-   (eval_parents/eval_parents_long) as a nullable pointer — the CLI passes its
-   state to emit output, the library path passes nullptr (E6). mutex_input is
+   live in chimera_cli_state_s and are used only by the CLI report writers
+   (print_report/print_report_long, called from process_query); the detection
+   core (eval_parents/eval_parents_long) writes no output on either path
+   (E6). mutex_input is
    likewise not here — it only serializes input reading on the CLI path and is
    owned as a local by chimera_threads_run(). */
 
@@ -149,6 +150,35 @@ struct alignment_rows_s {
   Span<char> model;
   Span<char> diffs;
   Span<char> votes;
+};
+
+
+/* The figures eval_parents() or eval_parents_long() computed for the current
+   query, kept for the report writers (--uchimealns and --uchimeout, or
+   --alnout and --tabbedout for --chimeras_denovo). Detection fills them and
+   writes nothing; the writers run later, when the query's result is output.
+   Valid when the detection status is low_score or higher. The alignment rows
+   and best_h are not copied: they stay in chimera_info_s until the next
+   query. Named after the matching chimera_result_s fields. */
+struct chimera_report_s {
+  int parent_a = 0;  /* seqno of the parent printed as A */
+  int parent_b = 0;
+  int parent_c = -1;  /* third parent (eval_parents_long only), or -1 */
+  bool parents_swapped = false;  /* paln[1] is parent A (eval_parents only) */
+  double id_query_model = 0.0;
+  double id_query_a = 0.0;
+  double id_query_b = 0.0;
+  double id_query_c = 0.0;  /* eval_parents_long only */
+  double id_a_b = 0.0;  /* eval_parents only */
+  double id_query_top = 0.0;
+  double divergence = 0.0;  /* QM - QT, eval_parents only */
+  double divergence_percent = 0.0;  /* 100 * (QM - QT) / QT */
+  int left_yes = 0;  /* the six vote counts: eval_parents only */
+  int left_no = 0;
+  int left_abstain = 0;
+  int right_yes = 0;
+  int right_no = 0;
+  int right_abstain = 0;
 };
 
 
@@ -241,6 +271,7 @@ struct chimera_info_s
   std::vector<bool> ignore;
 
   double best_h = 0;
+  struct chimera_report_s report;  /* filled by eval_parents*, read by the report writers */
 
   int parts = 0;  /* number of query parts for chimera detection */
 
@@ -308,14 +339,14 @@ struct chimera_info_s
 /* Per-invocation CLI state for the chimera() command — the statics used only
    by the CLI path: the query file handle, progress, the six stats
    counters/abundances, the chimeras/nonchimeras/borderline output handles, the
-   per-thread chimera_info array, and the detection-core output handles
+   per-thread chimera_info array, and the report output handles
    (fp_uchimealns/fp_uchimeout) with the mutex serializing all CLI writes.
    Threaded through chimera_threads_run() and chimera_thread_core() so the CLI
    command is reentrant (E4). The detection core (eval_parents /
    eval_parents_long, reached from both the CLI and the library
-   chimera_detect_single) receives this state as a nullable pointer: the CLI
-   passes it to emit output, the library path passes nullptr and writes no
-   files (E6 split of the core from its CLI output). */
+   chimera_detect_single) never sees this state: it leaves its figures in
+   chimera_info_s::report, and the CLI writes them from process_query (E6
+   split of the core from its CLI output). */
 struct chimera_cli_state_s
 {
   /* the run configuration, threaded through the CLI-path helpers instead of the
@@ -1156,9 +1187,8 @@ auto compute_diffs(struct chimera_info_s const * ci,
 }
 
 
-auto eval_parents_long(struct chimera_info_s * ci, struct chimera_cli_state_s * cli, struct Database const & db) -> Status
+auto eval_parents_long(struct chimera_info_s * ci, struct Database const & db) -> Status
 {
-  struct Parameters const & parameters = *ci->parameters;
   /* always chimeric if called */
   auto const status = Status::chimeric;
 
@@ -1237,167 +1267,21 @@ auto eval_parents_long(struct chimera_info_s * ci, struct chimera_cli_state_s * 
       r->flag = 'Y';  /* eval_parents_long is always chimeric */
     }
 
-  /* CLI-only alignment/tabbed output; the library path (cli == nullptr) has
-     already populated the API result above and writes no files. */
-  if (cli == nullptr)
-    {
-      return status;
-    }
-
-  std::lock_guard<std::mutex> const output_lock(cli->mutex_output);
-
-  if ((parameters.opt_alnout != nullptr) and (status == Status::chimeric))
-    {
-      fprint(cli->fp_uchimealns, '\n');
-      fprint(cli->fp_uchimealns, "----------------------------------------"
-                                 "--------------------------------\n");
-      fprint(cli->fp_uchimealns, "Query   (");
-      fprint_integer(cli->fp_uchimealns, ci->query_len, 5);
-      fprint(cli->fp_uchimealns, " nt) ");
-      header_fprint_strip(cli->fp_uchimealns,
-                          ci->query_head,
-                          attributes_to_strip(parameters));
-
-      if (ci->parents_found > maxparents)  // 20 parents max ('A' to 'U')
-        {
-          fatal("Internal error: chimera parents_found exceeds maxparents");
-        }
-      for (int f = 0; f < ci->parents_found; ++f)
-        {
-          int const parent_seqno = static_cast<int>(ci->cand_list[static_cast<size_t>(ci->best_parents[static_cast<size_t>(f)])]);
-          fprint(cli->fp_uchimealns, "\nParent");
-          fprint(cli->fp_uchimealns, static_cast<char>('A' + f));
-          fprint(cli->fp_uchimealns, " (");
-          fprint_integer(cli->fp_uchimealns, db.getsequencelen(static_cast<uint64_t>(parent_seqno)), 5);
-          fprint(cli->fp_uchimealns, " nt) ");
-          header_fprint_strip(cli->fp_uchimealns,
-                              db.header_view(static_cast<uint64_t>(parent_seqno)),
-                              attributes_to_strip(parameters));
-        }
-
-      fprint(cli->fp_uchimealns, "\n\n");
-
-
-      int const width = parameters.opt_alignwidth > 0 ? parameters.opt_alignwidth : alnlen;
-      int qpos = 0;
-      std::array<int, maxparents> ppos {{}};
-      int rest = alnlen;
-
-      for (int i = 0; i < alnlen; i += width)
-        {
-          /* count non-gap symbols on current line */
-
-          int qnt = 0;
-          std::array<int, maxparents> pnt {{}};
-
-          int const w = std::min(rest, width);
-
-          for (int j = 0; j < w; ++j)
-            {
-              if (ci->qaln[static_cast<size_t>(i + j)] != '-')
-                {
-                  ++qnt;
-                }
-
-              for (int f = 0; f < ci->parents_found; ++f) {
-                if (ci->paln[static_cast<size_t>(f)][static_cast<size_t>(i + j)] != '-')
-                  {
-                    ++pnt[static_cast<size_t>(f)];
-                  }
-              }
-            }
-
-          print_alignment_row(cli->fp_uchimealns, 'Q', qpos + 1,
-                  View<char>{&ci->qaln[static_cast<size_t>(i)], static_cast<std::size_t>(w)}, qpos + qnt);
-
-          for (int f = 0; f < ci->parents_found; ++f)
-            {
-              print_alignment_row(cli->fp_uchimealns, static_cast<char>('A' + f),
-                      ppos[static_cast<size_t>(f)] + 1,
-                      View<char>{&ci->paln[static_cast<size_t>(f)][static_cast<size_t>(i)], static_cast<std::size_t>(w)},
-                      ppos[static_cast<size_t>(f)] + pnt[static_cast<size_t>(f)]);
-            }
-
-          print_annotation_row(cli->fp_uchimealns, "Diffs   ",
-                  View<char>{&ci->diffs[static_cast<size_t>(i)], static_cast<std::size_t>(w)});
-          print_annotation_row(cli->fp_uchimealns, "Model   ",
-                  View<char>{&ci->model[static_cast<size_t>(i)], static_cast<std::size_t>(w)});
-          fprint(cli->fp_uchimealns, '\n');
-
-          rest -= width;
-          qpos += qnt;
-          for (int f = 0; f < ci->parents_found; ++f) {
-            ppos[static_cast<size_t>(f)] += pnt[static_cast<size_t>(f)];
-          }
-        }
-
-      fprint(cli->fp_uchimealns, "Ids.  QA ");
-      std::fprintf(cli->fp_uchimealns, "%.2f", QA);
-      fprint(cli->fp_uchimealns, "%, QB ");
-      std::fprintf(cli->fp_uchimealns, "%.2f", QB);
-      fprint(cli->fp_uchimealns, "%, QC ");
-      std::fprintf(cli->fp_uchimealns, "%.2f", QC);
-      fprint(cli->fp_uchimealns, "%, QT ");
-      std::fprintf(cli->fp_uchimealns, "%.2f", QT);
-      fprint(cli->fp_uchimealns, "%, QModel ");
-      std::fprintf(cli->fp_uchimealns, "%.2f", QM);
-      fprint(cli->fp_uchimealns, "%, Div. ");
-      std::fprintf(cli->fp_uchimealns, "%+.2f", divfrac);
-      fprint(cli->fp_uchimealns, "%\n");
-    }
-
-  if (parameters.opt_tabbedout != nullptr)
-    {
-      std::fprintf(cli->fp_uchimeout, "%.4f", 99.9999);
-      fprint(cli->fp_uchimeout, '\t');
-
-      header_fprint_strip(cli->fp_uchimeout,
-                          ci->query_head,
-                          attributes_to_strip(parameters));
-      fprint(cli->fp_uchimeout, '\t');
-      header_fprint_strip(cli->fp_uchimeout,
-                          db.header_view(static_cast<uint64_t>(seqno_a)),
-                          attributes_to_strip(parameters));
-      fprint(cli->fp_uchimeout, '\t');
-      header_fprint_strip(cli->fp_uchimeout,
-                          db.header_view(static_cast<uint64_t>(seqno_b)),
-                          attributes_to_strip(parameters));
-      fprint(cli->fp_uchimeout, '\t');
-      if (seqno_c >= 0)
-        {
-          header_fprint_strip(cli->fp_uchimeout,
-                              db.header_view(static_cast<uint64_t>(seqno_c)),
-                              attributes_to_strip(parameters));
-        }
-      else
-        {
-          fprint(cli->fp_uchimeout, '*');
-        }
-      fprint(cli->fp_uchimeout, '\t');
-
-      std::fprintf(cli->fp_uchimeout,
-              "%.2f\t%.2f\t%.2f\t%.2f\t%.2f\t"
-              "%d\t%d\t%d\t%d\t%d\t%d\t%.2f\t%c\n",
-              QM,
-              QA,
-              QB,
-              QC,
-              QT,
-              0, /* ignore, left yes */
-              0, /* ignore, left no */
-              0, /* ignore, left abstain */
-              0, /* ignore, right yes */
-              0, /* ignore, right no */
-              0, /* ignore, right abstain */
-              0.00,
-              status == Status::chimeric ? 'Y' : (status == Status::low_score ? 'N' : '?'));
-    }
+  ci->report.parent_a = seqno_a;
+  ci->report.parent_b = seqno_b;
+  ci->report.parent_c = seqno_c;
+  ci->report.id_query_model = QM;
+  ci->report.id_query_a = QA;
+  ci->report.id_query_b = QB;
+  ci->report.id_query_c = QC;
+  ci->report.id_query_top = QT;
+  ci->report.divergence_percent = divfrac;
 
   return status;
 }
 
 
-auto eval_parents(struct chimera_info_s * ci, struct chimera_cli_state_s * cli, struct Database const & db) -> Status
+auto eval_parents(struct chimera_info_s * ci, struct Database const & db) -> Status
 {
   struct Parameters const & parameters = *ci->parameters;
   auto status = Status::no_alignment;
@@ -1813,211 +1697,399 @@ auto eval_parents(struct chimera_info_s * ci, struct chimera_cli_state_s * cli, 
                     (status == Status::low_score ? 'N' : '?');
         }
 
-      /* print alignment */
-
-      /* CLI-only alignment/tabbed output; the library path (cli == nullptr)
-         has already populated the API result above and writes no files. */
-      if (cli == nullptr)
-        {
-          return status;
-        }
-
-      std::unique_lock<std::mutex> output_lock(cli->mutex_output);
-
-      if ((parameters.opt_uchimealns != nullptr) and (status == Status::chimeric))
-        {
-          fprint(cli->fp_uchimealns, '\n');
-          fprint(cli->fp_uchimealns, "----------------------------------------"
-                                     "--------------------------------\n");
-          fprint(cli->fp_uchimealns, "Query   (");
-          fprint_integer(cli->fp_uchimealns, ci->query_len, 5);
-          fprint(cli->fp_uchimealns, " nt) ");
-
-          header_fprint_strip(cli->fp_uchimealns,
-                              ci->query_head,
-                              attributes_to_strip(parameters));
-
-          fprint(cli->fp_uchimealns, "\nParentA (");
-          fprint_integer(cli->fp_uchimealns, db.getsequencelen(static_cast<uint64_t>(seqno_a)), 5);
-          fprint(cli->fp_uchimealns, " nt) ");
-          header_fprint_strip(cli->fp_uchimealns,
-                              db.header_view(static_cast<uint64_t>(seqno_a)),
-                              attributes_to_strip(parameters));
-
-          fprint(cli->fp_uchimealns, "\nParentB (");
-          fprint_integer(cli->fp_uchimealns, db.getsequencelen(static_cast<uint64_t>(seqno_b)), 5);
-          fprint(cli->fp_uchimealns, " nt) ");
-          header_fprint_strip(cli->fp_uchimealns,
-                              db.header_view(static_cast<uint64_t>(seqno_b)),
-                              attributes_to_strip(parameters));
-          fprint(cli->fp_uchimealns, "\n\n");
-
-          auto const width = parameters.opt_alignwidth > 0 ? parameters.opt_alignwidth : alnlen;
-          auto qpos = 0;
-          auto p1pos = 0;
-          auto p2pos = 0;
-          auto rest = alnlen;
-
-          for (auto i = 0; i < alnlen; i += width)
-            {
-              /* count non-gap symbols on current line */
-
-              auto qnt = 0;
-              auto p1nt = 0;
-              auto p2nt = 0;
-
-              auto const w = std::min(rest, width);
-
-              for (auto j = 0; j < w; ++j)
-                {
-                  if (ci->qaln[static_cast<size_t>(i + j)] != '-')
-                    {
-                      ++qnt;
-                    }
-                  if (ci->paln[0][static_cast<size_t>(i + j)] != '-')
-                    {
-                      ++p1nt;
-                    }
-                  if (ci->paln[1][static_cast<size_t>(i + j)] != '-')
-                    {
-                      ++p2nt;
-                    }
-                }
-
-              auto const parent_a_row = View<char>{&ci->paln[0][static_cast<size_t>(i)], static_cast<std::size_t>(w)};
-              auto const parent_b_row = View<char>{&ci->paln[1][static_cast<size_t>(i)], static_cast<std::size_t>(w)};
-              auto const query_row = View<char>{&ci->qaln[static_cast<size_t>(i)], static_cast<std::size_t>(w)};
-
-              if (not best_is_reverse)
-                {
-                  print_alignment_row(cli->fp_uchimealns, 'A', p1pos + 1, parent_a_row, p1pos + p1nt);
-                  print_alignment_row(cli->fp_uchimealns, 'Q', qpos + 1, query_row, qpos + qnt);
-                  print_alignment_row(cli->fp_uchimealns, 'B', p2pos + 1, parent_b_row, p2pos + p2nt);
-                }
-              else
-                {
-                  print_alignment_row(cli->fp_uchimealns, 'A', p2pos + 1, parent_b_row, p2pos + p2nt);
-                  print_alignment_row(cli->fp_uchimealns, 'Q', qpos + 1, query_row, qpos + qnt);
-                  print_alignment_row(cli->fp_uchimealns, 'B', p1pos + 1, parent_a_row, p1pos + p1nt);
-                }
-
-              print_annotation_row(cli->fp_uchimealns, "Diffs   ",
-                      View<char>{&ci->diffs[static_cast<size_t>(i)], static_cast<std::size_t>(w)});
-              print_annotation_row(cli->fp_uchimealns, "Votes   ",
-                      View<char>{&ci->votes[static_cast<size_t>(i)], static_cast<std::size_t>(w)});
-              print_annotation_row(cli->fp_uchimealns, "Model   ",
-                      View<char>{&ci->model[static_cast<size_t>(i)], static_cast<std::size_t>(w)});
-              fprint(cli->fp_uchimealns, '\n');
-
-              qpos += qnt;
-              p1pos += p1nt;
-              p2pos += p2nt;
-              rest -= width;
-            }
-
-          fprint(cli->fp_uchimealns, "Ids.  QA ");
-          std::fprintf(cli->fp_uchimealns, "%.1f", QA);
-          fprint(cli->fp_uchimealns, "%, QB ");
-          std::fprintf(cli->fp_uchimealns, "%.1f", QB);
-          fprint(cli->fp_uchimealns, "%, AB ");
-          std::fprintf(cli->fp_uchimealns, "%.1f", AB);
-          fprint(cli->fp_uchimealns, "%, QModel ");
-          std::fprintf(cli->fp_uchimealns, "%.1f", QM);
-          fprint(cli->fp_uchimealns, "%, Div. ");
-          std::fprintf(cli->fp_uchimealns, "%+.1f", divfrac);
-          fprint(cli->fp_uchimealns, "%\n");
-
-          fprint(cli->fp_uchimealns, "Diffs Left ");
-          fprint_integer(cli->fp_uchimealns, sumL);
-          fprint(cli->fp_uchimealns, ": N ");
-          fprint_integer(cli->fp_uchimealns, best_left_n);
-          fprint(cli->fp_uchimealns, ", A ");
-          fprint_integer(cli->fp_uchimealns, best_left_a);
-          fprint(cli->fp_uchimealns, ", Y ");
-          fprint_integer(cli->fp_uchimealns, best_left_y);
-          fprint(cli->fp_uchimealns, " (");
-          std::fprintf(cli->fp_uchimealns, "%.1f", 100.0 * best_left_y / sumL);
-          fprint(cli->fp_uchimealns, "%); Right ");
-          fprint_integer(cli->fp_uchimealns, sumR);
-          fprint(cli->fp_uchimealns, ": N ");
-          fprint_integer(cli->fp_uchimealns, best_right_n);
-          fprint(cli->fp_uchimealns, ", A ");
-          fprint_integer(cli->fp_uchimealns, best_right_a);
-          fprint(cli->fp_uchimealns, ", Y ");
-          fprint_integer(cli->fp_uchimealns, best_right_y);
-          fprint(cli->fp_uchimealns, " (");
-          std::fprintf(cli->fp_uchimealns, "%.1f", 100.0 * best_right_y / sumR);
-          fprint(cli->fp_uchimealns, "%), Score ");
-          std::fprintf(cli->fp_uchimealns, "%.4f", best_h);
-          fprint(cli->fp_uchimealns, '\n');
-        }
-
-      if (parameters.opt_uchimeout != nullptr)
-        {
-          std::fprintf(cli->fp_uchimeout, "%.4f", best_h);
-          fprint(cli->fp_uchimeout, '\t');
-
-          header_fprint_strip(cli->fp_uchimeout,
-                              ci->query_head,
-                              attributes_to_strip(parameters));
-          fprint(cli->fp_uchimeout, '\t');
-          header_fprint_strip(cli->fp_uchimeout,
-                              db.header_view(static_cast<uint64_t>(seqno_a)),
-                              attributes_to_strip(parameters));
-          fprint(cli->fp_uchimeout, '\t');
-          header_fprint_strip(cli->fp_uchimeout,
-                              db.header_view(static_cast<uint64_t>(seqno_b)),
-                              attributes_to_strip(parameters));
-          fprint(cli->fp_uchimeout, '\t');
-
-          if (parameters.opt_uchimeout5 == 0)
-            {
-              if (QA >= QB)
-                {
-                  header_fprint_strip(cli->fp_uchimeout,
-                                      db.header_view(static_cast<uint64_t>(seqno_a)),
-                                      attributes_to_strip(parameters));
-                }
-              else
-                {
-                  header_fprint_strip(cli->fp_uchimeout,
-                                      db.header_view(static_cast<uint64_t>(seqno_b)),
-                                      attributes_to_strip(parameters));
-                }
-              fprint(cli->fp_uchimeout, '\t');
-            }
-
-          std::fprintf(cli->fp_uchimeout, "%.1f", QM);
-          fprint(cli->fp_uchimeout, '\t');
-          std::fprintf(cli->fp_uchimeout, "%.1f", QA);
-          fprint(cli->fp_uchimeout, '\t');
-          std::fprintf(cli->fp_uchimeout, "%.1f", QB);
-          fprint(cli->fp_uchimeout, '\t');
-          std::fprintf(cli->fp_uchimeout, "%.1f", AB);
-          fprint(cli->fp_uchimeout, '\t');
-          std::fprintf(cli->fp_uchimeout, "%.1f", QT);
-          fprint(cli->fp_uchimeout, '\t');
-          fprint_integer(cli->fp_uchimeout, best_left_y);
-          fprint(cli->fp_uchimeout, '\t');
-          fprint_integer(cli->fp_uchimeout, best_left_n);
-          fprint(cli->fp_uchimeout, '\t');
-          fprint_integer(cli->fp_uchimeout, best_left_a);
-          fprint(cli->fp_uchimeout, '\t');
-          fprint_integer(cli->fp_uchimeout, best_right_y);
-          fprint(cli->fp_uchimeout, '\t');
-          fprint_integer(cli->fp_uchimeout, best_right_n);
-          fprint(cli->fp_uchimeout, '\t');
-          fprint_integer(cli->fp_uchimeout, best_right_a);
-          fprint(cli->fp_uchimeout, '\t');
-          std::fprintf(cli->fp_uchimeout, "%.1f", divdiff);
-          fprint(cli->fp_uchimeout, '\t');
-          fprint(cli->fp_uchimeout, status == Status::chimeric ? 'Y' : (status == Status::low_score ? 'N' : '?'));
-          fprint(cli->fp_uchimeout, '\n');
-        }
-      output_lock.unlock();
+      ci->report.parent_a = seqno_a;
+      ci->report.parent_b = seqno_b;
+      ci->report.parents_swapped = best_is_reverse;
+      ci->report.id_query_model = QM;
+      ci->report.id_query_a = QA;
+      ci->report.id_query_b = QB;
+      ci->report.id_a_b = AB;
+      ci->report.id_query_top = QT;
+      ci->report.divergence = divdiff;
+      ci->report.divergence_percent = divfrac;
+      ci->report.left_yes = best_left_y;
+      ci->report.left_no = best_left_n;
+      ci->report.left_abstain = best_left_a;
+      ci->report.right_yes = best_right_y;
+      ci->report.right_no = best_right_n;
+      ci->report.right_abstain = best_right_a;
     }
 
   return status;
+}
+
+
+/* The --alnout and --tabbedout records of one --chimeras_denovo query, from
+   the figures eval_parents_long() kept in ci.report and the alignment rows it
+   left in ci. Called with the output lock held, only when eval_parents_long()
+   ran (it always reports a chimera). */
+auto print_report_long(struct chimera_cli_state_s const & cli,
+                       struct chimera_info_s const & ci,
+                       Status const status,
+                       struct Database const & db) -> void
+{
+  struct Parameters const & parameters = *ci.parameters;
+  auto const & report = ci.report;
+  auto const alnlen = find_total_alignment_length(&ci);
+
+  if ((parameters.opt_alnout != nullptr) and (status == Status::chimeric))
+    {
+      fprint(cli.fp_uchimealns, '\n');
+      fprint(cli.fp_uchimealns, "----------------------------------------"
+                                 "--------------------------------\n");
+      fprint(cli.fp_uchimealns, "Query   (");
+      fprint_integer(cli.fp_uchimealns, ci.query_len, 5);
+      fprint(cli.fp_uchimealns, " nt) ");
+      header_fprint_strip(cli.fp_uchimealns,
+                          ci.query_head,
+                          attributes_to_strip(parameters));
+
+      if (ci.parents_found > maxparents)  // 20 parents max ('A' to 'U')
+        {
+          fatal("Internal error: chimera parents_found exceeds maxparents");
+        }
+      for (int f = 0; f < ci.parents_found; ++f)
+        {
+          int const parent_seqno = static_cast<int>(ci.cand_list[static_cast<size_t>(ci.best_parents[static_cast<size_t>(f)])]);
+          fprint(cli.fp_uchimealns, "\nParent");
+          fprint(cli.fp_uchimealns, static_cast<char>('A' + f));
+          fprint(cli.fp_uchimealns, " (");
+          fprint_integer(cli.fp_uchimealns, db.getsequencelen(static_cast<uint64_t>(parent_seqno)), 5);
+          fprint(cli.fp_uchimealns, " nt) ");
+          header_fprint_strip(cli.fp_uchimealns,
+                              db.header_view(static_cast<uint64_t>(parent_seqno)),
+                              attributes_to_strip(parameters));
+        }
+
+      fprint(cli.fp_uchimealns, "\n\n");
+
+
+      int const width = parameters.opt_alignwidth > 0 ? parameters.opt_alignwidth : alnlen;
+      int qpos = 0;
+      std::array<int, maxparents> ppos {{}};
+      int rest = alnlen;
+
+      for (int i = 0; i < alnlen; i += width)
+        {
+          /* count non-gap symbols on current line */
+
+          int qnt = 0;
+          std::array<int, maxparents> pnt {{}};
+
+          int const w = std::min(rest, width);
+
+          for (int j = 0; j < w; ++j)
+            {
+              if (ci.qaln[static_cast<size_t>(i + j)] != '-')
+                {
+                  ++qnt;
+                }
+
+              for (int f = 0; f < ci.parents_found; ++f) {
+                if (ci.paln[static_cast<size_t>(f)][static_cast<size_t>(i + j)] != '-')
+                  {
+                    ++pnt[static_cast<size_t>(f)];
+                  }
+              }
+            }
+
+          print_alignment_row(cli.fp_uchimealns, 'Q', qpos + 1,
+                  View<char>{&ci.qaln[static_cast<size_t>(i)], static_cast<std::size_t>(w)}, qpos + qnt);
+
+          for (int f = 0; f < ci.parents_found; ++f)
+            {
+              print_alignment_row(cli.fp_uchimealns, static_cast<char>('A' + f),
+                      ppos[static_cast<size_t>(f)] + 1,
+                      View<char>{&ci.paln[static_cast<size_t>(f)][static_cast<size_t>(i)], static_cast<std::size_t>(w)},
+                      ppos[static_cast<size_t>(f)] + pnt[static_cast<size_t>(f)]);
+            }
+
+          print_annotation_row(cli.fp_uchimealns, "Diffs   ",
+                  View<char>{&ci.diffs[static_cast<size_t>(i)], static_cast<std::size_t>(w)});
+          print_annotation_row(cli.fp_uchimealns, "Model   ",
+                  View<char>{&ci.model[static_cast<size_t>(i)], static_cast<std::size_t>(w)});
+          fprint(cli.fp_uchimealns, '\n');
+
+          rest -= width;
+          qpos += qnt;
+          for (int f = 0; f < ci.parents_found; ++f) {
+            ppos[static_cast<size_t>(f)] += pnt[static_cast<size_t>(f)];
+          }
+        }
+
+      fprint(cli.fp_uchimealns, "Ids.  QA ");
+      std::fprintf(cli.fp_uchimealns, "%.2f", report.id_query_a);
+      fprint(cli.fp_uchimealns, "%, QB ");
+      std::fprintf(cli.fp_uchimealns, "%.2f", report.id_query_b);
+      fprint(cli.fp_uchimealns, "%, QC ");
+      std::fprintf(cli.fp_uchimealns, "%.2f", report.id_query_c);
+      fprint(cli.fp_uchimealns, "%, QT ");
+      std::fprintf(cli.fp_uchimealns, "%.2f", report.id_query_top);
+      fprint(cli.fp_uchimealns, "%, QModel ");
+      std::fprintf(cli.fp_uchimealns, "%.2f", report.id_query_model);
+      fprint(cli.fp_uchimealns, "%, Div. ");
+      std::fprintf(cli.fp_uchimealns, "%+.2f", report.divergence_percent);
+      fprint(cli.fp_uchimealns, "%\n");
+    }
+
+  if (parameters.opt_tabbedout != nullptr)
+    {
+      std::fprintf(cli.fp_uchimeout, "%.4f", 99.9999);
+      fprint(cli.fp_uchimeout, '\t');
+
+      header_fprint_strip(cli.fp_uchimeout,
+                          ci.query_head,
+                          attributes_to_strip(parameters));
+      fprint(cli.fp_uchimeout, '\t');
+      header_fprint_strip(cli.fp_uchimeout,
+                          db.header_view(static_cast<uint64_t>(report.parent_a)),
+                          attributes_to_strip(parameters));
+      fprint(cli.fp_uchimeout, '\t');
+      header_fprint_strip(cli.fp_uchimeout,
+                          db.header_view(static_cast<uint64_t>(report.parent_b)),
+                          attributes_to_strip(parameters));
+      fprint(cli.fp_uchimeout, '\t');
+      if (report.parent_c >= 0)
+        {
+          header_fprint_strip(cli.fp_uchimeout,
+                              db.header_view(static_cast<uint64_t>(report.parent_c)),
+                              attributes_to_strip(parameters));
+        }
+      else
+        {
+          fprint(cli.fp_uchimeout, '*');
+        }
+      fprint(cli.fp_uchimeout, '\t');
+
+      std::fprintf(cli.fp_uchimeout,
+              "%.2f\t%.2f\t%.2f\t%.2f\t%.2f\t"
+              "%d\t%d\t%d\t%d\t%d\t%d\t%.2f\t%c\n",
+              report.id_query_model,
+              report.id_query_a,
+              report.id_query_b,
+              report.id_query_c,
+              report.id_query_top,
+              0, /* ignore, left yes */
+              0, /* ignore, left no */
+              0, /* ignore, left abstain */
+              0, /* ignore, right yes */
+              0, /* ignore, right no */
+              0, /* ignore, right abstain */
+              0.00,
+              status == Status::chimeric ? 'Y' : (status == Status::low_score ? 'N' : '?'));
+    }
+
+}
+
+
+/* The --uchimealns and --uchimeout records of one uchime query, from the
+   figures eval_parents() kept in ci.report and the alignment rows it left in
+   ci. Called with the output lock held, only when eval_parents() scored the
+   query (status low_score or higher); a query with no parents or no
+   alignment gets its --uchimeout line from process_query instead. */
+auto print_report(struct chimera_cli_state_s const & cli,
+                  struct chimera_info_s const & ci,
+                  Status const status,
+                  struct Database const & db) -> void
+{
+  struct Parameters const & parameters = *ci.parameters;
+  auto const & report = ci.report;
+  auto const alnlen = find_total_alignment_length(&ci);
+  int const sumL = report.left_no + report.left_abstain + report.left_yes;
+  int const sumR = report.right_no + report.right_abstain + report.right_yes;
+
+  /* print alignment */
+
+  if ((parameters.opt_uchimealns != nullptr) and (status == Status::chimeric))
+    {
+      fprint(cli.fp_uchimealns, '\n');
+      fprint(cli.fp_uchimealns, "----------------------------------------"
+                                 "--------------------------------\n");
+      fprint(cli.fp_uchimealns, "Query   (");
+      fprint_integer(cli.fp_uchimealns, ci.query_len, 5);
+      fprint(cli.fp_uchimealns, " nt) ");
+
+      header_fprint_strip(cli.fp_uchimealns,
+                          ci.query_head,
+                          attributes_to_strip(parameters));
+
+      fprint(cli.fp_uchimealns, "\nParentA (");
+      fprint_integer(cli.fp_uchimealns, db.getsequencelen(static_cast<uint64_t>(report.parent_a)), 5);
+      fprint(cli.fp_uchimealns, " nt) ");
+      header_fprint_strip(cli.fp_uchimealns,
+                          db.header_view(static_cast<uint64_t>(report.parent_a)),
+                          attributes_to_strip(parameters));
+
+      fprint(cli.fp_uchimealns, "\nParentB (");
+      fprint_integer(cli.fp_uchimealns, db.getsequencelen(static_cast<uint64_t>(report.parent_b)), 5);
+      fprint(cli.fp_uchimealns, " nt) ");
+      header_fprint_strip(cli.fp_uchimealns,
+                          db.header_view(static_cast<uint64_t>(report.parent_b)),
+                          attributes_to_strip(parameters));
+      fprint(cli.fp_uchimealns, "\n\n");
+
+      auto const width = parameters.opt_alignwidth > 0 ? parameters.opt_alignwidth : alnlen;
+      auto qpos = 0;
+      auto p1pos = 0;
+      auto p2pos = 0;
+      auto rest = alnlen;
+
+      for (auto i = 0; i < alnlen; i += width)
+        {
+          /* count non-gap symbols on current line */
+
+          auto qnt = 0;
+          auto p1nt = 0;
+          auto p2nt = 0;
+
+          auto const w = std::min(rest, width);
+
+          for (auto j = 0; j < w; ++j)
+            {
+              if (ci.qaln[static_cast<size_t>(i + j)] != '-')
+                {
+                  ++qnt;
+                }
+              if (ci.paln[0][static_cast<size_t>(i + j)] != '-')
+                {
+                  ++p1nt;
+                }
+              if (ci.paln[1][static_cast<size_t>(i + j)] != '-')
+                {
+                  ++p2nt;
+                }
+            }
+
+          auto const parent_a_row = View<char>{&ci.paln[0][static_cast<size_t>(i)], static_cast<std::size_t>(w)};
+          auto const parent_b_row = View<char>{&ci.paln[1][static_cast<size_t>(i)], static_cast<std::size_t>(w)};
+          auto const query_row = View<char>{&ci.qaln[static_cast<size_t>(i)], static_cast<std::size_t>(w)};
+
+          if (not report.parents_swapped)
+            {
+              print_alignment_row(cli.fp_uchimealns, 'A', p1pos + 1, parent_a_row, p1pos + p1nt);
+              print_alignment_row(cli.fp_uchimealns, 'Q', qpos + 1, query_row, qpos + qnt);
+              print_alignment_row(cli.fp_uchimealns, 'B', p2pos + 1, parent_b_row, p2pos + p2nt);
+            }
+          else
+            {
+              print_alignment_row(cli.fp_uchimealns, 'A', p2pos + 1, parent_b_row, p2pos + p2nt);
+              print_alignment_row(cli.fp_uchimealns, 'Q', qpos + 1, query_row, qpos + qnt);
+              print_alignment_row(cli.fp_uchimealns, 'B', p1pos + 1, parent_a_row, p1pos + p1nt);
+            }
+
+          print_annotation_row(cli.fp_uchimealns, "Diffs   ",
+                  View<char>{&ci.diffs[static_cast<size_t>(i)], static_cast<std::size_t>(w)});
+          print_annotation_row(cli.fp_uchimealns, "Votes   ",
+                  View<char>{&ci.votes[static_cast<size_t>(i)], static_cast<std::size_t>(w)});
+          print_annotation_row(cli.fp_uchimealns, "Model   ",
+                  View<char>{&ci.model[static_cast<size_t>(i)], static_cast<std::size_t>(w)});
+          fprint(cli.fp_uchimealns, '\n');
+
+          qpos += qnt;
+          p1pos += p1nt;
+          p2pos += p2nt;
+          rest -= width;
+        }
+
+      fprint(cli.fp_uchimealns, "Ids.  QA ");
+      std::fprintf(cli.fp_uchimealns, "%.1f", report.id_query_a);
+      fprint(cli.fp_uchimealns, "%, QB ");
+      std::fprintf(cli.fp_uchimealns, "%.1f", report.id_query_b);
+      fprint(cli.fp_uchimealns, "%, AB ");
+      std::fprintf(cli.fp_uchimealns, "%.1f", report.id_a_b);
+      fprint(cli.fp_uchimealns, "%, QModel ");
+      std::fprintf(cli.fp_uchimealns, "%.1f", report.id_query_model);
+      fprint(cli.fp_uchimealns, "%, Div. ");
+      std::fprintf(cli.fp_uchimealns, "%+.1f", report.divergence_percent);
+      fprint(cli.fp_uchimealns, "%\n");
+
+      fprint(cli.fp_uchimealns, "Diffs Left ");
+      fprint_integer(cli.fp_uchimealns, sumL);
+      fprint(cli.fp_uchimealns, ": N ");
+      fprint_integer(cli.fp_uchimealns, report.left_no);
+      fprint(cli.fp_uchimealns, ", A ");
+      fprint_integer(cli.fp_uchimealns, report.left_abstain);
+      fprint(cli.fp_uchimealns, ", Y ");
+      fprint_integer(cli.fp_uchimealns, report.left_yes);
+      fprint(cli.fp_uchimealns, " (");
+      std::fprintf(cli.fp_uchimealns, "%.1f", 100.0 * report.left_yes / sumL);
+      fprint(cli.fp_uchimealns, "%); Right ");
+      fprint_integer(cli.fp_uchimealns, sumR);
+      fprint(cli.fp_uchimealns, ": N ");
+      fprint_integer(cli.fp_uchimealns, report.right_no);
+      fprint(cli.fp_uchimealns, ", A ");
+      fprint_integer(cli.fp_uchimealns, report.right_abstain);
+      fprint(cli.fp_uchimealns, ", Y ");
+      fprint_integer(cli.fp_uchimealns, report.right_yes);
+      fprint(cli.fp_uchimealns, " (");
+      std::fprintf(cli.fp_uchimealns, "%.1f", 100.0 * report.right_yes / sumR);
+      fprint(cli.fp_uchimealns, "%), Score ");
+      std::fprintf(cli.fp_uchimealns, "%.4f", ci.best_h);
+      fprint(cli.fp_uchimealns, '\n');
+    }
+
+  if (parameters.opt_uchimeout != nullptr)
+    {
+      std::fprintf(cli.fp_uchimeout, "%.4f", ci.best_h);
+      fprint(cli.fp_uchimeout, '\t');
+
+      header_fprint_strip(cli.fp_uchimeout,
+                          ci.query_head,
+                          attributes_to_strip(parameters));
+      fprint(cli.fp_uchimeout, '\t');
+      header_fprint_strip(cli.fp_uchimeout,
+                          db.header_view(static_cast<uint64_t>(report.parent_a)),
+                          attributes_to_strip(parameters));
+      fprint(cli.fp_uchimeout, '\t');
+      header_fprint_strip(cli.fp_uchimeout,
+                          db.header_view(static_cast<uint64_t>(report.parent_b)),
+                          attributes_to_strip(parameters));
+      fprint(cli.fp_uchimeout, '\t');
+
+      if (parameters.opt_uchimeout5 == 0)
+        {
+          if (report.id_query_a >= report.id_query_b)
+            {
+              header_fprint_strip(cli.fp_uchimeout,
+                                  db.header_view(static_cast<uint64_t>(report.parent_a)),
+                                  attributes_to_strip(parameters));
+            }
+          else
+            {
+              header_fprint_strip(cli.fp_uchimeout,
+                                  db.header_view(static_cast<uint64_t>(report.parent_b)),
+                                  attributes_to_strip(parameters));
+            }
+          fprint(cli.fp_uchimeout, '\t');
+        }
+
+      std::fprintf(cli.fp_uchimeout, "%.1f", report.id_query_model);
+      fprint(cli.fp_uchimeout, '\t');
+      std::fprintf(cli.fp_uchimeout, "%.1f", report.id_query_a);
+      fprint(cli.fp_uchimeout, '\t');
+      std::fprintf(cli.fp_uchimeout, "%.1f", report.id_query_b);
+      fprint(cli.fp_uchimeout, '\t');
+      std::fprintf(cli.fp_uchimeout, "%.1f", report.id_a_b);
+      fprint(cli.fp_uchimeout, '\t');
+      std::fprintf(cli.fp_uchimeout, "%.1f", report.id_query_top);
+      fprint(cli.fp_uchimeout, '\t');
+      fprint_integer(cli.fp_uchimeout, report.left_yes);
+      fprint(cli.fp_uchimeout, '\t');
+      fprint_integer(cli.fp_uchimeout, report.left_no);
+      fprint(cli.fp_uchimeout, '\t');
+      fprint_integer(cli.fp_uchimeout, report.left_abstain);
+      fprint(cli.fp_uchimeout, '\t');
+      fprint_integer(cli.fp_uchimeout, report.right_yes);
+      fprint(cli.fp_uchimeout, '\t');
+      fprint_integer(cli.fp_uchimeout, report.right_no);
+      fprint(cli.fp_uchimeout, '\t');
+      fprint_integer(cli.fp_uchimeout, report.right_abstain);
+      fprint(cli.fp_uchimeout, '\t');
+      std::fprintf(cli.fp_uchimeout, "%.1f", report.divergence);
+      fprint(cli.fp_uchimeout, '\t');
+      fprint(cli.fp_uchimeout, status == Status::chimeric ? 'Y' : (status == Status::low_score ? 'N' : '?'));
+      fprint(cli.fp_uchimeout, '\n');
+    }
 }
 }  // anonymous namespace
 
@@ -2122,7 +2194,6 @@ auto chimera_thread_exit(struct chimera_info_s * ci) -> void
 static auto chimera_process_query(struct chimera_info_s * ci,
                                   std::vector<struct hit> & allhits_list,
                                   LinearMemoryAligner & lma,
-                                  struct chimera_cli_state_s * cli,
                                   struct Database const & db) -> Status
 {
   struct Parameters const & parameters = *ci->parameters;
@@ -2250,13 +2321,13 @@ static auto chimera_process_query(struct chimera_info_s * ci,
       /* long high-quality reads */
       if (find_best_parents_long(ci) != 0)
         {
-          return eval_parents_long(ci, cli, db);
+          return eval_parents_long(ci, db);
         }
       return Status::no_parents;
     }
   if (find_best_parents(ci) != 0)
     {
-      return eval_parents(ci, cli, db);
+      return eval_parents(ci, db);
     }
   return Status::no_parents;
 }
@@ -2339,11 +2410,26 @@ static auto chimera_thread_core(struct chimera_cli_state_s & state,
   };
 
   auto const process_query = [&]() -> void {
-    auto const status = chimera_process_query(ci, allhits_list, lma, &state, db);
+    auto const status = chimera_process_query(ci, allhits_list, lma, db);
 
     /* output results */
 
     std::lock_guard<std::mutex> const output_lock(state.mutex_output);
+
+    /* the detection core writes nothing: its alignment and tabbed records
+       are written here, under the same lock as the rest of the query's
+       output */
+    if (status >= Status::low_score)
+      {
+        if (state.mode == ChimeraMode::chimeras_denovo)
+          {
+            print_report_long(state, *ci, status, db);
+          }
+        else
+          {
+            print_report(state, *ci, status, db);
+          }
+      }
 
     ++state.total_count;
     state.total_abundance += ci->query_size;
@@ -2492,8 +2578,8 @@ static auto chimera_detection_parameters(struct Parameters const & parameters,
 auto chimera(ChimeraMode const mode, struct Parameters const & parameters) -> void
 {
   /* Per-invocation CLI state, owned here and threaded through the worker pool
-     (E4). It also holds the detection-core output handles/mutex, injected into
-     eval_parents/eval_parents_long via chimera_process_query (E6). */
+     (E4). It also holds the report output handles/mutex, used by the report
+     writers that process_query calls after detection (E6). */
   struct chimera_cli_state_s state(parameters, mode);
 
   OutputFileHandle chimeras_handle = open_optional_output_file(parameters.opt_chimeras, OutputOption{"--chimeras"});
@@ -2956,11 +3042,11 @@ auto chimera_detect_single(struct chimera_info_s * ci,
   *result = {};
   ci->result_out = result;
 
-  /* Use the SAME processing code as the CLI path, but with no CLI output sink
-     (cli == nullptr): the detection core populates ci->result_out instead of
-     writing files, and takes no output lock. */
+  /* Use the SAME processing code as the CLI path: the detection core
+     populates ci->result_out, writes no files and takes no output lock (the
+     CLI writes its reports afterwards, from process_query). */
   auto const status = chimera_process_query(ci, ci->api_allhits_list,
-                                            *ci->api_lma_ptr, nullptr, *ci->db);
+                                            *ci->api_lma_ptr, *ci->db);
 
   if (status == Status::no_parents)
     {
