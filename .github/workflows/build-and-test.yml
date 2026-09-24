@@ -332,12 +332,7 @@ jobs:
           pkg update -f
           pkg install -y gmake bash git bzip2
           pw useradd -n runner -m -s /usr/local/bin/bash
-          # Experiment: with fdescfs on /dev/fd, bash may spell <() as
-          # /dev/fd/N (as on Linux and macOS) instead of a named FIFO.
-          mount -t fdescfs fdesc /dev/fd
         run: |
-          # Experiment: prints /dev/fd/N or a named-FIFO path (see prepare).
-          bash -c 'echo <(:)'
           # gmake, not make: the Makefiles use GNU make constructs and
           # FreeBSD's make is BSD make. There is no g++ here either -- the
           # base compiler is clang, installed as c++ and cc -- and
@@ -379,23 +374,31 @@ jobs:
           # first place). After ~30 s with no new output it dumps the test
           # process tree with each process's state and wait channel (wchan).
           #
-          # On FreeBSD the suite reaches its end but teardown stalls: <() is a
-          # real named FIFO there, so a negative test that fed vsearch an input
-          # via <() leaves the FIFO writer blocked in fifoow once vsearch
-          # rejects the options *before opening* the input (no reader ever
-          # appears). On Linux <() is a /dev/fd pipe, so this never happens. The
-          # watcher reaps ONLY those fifoow-blocked writers — a targeted kill by
-          # pid, never a broad `pkill -U runner`, which also kills the vmactions
-          # SSH shell (ssh exits 143) and skips copyback — which lets the suite
-          # process exit. Pass/fail is then decided by the SUMMARY line and the
-          # FAIL lines in test.log (see the block after the watcher); the
-          # teardown stall is not a failure, because the suite has printed its
-          # SUMMARY by then. A stall with no fifoow writers is treated as a
-          # genuine hang and fails.
+          # On FreeBSD <() is a real named FIFO (the packaged bash is built that
+          # way; mounting fdescfs does not change it), so a negative test that
+          # fed vsearch an input via <() leaves the FIFO writer blocked in
+          # fifoow once vsearch rejects the options *before opening* the input
+          # (no reader ever appears). On Linux <() is a /dev/fd pipe, so this
+          # never happens. These leftover writers are harmless to the suite,
+          # which exits normally, but they must not hold up the job:
+          #
+          # timeout -f (--foreground): without it, FreeBSD's timeout(1) makes
+          # itself the reaper of the suite's descendants and waits for all of
+          # them, so leftover fifoow writers keep it (and suite_pid) alive long
+          # after run_all_tests.sh has exited. With -f, it returns as soon as
+          # the suite does, and still stops the suite after suite_timeout.
+          #
+          # The watcher's reap is now only a fallback, for a test that blocks
+          # on a FIFO writer of its own: it kills ONLY fifoow-blocked writers
+          # — a targeted kill by pid, never a broad `pkill -U runner`, which
+          # also kills the vmactions SSH shell (ssh exits 143) and skips
+          # copyback. Pass/fail is decided by the SUMMARY line and the FAIL
+          # lines in test.log (see the block after the watcher). A stall with
+          # no fifoow writers is treated as a genuine hang and fails.
           echo "========== Running tests... =========="
           suite_timeout=720
           rm -f vsearch-tests/test.log
-          su -m runner -c "cd vsearch-tests && PATH=$PWD/bin:\$PATH timeout -k 30 ${suite_timeout} bash ./run_all_tests.sh > test.log 2>&1" </dev/null >/dev/null 2>&1 &
+          su -m runner -c "cd vsearch-tests && PATH=$PWD/bin:\$PATH timeout -f -k 30 ${suite_timeout} bash ./run_all_tests.sh > test.log 2>&1" </dev/null >/dev/null 2>&1 &
           suite_pid=$!
           last_sig=""
           stall=0
