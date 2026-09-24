@@ -392,10 +392,16 @@ jobs:
           # teardown stall is not a failure, because the suite has printed its
           # SUMMARY by then. A stall with no fifoow writers is treated as a
           # genuine hang and fails.
+          #
+          # timeout -f (--foreground): without it, FreeBSD's timeout(1) makes
+          # itself the reaper of the suite's descendants and waits for all of
+          # them, so leftover fifoow writers keep it (and suite_pid) alive long
+          # after run_all_tests.sh has exited. With -f, it returns as soon as
+          # the suite does, and still stops the suite after suite_timeout.
           echo "========== Running tests... =========="
           suite_timeout=720
           rm -f vsearch-tests/test.log
-          su -m runner -c "cd vsearch-tests && PATH=$PWD/bin:\$PATH timeout -k 30 ${suite_timeout} bash ./run_all_tests.sh > test.log 2>&1" </dev/null >/dev/null 2>&1 &
+          su -m runner -c "cd vsearch-tests && PATH=$PWD/bin:\$PATH timeout -f -k 30 ${suite_timeout} bash ./run_all_tests.sh > test.log 2>&1" </dev/null >/dev/null 2>&1 &
           suite_pid=$!
           last_sig=""
           stall=0
