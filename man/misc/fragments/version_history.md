@@ -18,6 +18,11 @@
       `--gapext`), and the matching `id5` userfield (issue #627).
     - add: `--cut` and `--uchime_ref` now accept fastq input files;
       quality values are ignored and outputs stay fasta (issue #496).
+    - add: `--uchime_denovo`, `--uchime2_denovo`, `--uchime3_denovo`
+      and `--chimeras_denovo` are now multithreaded, and like the other
+      multithreaded commands use all available cores by default. Their
+      results, and the order in which they are written, are identical
+      whatever the number of threads (issue #118).
     - add: a warning when an option is given as an abbreviation of its
       full name (for instance `--thread` for `--threads`). The
       abbreviation is still honoured.
