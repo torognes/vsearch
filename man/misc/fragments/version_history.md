@@ -63,6 +63,13 @@
       unclassified. The database is now DUST-masked, so classifications
       can change, and a fasta database and the UDB built from it by
       default now give the same results (issue #570).
+    - fix: a named pipe given to `--db` (`--usearch_global`,
+      `--sintax`, `--orient`, `--uchime_ref`) could hang forever: it was
+      opened a first time to look for a UDB signature, then opened again
+      to be read, and data written in between was lost. A named pipe is
+      now opened only once. This also affected process substitution
+      (`--db <(...)`) on FreeBSD, where bash implements it with named
+      pipes.
     - improve: official support for GCC 4.8.5 and GCC 4.9, now built
       and tested by continuous integration.
     - improve: release assets now include the bash, zsh and fish shell
