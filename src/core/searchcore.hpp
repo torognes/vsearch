@@ -162,6 +162,28 @@ inline auto letter_pair_identity(struct hit const & hit) noexcept -> double {
 /* type of kmer hit counter element remember possibility of overflow */
 using count_t = unsigned short;
 
+/* What a target indexed after a search would have needed to enter that
+   search's top-k-mer-hits heap, recorded by search_topscores() before
+   search_onequery() starts popping the heap. Everything search_onequery()
+   does after search_topscores() depends only on the heap's contents, and a
+   later target has a higher sequence number than every indexed one, so it
+   changes the search's outcome if and only if it would have entered the
+   heap: its k-mer count reaches minmatches (a target holding fewer than
+   --minwordmatches k-mers needs only min(minmatches, its own count)), the
+   heap has a capacity, and it has room or the target has more k-mer hits
+   than weakest, or as many and a shorter length. A heap can be built with
+   no capacity (--usearch_global against a database whose every sequence
+   was discarded) and then takes nothing. The denovo chimera batch driver
+   checks its speculative results against this. */
+struct TopscoresThreshold
+{
+  unsigned int minmatches = 0;
+  std::size_t filled = 0;
+  std::size_t capacity = 0;
+  elem_t weakest {0, 0, 0};  /* the heap's least good element, if filled > 0 */
+};
+
+
 struct searchinfo_s
 {
   int query_no = 0;                 /* query number, zero-based */
@@ -203,6 +225,7 @@ struct searchinfo_s
   int accepts = 0;                  /* number of accepts */
   int rejects = 0;                  /* number of rejects */
   Minheap m;                     /* min heap with the top kmer db seqs (owned) */
+  struct TopscoresThreshold topscores_threshold;  /* set by search_topscores() */
   int finalized = 0;
   /* run configuration, set by the per-thread init at each call site (E1
      shared-infra phase). A pointer (default null) so searchinfo_s stays

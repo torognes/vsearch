@@ -111,6 +111,18 @@ public:
     return count >= accept_threshold();
   }
 
+  auto size() const noexcept -> std::size_t { return array_.size(); }
+  auto capacity() const noexcept -> std::size_t { return capacity_; }
+
+  /* The least good element, the one a newcomer has to beat once the heap is
+     full: the root while the array is a heap, and still the first element
+     after sort(), which orders from least good to best. */
+  auto weakest() const noexcept -> elem_t
+  {
+    assert(not array_.empty());
+    return array_.front();
+  }
+
 private:
   auto replace_root(elem_t tmp) -> void;
 

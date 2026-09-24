@@ -441,6 +441,37 @@ auto offer_counted_sequences(struct searchinfo_s & searchinfo,
       offer(i);
     }
 }
+
+
+/* The k-mer hits search_topscores() asks of a target before offering it to
+   the heap: --minwordmatches, capped by the query's own sample (a target
+   holding fewer k-mers than that has its own, lower threshold) */
+auto topscores_minmatches(struct searchinfo_s const & searchinfo) noexcept -> unsigned int
+{
+  /* 32-bit on purpose: the counters compared against it below are count_t
+     (unsigned short), and widening the bound to std::size_t costs ~1
+     instruction per indexed sequence in the loop that follows -- measurably,
+     +8% on search_topscores. The sample is one kmer per query base, so it
+     cannot overflow an unsigned int. */
+  assert(searchinfo.kmersample.size() <= std::numeric_limits<unsigned int>::max());
+  return std::min(static_cast<unsigned int>(searchinfo.parameters->opt_minwordmatches),
+                  static_cast<unsigned int>(searchinfo.kmersample.size()));
+}
+
+
+/* Record what a target indexed later would have needed to enter the heap
+   search_topscores() just filled (see TopscoresThreshold), before
+   search_onequery() starts popping it. Kept out of search_topscores(): four
+   stores at the end of that function changed how GCC compiles its counting
+   loop, at about 650 instructions per call on --usearch_global. */
+auto record_topscores_threshold(struct searchinfo_s & searchinfo) noexcept -> void
+{
+  auto & threshold = searchinfo.topscores_threshold;
+  threshold.minmatches = topscores_minmatches(searchinfo);
+  threshold.filled = searchinfo.m.size();
+  threshold.capacity = searchinfo.m.capacity();
+  threshold.weakest = searchinfo.m.is_empty() ? elem_t{0, 0, 0} : searchinfo.m.weakest();
+}
 }  // anonymous namespace
 
 
@@ -482,14 +513,7 @@ auto search_topscores(struct searchinfo_s * searchinfo) -> void
 
   searchinfo->m.clear();
 
-  /* 32-bit on purpose: the counters compared against it below are count_t
-     (unsigned short), and widening the bound to std::size_t costs ~1
-     instruction per indexed sequence in the loop that follows -- measurably,
-     +8% on search_topscores. The sample is one kmer per query base, so it
-     cannot overflow an unsigned int. */
-  assert(searchinfo->kmersample.size() <= std::numeric_limits<unsigned int>::max());
-  auto const minmatches = std::min(static_cast<unsigned int>(parameters.opt_minwordmatches),
-                                   static_cast<unsigned int>(searchinfo->kmersample.size()));
+  auto const minmatches = topscores_minmatches(*searchinfo);
 
   /* The low-k-mer targets are read alongside the slice that holds them, so
      the cursor walks the list once over the whole scan: Dbindex::add_sequence
@@ -1265,6 +1289,7 @@ auto search_onequery(struct searchinfo_s * searchinfo, Masking const seqmask) ->
 
   /* find database sequences with the most kmer hits */
   search_topscores(searchinfo);
+  record_topscores_threshold(*searchinfo);
 
   /* analyse targets with the highest number of kmer hits */
   searchinfo->accepts = 0;
