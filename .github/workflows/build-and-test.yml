@@ -332,12 +332,7 @@ jobs:
           pkg update -f
           pkg install -y gmake bash git bzip2
           pw useradd -n runner -m -s /usr/local/bin/bash
-          # Experiment: with fdescfs on /dev/fd, bash may spell <() as
-          # /dev/fd/N (as on Linux and macOS) instead of a named FIFO.
-          mount -t fdescfs fdesc /dev/fd
         run: |
-          # Experiment: prints /dev/fd/N or a named-FIFO path (see prepare).
-          bash -c 'echo <(:)'
           # gmake, not make: the Makefiles use GNU make constructs and
           # FreeBSD's make is BSD make. There is no g++ here either -- the
           # base compiler is clang, installed as c++ and cc -- and
