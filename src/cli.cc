@@ -4767,6 +4767,9 @@ namespace {
     switch (command)
       {
       case Command::allpairs_global:
+      /* the four denovo chimera commands run in batches that reproduce their
+         single-threaded result (chimera_denovo_batches in core/chimera.cpp) */
+      case Command::chimeras_denovo:
       case Command::cluster_fast:
       case Command::cluster_size:
       case Command::cluster_smallmem:
@@ -4784,6 +4787,9 @@ namespace {
       case Command::search_exact:
       case Command::search_global:
       case Command::sintax:
+      case Command::uchime2_denovo:
+      case Command::uchime3_denovo:
+      case Command::uchime_denovo:
       case Command::uchime_ref:
       case Command::usearch_global:
         return true;
