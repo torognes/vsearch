@@ -476,10 +476,12 @@ struct chimera_query_result_s {
    writes its query if it is the next one due, then the queries that were
    waiting for it; otherwise it leaves its result here and moves on. No
    worker waits for another. Guarded by chimera_cli_state_s::mutex_output. */
+namespace {
 struct ordered_output_s {
   unsigned int next_rank = 0;  /* the claim rank of the next query to write */
   std::map<unsigned int, struct chimera_query_result_s> waiting;
 };
+}  // anonymous namespace
 
 
 // anonymous namespace: limit visibility and usage to this translation unit
@@ -2279,6 +2281,7 @@ auto chimera_thread_exit(struct chimera_info_s * ci) -> void
    over, also when fatal() throws (library sessions), so that the next
    query finds them where it expects them. Swaps: they keep the reserved
    headroom and the grown buffers, and cost nothing. */
+namespace {
 class PartSearchLoan
 {
 public:
@@ -2306,6 +2309,7 @@ private:
   struct chimera_info_s & lender_;
   struct searchinfo_s & borrower_;
 };
+}  // anonymous namespace
 
 
 /* Process a single query that has already been loaded into ci.
@@ -2655,7 +2659,7 @@ static auto output_query_result(struct chimera_cli_state_s & state,
 namespace {
 /* Make the result's header and sequence its own: for --uchime_ref they are
    views into the worker's buffers, which its next claim overwrites. */
-static auto keep_query_text(struct chimera_query_result_s & result) -> void
+auto keep_query_text(struct chimera_query_result_s & result) -> void
 {
   result.header_copy.assign(result.header.cbegin(), result.header.cend());
   result.sequence_copy.assign(result.sequence.cbegin(), result.sequence.cend());
@@ -2666,11 +2670,11 @@ static auto keep_query_text(struct chimera_query_result_s & result) -> void
 
 /* Write the result of the query claimed at `rank`, in claim order (see
    ordered_output_s). Called with the output lock held. */
-static auto output_in_order(struct chimera_cli_state_s & state,
-                            struct ordered_output_s & ordered,
-                            unsigned int const rank,
-                            struct chimera_query_result_s & result,
-                            struct Database const & db) -> void
+auto output_in_order(struct chimera_cli_state_s & state,
+                     struct ordered_output_s & ordered,
+                     unsigned int const rank,
+                     struct chimera_query_result_s & result,
+                     struct Database const & database) -> void
 {
   if (rank != ordered.next_rank)
     {
@@ -2678,12 +2682,12 @@ static auto output_in_order(struct chimera_cli_state_s & state,
       ordered.waiting.emplace(rank, std::move(result));
       return;
     }
-  output_query_result(state, result, db);
+  output_query_result(state, result, database);
   ++ordered.next_rank;
   auto next = ordered.waiting.find(ordered.next_rank);
   while (next != ordered.waiting.end())
     {
-      output_query_result(state, next->second, db);
+      output_query_result(state, next->second, database);
       ordered.waiting.erase(next);
       ++ordered.next_rank;
       next = ordered.waiting.find(ordered.next_rank);
@@ -3164,6 +3168,16 @@ constexpr double hysteresis = 1.1;
 constexpr double idle_weight = 0.5;
 
 
+/* The measurements of one batch that BatchSizer weighs, in seconds. An
+   aggregate (no default member initializers, which C++11 does not allow
+   in one), built from its three values at once. */
+struct batch_times_s {
+  double round_wall;  /* wall time of the parallel round */
+  double busy;  /* time the threads spent detecting in it, summed */
+  double serial_wall;  /* wall time of the serial checks and recomputations */
+};
+
+
 class BatchSizer
 {
 public:
@@ -3177,13 +3191,11 @@ public:
   auto size() const noexcept -> unsigned int { return size_; }
   auto largest() const noexcept -> unsigned int { return maximum_; }
 
-  /* after each batch: the wall time of its parallel round, the time its
-     threads spent detecting in that round (summed), and the wall time of
-     its serial checks and recomputations */
-  auto record(double const round_wall, double const busy, double const serial_wall) noexcept -> void
+  /* after each batch */
+  auto record(struct batch_times_s const & times) noexcept -> void
   {
-    idle_ += idle_weight * std::max(0.0, (threads_ * round_wall) - busy);
-    recompute_ += threads_ * serial_wall;
+    idle_ += idle_weight * std::max(0.0, (threads_ * times.round_wall) - times.busy);
+    recompute_ += threads_ * times.serial_wall;
     ++batches_;
     if (batches_ < window_batches)
       {
@@ -3356,7 +3368,7 @@ auto chimera_denovo_batches(struct chimera_cli_state_s & state) -> void
           batch_targets.emplace_back(std::move(prepared[nth]));
         }
 
-      sizer.record(round_wall, busy, serial_wall);
+      sizer.record(batch_times_s{round_wall, busy, serial_wall});
     }
 
   gate.close();
