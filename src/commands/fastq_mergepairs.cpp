@@ -128,10 +128,10 @@ struct chunk_s
    hits an out-of-range FASTQ quality value (recorded by the merge core on the
    read pair), a fwd/rev count mismatch, or a parse error in the forward or the
    reverse input (deferred by the input handle, see report()) records the error
-   here and requests an abort; every worker then unwinds its loop and pair_all() reports it and
-   std::exit()s from the main thread, after all workers have joined. The error is
-   written once (first worker to claim wins, then a release store on abort_) and
-   read after the join, which establishes the needed happens-before. Owned per run
+   here and requests an abort; every worker then unwinds its loop and
+   pair_all() reports it and std::exit()s from the main thread, after all
+   workers have joined. The error is written once (first worker to claim
+   wins, then a release store on abort_) and read after the join, which establishes the needed happens-before. Owned per run
    by mergepairs_cli_state_s, so there is no cross-session state to reset. */
 class MergeAbort {
 public:

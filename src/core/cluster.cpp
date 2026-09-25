@@ -286,6 +286,34 @@ auto cluster_query_exit(struct searchinfo_s & si) -> void
   /* the kmer counts, the hits and the query sequence live in the searchinfo_s
      vectors (kmers_v/hits_v/qsequence_v), which free their own storage. */
 }
+
+
+/* Lends a thread's k-mer counters to the query slot it searches, and takes
+   them back when the search is over, also when fatal() throws (library
+   sessions). Only search_topscores() reads them, during the search, and it
+   clears what it reads, so the slots can share them. A swap: it keeps the
+   reserved headroom and costs nothing. */
+class CounterLoan
+{
+public:
+  CounterLoan(std::vector<count_t> & lender, struct searchinfo_s & borrower) noexcept
+    : lender_(lender), borrower_(borrower)
+  {
+    borrower_.kmers_v.swap(lender_);
+  }
+  ~CounterLoan()
+  {
+    borrower_.kmers_v.swap(lender_);
+  }
+  CounterLoan(CounterLoan const &) = delete;
+  CounterLoan(CounterLoan &&) = delete;
+  auto operator=(CounterLoan const &) -> CounterLoan & = delete;
+  auto operator=(CounterLoan &&) -> CounterLoan & = delete;
+
+private:
+  std::vector<count_t> & lender_;
+  struct searchinfo_s & borrower_;
+};
 }  // anonymous namespace
 
 
@@ -324,38 +352,9 @@ auto cluster_query_exit(struct searchinfo_s & si) -> void
    at 8 threads, two to four at 24.
 
    The slots of a round beyond the first nthreads are initialized when a
-   round first uses them: each holds a k-mer counter per database sequence,
-   so only a run that widens its rounds pays for them. */
-namespace {
-/* Lends a thread's k-mer counters to the query slot it searches, and takes
-   them back when the search is over, also when fatal() throws (library
-   sessions). Only search_topscores() reads them, during the search, and it
-   clears what it reads, so the slots can share them. A swap: it keeps the
-   reserved headroom and costs nothing. */
-class CounterLoan
-{
-public:
-  CounterLoan(std::vector<count_t> & lender, struct searchinfo_s & borrower) noexcept
-    : lender_(lender), borrower_(borrower)
-  {
-    borrower_.kmers_v.swap(lender_);
-  }
-  ~CounterLoan()
-  {
-    borrower_.kmers_v.swap(lender_);
-  }
-  CounterLoan(CounterLoan const &) = delete;
-  CounterLoan(CounterLoan &&) = delete;
-  auto operator=(CounterLoan const &) -> CounterLoan & = delete;
-  auto operator=(CounterLoan &&) -> CounterLoan & = delete;
-
-private:
-  std::vector<count_t> & lender_;
-  struct searchinfo_s & borrower_;
-};
-}  // anonymous namespace
-
-
+   round first uses them. The k-mer counters, one per database sequence,
+   belong to the threads, which lend them to the slots they search (see
+   CounterLoan): a slot holds only its query and its hits. */
 struct cluster_work_pool_s
 {
   struct Parameters const & parameters;  // run config, read by the workers (E1)
