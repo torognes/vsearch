@@ -126,8 +126,9 @@ struct chunk_s
    with threads still writing to them — a data race that intermittently corrupts
    libc state and crashes (observed as SIGILL on FreeBSD). Instead, a worker that
    hits an out-of-range FASTQ quality value (recorded by the merge core on the
-   read pair) or a fwd/rev count mismatch records the error here and requests an
-   abort; every worker then unwinds its loop and pair_all() reports it and
+   read pair), a fwd/rev count mismatch, or a parse error in the forward or the
+   reverse input (deferred by the input handle, see report()) records the error
+   here and requests an abort; every worker then unwinds its loop and pair_all() reports it and
    std::exit()s from the main thread, after all workers have joined. The error is
    written once (first worker to claim wins, then a release store on abort_) and
    read after the join, which establishes the needed happens-before. Owned per run

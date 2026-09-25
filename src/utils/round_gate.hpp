@@ -73,7 +73,8 @@
    and the main thread waits until every worker is done before it goes on
    alone (committing results, extending an index, ...). Used by the denovo
    chimera batches (core/chimera.cpp) and the clustering pool
-   (core/cluster.cpp), whose rounds are about one query per thread.
+   (core/cluster.cpp), whose rounds range from one to eight queries per
+   thread, sized adaptively by BatchSizer (utils/batch_sizer.hpp).
 
    Both sides spin, yielding, for a while before they sleep on a condition
    variable. A thread woken from sleep starts a few hundred microseconds
