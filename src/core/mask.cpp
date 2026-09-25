@@ -68,7 +68,7 @@
 #include "utils/maps/two_bit.hpp"
 #include "utils/threads.hpp"
 #include "utils/worker_loop.hpp"
-#include <algorithm>  // std::copy_n, std::fill, std::transform
+#include <algorithm>  // std::copy_n, std::fill, std::max, std::min, std::transform
 #include <numeric>  // std::partial_sum
 #include <cassert>
 #include <iterator>  // std::next
@@ -352,27 +352,48 @@ struct dust_state_s
   std::mutex mutex;
   uint64_t nextseq = 0;
   uint64_t seqcount = 0;
+  uint64_t chunk = 1;  /* sequences per claim, set by dust_all() */
   Progress * progress = nullptr;  /* owner progress bar; worker updates it under state.mutex */
   Parameters const * parameters = nullptr;  /* set by dust_all(); read by dust() via the worker */
 };
 
 
+/* Sequences claimed at once by a dust_all() worker, at most. Masking one
+   sequence takes well under a microsecond, so claiming them one by one made
+   the claim lock the bottleneck: masking stopped scaling at 4 threads and got
+   slower past 8 (10.6M 18S V9 sequences, 2026-09-25). */
+constexpr uint64_t largest_dust_chunk = 1024;
+/* chunks per thread, at least, so that small databases still spread evenly */
+constexpr uint64_t dust_chunks_per_thread = 64;
+
+
 static auto dust_all_worker(struct dust_state_s & state, struct Database & db) -> void
 {
-  uint64_t seqno = 0;
+  uint64_t first = 0;
+  uint64_t end = 0;
 
   auto const has_work_to_claim = [&]() -> bool {
     if (state.nextseq >= state.seqcount) { return false; }
-    seqno = state.nextseq++;
-    state.progress->update(seqno);
+    first = state.nextseq;
+    end = std::min(state.seqcount, first + state.chunk);
+    state.nextseq = end;
+    /* one update per sequence, as before, so that the progress lines (one
+       per percent step when stderr is not a terminal) stay the same */
+    for (auto seqno = first; seqno < end; ++seqno)
+      {
+        state.progress->update(seqno);
+      }
     return true;
   };
 
-  auto const process_sequence = [&]() -> void {
-    dust(db.mutable_sequence(seqno), *state.parameters);
+  auto const process_chunk = [&]() -> void {
+    for (auto seqno = first; seqno < end; ++seqno)
+      {
+        dust(db.mutable_sequence(seqno), *state.parameters);
+      }
   };
 
-  run_worker_loop(state.mutex, has_work_to_claim, process_sequence);
+  run_worker_loop(state.mutex, has_work_to_claim, process_chunk);
 }
 
 
@@ -380,6 +401,10 @@ auto dust_all(struct Database & db, struct Parameters const & parameters) -> voi
 {
   struct dust_state_s state;
   state.seqcount = db.getsequencecount();
+  auto const threads = static_cast<uint64_t>(std::max(int64_t{1}, parameters.opt_threads));
+  state.chunk = std::max(uint64_t{1},
+                         std::min(largest_dust_chunk,
+                                  state.seqcount / (threads * dust_chunks_per_thread)));
   state.parameters = &parameters;
   Progress progress("Masking", state.seqcount, parameters);
   state.progress = &progress;

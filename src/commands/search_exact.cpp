@@ -70,7 +70,6 @@
 #include "core/fastx.hpp"
 #include "core/results.hpp"
 #include "core/searchcore.hpp"
-#include "core/buffer_headroom.hpp"
 #include "utils/progress.hpp"
 #include "core/mask.hpp"
 #include "core/otutable.hpp"
@@ -89,12 +88,45 @@
 #include "utils/string_normalize.hpp"
 #include <algorithm>  // std::min
 #include <array>  // std::array
+#include <cassert>  // assert
 #include <cstdint> // int64_t, uint64_t
 #include <cstdio>  // std::FILE, std::fprintf, std::size_t
+#include <map>  // std::map
 #include <mutex>  // std::mutex, std::lock_guard, std::unique_lock
 #include <numeric>  // std::accumulate
 #include <string>  // std::string, std::to_string
+#include <utility>  // std::move
 #include <vector>
+
+
+/* One query of a chunk: where its header and sequence sit in the chunk's
+   buffers (offsets, not views, so that a chunk can be moved), and its hits. */
+struct exact_query_s
+{
+  int query_no = 0;
+  int64_t qsize = 0;
+  uint64_t position = 0;  /* input read so far, for the progress bar */
+  std::size_t head_offset = 0;
+  std::size_t head_length = 0;
+  std::size_t seq_offset = 0;
+  std::size_t seq_length = 0;
+  std::vector<struct hit> hits;
+};
+
+
+/* The queries a worker claims at once (see search_exact_thread_run). The
+   sequences are masked in place by the search, as the output writers expect;
+   rc_sequences holds the reverse complements (--strand both), at the same
+   offsets. */
+struct exact_chunk_s
+{
+  unsigned long rank = 0;  /* claim order, which is also the input order */
+  std::vector<char> headers;
+  std::vector<char> sequences;
+  std::vector<char> rc_sequences;
+  std::vector<struct exact_query_s> queries;
+  std::size_t count = 0;  /* queries[0 .. count) are live */
+};
 
 
 /* Per-invocation state for the CLI-only --search_exact command. Folds what
@@ -125,6 +157,10 @@ struct search_exact_state_s
   /* accessed by the worker threads; access serialized by the mutexes */
   std::mutex mutex_input;
   std::mutex mutex_output;
+  unsigned long next_claim_rank = 0;  /* under mutex_input */
+  unsigned long next_output_rank = 0;  /* under mutex_output */
+  /* chunks searched ahead of their turn, under mutex_output */
+  std::map<unsigned long, struct exact_chunk_s> waiting;
   int qmatches = 0;
   uint64_t qmatches_abundance = 0;
   int queries = 0;
@@ -400,99 +436,153 @@ auto search_exact_query(uint64_t const t,
   /* alignment strings (hit.nwalignment) are std::string and free themselves */
 }
 
+/* Queries claimed at once. Parsing a query can be most of the work of
+   --search_exact (72 % of a serial run with --qmask none, 18S V9 reads
+   against 20k references), and it has to happen under mutex_input. Claimed
+   one query at a time, the reader moved to another thread for every record,
+   which doubled the parse cost, and the other threads queued on the lock:
+   with more than one thread the command was about three times slower than
+   with one. Large chunks keep the lock hand-offs rare; a search_exact query
+   is always cheap (a hash lookup), so they cost little in balance. 8192 was
+   the best of 512-16384 at 4, 8 and 24 threads, with and without query
+   masking (10.6M 18S V9 reads, 2026-09-25). */
+constexpr std::size_t queries_per_chunk = 8192;
+
+
+/* Write the queries of a chunk, in order, with the statistics and the
+   progress they account for. Called with mutex_output held. */
+auto output_chunk(struct search_exact_state_s & state, struct exact_chunk_s const & chunk) -> void
+{
+  struct Parameters const & parameters = state.parameters;
+  for (std::size_t nth = 0; nth < chunk.count; ++nth)
+    {
+      auto const & query = chunk.queries[nth];
+      auto const header = make_view(chunk.headers).subspan(query.head_offset, query.head_length);
+      auto const sequence = make_view(chunk.sequences).subspan(query.seq_offset, query.seq_length);
+      auto const rc_sequence = parameters.opt_strand ?
+        make_view(chunk.rc_sequences).subspan(query.seq_offset, query.seq_length) :
+        View<char>{};
+      search_exact_output_results(state, query.hits, header, sequence, rc_sequence, query.qsize);
+
+      /* update stats */
+      state.queries++;
+      state.queries_abundance += static_cast<uint64_t>(query.qsize);
+      if (not query.hits.empty())
+        {
+          state.qmatches++;
+          state.qmatches_abundance += static_cast<uint64_t>(query.qsize);
+        }
+
+      /* show progress */
+      state.progress->update(query.position);
+    }
+}
+
+
 auto search_exact_thread_run(uint64_t const t, struct search_exact_state_s & state) -> void
 {
   struct Parameters const & parameters = state.parameters;
-  int64_t qsize = 0;
-  uint64_t progress = 0;
+  auto & si_plus = state.si_plus[t];
+  struct exact_chunk_s chunk;
 
+  /* parse the next queries into the chunk, and give it its rank */
   auto const has_work_to_claim = [&]() -> bool {
-    if (not state.query_fastx_h->next(header_truncation(parameters.opt_notrunclabels), Mapping::none))
+    chunk.headers.clear();
+    chunk.sequences.clear();
+    chunk.count = 0;
+    while (chunk.count < queries_per_chunk)
+      {
+        if (not state.query_fastx_h->next(header_truncation(parameters.opt_notrunclabels), Mapping::none))
+          {
+            break;
+          }
+        if (chunk.queries.size() <= chunk.count)
+          {
+            chunk.queries.resize(chunk.count + 1);
+          }
+        auto & query = chunk.queries[chunk.count];
+        auto const qhead = state.query_fastx_h->header_view();
+        auto const qseq = state.query_fastx_h->sequence_view();
+        query.query_no = static_cast<int>(state.query_fastx_h->get_seqno());
+        query.qsize = state.query_fastx_h->get_abundance();
+        query.head_offset = chunk.headers.size();
+        query.head_length = qhead.size();
+        chunk.headers.insert(chunk.headers.end(), qhead.cbegin(), qhead.cend());
+        query.seq_offset = chunk.sequences.size();
+        query.seq_length = qseq.size();
+        chunk.sequences.insert(chunk.sequences.end(), qseq.cbegin(), qseq.cend());
+        /* get progress as amount of input file read */
+        query.position = state.query_fastx_h->get_position();
+        ++chunk.count;
+      }
+    if (chunk.count == 0)
       {
         return false;
       }
-
-    auto const qhead = state.query_fastx_h->header_view();
-    auto const qseq = state.query_fastx_h->sequence_view();
-    auto const qseqlen = static_cast<int>(qseq.size());
-    int const query_no = static_cast<int>(state.query_fastx_h->get_seqno());
-    qsize = state.query_fastx_h->get_abundance();
-
-    /* indexed rather than a range-for over the two strands: the counter is
-       stored as si->strand, so here the index is data */
-    for (int s = 0; s < number_of_strands(parameters.opt_strand); s++)
-      {
-        struct searchinfo_s * const si = (s != 0) ? &state.si_minus[t] : &state.si_plus[t];
-
-        si->query_no = query_no;
-        si->qsize = qsize;
-        si->strand = s;
-
-        /* allocate more memory for the sequence, if necessary */
-
-        if (si->qsequence_v.size() < static_cast<size_t>(qseqlen))
-          {
-            si->qsequence_v.resize(static_cast<size_t>(qseqlen + buffer_headroom));
-          }
-      }
-
-    /* plus strand: copy header and sequence into owned storage, spans point at them */
-    state.si_plus[t].query_head_v.resize(qhead.size());
-    std::copy(qhead.cbegin(), qhead.cend(), state.si_plus[t].query_head_v.begin());
-    state.si_plus[t].query_head = make_view(state.si_plus[t].query_head_v).first(qhead.size());
-    std::copy(qseq.cbegin(), qseq.cend(), state.si_plus[t].qsequence_v.begin());
-    state.si_plus[t].qsequence = make_span(state.si_plus[t].qsequence_v).first(qseq.size());
-
-    /* get progress as amount of input file read */
-    progress = state.query_fastx_h->get_position();
+    chunk.rank = state.next_claim_rank;
+    ++state.next_claim_rank;
     return true;
   };
 
-  auto const process_query = [&]() -> void {
-    /* minus strand: copy header and reverse complementary sequence */
+  auto const process_chunk = [&]() -> void {
     if (parameters.opt_strand)
       {
-        state.si_minus[t].query_head_v = state.si_plus[t].query_head_v;
-        state.si_minus[t].query_head = make_view(state.si_minus[t].query_head_v).first(state.si_plus[t].query_head.size());
-        reverse_complement(make_span(state.si_minus[t].qsequence_v).first(state.si_plus[t].qsequence.size()),
-                           View<char>{state.si_plus[t].qsequence});
-        state.si_minus[t].qsequence = make_span(state.si_minus[t].qsequence_v).first(state.si_plus[t].qsequence.size());
+        chunk.rc_sequences.resize(chunk.sequences.size());
+      }
+    for (std::size_t nth = 0; nth < chunk.count; ++nth)
+      {
+        auto & query = chunk.queries[nth];
+        auto const header = make_view(chunk.headers).subspan(query.head_offset, query.head_length);
+        /* the search masks the query in place, in the chunk, where the
+           output writers read it */
+        si_plus.query_no = query.query_no;
+        si_plus.qsize = query.qsize;
+        si_plus.strand = 0;
+        si_plus.query_head = header;
+        si_plus.qsequence = make_span(chunk.sequences).subspan(query.seq_offset, query.seq_length);
+        if (parameters.opt_strand)
+          {
+            /* minus strand: header and reverse complementary sequence */
+            auto & si_minus = state.si_minus[t];
+            si_minus.query_no = query.query_no;
+            si_minus.qsize = query.qsize;
+            si_minus.strand = 1;
+            si_minus.query_head = header;
+            si_minus.qsequence = make_span(chunk.rc_sequences).subspan(query.seq_offset, query.seq_length);
+            reverse_complement(si_minus.qsequence, View<char>{si_plus.qsequence});
+          }
+        query.hits.clear();
+        search_exact_query(t, state, query.hits);
       }
 
-    std::vector<struct hit> hits;
-    search_exact_query(t, state, hits);
-
-    /* One critical section per query, not two. The output writers used to take
+    /* One critical section per chunk, not two. The output writers used to take
        mutex_output and release it, and the statistics below took it again
        immediately after -- two acquisitions around ~520 ns of work, which is
        what made the command slower with every thread added. Nothing between the
        two needed the lock released. */
     std::lock_guard<std::mutex> const output_lock(state.mutex_output);
 
-    search_exact_output_results(state,
-                                hits,
-                                state.si_plus[t].query_head,
-                                View<char>{state.si_plus[t].qsequence},
-                                parameters.opt_strand
-                                  ? View<char>{state.si_minus[t].qsequence}
-                                  : View<char>{},
-                                state.si_plus[t].qsize);
-
-    /* update stats */
-    state.queries++;
-    state.queries_abundance += static_cast<uint64_t>(qsize);
-
-    if (not hits.empty())
+    /* chunks are written in claim order, which is the input order: a chunk
+       searched ahead of its turn waits, and the worker moves on */
+    if (chunk.rank != state.next_output_rank)
       {
-        state.qmatches++;
-        state.qmatches_abundance += static_cast<uint64_t>(qsize);
+        state.waiting.emplace(chunk.rank, std::move(chunk));
+        chunk = exact_chunk_s{};
+        return;
       }
-
-    /* show progress */
-    state.progress->update(progress);
+    output_chunk(state, chunk);
+    ++state.next_output_rank;
+    auto next = state.waiting.find(state.next_output_rank);
+    while (next != state.waiting.end())
+      {
+        output_chunk(state, next->second);
+        state.waiting.erase(next);
+        ++state.next_output_rank;
+        next = state.waiting.find(state.next_output_rank);
+      }
   };
 
-  run_worker_loop(state.mutex_input, has_work_to_claim, process_query);
+  run_worker_loop(state.mutex_input, has_work_to_claim, process_chunk);
 }
 
 auto search_exact_thread_init(struct searchinfo_s & si, struct Parameters const & parameters) -> void
@@ -554,6 +644,9 @@ auto search_exact_thread_worker_run(struct search_exact_state_s & state) -> void
                               { search_exact_thread_run(t, state); });
     threadrunner.run();
   }
+  /* every claimed chunk was searched, so every rank up to the last was
+     written */
+  assert(state.waiting.empty());
 
   /* clean up per-thread search state */
   for (std::size_t t = 0; t < state.si_plus.size(); ++t)

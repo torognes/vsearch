@@ -87,6 +87,7 @@
 #include "utils/span.hpp"
 #include "utils/threads.hpp"
 #include "utils/round_gate.hpp"  // RoundGate
+#include "utils/batch_sizer.hpp"  // BatchSizer, batch_times_s
 #include "utils/worker_loop.hpp"
 #include "utils/print_view.hpp"  // fprint
 #include <algorithm>  // std::copy, std::fill, std::fill_n, std::max, std::max_element, std::min, std::sort, std::transform
@@ -3030,99 +3031,6 @@ struct denovo_worker_s {
    main thread detect its queries, and the main thread waits until every
    worker is done before it commits them. */
 
-
-/* Chooses the batch size of chimera_denovo_batches while it runs.
-
-   The batch size trades two losses against each other:
-   - idle threads: a round lasts as long as its slowest query, so the
-     threads that finish early wait. That loss comes from the round's tail,
-     about the same for every round, so it shrinks as 1/size;
-   - serial checks and recomputations: each query is checked against the
-     earlier queries of its batch, and a query found stale is detected
-     again, serially, while the other threads wait. Both the number of
-     checks and the stale share grow about linearly with the batch size,
-     and so does that loss.
-   A sum of the form a/size + b x size is smallest where its two terms are
-   equal, so the size grows while the measured idle time exceeds the
-   measured checking and recomputation loss, and shrinks in the opposite
-   case (with 10 %
-   hysteresis). Both are measured on the same batches, so the comparison
-   does not suffer from the per-query cost growing along the run.
-
-   Measured with 8, 16 and 24 threads (2026-09-25), the best fixed size was
-   one query per thread on 61k 16S V4 amplicons, and two to four per thread
-   on 219k 18S V9 ones. Sizes move by half the thread count, between one
-   and eight queries per thread. The output does not depend on the size. */
-
-/* BatchSizer's bounds and window (namespace-scope: C++11 static members
-   bound to a reference, as by std::max, would need an out-of-class
-   definition) */
-constexpr unsigned int maximum_batch_per_thread = 8;
-constexpr unsigned int window_batches = 16;
-constexpr double hysteresis = 1.1;
-/* Only half of the idle time a larger batch recovers turns into
-   throughput: the rest goes to contention, as more queries running at
-   once slow each other down (measured: 13 % slower per query with 8
-   cores busy, 24 % with 16). */
-constexpr double idle_weight = 0.5;
-
-
-/* The measurements of one batch that BatchSizer weighs, in seconds. An
-   aggregate (no default member initializers, which C++11 does not allow
-   in one), built from its three values at once. */
-struct batch_times_s {
-  double round_wall;  /* wall time of the parallel round */
-  double busy;  /* time the threads spent detecting in it, summed */
-  double serial_wall;  /* wall time of the serial checks and recomputations */
-};
-
-
-class BatchSizer
-{
-public:
-  explicit BatchSizer(std::size_t const threads) noexcept
-    : threads_(static_cast<double>(threads)),
-      minimum_(static_cast<unsigned int>(threads)),
-      maximum_(static_cast<unsigned int>(maximum_batch_per_thread * threads)),
-      step_(std::max(1U, static_cast<unsigned int>(threads / 2))),
-      size_(static_cast<unsigned int>(threads)) {}
-
-  auto size() const noexcept -> unsigned int { return size_; }
-  auto largest() const noexcept -> unsigned int { return maximum_; }
-
-  /* after each batch */
-  auto record(struct batch_times_s const & times) noexcept -> void
-  {
-    idle_ += idle_weight * std::max(0.0, (threads_ * times.round_wall) - times.busy);
-    recompute_ += threads_ * times.serial_wall;
-    ++batches_;
-    if (batches_ < window_batches)
-      {
-        return;
-      }
-    if ((idle_ > hysteresis * recompute_) and (size_ + step_ <= maximum_))
-      {
-        size_ += step_;
-      }
-    else if ((recompute_ > hysteresis * idle_) and (size_ >= minimum_ + step_))
-      {
-        size_ -= step_;
-      }
-    batches_ = 0;
-    idle_ = 0.0;
-    recompute_ = 0.0;
-  }
-
-private:
-  double const threads_;
-  unsigned int const minimum_;
-  unsigned int const maximum_;
-  unsigned int const step_;
-  unsigned int size_;
-  unsigned int batches_ = 0;
-  double idle_ = 0.0;  /* thread-seconds */
-  double recompute_ = 0.0;  /* thread-seconds */
-};
 
 
 /* Denovo detection with more than one thread, as batch speculation with
