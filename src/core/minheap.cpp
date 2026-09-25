@@ -101,6 +101,12 @@ auto elem_less(elem_t const & lhs, elem_t const & rhs) -> bool
 }  // namespace
 
 
+auto topscore_ranks_below(elem_t const & lhs, elem_t const & rhs) noexcept -> bool
+{
+  return elem_less(lhs, rhs);
+}
+
+
 Minheap::Minheap(int const capacity)
   : capacity_(static_cast<std::size_t>(capacity))
 {

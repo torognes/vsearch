@@ -38,6 +38,14 @@ sequences are never used as parents). The assumption is that chimeras
 appear later in the PCR amplification process and are therefore less
 abundant than their parents (see `--abskew`).
 
+Multithreading is supported. Because each sequence is compared with
+the non-chimeric sequences processed before it, the threads process
+groups of consecutive sequences, and a sequence whose result could
+depend on a non-chimeric sequence of its own group is processed again,
+once that sequence can serve as a candidate parent. The results, and
+the order in which they are written, are therefore identical whatever
+the number of threads.
+
 At least one output option must be specified.
 
 The command `--uchime3_denovo` is identical to `--uchime2_denovo`,
@@ -81,6 +89,8 @@ At least one of the following output options must be specified:
 
 #(./fragments/option_sizein.md)
 : Always implied.
+
+#(./fragments/option_threads.md)
 
 #(./fragments/option_uchimeout5.md)
 
@@ -160,8 +170,6 @@ Modify with caution.
 
 #(./fragments/option_minh.md)
 : Ignored by `--uchime2_denovo`.
-
-#(./fragments/option_threads_not_multithreaded.md)
 
 
 # EXAMPLES

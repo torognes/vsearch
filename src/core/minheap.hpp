@@ -74,6 +74,12 @@ struct topscore
 
 using elem_t = struct topscore;
 
+/* True when lhs ranks below rhs in the heap's order: fewer k-mer hits, then
+   a longer sequence, then a higher sequence number. The order the heap
+   itself uses (minheap.cpp), for callers that have to predict what it
+   would keep. */
+auto topscore_ranks_below(elem_t const & lhs, elem_t const & rhs) noexcept -> bool;
+
 /* A fixed-capacity min heap used to select and rank the best target
    sequences (see minheap.cpp for the ordering and usage details). */
 class Minheap
@@ -109,6 +115,18 @@ public:
   auto may_accept(unsigned int const count) const -> bool
   {
     return count >= accept_threshold();
+  }
+
+  auto size() const noexcept -> std::size_t { return array_.size(); }
+  auto capacity() const noexcept -> std::size_t { return capacity_; }
+
+  /* The least good element, the one a newcomer has to beat once the heap is
+     full: the root while the array is a heap, and still the first element
+     after sort(), which orders from least good to best. */
+  auto weakest() const noexcept -> elem_t
+  {
+    assert(not array_.empty());
+    return array_.front();
   }
 
 private:

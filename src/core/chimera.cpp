@@ -97,7 +97,7 @@
 #include <iterator>  // std::next
 #include <limits>
 #include <memory>
-#include <mutex>  // std::mutex, std::lock_guard, std::unique_lock
+#include <mutex>  // std::mutex, std::lock_guard
 #include <numeric>  // std::accumulate
 #include <string>  // std::string
 #include <utility>  // std::move
@@ -127,9 +127,10 @@ constexpr auto maxcandidates = few * maxparts;
 constexpr auto rejects = 16;
 constexpr auto chimera_id = 0.55;
 /* mutex_output, fp_uchimealns and fp_uchimeout are no longer file-static: they
-   live in chimera_cli_state_s and are injected into the detection core
-   (eval_parents/eval_parents_long) as a nullable pointer — the CLI passes its
-   state to emit output, the library path passes nullptr (E6). mutex_input is
+   live in chimera_cli_state_s and are used only by the CLI report writers
+   (print_report/print_report_long, called from process_query); the detection
+   core (eval_parents/eval_parents_long) writes no output on either path
+   (E6). mutex_input is
    likewise not here — it only serializes input reading on the CLI path and is
    owned as a local by chimera_threads_run(). */
 
@@ -149,6 +150,36 @@ struct alignment_rows_s {
   Span<char> model;
   Span<char> diffs;
   Span<char> votes;
+};
+
+
+/* The figures eval_parents() or eval_parents_long() computed for the current
+   query, kept for the report writers (--uchimealns and --uchimeout, or
+   --alnout and --tabbedout for --chimeras_denovo). Detection fills them and
+   writes nothing; the writers run later, when the query's result is output.
+   Valid when the detection status is low_score or higher. The output step
+   reads it from the query's chimera_query_result_s, which also carries
+   best_h and, when needed, the alignment rows. Named after the matching
+   chimera_result_s fields. */
+struct chimera_report_s {
+  int parent_a = 0;  /* seqno of the parent printed as A */
+  int parent_b = 0;
+  int parent_c = -1;  /* third parent (eval_parents_long only), or -1 */
+  bool parents_swapped = false;  /* paln[1] is parent A (eval_parents only) */
+  double id_query_model = 0.0;
+  double id_query_a = 0.0;
+  double id_query_b = 0.0;
+  double id_query_c = 0.0;  /* eval_parents_long only */
+  double id_a_b = 0.0;  /* eval_parents only */
+  double id_query_top = 0.0;
+  double divergence = 0.0;  /* QM - QT, eval_parents only */
+  double divergence_percent = 0.0;  /* 100 * (QM - QT) / QT */
+  int left_yes = 0;  /* the six vote counts: eval_parents only */
+  int left_no = 0;
+  int left_abstain = 0;
+  int right_yes = 0;
+  int right_no = 0;
+  int right_abstain = 0;
 };
 
 
@@ -241,6 +272,7 @@ struct chimera_info_s
   std::vector<bool> ignore;
 
   double best_h = 0;
+  struct chimera_report_s report;  /* filled by eval_parents*, read by the report writers */
 
   int parts = 0;  /* number of query parts for chimera detection */
 
@@ -308,14 +340,14 @@ struct chimera_info_s
 /* Per-invocation CLI state for the chimera() command — the statics used only
    by the CLI path: the query file handle, progress, the six stats
    counters/abundances, the chimeras/nonchimeras/borderline output handles, the
-   per-thread chimera_info array, and the detection-core output handles
+   per-thread chimera_info array, and the report output handles
    (fp_uchimealns/fp_uchimeout) with the mutex serializing all CLI writes.
    Threaded through chimera_threads_run() and chimera_thread_core() so the CLI
    command is reentrant (E4). The detection core (eval_parents /
    eval_parents_long, reached from both the CLI and the library
-   chimera_detect_single) receives this state as a nullable pointer: the CLI
-   passes it to emit output, the library path passes nullptr and writes no
-   files (E6 split of the core from its CLI output). */
+   chimera_detect_single) never sees this state: it leaves its figures in
+   chimera_info_s::report, and the CLI writes them from process_query (E6
+   split of the core from its CLI output). */
 struct chimera_cli_state_s
 {
   /* the run configuration, threaded through the CLI-path helpers instead of the
@@ -367,6 +399,51 @@ enum struct Status : unsigned char {
   low_score,    // (2) score < minh, non-chimeric
   suspicious,   // (3) score >= minh, not available with uchime2_denovo and uchime3_denovo
   chimeric,      // (4) score >= minh && divdiff >= opt_mindiv && ...
+};
+
+
+/* The rows of one query's --uchimealns (--alnout) block, copied out of the
+   worker's chimera_info_s, which the worker's next query overwrites. All
+   rows have the alignment's length. */
+struct chimera_alignment_s {
+  std::vector<char> query;
+  std::vector<std::vector<char>> parents;  /* in chimera_info_s::paln order */
+  std::vector<int> parent_seqnos;  /* parallel to parents */
+  std::vector<char> diffs;
+  std::vector<char> votes;  /* eval_parents only; empty otherwise */
+  std::vector<char> model;
+};
+
+
+/* One part search of a query, as the denovo batch driver needs it to check
+   a result computed against an index that missed some earlier queries: the
+   heap threshold the search left (see TopscoresThreshold) and the part's
+   unique k-mers. */
+struct chimera_part_search_s {
+  struct TopscoresThreshold threshold;
+  std::vector<unsigned int> kmers;
+};
+
+
+/* Everything the CLI writes or counts for one query, taken from the worker's
+   chimera_info_s once detection is over, so that the output step reads
+   this and nothing else. header and sequence are views: into the database
+   in denovo mode, into the worker's chimera_info_s for --uchime_ref (valid
+   until that worker claims its next query). The alignment rows are copied
+   only for a chimera, and only when --uchimealns (--alnout) is set. */
+struct chimera_query_result_s {
+  Status status = Status::no_parents;
+  unsigned int seqno = 0;  /* denovo: the query's database index */
+  uint64_t query_position = 0;  /* --uchime_ref: progress in the query file */
+  int64_t abundance = 0;
+  View<char> header {nullptr, 0};
+  View<char> sequence {nullptr, 0};
+  double best_h = 0.0;
+  struct chimera_report_s report;
+  struct chimera_alignment_s alignment;
+  /* denovo batch driver only: one per part search, none when the query was
+     too short to be split and searched */
+  std::vector<struct chimera_part_search_s> part_searches;
 };
 
 
@@ -1156,9 +1233,8 @@ auto compute_diffs(struct chimera_info_s const * ci,
 }
 
 
-auto eval_parents_long(struct chimera_info_s * ci, struct chimera_cli_state_s * cli, struct Database const & db) -> Status
+auto eval_parents_long(struct chimera_info_s * ci, struct Database const & db) -> Status
 {
-  struct Parameters const & parameters = *ci->parameters;
   /* always chimeric if called */
   auto const status = Status::chimeric;
 
@@ -1237,167 +1313,21 @@ auto eval_parents_long(struct chimera_info_s * ci, struct chimera_cli_state_s * 
       r->flag = 'Y';  /* eval_parents_long is always chimeric */
     }
 
-  /* CLI-only alignment/tabbed output; the library path (cli == nullptr) has
-     already populated the API result above and writes no files. */
-  if (cli == nullptr)
-    {
-      return status;
-    }
-
-  std::lock_guard<std::mutex> const output_lock(cli->mutex_output);
-
-  if ((parameters.opt_alnout != nullptr) and (status == Status::chimeric))
-    {
-      fprint(cli->fp_uchimealns, '\n');
-      fprint(cli->fp_uchimealns, "----------------------------------------"
-                                 "--------------------------------\n");
-      fprint(cli->fp_uchimealns, "Query   (");
-      fprint_integer(cli->fp_uchimealns, ci->query_len, 5);
-      fprint(cli->fp_uchimealns, " nt) ");
-      header_fprint_strip(cli->fp_uchimealns,
-                          ci->query_head,
-                          attributes_to_strip(parameters));
-
-      if (ci->parents_found > maxparents)  // 20 parents max ('A' to 'U')
-        {
-          fatal("Internal error: chimera parents_found exceeds maxparents");
-        }
-      for (int f = 0; f < ci->parents_found; ++f)
-        {
-          int const parent_seqno = static_cast<int>(ci->cand_list[static_cast<size_t>(ci->best_parents[static_cast<size_t>(f)])]);
-          fprint(cli->fp_uchimealns, "\nParent");
-          fprint(cli->fp_uchimealns, static_cast<char>('A' + f));
-          fprint(cli->fp_uchimealns, " (");
-          fprint_integer(cli->fp_uchimealns, db.getsequencelen(static_cast<uint64_t>(parent_seqno)), 5);
-          fprint(cli->fp_uchimealns, " nt) ");
-          header_fprint_strip(cli->fp_uchimealns,
-                              db.header_view(static_cast<uint64_t>(parent_seqno)),
-                              attributes_to_strip(parameters));
-        }
-
-      fprint(cli->fp_uchimealns, "\n\n");
-
-
-      int const width = parameters.opt_alignwidth > 0 ? parameters.opt_alignwidth : alnlen;
-      int qpos = 0;
-      std::array<int, maxparents> ppos {{}};
-      int rest = alnlen;
-
-      for (int i = 0; i < alnlen; i += width)
-        {
-          /* count non-gap symbols on current line */
-
-          int qnt = 0;
-          std::array<int, maxparents> pnt {{}};
-
-          int const w = std::min(rest, width);
-
-          for (int j = 0; j < w; ++j)
-            {
-              if (ci->qaln[static_cast<size_t>(i + j)] != '-')
-                {
-                  ++qnt;
-                }
-
-              for (int f = 0; f < ci->parents_found; ++f) {
-                if (ci->paln[static_cast<size_t>(f)][static_cast<size_t>(i + j)] != '-')
-                  {
-                    ++pnt[static_cast<size_t>(f)];
-                  }
-              }
-            }
-
-          print_alignment_row(cli->fp_uchimealns, 'Q', qpos + 1,
-                  View<char>{&ci->qaln[static_cast<size_t>(i)], static_cast<std::size_t>(w)}, qpos + qnt);
-
-          for (int f = 0; f < ci->parents_found; ++f)
-            {
-              print_alignment_row(cli->fp_uchimealns, static_cast<char>('A' + f),
-                      ppos[static_cast<size_t>(f)] + 1,
-                      View<char>{&ci->paln[static_cast<size_t>(f)][static_cast<size_t>(i)], static_cast<std::size_t>(w)},
-                      ppos[static_cast<size_t>(f)] + pnt[static_cast<size_t>(f)]);
-            }
-
-          print_annotation_row(cli->fp_uchimealns, "Diffs   ",
-                  View<char>{&ci->diffs[static_cast<size_t>(i)], static_cast<std::size_t>(w)});
-          print_annotation_row(cli->fp_uchimealns, "Model   ",
-                  View<char>{&ci->model[static_cast<size_t>(i)], static_cast<std::size_t>(w)});
-          fprint(cli->fp_uchimealns, '\n');
-
-          rest -= width;
-          qpos += qnt;
-          for (int f = 0; f < ci->parents_found; ++f) {
-            ppos[static_cast<size_t>(f)] += pnt[static_cast<size_t>(f)];
-          }
-        }
-
-      fprint(cli->fp_uchimealns, "Ids.  QA ");
-      std::fprintf(cli->fp_uchimealns, "%.2f", QA);
-      fprint(cli->fp_uchimealns, "%, QB ");
-      std::fprintf(cli->fp_uchimealns, "%.2f", QB);
-      fprint(cli->fp_uchimealns, "%, QC ");
-      std::fprintf(cli->fp_uchimealns, "%.2f", QC);
-      fprint(cli->fp_uchimealns, "%, QT ");
-      std::fprintf(cli->fp_uchimealns, "%.2f", QT);
-      fprint(cli->fp_uchimealns, "%, QModel ");
-      std::fprintf(cli->fp_uchimealns, "%.2f", QM);
-      fprint(cli->fp_uchimealns, "%, Div. ");
-      std::fprintf(cli->fp_uchimealns, "%+.2f", divfrac);
-      fprint(cli->fp_uchimealns, "%\n");
-    }
-
-  if (parameters.opt_tabbedout != nullptr)
-    {
-      std::fprintf(cli->fp_uchimeout, "%.4f", 99.9999);
-      fprint(cli->fp_uchimeout, '\t');
-
-      header_fprint_strip(cli->fp_uchimeout,
-                          ci->query_head,
-                          attributes_to_strip(parameters));
-      fprint(cli->fp_uchimeout, '\t');
-      header_fprint_strip(cli->fp_uchimeout,
-                          db.header_view(static_cast<uint64_t>(seqno_a)),
-                          attributes_to_strip(parameters));
-      fprint(cli->fp_uchimeout, '\t');
-      header_fprint_strip(cli->fp_uchimeout,
-                          db.header_view(static_cast<uint64_t>(seqno_b)),
-                          attributes_to_strip(parameters));
-      fprint(cli->fp_uchimeout, '\t');
-      if (seqno_c >= 0)
-        {
-          header_fprint_strip(cli->fp_uchimeout,
-                              db.header_view(static_cast<uint64_t>(seqno_c)),
-                              attributes_to_strip(parameters));
-        }
-      else
-        {
-          fprint(cli->fp_uchimeout, '*');
-        }
-      fprint(cli->fp_uchimeout, '\t');
-
-      std::fprintf(cli->fp_uchimeout,
-              "%.2f\t%.2f\t%.2f\t%.2f\t%.2f\t"
-              "%d\t%d\t%d\t%d\t%d\t%d\t%.2f\t%c\n",
-              QM,
-              QA,
-              QB,
-              QC,
-              QT,
-              0, /* ignore, left yes */
-              0, /* ignore, left no */
-              0, /* ignore, left abstain */
-              0, /* ignore, right yes */
-              0, /* ignore, right no */
-              0, /* ignore, right abstain */
-              0.00,
-              status == Status::chimeric ? 'Y' : (status == Status::low_score ? 'N' : '?'));
-    }
+  ci->report.parent_a = seqno_a;
+  ci->report.parent_b = seqno_b;
+  ci->report.parent_c = seqno_c;
+  ci->report.id_query_model = QM;
+  ci->report.id_query_a = QA;
+  ci->report.id_query_b = QB;
+  ci->report.id_query_c = QC;
+  ci->report.id_query_top = QT;
+  ci->report.divergence_percent = divfrac;
 
   return status;
 }
 
 
-auto eval_parents(struct chimera_info_s * ci, struct chimera_cli_state_s * cli, struct Database const & db) -> Status
+auto eval_parents(struct chimera_info_s * ci, struct Database const & db) -> Status
 {
   struct Parameters const & parameters = *ci->parameters;
   auto status = Status::no_alignment;
@@ -1813,211 +1743,401 @@ auto eval_parents(struct chimera_info_s * ci, struct chimera_cli_state_s * cli, 
                     (status == Status::low_score ? 'N' : '?');
         }
 
-      /* print alignment */
-
-      /* CLI-only alignment/tabbed output; the library path (cli == nullptr)
-         has already populated the API result above and writes no files. */
-      if (cli == nullptr)
-        {
-          return status;
-        }
-
-      std::unique_lock<std::mutex> output_lock(cli->mutex_output);
-
-      if ((parameters.opt_uchimealns != nullptr) and (status == Status::chimeric))
-        {
-          fprint(cli->fp_uchimealns, '\n');
-          fprint(cli->fp_uchimealns, "----------------------------------------"
-                                     "--------------------------------\n");
-          fprint(cli->fp_uchimealns, "Query   (");
-          fprint_integer(cli->fp_uchimealns, ci->query_len, 5);
-          fprint(cli->fp_uchimealns, " nt) ");
-
-          header_fprint_strip(cli->fp_uchimealns,
-                              ci->query_head,
-                              attributes_to_strip(parameters));
-
-          fprint(cli->fp_uchimealns, "\nParentA (");
-          fprint_integer(cli->fp_uchimealns, db.getsequencelen(static_cast<uint64_t>(seqno_a)), 5);
-          fprint(cli->fp_uchimealns, " nt) ");
-          header_fprint_strip(cli->fp_uchimealns,
-                              db.header_view(static_cast<uint64_t>(seqno_a)),
-                              attributes_to_strip(parameters));
-
-          fprint(cli->fp_uchimealns, "\nParentB (");
-          fprint_integer(cli->fp_uchimealns, db.getsequencelen(static_cast<uint64_t>(seqno_b)), 5);
-          fprint(cli->fp_uchimealns, " nt) ");
-          header_fprint_strip(cli->fp_uchimealns,
-                              db.header_view(static_cast<uint64_t>(seqno_b)),
-                              attributes_to_strip(parameters));
-          fprint(cli->fp_uchimealns, "\n\n");
-
-          auto const width = parameters.opt_alignwidth > 0 ? parameters.opt_alignwidth : alnlen;
-          auto qpos = 0;
-          auto p1pos = 0;
-          auto p2pos = 0;
-          auto rest = alnlen;
-
-          for (auto i = 0; i < alnlen; i += width)
-            {
-              /* count non-gap symbols on current line */
-
-              auto qnt = 0;
-              auto p1nt = 0;
-              auto p2nt = 0;
-
-              auto const w = std::min(rest, width);
-
-              for (auto j = 0; j < w; ++j)
-                {
-                  if (ci->qaln[static_cast<size_t>(i + j)] != '-')
-                    {
-                      ++qnt;
-                    }
-                  if (ci->paln[0][static_cast<size_t>(i + j)] != '-')
-                    {
-                      ++p1nt;
-                    }
-                  if (ci->paln[1][static_cast<size_t>(i + j)] != '-')
-                    {
-                      ++p2nt;
-                    }
-                }
-
-              auto const parent_a_row = View<char>{&ci->paln[0][static_cast<size_t>(i)], static_cast<std::size_t>(w)};
-              auto const parent_b_row = View<char>{&ci->paln[1][static_cast<size_t>(i)], static_cast<std::size_t>(w)};
-              auto const query_row = View<char>{&ci->qaln[static_cast<size_t>(i)], static_cast<std::size_t>(w)};
-
-              if (not best_is_reverse)
-                {
-                  print_alignment_row(cli->fp_uchimealns, 'A', p1pos + 1, parent_a_row, p1pos + p1nt);
-                  print_alignment_row(cli->fp_uchimealns, 'Q', qpos + 1, query_row, qpos + qnt);
-                  print_alignment_row(cli->fp_uchimealns, 'B', p2pos + 1, parent_b_row, p2pos + p2nt);
-                }
-              else
-                {
-                  print_alignment_row(cli->fp_uchimealns, 'A', p2pos + 1, parent_b_row, p2pos + p2nt);
-                  print_alignment_row(cli->fp_uchimealns, 'Q', qpos + 1, query_row, qpos + qnt);
-                  print_alignment_row(cli->fp_uchimealns, 'B', p1pos + 1, parent_a_row, p1pos + p1nt);
-                }
-
-              print_annotation_row(cli->fp_uchimealns, "Diffs   ",
-                      View<char>{&ci->diffs[static_cast<size_t>(i)], static_cast<std::size_t>(w)});
-              print_annotation_row(cli->fp_uchimealns, "Votes   ",
-                      View<char>{&ci->votes[static_cast<size_t>(i)], static_cast<std::size_t>(w)});
-              print_annotation_row(cli->fp_uchimealns, "Model   ",
-                      View<char>{&ci->model[static_cast<size_t>(i)], static_cast<std::size_t>(w)});
-              fprint(cli->fp_uchimealns, '\n');
-
-              qpos += qnt;
-              p1pos += p1nt;
-              p2pos += p2nt;
-              rest -= width;
-            }
-
-          fprint(cli->fp_uchimealns, "Ids.  QA ");
-          std::fprintf(cli->fp_uchimealns, "%.1f", QA);
-          fprint(cli->fp_uchimealns, "%, QB ");
-          std::fprintf(cli->fp_uchimealns, "%.1f", QB);
-          fprint(cli->fp_uchimealns, "%, AB ");
-          std::fprintf(cli->fp_uchimealns, "%.1f", AB);
-          fprint(cli->fp_uchimealns, "%, QModel ");
-          std::fprintf(cli->fp_uchimealns, "%.1f", QM);
-          fprint(cli->fp_uchimealns, "%, Div. ");
-          std::fprintf(cli->fp_uchimealns, "%+.1f", divfrac);
-          fprint(cli->fp_uchimealns, "%\n");
-
-          fprint(cli->fp_uchimealns, "Diffs Left ");
-          fprint_integer(cli->fp_uchimealns, sumL);
-          fprint(cli->fp_uchimealns, ": N ");
-          fprint_integer(cli->fp_uchimealns, best_left_n);
-          fprint(cli->fp_uchimealns, ", A ");
-          fprint_integer(cli->fp_uchimealns, best_left_a);
-          fprint(cli->fp_uchimealns, ", Y ");
-          fprint_integer(cli->fp_uchimealns, best_left_y);
-          fprint(cli->fp_uchimealns, " (");
-          std::fprintf(cli->fp_uchimealns, "%.1f", 100.0 * best_left_y / sumL);
-          fprint(cli->fp_uchimealns, "%); Right ");
-          fprint_integer(cli->fp_uchimealns, sumR);
-          fprint(cli->fp_uchimealns, ": N ");
-          fprint_integer(cli->fp_uchimealns, best_right_n);
-          fprint(cli->fp_uchimealns, ", A ");
-          fprint_integer(cli->fp_uchimealns, best_right_a);
-          fprint(cli->fp_uchimealns, ", Y ");
-          fprint_integer(cli->fp_uchimealns, best_right_y);
-          fprint(cli->fp_uchimealns, " (");
-          std::fprintf(cli->fp_uchimealns, "%.1f", 100.0 * best_right_y / sumR);
-          fprint(cli->fp_uchimealns, "%), Score ");
-          std::fprintf(cli->fp_uchimealns, "%.4f", best_h);
-          fprint(cli->fp_uchimealns, '\n');
-        }
-
-      if (parameters.opt_uchimeout != nullptr)
-        {
-          std::fprintf(cli->fp_uchimeout, "%.4f", best_h);
-          fprint(cli->fp_uchimeout, '\t');
-
-          header_fprint_strip(cli->fp_uchimeout,
-                              ci->query_head,
-                              attributes_to_strip(parameters));
-          fprint(cli->fp_uchimeout, '\t');
-          header_fprint_strip(cli->fp_uchimeout,
-                              db.header_view(static_cast<uint64_t>(seqno_a)),
-                              attributes_to_strip(parameters));
-          fprint(cli->fp_uchimeout, '\t');
-          header_fprint_strip(cli->fp_uchimeout,
-                              db.header_view(static_cast<uint64_t>(seqno_b)),
-                              attributes_to_strip(parameters));
-          fprint(cli->fp_uchimeout, '\t');
-
-          if (parameters.opt_uchimeout5 == 0)
-            {
-              if (QA >= QB)
-                {
-                  header_fprint_strip(cli->fp_uchimeout,
-                                      db.header_view(static_cast<uint64_t>(seqno_a)),
-                                      attributes_to_strip(parameters));
-                }
-              else
-                {
-                  header_fprint_strip(cli->fp_uchimeout,
-                                      db.header_view(static_cast<uint64_t>(seqno_b)),
-                                      attributes_to_strip(parameters));
-                }
-              fprint(cli->fp_uchimeout, '\t');
-            }
-
-          std::fprintf(cli->fp_uchimeout, "%.1f", QM);
-          fprint(cli->fp_uchimeout, '\t');
-          std::fprintf(cli->fp_uchimeout, "%.1f", QA);
-          fprint(cli->fp_uchimeout, '\t');
-          std::fprintf(cli->fp_uchimeout, "%.1f", QB);
-          fprint(cli->fp_uchimeout, '\t');
-          std::fprintf(cli->fp_uchimeout, "%.1f", AB);
-          fprint(cli->fp_uchimeout, '\t');
-          std::fprintf(cli->fp_uchimeout, "%.1f", QT);
-          fprint(cli->fp_uchimeout, '\t');
-          fprint_integer(cli->fp_uchimeout, best_left_y);
-          fprint(cli->fp_uchimeout, '\t');
-          fprint_integer(cli->fp_uchimeout, best_left_n);
-          fprint(cli->fp_uchimeout, '\t');
-          fprint_integer(cli->fp_uchimeout, best_left_a);
-          fprint(cli->fp_uchimeout, '\t');
-          fprint_integer(cli->fp_uchimeout, best_right_y);
-          fprint(cli->fp_uchimeout, '\t');
-          fprint_integer(cli->fp_uchimeout, best_right_n);
-          fprint(cli->fp_uchimeout, '\t');
-          fprint_integer(cli->fp_uchimeout, best_right_a);
-          fprint(cli->fp_uchimeout, '\t');
-          std::fprintf(cli->fp_uchimeout, "%.1f", divdiff);
-          fprint(cli->fp_uchimeout, '\t');
-          fprint(cli->fp_uchimeout, status == Status::chimeric ? 'Y' : (status == Status::low_score ? 'N' : '?'));
-          fprint(cli->fp_uchimeout, '\n');
-        }
-      output_lock.unlock();
+      ci->report.parent_a = seqno_a;
+      ci->report.parent_b = seqno_b;
+      ci->report.parents_swapped = best_is_reverse;
+      ci->report.id_query_model = QM;
+      ci->report.id_query_a = QA;
+      ci->report.id_query_b = QB;
+      ci->report.id_a_b = AB;
+      ci->report.id_query_top = QT;
+      ci->report.divergence = divdiff;
+      ci->report.divergence_percent = divfrac;
+      ci->report.left_yes = best_left_y;
+      ci->report.left_no = best_left_n;
+      ci->report.left_abstain = best_left_a;
+      ci->report.right_yes = best_right_y;
+      ci->report.right_no = best_right_n;
+      ci->report.right_abstain = best_right_a;
     }
 
   return status;
+}
+
+
+/* The --alnout and --tabbedout records of one --chimeras_denovo query, from
+   the figures and rows its result carries. Called with the output lock
+   held, only when eval_parents_long() ran (it always reports a chimera). */
+auto print_report_long(struct chimera_cli_state_s const & cli,
+                       struct chimera_query_result_s const & result,
+                       struct Database const & db) -> void
+{
+  struct Parameters const & parameters = cli.detection_parameters;
+  auto const & report = result.report;
+  auto const & alignment = result.alignment;
+  auto const status = result.status;
+  auto const alnlen = static_cast<int>(alignment.query.size());
+  auto const parent_count = static_cast<int>(alignment.parents.size());
+
+  if ((parameters.opt_alnout != nullptr) and (status == Status::chimeric))
+    {
+      fprint(cli.fp_uchimealns, '\n');
+      fprint(cli.fp_uchimealns, "----------------------------------------"
+                                 "--------------------------------\n");
+      fprint(cli.fp_uchimealns, "Query   (");
+      fprint_integer(cli.fp_uchimealns, result.sequence.size(), 5);
+      fprint(cli.fp_uchimealns, " nt) ");
+      header_fprint_strip(cli.fp_uchimealns,
+                          result.header,
+                          attributes_to_strip(parameters));
+
+      if (parent_count > maxparents)  // 20 parents max ('A' to 'U')
+        {
+          fatal("Internal error: chimera parents_found exceeds maxparents");
+        }
+      for (int f = 0; f < parent_count; ++f)
+        {
+          int const parent_seqno = alignment.parent_seqnos[static_cast<size_t>(f)];
+          fprint(cli.fp_uchimealns, "\nParent");
+          fprint(cli.fp_uchimealns, static_cast<char>('A' + f));
+          fprint(cli.fp_uchimealns, " (");
+          fprint_integer(cli.fp_uchimealns, db.getsequencelen(static_cast<uint64_t>(parent_seqno)), 5);
+          fprint(cli.fp_uchimealns, " nt) ");
+          header_fprint_strip(cli.fp_uchimealns,
+                              db.header_view(static_cast<uint64_t>(parent_seqno)),
+                              attributes_to_strip(parameters));
+        }
+
+      fprint(cli.fp_uchimealns, "\n\n");
+
+
+      int const width = parameters.opt_alignwidth > 0 ? parameters.opt_alignwidth : alnlen;
+      int qpos = 0;
+      std::array<int, maxparents> ppos {{}};
+      int rest = alnlen;
+
+      for (int i = 0; i < alnlen; i += width)
+        {
+          /* count non-gap symbols on current line */
+
+          int qnt = 0;
+          std::array<int, maxparents> pnt {{}};
+
+          int const w = std::min(rest, width);
+
+          for (int j = 0; j < w; ++j)
+            {
+              if (alignment.query[static_cast<size_t>(i + j)] != '-')
+                {
+                  ++qnt;
+                }
+
+              for (int f = 0; f < parent_count; ++f) {
+                if (alignment.parents[static_cast<size_t>(f)][static_cast<size_t>(i + j)] != '-')
+                  {
+                    ++pnt[static_cast<size_t>(f)];
+                  }
+              }
+            }
+
+          print_alignment_row(cli.fp_uchimealns, 'Q', qpos + 1,
+                  View<char>{&alignment.query[static_cast<size_t>(i)], static_cast<std::size_t>(w)}, qpos + qnt);
+
+          for (int f = 0; f < parent_count; ++f)
+            {
+              print_alignment_row(cli.fp_uchimealns, static_cast<char>('A' + f),
+                      ppos[static_cast<size_t>(f)] + 1,
+                      View<char>{&alignment.parents[static_cast<size_t>(f)][static_cast<size_t>(i)], static_cast<std::size_t>(w)},
+                      ppos[static_cast<size_t>(f)] + pnt[static_cast<size_t>(f)]);
+            }
+
+          print_annotation_row(cli.fp_uchimealns, "Diffs   ",
+                  View<char>{&alignment.diffs[static_cast<size_t>(i)], static_cast<std::size_t>(w)});
+          print_annotation_row(cli.fp_uchimealns, "Model   ",
+                  View<char>{&alignment.model[static_cast<size_t>(i)], static_cast<std::size_t>(w)});
+          fprint(cli.fp_uchimealns, '\n');
+
+          rest -= width;
+          qpos += qnt;
+          for (int f = 0; f < parent_count; ++f) {
+            ppos[static_cast<size_t>(f)] += pnt[static_cast<size_t>(f)];
+          }
+        }
+
+      fprint(cli.fp_uchimealns, "Ids.  QA ");
+      std::fprintf(cli.fp_uchimealns, "%.2f", report.id_query_a);
+      fprint(cli.fp_uchimealns, "%, QB ");
+      std::fprintf(cli.fp_uchimealns, "%.2f", report.id_query_b);
+      fprint(cli.fp_uchimealns, "%, QC ");
+      std::fprintf(cli.fp_uchimealns, "%.2f", report.id_query_c);
+      fprint(cli.fp_uchimealns, "%, QT ");
+      std::fprintf(cli.fp_uchimealns, "%.2f", report.id_query_top);
+      fprint(cli.fp_uchimealns, "%, QModel ");
+      std::fprintf(cli.fp_uchimealns, "%.2f", report.id_query_model);
+      fprint(cli.fp_uchimealns, "%, Div. ");
+      std::fprintf(cli.fp_uchimealns, "%+.2f", report.divergence_percent);
+      fprint(cli.fp_uchimealns, "%\n");
+    }
+
+  if (parameters.opt_tabbedout != nullptr)
+    {
+      std::fprintf(cli.fp_uchimeout, "%.4f", 99.9999);
+      fprint(cli.fp_uchimeout, '\t');
+
+      header_fprint_strip(cli.fp_uchimeout,
+                          result.header,
+                          attributes_to_strip(parameters));
+      fprint(cli.fp_uchimeout, '\t');
+      header_fprint_strip(cli.fp_uchimeout,
+                          db.header_view(static_cast<uint64_t>(report.parent_a)),
+                          attributes_to_strip(parameters));
+      fprint(cli.fp_uchimeout, '\t');
+      header_fprint_strip(cli.fp_uchimeout,
+                          db.header_view(static_cast<uint64_t>(report.parent_b)),
+                          attributes_to_strip(parameters));
+      fprint(cli.fp_uchimeout, '\t');
+      if (report.parent_c >= 0)
+        {
+          header_fprint_strip(cli.fp_uchimeout,
+                              db.header_view(static_cast<uint64_t>(report.parent_c)),
+                              attributes_to_strip(parameters));
+        }
+      else
+        {
+          fprint(cli.fp_uchimeout, '*');
+        }
+      fprint(cli.fp_uchimeout, '\t');
+
+      std::fprintf(cli.fp_uchimeout,
+              "%.2f\t%.2f\t%.2f\t%.2f\t%.2f\t"
+              "%d\t%d\t%d\t%d\t%d\t%d\t%.2f\t%c\n",
+              report.id_query_model,
+              report.id_query_a,
+              report.id_query_b,
+              report.id_query_c,
+              report.id_query_top,
+              0, /* ignore, left yes */
+              0, /* ignore, left no */
+              0, /* ignore, left abstain */
+              0, /* ignore, right yes */
+              0, /* ignore, right no */
+              0, /* ignore, right abstain */
+              0.00,
+              status == Status::chimeric ? 'Y' : (status == Status::low_score ? 'N' : '?'));
+    }
+
+}
+
+
+/* The --uchimealns and --uchimeout records of one uchime query, from the
+   figures and rows its result carries. Called with the output lock held,
+   only when eval_parents() scored the query (status low_score or higher); a
+   query with no parents or no alignment gets its --uchimeout line from
+   output_query_result instead. */
+auto print_report(struct chimera_cli_state_s const & cli,
+                  struct chimera_query_result_s const & result,
+                  struct Database const & db) -> void
+{
+  struct Parameters const & parameters = cli.detection_parameters;
+  auto const & report = result.report;
+  auto const & alignment = result.alignment;
+  auto const status = result.status;
+  auto const alnlen = static_cast<int>(alignment.query.size());
+  int const sumL = report.left_no + report.left_abstain + report.left_yes;
+  int const sumR = report.right_no + report.right_abstain + report.right_yes;
+
+  /* print alignment */
+
+  if ((parameters.opt_uchimealns != nullptr) and (status == Status::chimeric))
+    {
+      fprint(cli.fp_uchimealns, '\n');
+      fprint(cli.fp_uchimealns, "----------------------------------------"
+                                 "--------------------------------\n");
+      fprint(cli.fp_uchimealns, "Query   (");
+      fprint_integer(cli.fp_uchimealns, result.sequence.size(), 5);
+      fprint(cli.fp_uchimealns, " nt) ");
+
+      header_fprint_strip(cli.fp_uchimealns,
+                          result.header,
+                          attributes_to_strip(parameters));
+
+      fprint(cli.fp_uchimealns, "\nParentA (");
+      fprint_integer(cli.fp_uchimealns, db.getsequencelen(static_cast<uint64_t>(report.parent_a)), 5);
+      fprint(cli.fp_uchimealns, " nt) ");
+      header_fprint_strip(cli.fp_uchimealns,
+                          db.header_view(static_cast<uint64_t>(report.parent_a)),
+                          attributes_to_strip(parameters));
+
+      fprint(cli.fp_uchimealns, "\nParentB (");
+      fprint_integer(cli.fp_uchimealns, db.getsequencelen(static_cast<uint64_t>(report.parent_b)), 5);
+      fprint(cli.fp_uchimealns, " nt) ");
+      header_fprint_strip(cli.fp_uchimealns,
+                          db.header_view(static_cast<uint64_t>(report.parent_b)),
+                          attributes_to_strip(parameters));
+      fprint(cli.fp_uchimealns, "\n\n");
+
+      auto const width = parameters.opt_alignwidth > 0 ? parameters.opt_alignwidth : alnlen;
+      auto qpos = 0;
+      auto p1pos = 0;
+      auto p2pos = 0;
+      auto rest = alnlen;
+
+      for (auto i = 0; i < alnlen; i += width)
+        {
+          /* count non-gap symbols on current line */
+
+          auto qnt = 0;
+          auto p1nt = 0;
+          auto p2nt = 0;
+
+          auto const w = std::min(rest, width);
+
+          for (auto j = 0; j < w; ++j)
+            {
+              if (alignment.query[static_cast<size_t>(i + j)] != '-')
+                {
+                  ++qnt;
+                }
+              if (alignment.parents[0][static_cast<size_t>(i + j)] != '-')
+                {
+                  ++p1nt;
+                }
+              if (alignment.parents[1][static_cast<size_t>(i + j)] != '-')
+                {
+                  ++p2nt;
+                }
+            }
+
+          auto const parent_a_row = View<char>{&alignment.parents[0][static_cast<size_t>(i)], static_cast<std::size_t>(w)};
+          auto const parent_b_row = View<char>{&alignment.parents[1][static_cast<size_t>(i)], static_cast<std::size_t>(w)};
+          auto const query_row = View<char>{&alignment.query[static_cast<size_t>(i)], static_cast<std::size_t>(w)};
+
+          if (not report.parents_swapped)
+            {
+              print_alignment_row(cli.fp_uchimealns, 'A', p1pos + 1, parent_a_row, p1pos + p1nt);
+              print_alignment_row(cli.fp_uchimealns, 'Q', qpos + 1, query_row, qpos + qnt);
+              print_alignment_row(cli.fp_uchimealns, 'B', p2pos + 1, parent_b_row, p2pos + p2nt);
+            }
+          else
+            {
+              print_alignment_row(cli.fp_uchimealns, 'A', p2pos + 1, parent_b_row, p2pos + p2nt);
+              print_alignment_row(cli.fp_uchimealns, 'Q', qpos + 1, query_row, qpos + qnt);
+              print_alignment_row(cli.fp_uchimealns, 'B', p1pos + 1, parent_a_row, p1pos + p1nt);
+            }
+
+          print_annotation_row(cli.fp_uchimealns, "Diffs   ",
+                  View<char>{&alignment.diffs[static_cast<size_t>(i)], static_cast<std::size_t>(w)});
+          print_annotation_row(cli.fp_uchimealns, "Votes   ",
+                  View<char>{&alignment.votes[static_cast<size_t>(i)], static_cast<std::size_t>(w)});
+          print_annotation_row(cli.fp_uchimealns, "Model   ",
+                  View<char>{&alignment.model[static_cast<size_t>(i)], static_cast<std::size_t>(w)});
+          fprint(cli.fp_uchimealns, '\n');
+
+          qpos += qnt;
+          p1pos += p1nt;
+          p2pos += p2nt;
+          rest -= width;
+        }
+
+      fprint(cli.fp_uchimealns, "Ids.  QA ");
+      std::fprintf(cli.fp_uchimealns, "%.1f", report.id_query_a);
+      fprint(cli.fp_uchimealns, "%, QB ");
+      std::fprintf(cli.fp_uchimealns, "%.1f", report.id_query_b);
+      fprint(cli.fp_uchimealns, "%, AB ");
+      std::fprintf(cli.fp_uchimealns, "%.1f", report.id_a_b);
+      fprint(cli.fp_uchimealns, "%, QModel ");
+      std::fprintf(cli.fp_uchimealns, "%.1f", report.id_query_model);
+      fprint(cli.fp_uchimealns, "%, Div. ");
+      std::fprintf(cli.fp_uchimealns, "%+.1f", report.divergence_percent);
+      fprint(cli.fp_uchimealns, "%\n");
+
+      fprint(cli.fp_uchimealns, "Diffs Left ");
+      fprint_integer(cli.fp_uchimealns, sumL);
+      fprint(cli.fp_uchimealns, ": N ");
+      fprint_integer(cli.fp_uchimealns, report.left_no);
+      fprint(cli.fp_uchimealns, ", A ");
+      fprint_integer(cli.fp_uchimealns, report.left_abstain);
+      fprint(cli.fp_uchimealns, ", Y ");
+      fprint_integer(cli.fp_uchimealns, report.left_yes);
+      fprint(cli.fp_uchimealns, " (");
+      std::fprintf(cli.fp_uchimealns, "%.1f", 100.0 * report.left_yes / sumL);
+      fprint(cli.fp_uchimealns, "%); Right ");
+      fprint_integer(cli.fp_uchimealns, sumR);
+      fprint(cli.fp_uchimealns, ": N ");
+      fprint_integer(cli.fp_uchimealns, report.right_no);
+      fprint(cli.fp_uchimealns, ", A ");
+      fprint_integer(cli.fp_uchimealns, report.right_abstain);
+      fprint(cli.fp_uchimealns, ", Y ");
+      fprint_integer(cli.fp_uchimealns, report.right_yes);
+      fprint(cli.fp_uchimealns, " (");
+      std::fprintf(cli.fp_uchimealns, "%.1f", 100.0 * report.right_yes / sumR);
+      fprint(cli.fp_uchimealns, "%), Score ");
+      std::fprintf(cli.fp_uchimealns, "%.4f", result.best_h);
+      fprint(cli.fp_uchimealns, '\n');
+    }
+
+  if (parameters.opt_uchimeout != nullptr)
+    {
+      std::fprintf(cli.fp_uchimeout, "%.4f", result.best_h);
+      fprint(cli.fp_uchimeout, '\t');
+
+      header_fprint_strip(cli.fp_uchimeout,
+                          result.header,
+                          attributes_to_strip(parameters));
+      fprint(cli.fp_uchimeout, '\t');
+      header_fprint_strip(cli.fp_uchimeout,
+                          db.header_view(static_cast<uint64_t>(report.parent_a)),
+                          attributes_to_strip(parameters));
+      fprint(cli.fp_uchimeout, '\t');
+      header_fprint_strip(cli.fp_uchimeout,
+                          db.header_view(static_cast<uint64_t>(report.parent_b)),
+                          attributes_to_strip(parameters));
+      fprint(cli.fp_uchimeout, '\t');
+
+      if (parameters.opt_uchimeout5 == 0)
+        {
+          if (report.id_query_a >= report.id_query_b)
+            {
+              header_fprint_strip(cli.fp_uchimeout,
+                                  db.header_view(static_cast<uint64_t>(report.parent_a)),
+                                  attributes_to_strip(parameters));
+            }
+          else
+            {
+              header_fprint_strip(cli.fp_uchimeout,
+                                  db.header_view(static_cast<uint64_t>(report.parent_b)),
+                                  attributes_to_strip(parameters));
+            }
+          fprint(cli.fp_uchimeout, '\t');
+        }
+
+      std::fprintf(cli.fp_uchimeout, "%.1f", report.id_query_model);
+      fprint(cli.fp_uchimeout, '\t');
+      std::fprintf(cli.fp_uchimeout, "%.1f", report.id_query_a);
+      fprint(cli.fp_uchimeout, '\t');
+      std::fprintf(cli.fp_uchimeout, "%.1f", report.id_query_b);
+      fprint(cli.fp_uchimeout, '\t');
+      std::fprintf(cli.fp_uchimeout, "%.1f", report.id_a_b);
+      fprint(cli.fp_uchimeout, '\t');
+      std::fprintf(cli.fp_uchimeout, "%.1f", report.id_query_top);
+      fprint(cli.fp_uchimeout, '\t');
+      fprint_integer(cli.fp_uchimeout, report.left_yes);
+      fprint(cli.fp_uchimeout, '\t');
+      fprint_integer(cli.fp_uchimeout, report.left_no);
+      fprint(cli.fp_uchimeout, '\t');
+      fprint_integer(cli.fp_uchimeout, report.left_abstain);
+      fprint(cli.fp_uchimeout, '\t');
+      fprint_integer(cli.fp_uchimeout, report.right_yes);
+      fprint(cli.fp_uchimeout, '\t');
+      fprint_integer(cli.fp_uchimeout, report.right_no);
+      fprint(cli.fp_uchimeout, '\t');
+      fprint_integer(cli.fp_uchimeout, report.right_abstain);
+      fprint(cli.fp_uchimeout, '\t');
+      std::fprintf(cli.fp_uchimeout, "%.1f", report.divergence);
+      fprint(cli.fp_uchimeout, '\t');
+      fprint(cli.fp_uchimeout, status == Status::chimeric ? 'Y' : (status == Status::low_score ? 'N' : '?'));
+      fprint(cli.fp_uchimeout, '\n');
+    }
 }
 }  // anonymous namespace
 
@@ -2122,7 +2242,6 @@ auto chimera_thread_exit(struct chimera_info_s * ci) -> void
 static auto chimera_process_query(struct chimera_info_s * ci,
                                   std::vector<struct hit> & allhits_list,
                                   LinearMemoryAligner & lma,
-                                  struct chimera_cli_state_s * cli,
                                   struct Database const & db) -> Status
 {
   struct Parameters const & parameters = *ci->parameters;
@@ -2250,16 +2369,231 @@ static auto chimera_process_query(struct chimera_info_s * ci,
       /* long high-quality reads */
       if (find_best_parents_long(ci) != 0)
         {
-          return eval_parents_long(ci, cli, db);
+          return eval_parents_long(ci, db);
         }
       return Status::no_parents;
     }
   if (find_best_parents(ci) != 0)
     {
-      return eval_parents(ci, cli, db);
+      return eval_parents(ci, db);
     }
   return Status::no_parents;
 }
+
+
+/* Take from the worker's chimera_info_s what the output step needs, once
+   detection of the current query is over (see chimera_query_result_s). */
+static auto collect_query_result(struct chimera_info_s const & ci,
+                                 Status const status,
+                                 uint64_t const query_position,
+                                 struct chimera_query_result_s & result) -> void
+{
+  result.status = status;
+  result.seqno = static_cast<unsigned int>(ci.query_no);
+  result.query_position = query_position;
+  result.abundance = ci.query_size;
+  if (chimera_is_denovo(ci.mode))
+    {
+      /* the same bytes ci copied, in storage that outlives ci's next query */
+      result.header = ci.db->header_view(result.seqno);
+      result.sequence = ci.db->sequence_view(result.seqno);
+    }
+  else
+    {
+      result.header = ci.query_head;
+      result.sequence = ci.query();
+    }
+  result.best_h = ci.best_h;
+  result.report = ci.report;
+
+  auto & alignment = result.alignment;
+  alignment.query.clear();
+  alignment.parents.clear();
+  alignment.parent_seqnos.clear();
+  alignment.diffs.clear();
+  alignment.votes.clear();
+  alignment.model.clear();
+
+  auto const * const alignment_output =
+    (ci.mode == ChimeraMode::chimeras_denovo) ?
+    ci.parameters->opt_alnout : ci.parameters->opt_uchimealns;
+  if ((status != Status::chimeric) or (alignment_output == nullptr))
+    {
+      return;
+    }
+
+  /* the rows are high-water buffers: keep the alignment's length of each */
+  auto const alnlen = static_cast<std::size_t>(find_total_alignment_length(&ci));
+  auto const copy_row = [alnlen](std::vector<char> const & row,
+                                 std::vector<char> & destination) -> void {
+    assert(row.size() >= alnlen);
+    destination.assign(row.cbegin(),
+                       std::next(row.cbegin(), static_cast<std::ptrdiff_t>(alnlen)));
+  };
+  copy_row(ci.qaln, alignment.query);
+  auto const parent_count = static_cast<std::size_t>(ci.parents_found);
+  alignment.parents.resize(parent_count);
+  alignment.parent_seqnos.resize(parent_count);
+  for (std::size_t nth = 0; nth < parent_count; ++nth)
+    {
+      copy_row(ci.paln[nth], alignment.parents[nth]);
+      alignment.parent_seqnos[nth] = static_cast<int>(
+        ci.cand_list[static_cast<std::size_t>(ci.best_parents[nth])]);
+    }
+  copy_row(ci.diffs, alignment.diffs);
+  copy_row(ci.model, alignment.model);
+  if (ci.mode != ChimeraMode::chimeras_denovo)
+    {
+      copy_row(ci.votes, alignment.votes);
+    }
+}
+
+
+/* Write, count and index one query's result, under the output lock. Reads
+   the result and the run state only: never a worker's chimera_info_s. */
+static auto output_query_result(struct chimera_cli_state_s & state,
+                                struct chimera_query_result_s const & result,
+                                struct Database const & db) -> void
+{
+  auto const status = result.status;
+
+  /* the detection core writes nothing: its alignment and tabbed records
+     are written here, under the same lock as the rest of the query's
+     output */
+  if (status >= Status::low_score)
+    {
+      if (state.mode == ChimeraMode::chimeras_denovo)
+        {
+          print_report_long(state, result, db);
+        }
+      else
+        {
+          print_report(state, result, db);
+        }
+    }
+
+  ++state.total_count;
+  state.total_abundance += result.abundance;
+
+  /* the three FASTA outputs below annotate the same query the same way and
+     differ only in the per-status counter that supplies the ordinal */
+  auto const query_annotations = [&](int64_t const ordinal) -> OutputAnnotations {
+    OutputAnnotations annotations {static_cast<uint64_t>(result.abundance), ordinal};
+    annotations.score_name = state.parameters.opt_fasta_score ?
+      ( (state.mode == ChimeraMode::uchime_ref) ?
+        "uchime_ref" : "uchime_denovo" ) : nullptr;
+    annotations.score = result.best_h;
+    return annotations;
+  };
+
+  if (status == Status::chimeric)
+    {
+      ++state.chimera_count;
+      state.chimera_abundance += result.abundance;
+
+      if (state.parameters.opt_chimeras != nullptr)
+        {
+          fasta_print_general(state.fp_chimeras,
+                              result.sequence,
+                              result.header,
+                              query_annotations(state.chimera_count),
+                              state.parameters);
+
+        }
+    }
+
+  if (status == Status::suspicious)
+    {
+      ++state.borderline_count;
+      state.borderline_abundance += result.abundance;
+
+      if (state.parameters.opt_borderline != nullptr)
+        {
+          fasta_print_general(state.fp_borderline,
+                              result.sequence,
+                              result.header,
+                              query_annotations(state.borderline_count),
+                              state.parameters);
+
+        }
+    }
+
+  if (status < Status::suspicious)
+    {
+      ++state.nonchimera_count;
+      state.nonchimera_abundance += result.abundance;
+
+      /* output no parents, no chimeras */
+      if ((status < Status::low_score) and (state.parameters.opt_uchimeout != nullptr))
+        {
+          std::fprintf(state.fp_uchimeout, "%.4f", result.best_h);
+          fprint(state.fp_uchimeout, '\t');
+
+          header_fprint_strip(state.fp_uchimeout,
+                              result.header,
+                              attributes_to_strip(state.parameters));
+
+          if (state.parameters.opt_uchimeout5 != 0)
+            {
+              fprint(state.fp_uchimeout, "\t*\t*\t*\t*\t*\t*\t*\t0\t0\t0\t0\t0\t0\t*\tN\n");
+            }
+          else
+            {
+              fprint(state.fp_uchimeout, "\t*\t*\t*\t*\t*\t*\t*\t*\t0\t0\t0\t0\t0\t0\t*\tN\n");
+            }
+        }
+
+      if (state.parameters.opt_nonchimeras != nullptr)
+        {
+          fasta_print_general(state.fp_nonchimeras,
+                              result.sequence,
+                              result.header,
+                              query_annotations(state.nonchimera_count),
+                              state.parameters);
+        }
+    }
+
+  if (status < Status::suspicious)
+    {
+      /* uchime_denovo: add non-chimeras to db */
+      if (chimera_is_denovo(state.mode))
+        {
+          state.dbindex.add_sequence(result.seqno, state.parameters.opt_qmask, db);
+        }
+    }
+
+  if (state.mode == ChimeraMode::uchime_ref)
+    {
+      state.progress = result.query_position;
+    }
+  else
+    {
+      state.progress += db.getsequencelen(result.seqno);
+    }
+
+  state.progress_bar->update(state.progress);
+}
+
+
+namespace {
+/* Copy database sequence seqno into chimera_info as the query to process
+   (denovo) */
+auto load_denovo_query(struct chimera_info_s * chimera_info,
+                       struct Database const & database,
+                       unsigned int const seqno) -> void
+{
+  auto const query_record = database.record(seqno);
+  chimera_info->query_no = static_cast<int>(seqno);
+  chimera_info->query_len = static_cast<int>(query_record.sequence.size());
+  chimera_info->query_size = static_cast<int64_t>(database.getabundance(seqno));
+
+  /* if necessary expand memory for arrays based on query length */
+  realloc_arrays(chimera_info, database, query_record.header.size());
+
+  chimera_info->query_head = copy_into_scratch(query_record.header, chimera_info->query_head_v);
+  copy_into_scratch(query_record.sequence, chimera_info->query_seq);
+}
+}  // anonymous namespace
 
 
 static auto chimera_thread_core(struct chimera_cli_state_s & state,
@@ -2281,6 +2615,9 @@ static auto chimera_thread_core(struct chimera_cli_state_s & state,
   LinearMemoryAligner lma(scoring);
 
   uint64_t query_position = 0;
+
+  /* this worker's current query, handed from detection to output */
+  struct chimera_query_result_s result;
 
   auto const has_work_to_claim = [&]() -> bool {
     /* get next sequence */
@@ -2318,16 +2655,7 @@ static auto chimera_thread_core(struct chimera_cli_state_s & state,
       {
         if (state.seqno < db.getsequencecount())
           {
-            auto const query_record = db.record(state.seqno);
-            ci->query_no = static_cast<int>(state.seqno);
-            ci->query_len = static_cast<int>(query_record.sequence.size());
-            ci->query_size = static_cast<int64_t>(db.getabundance(state.seqno));
-
-            /* if necessary expand memory for arrays based on query length */
-            realloc_arrays(ci, db, query_record.header.size());
-
-            ci->query_head = copy_into_scratch(query_record.header, ci->query_head_v);
-            copy_into_scratch(query_record.sequence, ci->query_seq);
+            load_denovo_query(ci, db, state.seqno);
           }
         else
           {
@@ -2335,127 +2663,27 @@ static auto chimera_thread_core(struct chimera_cli_state_s & state,
           }
       }
 
+    /* One more query claimed, in either mode: denovo takes its next query
+       number from state.seqno, and the --log summary counts the queries
+       with it. Claim and advance in the same critical section
+       (mutex_input), so two workers can never claim the same denovo query.
+       The output step reads the query's own number from its result. This
+       loop runs denovo detection with one worker only: the index has to
+       grow in query order, which claiming alone does not ensure, so more
+       threads go to chimera_denovo_batches instead (see chimera()). */
+    ++state.seqno;
     return true;
   };
 
   auto const process_query = [&]() -> void {
-    auto const status = chimera_process_query(ci, allhits_list, lma, &state, db);
+    auto const status = chimera_process_query(ci, allhits_list, lma, db);
+    collect_query_result(*ci, status, query_position, result);
 
     /* output results */
 
     std::lock_guard<std::mutex> const output_lock(state.mutex_output);
 
-    ++state.total_count;
-    state.total_abundance += ci->query_size;
-
-    /* the three FASTA outputs below annotate the same query the same way and
-       differ only in the per-status counter that supplies the ordinal */
-    auto const query_annotations = [&](int64_t const ordinal) -> OutputAnnotations {
-      OutputAnnotations annotations {static_cast<uint64_t>(ci->query_size), ordinal};
-      annotations.score_name = state.parameters.opt_fasta_score ?
-        ( (state.mode == ChimeraMode::uchime_ref) ?
-          "uchime_ref" : "uchime_denovo" ) : nullptr;
-      annotations.score = ci->best_h;
-      return annotations;
-    };
-
-    if (status == Status::chimeric)
-      {
-        ++state.chimera_count;
-        state.chimera_abundance += ci->query_size;
-
-        if (state.parameters.opt_chimeras != nullptr)
-          {
-            fasta_print_general(state.fp_chimeras,
-                                ci->query(),
-                                ci->query_head,
-                                query_annotations(state.chimera_count),
-                                state.parameters);
-
-          }
-      }
-
-    if (status == Status::suspicious)
-      {
-        ++state.borderline_count;
-        state.borderline_abundance += ci->query_size;
-
-        if (state.parameters.opt_borderline != nullptr)
-          {
-            fasta_print_general(state.fp_borderline,
-                                ci->query(),
-                                ci->query_head,
-                                query_annotations(state.borderline_count),
-                                state.parameters);
-
-          }
-      }
-
-    if (status < Status::suspicious)
-      {
-        ++state.nonchimera_count;
-        state.nonchimera_abundance += ci->query_size;
-
-        /* output no parents, no chimeras */
-        if ((status < Status::low_score) and (state.parameters.opt_uchimeout != nullptr))
-          {
-            std::fprintf(state.fp_uchimeout, "%.4f", ci->best_h);
-            fprint(state.fp_uchimeout, '\t');
-
-            header_fprint_strip(state.fp_uchimeout,
-                                ci->query_head,
-                                attributes_to_strip(state.parameters));
-
-            if (state.parameters.opt_uchimeout5 != 0)
-              {
-                fprint(state.fp_uchimeout, "\t*\t*\t*\t*\t*\t*\t*\t0\t0\t0\t0\t0\t0\t*\tN\n");
-              }
-            else
-              {
-                fprint(state.fp_uchimeout, "\t*\t*\t*\t*\t*\t*\t*\t*\t0\t0\t0\t0\t0\t0\t*\tN\n");
-              }
-          }
-
-        if (state.parameters.opt_nonchimeras != nullptr)
-          {
-            fasta_print_general(state.fp_nonchimeras,
-                                ci->query(),
-                                ci->query_head,
-                                query_annotations(state.nonchimera_count),
-                                state.parameters);
-          }
-      }
-
-    if (status < Status::suspicious)
-      {
-        /* uchime_denovo: add non-chimeras to db */
-        if (chimera_is_denovo(state.mode))
-          {
-            state.dbindex.add_sequence(state.seqno, state.parameters.opt_qmask, db);
-          }
-      }
-
-    if (state.mode == ChimeraMode::uchime_ref)
-      {
-        state.progress = query_position;
-      }
-    else
-      {
-        state.progress += db.getsequencelen(state.seqno);
-      }
-
-    state.progress_bar->update(state.progress);
-
-    /* state.seqno is claimed by has_work_to_claim() above under mutex_input,
-       but advanced here under mutex_output. Those are two different critical
-       sections, so this is only race-free because every denovo mode forces
-       opt_threads = 1 in chimera() below: with one worker the claim and the
-       increment cannot interleave. The uchime_ref path, the only
-       multi-threaded one, claims from the shared query handle instead and
-       never reads state.seqno in has_work_to_claim(). Parallelising a denovo
-       mode therefore means moving this increment into the claim, under
-       mutex_input, or two workers will claim the same query. */
-    ++state.seqno;
+    output_query_result(state, result, db);
   };
 
   run_worker_loop(mutex_input, has_work_to_claim, process_query);
@@ -2484,6 +2712,315 @@ static auto chimera_threads_run(struct chimera_cli_state_s & state) -> void
 }
 
 
+namespace {
+/* Keep what the batch driver needs to check a query's result later: the
+   heap threshold and the unique k-mers of each part search. Called
+   right after chimera_process_query, before ci's searches are reused. */
+auto collect_part_searches(struct chimera_info_s const & chimera_info,
+                           struct chimera_query_result_s & result) -> void
+{
+  /* chimera_process_query searches the parts only when the query is at
+     least as long as their number */
+  auto const searched = (chimera_info.query_len >= chimera_info.parts) ?
+    static_cast<std::size_t>(chimera_info.parts) : 0U;
+  result.part_searches.resize(searched);
+  for (std::size_t nth = 0; nth < searched; ++nth)
+    {
+      auto const & search_info = chimera_info.si[nth];
+      auto & part = result.part_searches[nth];
+      part.threshold = search_info.topscores_threshold;
+      part.kmers.assign(search_info.kmersample.cbegin(), search_info.kmersample.cend());
+    }
+}
+
+
+/* No k-mer has this code: codes stay below 4^15 (--wordlength 15) */
+constexpr auto empty_kmer_slot = std::numeric_limits<unsigned int>::max();
+
+
+/* A query found not chimeric earlier in the current batch: the index the
+   batch was detected against did not hold it yet. Its unique k-mers, as
+   Dbindex::add_sequence counts them, are kept in a small open-addressing
+   hash set (linear probing, at most half full), so that counting the
+   k-mers a part search shares with it costs one probe per k-mer of the
+   part. */
+struct batch_target_s {
+  unsigned int seqno = 0;
+  unsigned int length = 0;
+  std::size_t kmer_count = 0;
+  std::vector<unsigned int> slots;  /* a power of two of them */
+
+  auto set_kmers(View<unsigned int> const kmers) -> void
+  {
+    kmer_count = kmers.size();
+    std::size_t size = minimum_slots;
+    while (size < 2 * kmer_count)
+      {
+        size *= 2;
+      }
+    slots.assign(size, empty_kmer_slot);
+    for (auto const kmer : kmers)
+      {
+        assert(kmer != empty_kmer_slot);
+        slots[find_slot(kmer)] = kmer;  /* the k-mers are distinct */
+      }
+  }
+
+  auto contains(unsigned int const kmer) const noexcept -> bool
+  {
+    return slots[find_slot(kmer)] == kmer;
+  }
+
+private:
+  static constexpr std::size_t minimum_slots = 16;
+  static constexpr unsigned int hash_multiplier = 2654435761U;  /* Knuth's */
+  static constexpr unsigned int hash_fold = 16U;  /* mix the high half into the low */
+
+  /* the slot holding kmer, or the empty slot where it would go */
+  auto find_slot(unsigned int const kmer) const noexcept -> std::size_t
+  {
+    auto const mask = slots.size() - 1;
+    auto mixed = kmer * hash_multiplier;
+    mixed ^= mixed >> hash_fold;
+    auto slot = static_cast<std::size_t>(mixed) & mask;
+    while ((slots[slot] != empty_kmer_slot) and (slots[slot] != kmer))
+      {
+        slot = (slot + 1) & mask;
+      }
+    return slot;
+  }
+};
+
+
+/* The number of the part's k-mers the target holds too, when it is at
+   least `needed`; otherwise some smaller number, as counting stops once
+   the k-mers left to probe could no longer make up the difference */
+auto count_shared_kmers(std::vector<unsigned int> const & part_kmers,
+                        struct batch_target_s const & target,
+                        std::size_t const needed) noexcept -> std::size_t
+{
+  std::size_t shared = 0;
+  auto remaining = part_kmers.size();
+  for (auto const kmer : part_kmers)
+    {
+      if (shared + remaining < needed)
+        {
+          break;
+        }
+      --remaining;
+      if (target.contains(kmer))
+        {
+          ++shared;
+        }
+    }
+  return shared;
+}
+
+
+/* Would target have entered the heap of this part search, had it been
+   indexed before the search ran? The two tests search_topscores() applies
+   (see TopscoresThreshold): its k-mer count reaches its threshold, then
+   the heap takes it. The target has a higher sequence number than every
+   sequence the search saw, which topscore_ranks_below() accounts for. */
+auto enters_part_heap(struct chimera_part_search_s const & part,
+                      struct batch_target_s const & target,
+                      unsigned int const minwordmatches) noexcept -> bool
+{
+  auto const & threshold = part.threshold;
+  if (threshold.capacity == 0)
+    {
+      return false;
+    }
+  auto needed = static_cast<std::size_t>(threshold.minmatches);
+  auto const target_kmers = target.kmer_count;
+  if ((target_kmers != 0) and (target_kmers < minwordmatches))
+    {
+      /* a low-k-mer target: offered at its own, lower threshold */
+      needed = std::min(needed, target_kmers);
+    }
+  auto const heap_full = (threshold.filled >= threshold.capacity);
+  if (heap_full)
+    {
+      /* fewer k-mer hits than the weakest element never displace it */
+      needed = std::max(needed, static_cast<std::size_t>(threshold.weakest.count));
+    }
+  /* the k-mer counters saturate at INT16_MAX (accumulate_slice_counts), so
+     no count ever reaches more */
+  constexpr auto counter_ceiling = static_cast<std::size_t>(INT16_MAX);
+  if (needed > counter_ceiling)
+    {
+      return false;
+    }
+  auto const shared = std::min(count_shared_kmers(part.kmers, target, needed),
+                               counter_ceiling);
+  if (shared < needed)
+    {
+      return false;
+    }
+  if (not heap_full)
+    {
+      return true;
+    }
+  elem_t const candidate {static_cast<unsigned int>(shared), target.seqno, target.length};
+  return topscore_ranks_below(threshold.weakest, candidate);
+}
+
+
+/* True when one of the targets would have changed one of the query's part
+   searches, and so possibly its result. Nothing after search_topscores()
+   depends on the index, so a query whose part heaps no target enters has
+   exactly the result it would have had with the targets indexed. */
+auto result_is_stale(struct chimera_query_result_s const & result,
+                     std::vector<struct batch_target_s> const & targets,
+                     unsigned int const minwordmatches) noexcept -> bool
+{
+  return std::any_of(result.part_searches.cbegin(), result.part_searches.cend(),
+                     [&](struct chimera_part_search_s const & part) -> bool {
+                       return std::any_of(targets.cbegin(), targets.cend(),
+                                          [&](struct batch_target_s const & target) -> bool {
+                                            return enters_part_heap(part, target, minwordmatches);
+                                          });
+                     });
+}
+
+
+/* What one thread needs to run the detection core, as chimera_thread_core
+   keeps it: its chimera_info_s, the hit buffer and the linear memory
+   aligner */
+struct denovo_worker_s {
+  struct chimera_info_s ci;
+  std::vector<struct hit> allhits_list = std::vector<struct hit>(maxcandidates);
+  std::unique_ptr<LinearMemoryAligner> lma;
+};
+
+
+/* Queries per batch, per thread. Larger batches amortise the two
+   synchronisations per batch and even out the threads' loads, but
+   more queries are then detected without the ones before them, and have
+   to be detected again when one of those would have reached them. The
+   best value depends on the input: 1 to 2 on 61k 16S V4 amplicons (35 %
+   non-singletons), 2 to 4 on 219k 18S V9 ones (29 %), measured with 8, 16
+   and 24 threads (2026-09-24). 2 stays within 20 % of the best on both. */
+constexpr auto batch_size_per_thread = 2U;
+
+
+/* Denovo detection with more than one thread, as batch speculation with
+   in-order validation. Each batch of queries is detected in parallel
+   against the index as it stood before the batch. The main thread then
+   commits the batch in query order: a query that a sequence found not
+   chimeric earlier in the same batch would have reached is detected again,
+   serially, against the index that now holds that sequence; then the query
+   is written, counted and, if not chimeric, indexed, exactly as by the
+   single-threaded loop. Every query is thus either shown to be unaffected
+   by the queries it was detected without, or detected with them, and the
+   output is identical to --threads 1, in the same order. */
+auto chimera_denovo_batches(struct chimera_cli_state_s & state) -> void
+{
+  auto const & database = state.db;
+  auto const thread_count = static_cast<std::size_t>(state.detection_parameters.opt_threads);
+  assert(thread_count > 1);
+  auto const batch_size = static_cast<unsigned int>(batch_size_per_thread * thread_count);
+  int const tophits = static_cast<int>(state.detection_parameters.opt_maxaccepts +
+                                       state.detection_parameters.opt_maxrejects);
+  struct Scoring const scoring = scoring_from_options(state.parameters);
+
+  /* one per worker thread, and one for the main thread's recomputations */
+  std::vector<struct denovo_worker_s> workers(thread_count + 1);
+  for (auto & worker : workers)
+    {
+      chimera_thread_init(&worker.ci, tophits, state.detection_parameters,
+                          state.dbindex, database, state.mode);
+      worker.lma = make_unique<LinearMemoryAligner>(scoring);
+    }
+  auto & committer = workers.back();
+
+  std::vector<struct chimera_query_result_s> results(batch_size);
+  std::vector<struct batch_target_s> batch_targets;
+  Uniquer target_kmers;  /* the committer's own: the index's is not to be shared */
+
+  /* the batch being detected, set by the main thread between two runs */
+  unsigned int batch_start = 0;
+  unsigned int batch_end = 0;
+  unsigned int next_query = 0;
+  std::mutex mutex_input;
+
+  auto const detect = [&database](struct denovo_worker_s & worker,
+                            unsigned int const seqno,
+                            struct chimera_query_result_s & result) -> void {
+    load_denovo_query(&worker.ci, database, seqno);
+    auto const status = chimera_process_query(&worker.ci, worker.allhits_list,
+                                              *worker.lma, database);
+    collect_query_result(worker.ci, status, 0, result);
+  };
+
+  ThreadRunner runner(thread_count, [&](uint64_t const nth_thread) -> void {
+    auto & worker = workers[nth_thread];
+    unsigned int seqno = 0;
+    run_worker_loop(mutex_input,
+                    [&]() -> bool {
+                      if (next_query >= batch_end)
+                        {
+                          return false;
+                        }
+                      seqno = next_query;
+                      ++next_query;
+                      return true;
+                    },
+                    [&]() -> void {
+                      auto & result = results[seqno - batch_start];
+                      detect(worker, seqno, result);
+                      collect_part_searches(worker.ci, result);
+                    });
+  });
+
+  auto const query_count = static_cast<unsigned int>(database.getsequencecount());
+  auto const minwordmatches = state.dbindex.minwordmatches;
+  for (batch_start = 0; batch_start < query_count; batch_start = batch_end)
+    {
+      batch_end = batch_start + std::min(batch_size, query_count - batch_start);
+      next_query = batch_start;
+      runner.run();  // C++20 refactoring: a std::barrier could replace the per-batch run()
+
+      batch_targets.clear();
+      for (auto seqno = batch_start; seqno < batch_end; ++seqno)
+        {
+          auto & result = results[seqno - batch_start];
+          if (result_is_stale(result, batch_targets, minwordmatches))
+            {
+              detect(committer, seqno, result);
+            }
+
+          {
+            std::lock_guard<std::mutex> const output_lock(state.mutex_output);
+            output_query_result(state, result, database);
+          }
+          ++state.seqno;  /* the --log summary counts the queries with it */
+
+          if (result.status >= Status::suspicious)
+            {
+              continue;
+            }
+          /* output_query_result indexed it: the rest of the batch was
+             detected without it */
+          batch_targets.emplace_back();
+          auto & target = batch_targets.back();
+          target.seqno = seqno;
+          target.length = static_cast<unsigned int>(database.getsequencelen(seqno));
+          auto const kmers = target_kmers.count(static_cast<int>(state.dbindex.wordlength),
+                                                database.sequence_view(seqno),
+                                                state.parameters.opt_qmask);
+          target.set_kmers(kmers);
+        }
+    }
+
+  for (auto & worker : workers)
+    {
+      chimera_thread_exit(&worker.ci);
+    }
+}
+}  // anonymous namespace
+
+
 /* Defined below (next to the library detection entry that also uses it). */
 static auto chimera_detection_parameters(struct Parameters const & parameters,
                                          ChimeraMode mode) -> struct Parameters;
@@ -2492,8 +3029,8 @@ static auto chimera_detection_parameters(struct Parameters const & parameters,
 auto chimera(ChimeraMode const mode, struct Parameters const & parameters) -> void
 {
   /* Per-invocation CLI state, owned here and threaded through the worker pool
-     (E4). It also holds the detection-core output handles/mutex, injected into
-     eval_parents/eval_parents_long via chimera_process_query (E6). */
+     (E4). It also holds the report output handles/mutex, used by the report
+     writers that process_query calls after detection (E6). */
   struct chimera_cli_state_s state(parameters, mode);
 
   OutputFileHandle chimeras_handle = open_optional_output_file(parameters.opt_chimeras, OutputOption{"--chimeras"});
@@ -2532,11 +3069,11 @@ auto chimera(ChimeraMode const mode, struct Parameters const & parameters) -> vo
     }
 
   /* CLI-only: denovo detection is order-dependent (each query is compared
-     against previously processed sequences), so run its pool single-threaded. */
-  if (chimera_is_denovo(mode))
-    {
-      state.detection_parameters.opt_threads = 1;
-    }
+     against previously processed sequences). With more than one thread it
+     runs in batches that reproduce the single-threaded result
+     (chimera_denovo_batches), which keep their own per-thread state. */
+  auto const runs_in_batches =
+    chimera_is_denovo(mode) and (state.detection_parameters.opt_threads > 1);
 
   uint64_t progress_total = 0;
   state.chimera_count = 0;
@@ -2545,7 +3082,10 @@ auto chimera(ChimeraMode const mode, struct Parameters const & parameters) -> vo
   state.seqno = 0;
 
   /* prepare per-thread chimera detection state */
-  state.cia.resize(static_cast<size_t>(state.detection_parameters.opt_threads));
+  if (not runs_in_batches)
+    {
+      state.cia.resize(static_cast<size_t>(state.detection_parameters.opt_threads));
+    }
 
   /* prepare queries / database */
   if (mode == ChimeraMode::uchime_ref)
@@ -2629,7 +3169,14 @@ auto chimera(ChimeraMode const mode, struct Parameters const & parameters) -> vo
   {
     Progress progress_bar("Detecting chimeras", progress_total, parameters);
     state.progress_bar = &progress_bar;
-    chimera_threads_run(state);
+    if (runs_in_batches)
+      {
+        chimera_denovo_batches(state);
+      }
+    else
+      {
+        chimera_threads_run(state);
+      }
   }
 
   /* all workers joined; report a deferred query parse error (CC3, uchime_ref
@@ -2956,11 +3503,11 @@ auto chimera_detect_single(struct chimera_info_s * ci,
   *result = {};
   ci->result_out = result;
 
-  /* Use the SAME processing code as the CLI path, but with no CLI output sink
-     (cli == nullptr): the detection core populates ci->result_out instead of
-     writing files, and takes no output lock. */
+  /* Use the SAME processing code as the CLI path: the detection core
+     populates ci->result_out, writes no files and takes no output lock (the
+     CLI writes its reports afterwards, from process_query). */
   auto const status = chimera_process_query(ci, ci->api_allhits_list,
-                                            *ci->api_lma_ptr, nullptr, *ci->db);
+                                            *ci->api_lma_ptr, *ci->db);
 
   if (status == Status::no_parents)
     {

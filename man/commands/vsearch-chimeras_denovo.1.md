@@ -61,6 +61,14 @@ the model with the closest parent (Div). If there are only two parents
 (A and B), QC is set to 0.00%. If there are more than three parents,
 only QA, QB and QC are reported.
 
+Multithreading is supported. Because each sequence is compared with
+the non-chimeric sequences processed before it, the threads process
+groups of consecutive sequences, and a sequence whose result could
+depend on a non-chimeric sequence of its own group is processed again,
+once that sequence can serve as a candidate parent. The results, and
+the order in which they are written, are therefore identical whatever
+the number of threads.
+
 
 # OPTIONS
 
@@ -96,6 +104,8 @@ At least one of the following output options must be specified:
 
 #(./fragments/option_sizein.md)
 : Always implied.
+
+#(./fragments/option_threads.md)
 
 
 ## secondary options
@@ -160,8 +170,6 @@ model. Modify with caution.
 
 
 ## ignored options
-
-#(./fragments/option_threads_not_multithreaded.md)
 
 #(./fragments/option_xn.md)
 : Ignored by `--chimeras_denovo`: only the UCHIME scoring function
