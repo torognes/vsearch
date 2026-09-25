@@ -23,6 +23,10 @@
       multithreaded commands use all available cores by default. Their
       results, and the order in which they are written, are identical
       whatever the number of threads (issue #118).
+    - change: `--uchime_ref` now writes its results in the order of the
+      queries, whatever the number of threads. Previously the order of
+      the entries could vary from run to run with more than one thread;
+      the entries themselves are unchanged.
     - add: a warning when an option is given as an abbreviation of its
       full name (for instance `--thread` for `--threads`). The
       abbreviation is still honoured.

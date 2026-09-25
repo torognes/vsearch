@@ -96,8 +96,13 @@
 #include <cstdio>  // std::FILE, std::fprintf, std::fputs
 #include <iterator>  // std::next
 #include <limits>
+#include <map>  // std::map
 #include <memory>
-#include <mutex>  // std::mutex, std::lock_guard
+#include <atomic>  // std::atomic
+#include <chrono>  // std::chrono::steady_clock
+#include <condition_variable>  // std::condition_variable
+#include <mutex>  // std::mutex, std::lock_guard, std::unique_lock
+#include <thread>  // std::thread, std::this_thread::yield
 #include <numeric>  // std::accumulate
 #include <string>  // std::string
 #include <utility>  // std::move
@@ -277,14 +282,30 @@ struct chimera_info_s
   int parts = 0;  /* number of query parts for chimera detection */
 
   /* si[0 .. parts_ready) have been through query_init(). The rest are built on
-     demand by chimera_process_query, because each one owns a k-mer counter
-     array with one entry per database sequence: building all maxparts of them
-     up front costs 100 x 2 bytes per reference per thread, and a uchime run
-     uses four of them. dbindex/tophits are the two query_init() arguments that
-     are not already reachable from ci. */
+     demand by chimera_process_query, because each one owns an aligner and a
+     hit buffer, and a uchime run uses four of the maxparts. (Each also used
+     to own a k-mer counter array with one entry per database sequence; they
+     now share kmer_counters below.) dbindex/tophits are the two query_init()
+     arguments that are not already reachable from ci. */
   int parts_ready = 0;
   struct Dbindex const * dbindex = nullptr;
   int tophits = 0;
+
+  /* The k-mer counters of this thread's part searches: one array, with one
+     entry per database sequence, lent to each part's searchinfo_s while it
+     is searched (see PartSearchLoan). The parts are searched one after the
+     other, and search_topscores() clears the counters it reads, so they
+     can share it: one array per thread instead of one per part, of which
+     --chimeras_denovo uses up to 100. Sized by chimera_thread_init. */
+  std::vector<count_t> kmer_counters;
+
+  /* The SIMD aligner of this thread's part searches, lent the same way:
+     search_onequery() prepares it for its own part (search16_qprep) before
+     aligning, so nothing carries over from one part to the next. Its
+     backtrack buffer grows to part length x target length x 8 bytes, which
+     one aligner per part multiplied by up to 100 on long reads (about
+     800 MB per thread for 10 kb reads). Created by chimera_thread_init. */
+  std::unique_ptr<s16info_s, s16info_deleter> part_aligner;
 
   /* API result fields — populated by eval_parents when result_out is set */
   struct chimera_result_s * result_out = nullptr;
@@ -444,7 +465,23 @@ struct chimera_query_result_s {
   /* denovo batch driver only: one per part search, none when the query was
      too short to be split and searched */
   std::vector<struct chimera_part_search_s> part_searches;
+  /* owned copies of the header and sequence, taken when the result must
+     outlive its worker's next claim (keep_query_text) */
+  std::vector<char> header_copy;
+  std::vector<char> sequence_copy;
 };
+
+
+/* Puts the results of the worker pool back into query order: a worker
+   writes its query if it is the next one due, then the queries that were
+   waiting for it; otherwise it leaves its result here and moves on. No
+   worker waits for another. Guarded by chimera_cli_state_s::mutex_output. */
+namespace {
+struct ordered_output_s {
+  unsigned int next_rank = 0;  /* the claim rank of the next query to write */
+  std::map<unsigned int, struct chimera_query_result_s> waiting;
+};
+}  // anonymous namespace
 
 
 // anonymous namespace: limit visibility and usage to this translation unit
@@ -2147,17 +2184,14 @@ static auto query_init(struct searchinfo_s * search_info, int const tophits,
                        struct Parameters const & parameters,
                        struct Dbindex const & dbindex) -> void
 {
-  static constexpr auto overflow_padding = 16U;  // 16 * sizeof(short) = 32 bytes
   search_info->parameters = &parameters;  /* searchcore reads config through the si (E1) */
   search_info->dbindex = &dbindex;  /* searchcore reads the k-mer index through the si */
   search_info->db = &db;  /* searchcore reads the sequences through the si */
   search_info->hits_v.resize(static_cast<size_t>(tophits));
-  search_info->kmers_v.reserve(db.getsequencecount() + overflow_padding);
-  search_info->kmers_v.resize(db.getsequencecount());
+  /* no kmers_v and no aligner (s): the part borrows ci->kmer_counters and
+     ci->part_aligner while it is searched */
   search_info->hit_count = 0;
   /* search_info->uh (a Uniquer value member) is ready to use as default-constructed */
-  // scoring.n_mismatch is always false: no chimera command accepts --n_mismatch
-  search_info->s.reset(search16_init(scoring_from_options(parameters)));
   search_info->m = Minheap(tophits);
 }
 
@@ -2218,6 +2252,13 @@ auto chimera_thread_init(struct chimera_info_s * ci, int const tophits,
   ci->tophits = tophits;
   ci->parts_ready = 0;
 
+  /* headroom past the logical end for the SIMD counter stores */
+  static constexpr auto overflow_padding = 16U;  // 16 * sizeof(short) = 32 bytes
+  ci->kmer_counters.reserve(db.getsequencecount() + overflow_padding);
+  ci->kmer_counters.resize(db.getsequencecount());
+  // scoring.n_mismatch is always false: no chimera command accepts --n_mismatch
+  ci->part_aligner.reset(search16_init(scoring_from_options(parameters)));
+
   // scoring.n_mismatch is always false: no chimera command accepts --n_mismatch
   ci->s.reset(search16_init(scoring_from_options(parameters)));
 }
@@ -2226,11 +2267,48 @@ auto chimera_thread_init(struct chimera_info_s * ci, int const tophits,
 auto chimera_thread_exit(struct chimera_info_s * ci) -> void
 {
   ci->s.reset();
+  ci->part_aligner.reset();
 
   for (auto & a_search_info : ci->si) {
     query_exit(a_search_info);
   }
 }
+}  // anonymous namespace
+
+
+/* Lends a thread's k-mer counters and part aligner (see kmer_counters and
+   part_aligner) to one part search, and takes them back when the search is
+   over, also when fatal() throws (library sessions), so that the next
+   query finds them where it expects them. Swaps: they keep the reserved
+   headroom and the grown buffers, and cost nothing. */
+namespace {
+class PartSearchLoan
+{
+public:
+  PartSearchLoan(struct chimera_info_s & lender, struct searchinfo_s & borrower) noexcept
+    : lender_(lender), borrower_(borrower)
+  {
+    swap_both();
+  }
+  ~PartSearchLoan()
+  {
+    swap_both();
+  }
+  PartSearchLoan(PartSearchLoan const &) = delete;
+  PartSearchLoan(PartSearchLoan &&) = delete;
+  auto operator=(PartSearchLoan const &) -> PartSearchLoan & = delete;
+  auto operator=(PartSearchLoan &&) -> PartSearchLoan & = delete;
+
+private:
+  auto swap_both() noexcept -> void
+  {
+    borrower_.kmers_v.swap(lender_.kmer_counters);
+    borrower_.s.swap(lender_.part_aligner);
+  }
+
+  struct chimera_info_s & lender_;
+  struct searchinfo_s & borrower_;
+};
 }  // anonymous namespace
 
 
@@ -2268,7 +2346,10 @@ static auto chimera_process_query(struct chimera_info_s * ci,
       std::vector<struct hit> hits;
       for (auto i = 0; i < ci->parts; ++i)
         {
-          search_onequery(&ci->si[static_cast<size_t>(i)], parameters.opt_qmask);
+          {
+            PartSearchLoan const loan(*ci, ci->si[static_cast<size_t>(i)]);
+            search_onequery(&ci->si[static_cast<size_t>(i)], parameters.opt_qmask);
+          }
           search_joinhits(&ci->si[static_cast<size_t>(i)], nullptr, hits);
           for (auto & hit : hits) {
             if (hit.accepted and allhits_count < maxcandidates)
@@ -2576,6 +2657,44 @@ static auto output_query_result(struct chimera_cli_state_s & state,
 
 
 namespace {
+/* Make the result's header and sequence its own: for --uchime_ref they are
+   views into the worker's buffers, which its next claim overwrites. */
+auto keep_query_text(struct chimera_query_result_s & result) -> void
+{
+  result.header_copy.assign(result.header.cbegin(), result.header.cend());
+  result.sequence_copy.assign(result.sequence.cbegin(), result.sequence.cend());
+  result.header = make_view(result.header_copy);
+  result.sequence = make_view(result.sequence_copy);
+}
+
+
+/* Write the result of the query claimed at `rank`, in claim order (see
+   ordered_output_s). Called with the output lock held. */
+auto output_in_order(struct chimera_cli_state_s & state,
+                     struct ordered_output_s & ordered,
+                     unsigned int const rank,
+                     struct chimera_query_result_s & result,
+                     struct Database const & database) -> void
+{
+  if (rank != ordered.next_rank)
+    {
+      keep_query_text(result);
+      ordered.waiting.emplace(rank, std::move(result));
+      return;
+    }
+  output_query_result(state, result, database);
+  ++ordered.next_rank;
+  auto next = ordered.waiting.find(ordered.next_rank);
+  while (next != ordered.waiting.end())
+    {
+      output_query_result(state, next->second, database);
+      ordered.waiting.erase(next);
+      ++ordered.next_rank;
+      next = ordered.waiting.find(ordered.next_rank);
+    }
+}
+
+
 /* Copy database sequence seqno into chimera_info as the query to process
    (denovo) */
 auto load_denovo_query(struct chimera_info_s * chimera_info,
@@ -2599,6 +2718,7 @@ auto load_denovo_query(struct chimera_info_s * chimera_info,
 static auto chimera_thread_core(struct chimera_cli_state_s & state,
                          struct chimera_info_s * ci,
                          std::mutex & mutex_input,
+                         struct ordered_output_s & ordered,
                          struct Database const & db) -> uint64_t
 {
   /* tophits sizes the per-part minheaps; it is maxaccepts + maxrejects from
@@ -2618,6 +2738,7 @@ static auto chimera_thread_core(struct chimera_cli_state_s & state,
 
   /* this worker's current query, handed from detection to output */
   struct chimera_query_result_s result;
+  unsigned int claimed_rank = 0;  /* its rank in claim order */
 
   auto const has_work_to_claim = [&]() -> bool {
     /* get next sequence */
@@ -2671,6 +2792,7 @@ static auto chimera_thread_core(struct chimera_cli_state_s & state,
        loop runs denovo detection with one worker only: the index has to
        grow in query order, which claiming alone does not ensure, so more
        threads go to chimera_denovo_batches instead (see chimera()). */
+    claimed_rank = state.seqno;
     ++state.seqno;
     return true;
   };
@@ -2683,7 +2805,7 @@ static auto chimera_thread_core(struct chimera_cli_state_s & state,
 
     std::lock_guard<std::mutex> const output_lock(state.mutex_output);
 
-    output_query_result(state, result, db);
+    output_in_order(state, ordered, claimed_rank, result, db);
   };
 
   run_worker_loop(mutex_input, has_work_to_claim, process_query);
@@ -2701,14 +2823,21 @@ static auto chimera_threads_run(struct chimera_cli_state_s & state) -> void
      owned here rather than at file scope (the API path does not use it). */
   std::mutex mutex_input;
 
+  /* results are written in query order, whatever the thread count */
+  struct ordered_output_s ordered;
+
   /* run the worker pool; each worker processes queries until the input
      is exhausted. chimera_thread_core returns a value that the previous
      pthread_join already discarded, so it is ignored here too. */
   ThreadRunner threadrunner(static_cast<std::size_t>(state.detection_parameters.opt_threads),
-                            [&state, &mutex_input](uint64_t const nth_thread) -> void {
-                              chimera_thread_core(state, &state.cia[nth_thread], mutex_input, state.db);
+                            [&state, &mutex_input, &ordered](uint64_t const nth_thread) -> void {
+                              chimera_thread_core(state, &state.cia[nth_thread], mutex_input,
+                                                  ordered, state.db);
                             });
   threadrunner.run();
+  /* every claimed query was processed, so every rank up to the last was
+     written */
+  assert(ordered.waiting.empty());
 }
 
 
@@ -2891,17 +3020,210 @@ struct denovo_worker_s {
   struct chimera_info_s ci;
   std::vector<struct hit> allhits_list = std::vector<struct hit>(maxcandidates);
   std::unique_ptr<LinearMemoryAligner> lma;
+  Uniquer target_kmers;  /* for the query's own k-mers, as the index counts them */
+  double busy = 0.0;  /* seconds spent detecting in the current round */
 };
 
 
-/* Queries per batch, per thread. Larger batches amortise the two
-   synchronisations per batch and even out the threads' loads, but
-   more queries are then detected without the ones before them, and have
-   to be detected again when one of those would have reached them. The
-   best value depends on the input: 1 to 2 on 61k 16S V4 amplicons (35 %
-   non-singletons), 2 to 4 on 219k 18S V9 ones (29 %), measured with 8, 16
-   and 24 threads (2026-09-24). 2 stays within 20 % of the best on both. */
-constexpr auto batch_size_per_thread = 2U;
+/* The rounds of chimera_denovo_batches: the main thread opens a round, the
+   workers (and the main thread) detect its queries, and the main thread
+   waits until every worker is done before it commits them.
+
+   Both sides spin, yielding, for a while before they sleep on a condition
+   variable. A round is short (about one query per thread), and a thread
+   woken from sleep starts a few hundred microseconds late: 229 us on
+   average, measured on an 8 P-core + 16 E-core machine, against 700 us for
+   a whole query. Late workers found the round's queries already claimed,
+   and the round lasted two queries instead of one. The spin is bounded,
+   so that workers do not burn cores through a long commit.
+   // C++20 refactoring: std::barrier and std::atomic::wait could replace this */
+/* how long RoundGate waits by spinning before it sleeps (C++11: a
+   namespace-scope constant, as a static member bound to a reference would
+   need an out-of-class definition) */
+constexpr std::chrono::microseconds spin_before_sleep {2000};
+
+
+class RoundGate
+{
+public:
+  explicit RoundGate(std::size_t const worker_count) noexcept : worker_count_(worker_count) {}
+
+  /* main thread: start a round; everything written before is visible to
+     the workers that see it */
+  auto open_round() -> void
+  {
+    running_.store(worker_count_);
+    {
+      std::lock_guard<std::mutex> const lock(mutex_);
+      ++generation_;
+    }
+    workers_cv_.notify_all();
+  }
+
+  /* main thread: wait until every worker has finished the round */
+  auto wait_round() -> void
+  {
+    if (spin_until([this]() -> bool { return running_.load() == 0; }))
+      {
+        return;
+      }
+    std::unique_lock<std::mutex> lock(mutex_);
+    main_cv_.wait(lock, [this]() -> bool { return running_.load() == 0; });
+  }
+
+  /* main thread: let the workers leave */
+  auto close() -> void
+  {
+    {
+      std::lock_guard<std::mutex> const lock(mutex_);
+      closed_ = true;
+      ++generation_;
+    }
+    workers_cv_.notify_all();
+  }
+
+  /* worker: wait for the round after `seen`; false once the gate is closed */
+  auto wait_open(unsigned long & seen) -> bool
+  {
+    auto const opened = [this, seen]() -> bool { return generation_.load() != seen; };
+    if (not spin_until(opened))
+      {
+        std::unique_lock<std::mutex> lock(mutex_);
+        workers_cv_.wait(lock, opened);
+      }
+    seen = generation_.load();
+    std::lock_guard<std::mutex> const lock(mutex_);
+    return not closed_;
+  }
+
+  /* worker: done with this round */
+  auto finish() -> void
+  {
+    if (running_.fetch_sub(1) == 1)
+      {
+        std::lock_guard<std::mutex> const lock(mutex_);
+        main_cv_.notify_one();
+      }
+  }
+
+private:
+  template <typename Condition>
+  static auto spin_until(Condition const & condition) -> bool
+  {
+    auto const deadline = std::chrono::steady_clock::now() + spin_before_sleep;
+    while (not condition())
+      {
+        if (std::chrono::steady_clock::now() > deadline)
+          {
+            return false;
+          }
+        std::this_thread::yield();
+      }
+    return true;
+  }
+
+  std::size_t const worker_count_;
+  std::atomic<std::size_t> running_ {0};
+  std::atomic<unsigned long> generation_ {0};
+  bool closed_ = false;  /* guarded by mutex_ */
+  std::mutex mutex_;
+  std::condition_variable workers_cv_;
+  std::condition_variable main_cv_;
+};
+
+
+/* Chooses the batch size of chimera_denovo_batches while it runs.
+
+   The batch size trades two losses against each other:
+   - idle threads: a round lasts as long as its slowest query, so the
+     threads that finish early wait. That loss comes from the round's tail,
+     about the same for every round, so it shrinks as 1/size;
+   - serial checks and recomputations: each query is checked against the
+     earlier queries of its batch, and a query found stale is detected
+     again, serially, while the other threads wait. Both the number of
+     checks and the stale share grow about linearly with the batch size,
+     and so does that loss.
+   A sum of the form a/size + b x size is smallest where its two terms are
+   equal, so the size grows while the measured idle time exceeds the
+   measured checking and recomputation loss, and shrinks in the opposite
+   case (with 10 %
+   hysteresis). Both are measured on the same batches, so the comparison
+   does not suffer from the per-query cost growing along the run.
+
+   Measured with 8, 16 and 24 threads (2026-09-25), the best fixed size was
+   one query per thread on 61k 16S V4 amplicons, and two to four per thread
+   on 219k 18S V9 ones. Sizes move by half the thread count, between one
+   and eight queries per thread. The output does not depend on the size. */
+
+/* BatchSizer's bounds and window (namespace-scope: C++11 static members
+   bound to a reference, as by std::max, would need an out-of-class
+   definition) */
+constexpr unsigned int maximum_batch_per_thread = 8;
+constexpr unsigned int window_batches = 16;
+constexpr double hysteresis = 1.1;
+/* Only half of the idle time a larger batch recovers turns into
+   throughput: the rest goes to contention, as more queries running at
+   once slow each other down (measured: 13 % slower per query with 8
+   cores busy, 24 % with 16). */
+constexpr double idle_weight = 0.5;
+
+
+/* The measurements of one batch that BatchSizer weighs, in seconds. An
+   aggregate (no default member initializers, which C++11 does not allow
+   in one), built from its three values at once. */
+struct batch_times_s {
+  double round_wall;  /* wall time of the parallel round */
+  double busy;  /* time the threads spent detecting in it, summed */
+  double serial_wall;  /* wall time of the serial checks and recomputations */
+};
+
+
+class BatchSizer
+{
+public:
+  explicit BatchSizer(std::size_t const threads) noexcept
+    : threads_(static_cast<double>(threads)),
+      minimum_(static_cast<unsigned int>(threads)),
+      maximum_(static_cast<unsigned int>(maximum_batch_per_thread * threads)),
+      step_(std::max(1U, static_cast<unsigned int>(threads / 2))),
+      size_(static_cast<unsigned int>(threads)) {}
+
+  auto size() const noexcept -> unsigned int { return size_; }
+  auto largest() const noexcept -> unsigned int { return maximum_; }
+
+  /* after each batch */
+  auto record(struct batch_times_s const & times) noexcept -> void
+  {
+    idle_ += idle_weight * std::max(0.0, (threads_ * times.round_wall) - times.busy);
+    recompute_ += threads_ * times.serial_wall;
+    ++batches_;
+    if (batches_ < window_batches)
+      {
+        return;
+      }
+    if ((idle_ > hysteresis * recompute_) and (size_ + step_ <= maximum_))
+      {
+        size_ += step_;
+      }
+    else if ((recompute_ > hysteresis * idle_) and (size_ >= minimum_ + step_))
+      {
+        size_ -= step_;
+      }
+    batches_ = 0;
+    idle_ = 0.0;
+    recompute_ = 0.0;
+  }
+
+private:
+  double const threads_;
+  unsigned int const minimum_;
+  unsigned int const maximum_;
+  unsigned int const step_;
+  unsigned int size_;
+  unsigned int batches_ = 0;
+  double idle_ = 0.0;  /* thread-seconds */
+  double recompute_ = 0.0;  /* thread-seconds */
+};
 
 
 /* Denovo detection with more than one thread, as batch speculation with
@@ -2919,13 +3241,16 @@ auto chimera_denovo_batches(struct chimera_cli_state_s & state) -> void
   auto const & database = state.db;
   auto const thread_count = static_cast<std::size_t>(state.detection_parameters.opt_threads);
   assert(thread_count > 1);
-  auto const batch_size = static_cast<unsigned int>(batch_size_per_thread * thread_count);
+  BatchSizer sizer(thread_count);
   int const tophits = static_cast<int>(state.detection_parameters.opt_maxaccepts +
                                        state.detection_parameters.opt_maxrejects);
   struct Scoring const scoring = scoring_from_options(state.parameters);
+  auto const wordlength = static_cast<int>(state.dbindex.wordlength);
+  auto const seqmask = state.parameters.opt_qmask;
 
-  /* one per worker thread, and one for the main thread's recomputations */
-  std::vector<struct denovo_worker_s> workers(thread_count + 1);
+  /* one per thread: thread_count - 1 worker threads, and the main thread,
+     which detects queries with them and then commits them */
+  std::vector<struct denovo_worker_s> workers(thread_count);
   for (auto & worker : workers)
     {
       chimera_thread_init(&worker.ci, tophits, state.detection_parameters,
@@ -2934,61 +3259,99 @@ auto chimera_denovo_batches(struct chimera_cli_state_s & state) -> void
     }
   auto & committer = workers.back();
 
-  std::vector<struct chimera_query_result_s> results(batch_size);
+  std::vector<struct chimera_query_result_s> results(sizer.largest());
+  /* each query's k-mers, as a target for the rest of its batch should it
+     turn out not chimeric: they do not depend on its detection, so they
+     are counted by whoever detects it first */
+  std::vector<struct batch_target_s> prepared(sizer.largest());
   std::vector<struct batch_target_s> batch_targets;
-  Uniquer target_kmers;  /* the committer's own: the index's is not to be shared */
 
-  /* the batch being detected, set by the main thread between two runs */
+  /* the batch being detected, set by the main thread between two rounds */
   unsigned int batch_start = 0;
   unsigned int batch_end = 0;
-  unsigned int next_query = 0;
-  std::mutex mutex_input;
+  std::atomic<unsigned int> next_query {0};
 
   auto const detect = [&database](struct denovo_worker_s & worker,
-                            unsigned int const seqno,
-                            struct chimera_query_result_s & result) -> void {
+                                  unsigned int const seqno,
+                                  struct chimera_query_result_s & result) -> void {
     load_denovo_query(&worker.ci, database, seqno);
     auto const status = chimera_process_query(&worker.ci, worker.allhits_list,
                                               *worker.lma, database);
     collect_query_result(worker.ci, status, 0, result);
   };
 
-  ThreadRunner runner(thread_count, [&](uint64_t const nth_thread) -> void {
-    auto & worker = workers[nth_thread];
-    unsigned int seqno = 0;
-    run_worker_loop(mutex_input,
-                    [&]() -> bool {
-                      if (next_query >= batch_end)
-                        {
-                          return false;
-                        }
-                      seqno = next_query;
-                      ++next_query;
-                      return true;
-                    },
-                    [&]() -> void {
-                      auto & result = results[seqno - batch_start];
-                      detect(worker, seqno, result);
-                      collect_part_searches(worker.ci, result);
-                    });
-  });
+  /* claim and detect queries of the current batch until none is left */
+  auto const detect_batch = [&](struct denovo_worker_s & worker) -> void {
+    while (true)
+      {
+        auto const seqno = next_query.fetch_add(1);
+        if (seqno >= batch_end)
+          {
+            return;
+          }
+        auto const nth = seqno - batch_start;
+        auto const started = std::chrono::steady_clock::now();
+        detect(worker, seqno, results[nth]);
+        collect_part_searches(worker.ci, results[nth]);
+        auto & target = prepared[nth];
+        target.seqno = seqno;
+        target.length = static_cast<unsigned int>(database.getsequencelen(seqno));
+        target.set_kmers(worker.target_kmers.count(wordlength,
+                                                   database.sequence_view(seqno),
+                                                   seqmask));
+        worker.busy += std::chrono::duration<double>(std::chrono::steady_clock::now() -
+                                                     started).count();
+      }
+  };
+
+  RoundGate gate(thread_count - 1);
+  std::vector<std::thread> threads;
+  threads.reserve(thread_count - 1);
+  for (std::size_t nth = 0; nth + 1 < thread_count; ++nth)
+    {
+      threads.emplace_back([&gate, &detect_batch, &workers, nth]() -> void {
+        unsigned long seen = 0;
+        while (gate.wait_open(seen))
+          {
+            detect_batch(workers[nth]);
+            gate.finish();
+          }
+      });
+    }
 
   auto const query_count = static_cast<unsigned int>(database.getsequencecount());
   auto const minwordmatches = state.dbindex.minwordmatches;
   for (batch_start = 0; batch_start < query_count; batch_start = batch_end)
     {
-      batch_end = batch_start + std::min(batch_size, query_count - batch_start);
-      next_query = batch_start;
-      runner.run();  // C++20 refactoring: a std::barrier could replace the per-batch run()
+      batch_end = batch_start + std::min(sizer.size(), query_count - batch_start);
+      auto const round_started = std::chrono::steady_clock::now();
+      next_query.store(batch_start);
+      gate.open_round();
+      detect_batch(committer);
+      gate.wait_round();
+      auto const round_wall = std::chrono::duration<double>(std::chrono::steady_clock::now() -
+                                                            round_started).count();
+      /* the workers' clocks are read after wait_round(), so they are final */
+      auto busy = 0.0;
+      for (auto & worker : workers)
+        {
+          busy += worker.busy;
+          worker.busy = 0.0;
+        }
+      auto serial_wall = 0.0;  /* checks and recomputations */
 
       batch_targets.clear();
       for (auto seqno = batch_start; seqno < batch_end; ++seqno)
         {
-          auto & result = results[seqno - batch_start];
+          auto const nth = seqno - batch_start;
+          auto & result = results[nth];
+          auto const check_started = std::chrono::steady_clock::now();
           if (result_is_stale(result, batch_targets, minwordmatches))
             {
               detect(committer, seqno, result);
             }
+          serial_wall += std::chrono::duration<double>(std::chrono::steady_clock::now() -
+                                                       check_started).count();
 
           {
             std::lock_guard<std::mutex> const output_lock(state.mutex_output);
@@ -3002,17 +3365,17 @@ auto chimera_denovo_batches(struct chimera_cli_state_s & state) -> void
             }
           /* output_query_result indexed it: the rest of the batch was
              detected without it */
-          batch_targets.emplace_back();
-          auto & target = batch_targets.back();
-          target.seqno = seqno;
-          target.length = static_cast<unsigned int>(database.getsequencelen(seqno));
-          auto const kmers = target_kmers.count(static_cast<int>(state.dbindex.wordlength),
-                                                database.sequence_view(seqno),
-                                                state.parameters.opt_qmask);
-          target.set_kmers(kmers);
+          batch_targets.emplace_back(std::move(prepared[nth]));
         }
+
+      sizer.record(batch_times_s{round_wall, busy, serial_wall});
     }
 
+  gate.close();
+  for (auto & thread : threads)
+    {
+      thread.join();
+    }
   for (auto & worker : workers)
     {
       chimera_thread_exit(&worker.ci);
