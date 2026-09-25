@@ -3000,6 +3000,7 @@ struct denovo_worker_s {
   std::vector<struct hit> allhits_list = std::vector<struct hit>(maxcandidates);
   std::unique_ptr<LinearMemoryAligner> lma;
   Uniquer target_kmers;  /* for the query's own k-mers, as the index counts them */
+  double busy = 0.0;  /* seconds spent detecting in the current round */
 };
 
 
@@ -3110,14 +3111,90 @@ private:
 };
 
 
-/* Queries per batch, per thread. Larger batches amortise the two
-   synchronisations per batch and even out the threads' loads, but
-   more queries are then detected without the ones before them, and have
-   to be detected again when one of those would have reached them. The
-   best value depends on the input: 1 to 2 on 61k 16S V4 amplicons (35 %
-   non-singletons), 2 to 4 on 219k 18S V9 ones (29 %), measured with 8, 16
-   and 24 threads (2026-09-24). 2 stays within 20 % of the best on both. */
-constexpr auto batch_size_per_thread = 2U;
+/* Chooses the batch size of chimera_denovo_batches while it runs.
+
+   The batch size trades two losses against each other:
+   - idle threads: a round lasts as long as its slowest query, so the
+     threads that finish early wait. That loss comes from the round's tail,
+     about the same for every round, so it shrinks as 1/size;
+   - serial checks and recomputations: each query is checked against the
+     earlier queries of its batch, and a query found stale is detected
+     again, serially, while the other threads wait. Both the number of
+     checks and the stale share grow about linearly with the batch size,
+     and so does that loss.
+   A sum of the form a/size + b x size is smallest where its two terms are
+   equal, so the size grows while the measured idle time exceeds the
+   measured checking and recomputation loss, and shrinks in the opposite
+   case (with 10 %
+   hysteresis). Both are measured on the same batches, so the comparison
+   does not suffer from the per-query cost growing along the run.
+
+   Measured with 8, 16 and 24 threads (2026-09-25), the best fixed size was
+   one query per thread on 61k 16S V4 amplicons, and two to four per thread
+   on 219k 18S V9 ones. Sizes move by half the thread count, between one
+   and eight queries per thread. The output does not depend on the size. */
+
+/* BatchSizer's bounds and window (namespace-scope: C++11 static members
+   bound to a reference, as by std::max, would need an out-of-class
+   definition) */
+constexpr unsigned int maximum_batch_per_thread = 8;
+constexpr unsigned int window_batches = 16;
+constexpr double hysteresis = 1.1;
+/* Only half of the idle time a larger batch recovers turns into
+   throughput: the rest goes to contention, as more queries running at
+   once slow each other down (measured: 13 % slower per query with 8
+   cores busy, 24 % with 16). */
+constexpr double idle_weight = 0.5;
+
+
+class BatchSizer
+{
+public:
+  explicit BatchSizer(std::size_t const threads) noexcept
+    : threads_(static_cast<double>(threads)),
+      minimum_(static_cast<unsigned int>(threads)),
+      maximum_(static_cast<unsigned int>(maximum_batch_per_thread * threads)),
+      step_(std::max(1U, static_cast<unsigned int>(threads / 2))),
+      size_(static_cast<unsigned int>(threads)) {}
+
+  auto size() const noexcept -> unsigned int { return size_; }
+  auto largest() const noexcept -> unsigned int { return maximum_; }
+
+  /* after each batch: the wall time of its parallel round, the time its
+     threads spent detecting in that round (summed), and the wall time of
+     its serial checks and recomputations */
+  auto record(double const round_wall, double const busy, double const serial_wall) noexcept -> void
+  {
+    idle_ += idle_weight * std::max(0.0, (threads_ * round_wall) - busy);
+    recompute_ += threads_ * serial_wall;
+    ++batches_;
+    if (batches_ < window_batches)
+      {
+        return;
+      }
+    if ((idle_ > hysteresis * recompute_) and (size_ + step_ <= maximum_))
+      {
+        size_ += step_;
+      }
+    else if ((recompute_ > hysteresis * idle_) and (size_ >= minimum_ + step_))
+      {
+        size_ -= step_;
+      }
+    batches_ = 0;
+    idle_ = 0.0;
+    recompute_ = 0.0;
+  }
+
+private:
+  double const threads_;
+  unsigned int const minimum_;
+  unsigned int const maximum_;
+  unsigned int const step_;
+  unsigned int size_;
+  unsigned int batches_ = 0;
+  double idle_ = 0.0;  /* thread-seconds */
+  double recompute_ = 0.0;  /* thread-seconds */
+};
 
 
 /* Denovo detection with more than one thread, as batch speculation with
@@ -3135,7 +3212,7 @@ auto chimera_denovo_batches(struct chimera_cli_state_s & state) -> void
   auto const & database = state.db;
   auto const thread_count = static_cast<std::size_t>(state.detection_parameters.opt_threads);
   assert(thread_count > 1);
-  auto const batch_size = static_cast<unsigned int>(batch_size_per_thread * thread_count);
+  BatchSizer sizer(thread_count);
   int const tophits = static_cast<int>(state.detection_parameters.opt_maxaccepts +
                                        state.detection_parameters.opt_maxrejects);
   struct Scoring const scoring = scoring_from_options(state.parameters);
@@ -3153,11 +3230,11 @@ auto chimera_denovo_batches(struct chimera_cli_state_s & state) -> void
     }
   auto & committer = workers.back();
 
-  std::vector<struct chimera_query_result_s> results(batch_size);
+  std::vector<struct chimera_query_result_s> results(sizer.largest());
   /* each query's k-mers, as a target for the rest of its batch should it
      turn out not chimeric: they do not depend on its detection, so they
      are counted by whoever detects it first */
-  std::vector<struct batch_target_s> prepared(batch_size);
+  std::vector<struct batch_target_s> prepared(sizer.largest());
   std::vector<struct batch_target_s> batch_targets;
 
   /* the batch being detected, set by the main thread between two rounds */
@@ -3184,6 +3261,7 @@ auto chimera_denovo_batches(struct chimera_cli_state_s & state) -> void
             return;
           }
         auto const nth = seqno - batch_start;
+        auto const started = std::chrono::steady_clock::now();
         detect(worker, seqno, results[nth]);
         collect_part_searches(worker.ci, results[nth]);
         auto & target = prepared[nth];
@@ -3192,6 +3270,8 @@ auto chimera_denovo_batches(struct chimera_cli_state_s & state) -> void
         target.set_kmers(worker.target_kmers.count(wordlength,
                                                    database.sequence_view(seqno),
                                                    seqmask));
+        worker.busy += std::chrono::duration<double>(std::chrono::steady_clock::now() -
+                                                     started).count();
       }
   };
 
@@ -3214,21 +3294,35 @@ auto chimera_denovo_batches(struct chimera_cli_state_s & state) -> void
   auto const minwordmatches = state.dbindex.minwordmatches;
   for (batch_start = 0; batch_start < query_count; batch_start = batch_end)
     {
-      batch_end = batch_start + std::min(batch_size, query_count - batch_start);
+      batch_end = batch_start + std::min(sizer.size(), query_count - batch_start);
+      auto const round_started = std::chrono::steady_clock::now();
       next_query.store(batch_start);
       gate.open_round();
       detect_batch(committer);
       gate.wait_round();
+      auto const round_wall = std::chrono::duration<double>(std::chrono::steady_clock::now() -
+                                                            round_started).count();
+      /* the workers' clocks are read after wait_round(), so they are final */
+      auto busy = 0.0;
+      for (auto & worker : workers)
+        {
+          busy += worker.busy;
+          worker.busy = 0.0;
+        }
+      auto serial_wall = 0.0;  /* checks and recomputations */
 
       batch_targets.clear();
       for (auto seqno = batch_start; seqno < batch_end; ++seqno)
         {
           auto const nth = seqno - batch_start;
           auto & result = results[nth];
+          auto const check_started = std::chrono::steady_clock::now();
           if (result_is_stale(result, batch_targets, minwordmatches))
             {
               detect(committer, seqno, result);
             }
+          serial_wall += std::chrono::duration<double>(std::chrono::steady_clock::now() -
+                                                       check_started).count();
 
           {
             std::lock_guard<std::mutex> const output_lock(state.mutex_output);
@@ -3244,6 +3338,8 @@ auto chimera_denovo_batches(struct chimera_cli_state_s & state) -> void
              detected without it */
           batch_targets.emplace_back(std::move(prepared[nth]));
         }
+
+      sizer.record(round_wall, busy, serial_wall);
     }
 
   gate.close();
