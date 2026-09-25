@@ -86,6 +86,7 @@
 #include "utils/open_file.hpp"
 #include "utils/span.hpp"
 #include "utils/threads.hpp"
+#include "utils/round_gate.hpp"  // RoundGate
 #include "utils/worker_loop.hpp"
 #include "utils/print_view.hpp"  // fprint
 #include <algorithm>  // std::copy, std::fill, std::fill_n, std::max, std::max_element, std::min, std::sort, std::transform
@@ -100,9 +101,8 @@
 #include <memory>
 #include <atomic>  // std::atomic
 #include <chrono>  // std::chrono::steady_clock
-#include <condition_variable>  // std::condition_variable
-#include <mutex>  // std::mutex, std::lock_guard, std::unique_lock
-#include <thread>  // std::thread, std::this_thread::yield
+#include <mutex>  // std::mutex, std::lock_guard
+#include <thread>  // std::thread
 #include <numeric>  // std::accumulate
 #include <string>  // std::string
 #include <utility>  // std::move
@@ -3025,111 +3025,10 @@ struct denovo_worker_s {
 };
 
 
-/* The rounds of chimera_denovo_batches: the main thread opens a round, the
-   workers (and the main thread) detect its queries, and the main thread
-   waits until every worker is done before it commits them.
-
-   Both sides spin, yielding, for a while before they sleep on a condition
-   variable. A round is short (about one query per thread), and a thread
-   woken from sleep starts a few hundred microseconds late: 229 us on
-   average, measured on an 8 P-core + 16 E-core machine, against 700 us for
-   a whole query. Late workers found the round's queries already claimed,
-   and the round lasted two queries instead of one. The spin is bounded,
-   so that workers do not burn cores through a long commit.
-   // C++20 refactoring: std::barrier and std::atomic::wait could replace this */
-/* how long RoundGate waits by spinning before it sleeps (C++11: a
-   namespace-scope constant, as a static member bound to a reference would
-   need an out-of-class definition) */
-constexpr std::chrono::microseconds spin_before_sleep {2000};
-
-
-class RoundGate
-{
-public:
-  explicit RoundGate(std::size_t const worker_count) noexcept : worker_count_(worker_count) {}
-
-  /* main thread: start a round; everything written before is visible to
-     the workers that see it */
-  auto open_round() -> void
-  {
-    running_.store(worker_count_);
-    {
-      std::lock_guard<std::mutex> const lock(mutex_);
-      ++generation_;
-    }
-    workers_cv_.notify_all();
-  }
-
-  /* main thread: wait until every worker has finished the round */
-  auto wait_round() -> void
-  {
-    if (spin_until([this]() -> bool { return running_.load() == 0; }))
-      {
-        return;
-      }
-    std::unique_lock<std::mutex> lock(mutex_);
-    main_cv_.wait(lock, [this]() -> bool { return running_.load() == 0; });
-  }
-
-  /* main thread: let the workers leave */
-  auto close() -> void
-  {
-    {
-      std::lock_guard<std::mutex> const lock(mutex_);
-      closed_ = true;
-      ++generation_;
-    }
-    workers_cv_.notify_all();
-  }
-
-  /* worker: wait for the round after `seen`; false once the gate is closed */
-  auto wait_open(unsigned long & seen) -> bool
-  {
-    auto const opened = [this, seen]() -> bool { return generation_.load() != seen; };
-    if (not spin_until(opened))
-      {
-        std::unique_lock<std::mutex> lock(mutex_);
-        workers_cv_.wait(lock, opened);
-      }
-    seen = generation_.load();
-    std::lock_guard<std::mutex> const lock(mutex_);
-    return not closed_;
-  }
-
-  /* worker: done with this round */
-  auto finish() -> void
-  {
-    if (running_.fetch_sub(1) == 1)
-      {
-        std::lock_guard<std::mutex> const lock(mutex_);
-        main_cv_.notify_one();
-      }
-  }
-
-private:
-  template <typename Condition>
-  static auto spin_until(Condition const & condition) -> bool
-  {
-    auto const deadline = std::chrono::steady_clock::now() + spin_before_sleep;
-    while (not condition())
-      {
-        if (std::chrono::steady_clock::now() > deadline)
-          {
-            return false;
-          }
-        std::this_thread::yield();
-      }
-    return true;
-  }
-
-  std::size_t const worker_count_;
-  std::atomic<std::size_t> running_ {0};
-  std::atomic<unsigned long> generation_ {0};
-  bool closed_ = false;  /* guarded by mutex_ */
-  std::mutex mutex_;
-  std::condition_variable workers_cv_;
-  std::condition_variable main_cv_;
-};
+/* RoundGate (utils/round_gate.hpp) drives the rounds of
+   chimera_denovo_batches: the main thread opens a round, the workers and the
+   main thread detect its queries, and the main thread waits until every
+   worker is done before it commits them. */
 
 
 /* Chooses the batch size of chimera_denovo_batches while it runs.
