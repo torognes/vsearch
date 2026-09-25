@@ -56,6 +56,12 @@ Reads can be pre-filtered with `--fastq_truncqual`, `--fastq_minlen`,
 the *merged* sequence. Bounds on the merged sequence length are set
 with `--fastq_minmergelen` and `--fastq_maxmergelen`.
 
+This command is multi-threaded; its outputs, and the order of their
+entries, are the same whatever the number of threads. Reading the two
+input files, rather than merging, limits its speed at high thread
+counts: with `--threads` 5 or more, the reverse reads are therefore
+parsed by one additional thread, at the same time as the forward reads.
+
 To illustrate a merge with a 6-base overlap:
 
 ```text

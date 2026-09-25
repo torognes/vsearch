@@ -86,6 +86,7 @@
 #include <cstdio>  // std::FILE, std::fprintf
 #include <cstdlib>  // std::exit, EXIT_FAILURE
 #include <mutex>  // std::mutex, std::unique_lock
+#include <thread>  // std::thread
 #include <vector>
 
 
@@ -93,6 +94,13 @@
 
 constexpr auto chunk_size = 500; /* read pairs per chunk */
 constexpr auto chunk_factor = 2; /* chunks per thread */
+/* From this many threads on, the reverse records are read by a thread of
+   their own (see read_reverse_ahead). With fewer, the workers, not the
+   reader, bound the command, and the extra thread only competes with them
+   when there are no more cores than threads (measured, 3M pairs, threads
+   pinned to as many cores: 7 % slower with 4 threads, 4 % faster with 5,
+   42 % faster with 8). */
+constexpr int64_t concurrent_reading_threads = 5;
 
 
 struct chunk_s
@@ -100,6 +108,10 @@ struct chunk_s
   int size = 0; /* size of merge_data = number of pairs of reads */
   State state = State::empty; /* state of chunk: empty, read, processed */
   std::vector<struct merge_data_s> merge_data = std::vector<struct merge_data_s>(chunk_size);
+  /* concurrent reading: the reverse records are in (set by the reverse
+     reader, under the chunk lock), and how many */
+  bool reverse_ready = false;
+  int reverse_count = 0;
 };
 
 
@@ -138,8 +150,11 @@ public:
     return abort_.load(order);
   }
 
-  /* Report the recorded error and terminate. Main thread only, after join. */
-  auto report(struct Parameters const & parameters) const -> void
+  /* Report the recorded error and terminate. Main thread only, after join.
+     A parse error was recorded by the input handle itself (deferred-error
+     mode), which holds its message. */
+  auto report(struct Parameters const & parameters, fastx_s const & fastq_fwd,
+              fastx_s const & fastq_rev) const -> void
   {
     switch (reason_)
       {
@@ -159,6 +174,14 @@ public:
 
       case MergeAbortReason::more_fwd_than_rev:
         fatal("More forward reads than reverse reads");
+        break;
+
+      case MergeAbortReason::forward_parse_error:
+        fatal(fastq_fwd.get_errmsg());
+        break;
+
+      case MergeAbortReason::reverse_parse_error:
+        fatal(fastq_rev.get_errmsg());
         break;
       }
     std::exit(EXIT_FAILURE);  // unreachable: every case above fatal()s (noreturn)
@@ -259,6 +282,14 @@ struct mergepairs_cli_state_s
   bool finished_all = false;
   int pairs_read = 0;
   int pairs_written = 0;
+
+  /* With concurrent_reading_threads threads or more, the reverse records are
+     read by a thread of their own, ahead of the chunk reader (see
+     read_reverse_ahead). */
+  bool concurrent_reading = false;
+  int chunk_reverse_next = 0;  /* next chunk for the reverse reader */
+  /* the reverse input still had a record when the forward one ended */
+  bool rev_surplus = false;
 
   Progress * progress = nullptr;  /* owner progress bar; the chunk reader updates it */
 
@@ -607,91 +638,230 @@ auto discard(struct mergepairs_cli_state_s & state, merge_data_t const & a_read_
 }
 
 
+/* make local copies of the seq, header and qual of the record the handle
+   holds, into the buffers of one side of a pair */
+auto copy_record(fastx_s const & fastq_h, std::vector<char> & header,
+                 std::vector<char> & sequence, std::vector<char> & quality) -> void
+{
+  auto const header_view = fastq_h.header_view();
+  auto const sequence_view = fastq_h.sequence_view();
+  auto const quality_view = fastq_h.quality_view();
+
+  /* allocate more memory if necessary (finish_pair() then brings both sides
+     to the same sizes) */
+  vsearch::grow_to_fit(header, header_view.size() + 1);
+  vsearch::grow_to_fit(sequence, sequence_view.size() + 1);
+  vsearch::grow_to_fit(quality, sequence_view.size() + 1);
+
+  /* the length travels with the bytes; every reader takes
+     make_view(header).first(header_length), so a shorter header after a
+     longer one cannot expose the tail and needs no terminator to hide it */
+  std::copy(header_view.cbegin(), header_view.cend(), header.begin());
+  std::copy(sequence_view.cbegin(), sequence_view.cend(), sequence.begin());
+  std::copy(quality_view.cbegin(), quality_view.cend(), quality.begin());
+}
+
+
+/* read the next forward record into the pair; false at the end of the
+   forward input (or on a deferred parse error) */
+auto read_forward(fastx_s & fastq_fwd, merge_data_t & a_read_pair) -> bool
+{
+  if (not fastq_fwd.next(HeaderTruncation::keep_whole, Mapping::upcase))
+    {
+      return false;
+    }
+  copy_record(fastq_fwd, a_read_pair.fwd_header, a_read_pair.fwd_sequence, a_read_pair.fwd_quality);
+  a_read_pair.fwd_header_length = static_cast<int64_t>(fastq_fwd.header_view().size());
+  a_read_pair.fwd_length = static_cast<int64_t>(fastq_fwd.sequence_view().size());
+  a_read_pair.fwd_abundance = fastq_fwd.get_abundance();
+  /* read here, on the thread that reads this input, while the handle still
+     describes this record; the workers see only the copies */
+  a_read_pair.fwd_location = fastq_fwd.quality_location();
+  return true;
+}
+
+
+/* read the next reverse record into the pair; false at the end of the
+   reverse input (or on a deferred parse error) */
+auto read_reverse(fastx_s & fastq_rev, merge_data_t & a_read_pair) -> bool
+{
+  if (not fastq_rev.next(HeaderTruncation::keep_whole, Mapping::upcase))
+    {
+      return false;
+    }
+  copy_record(fastq_rev, a_read_pair.rev_header, a_read_pair.rev_sequence, a_read_pair.rev_quality);
+  a_read_pair.rev_header_length = static_cast<int64_t>(fastq_rev.header_view().size());
+  a_read_pair.rev_length = static_cast<int64_t>(fastq_rev.sequence_view().size());
+  a_read_pair.rev_abundance = fastq_rev.get_abundance();
+  a_read_pair.rev_location = fastq_rev.quality_location();
+  return true;
+}
+
+
+/* the part of reading a pair that needs both records, in input order: the
+   buffers sized for the longer read, the merged buffers, the pair number
+   and the read-length statistics */
+auto finish_pair(struct mergepairs_cli_state_s & state, merge_data_t & a_read_pair) -> void
+{
+  /* allocate more memory if necessary */
+
+  int64_t const header_needed = std::max(a_read_pair.fwd_header_length, a_read_pair.rev_header_length) + 1;
+
+  vsearch::grow_to_fit(a_read_pair.fwd_header, static_cast<std::size_t>(header_needed));
+  vsearch::grow_to_fit(a_read_pair.rev_header, static_cast<std::size_t>(header_needed));
+
+  int64_t const seq_needed = std::max(a_read_pair.fwd_length, a_read_pair.rev_length) + 1;
+
+  state.sum_read_length += static_cast<double>(a_read_pair.fwd_length + a_read_pair.rev_length);
+
+  vsearch::grow_to_fit(a_read_pair.fwd_sequence, static_cast<std::size_t>(seq_needed));
+  vsearch::grow_to_fit(a_read_pair.rev_sequence, static_cast<std::size_t>(seq_needed));
+  vsearch::grow_to_fit(a_read_pair.fwd_quality, static_cast<std::size_t>(seq_needed));
+  vsearch::grow_to_fit(a_read_pair.rev_quality, static_cast<std::size_t>(seq_needed));
+
+
+  int64_t const merged_seq_needed = a_read_pair.fwd_length + a_read_pair.rev_length + 1;
+
+  vsearch::grow_to_fit(a_read_pair.merged_sequence, static_cast<std::size_t>(merged_seq_needed));
+  vsearch::grow_to_fit(a_read_pair.merged_quality_v, static_cast<std::size_t>(merged_seq_needed));
+
+  a_read_pair.merged_sequence[0] = 0;
+  a_read_pair.merged_quality_v[0] = 0;
+  a_read_pair.merged = false;
+  a_read_pair.pair_no = state.total++;
+}
+
+
 auto read_pair(struct mergepairs_cli_state_s & state, merge_data_t & a_read_pair) -> bool
 {
-  auto * const fastq_fwd = state.fastq_fwd.get();
-  auto * const fastq_rev = state.fastq_rev.get();
-
-  if (fastq_fwd->next(HeaderTruncation::keep_whole, Mapping::upcase))
+  if (not read_forward(*state.fastq_fwd, a_read_pair))
     {
-      if (not fastq_rev->next(HeaderTruncation::keep_whole, Mapping::upcase))
-        {
-          /* runs in a worker thread with the chunk lock released; request
-             a cooperative abort instead of exiting here, and stop reading
-             (pair_all() reports it from the main thread after join) */
-          /* no quality location: this is a pairing error, not a bad symbol */
-          state.abort.request(MergeAbortReason::more_fwd_than_rev, 0,
-                              vsearch::QualityLocation{});
-          return false;
-        }
-
-      auto const fwd_header_view = fastq_fwd->header_view();
-      auto const rev_header_view = fastq_rev->header_view();
-      auto const fwd_sequence_view = fastq_fwd->sequence_view();
-      auto const rev_sequence_view = fastq_rev->sequence_view();
-      auto const fwd_quality_view = fastq_fwd->quality_view();
-      auto const rev_quality_view = fastq_rev->quality_view();
-
-      /* allocate more memory if necessary */
-
-      auto const fwd_header_len = static_cast<int64_t>(fwd_header_view.size());
-      auto const rev_header_len = static_cast<int64_t>(rev_header_view.size());
-      int64_t const header_needed = std::max(fwd_header_len, rev_header_len) + 1;
-
-      vsearch::grow_to_fit(a_read_pair.fwd_header, static_cast<std::size_t>(header_needed));
-      vsearch::grow_to_fit(a_read_pair.rev_header, static_cast<std::size_t>(header_needed));
-
-      a_read_pair.fwd_length = static_cast<int64_t>(fwd_sequence_view.size());
-      a_read_pair.rev_length = static_cast<int64_t>(rev_sequence_view.size());
-      int64_t const seq_needed = std::max(a_read_pair.fwd_length, a_read_pair.rev_length) + 1;
-
-      state.sum_read_length += static_cast<double>(a_read_pair.fwd_length + a_read_pair.rev_length);
-
-      vsearch::grow_to_fit(a_read_pair.fwd_sequence, static_cast<std::size_t>(seq_needed));
-      vsearch::grow_to_fit(a_read_pair.rev_sequence, static_cast<std::size_t>(seq_needed));
-      vsearch::grow_to_fit(a_read_pair.fwd_quality, static_cast<std::size_t>(seq_needed));
-      vsearch::grow_to_fit(a_read_pair.rev_quality, static_cast<std::size_t>(seq_needed));
-
-
-      int64_t const merged_seq_needed = a_read_pair.fwd_length + a_read_pair.rev_length + 1;
-
-      vsearch::grow_to_fit(a_read_pair.merged_sequence, static_cast<std::size_t>(merged_seq_needed));
-      vsearch::grow_to_fit(a_read_pair.merged_quality_v, static_cast<std::size_t>(merged_seq_needed));
-
-      /* make local copies of the seq, header and qual */
-
-      /* the length travels with the bytes; every reader takes
-         make_view(header).first(header_length), so a shorter header after a
-         longer one cannot expose the tail and needs no terminator to hide it */
-      std::copy(fwd_header_view.cbegin(), fwd_header_view.cend(), a_read_pair.fwd_header.begin());
-      a_read_pair.fwd_header_length = fwd_header_len;
-
-      std::copy(rev_header_view.cbegin(), rev_header_view.cend(), a_read_pair.rev_header.begin());
-      a_read_pair.rev_header_length = rev_header_len;
-
-      std::copy(fwd_sequence_view.cbegin(), fwd_sequence_view.cend(), a_read_pair.fwd_sequence.begin());
-
-      std::copy(rev_sequence_view.cbegin(), rev_sequence_view.cend(), a_read_pair.rev_sequence.begin());
-
-      std::copy(fwd_quality_view.cbegin(), fwd_quality_view.cend(), a_read_pair.fwd_quality.begin());
-
-      std::copy(rev_quality_view.cbegin(), rev_quality_view.cend(), a_read_pair.rev_quality.begin());
-
-      a_read_pair.fwd_abundance = fastq_fwd->get_abundance();
-      a_read_pair.rev_abundance = fastq_rev->get_abundance();
-
-      a_read_pair.merged_sequence[0] = 0;
-      a_read_pair.merged_quality_v[0] = 0;
-      a_read_pair.merged = false;
-      a_read_pair.pair_no = state.total++;
-      /* read here, on the single reader thread, while the two handles still
-         describe this pair; the workers see only the copies */
-      a_read_pair.fwd_location = fastq_fwd->quality_location();
-      a_read_pair.rev_location = fastq_rev->quality_location();
-
-      return true;
+      return false;
     }
-  return false;
+  if (not read_reverse(*state.fastq_rev, a_read_pair))
+    {
+      /* runs in a worker thread with the chunk lock released; request
+         a cooperative abort instead of exiting here, and stop reading
+         (pair_all() reports it from the main thread after join) */
+      /* no quality location: this is a pairing error, not a bad symbol */
+      state.abort.request(MergeAbortReason::more_fwd_than_rev, 0,
+                          vsearch::QualityLocation{});
+      return false;
+    }
+  finish_pair(state, a_read_pair);
+  return true;
+}
+
+
+/* The reverse reader thread (see concurrent_reading_threads). It reads the reverse records
+   of the chunks ahead of the chunk reader, each chunk once it is empty,
+   and sleeps only when no empty chunk is left ahead of it: a hand-off per
+   chunk (a wake-up, or a spin that took the cores of the workers at low
+   thread counts) cost more than it saved. It stops at the first chunk its
+   input does not fill (at the end of the input, or on a parse error), as
+   the chunk reader then needs no later one, or when the pool stops. */
+auto read_reverse_ahead(struct mergepairs_cli_state_s & state,
+                        std::mutex & mutex_chunks,
+                        std::condition_variable & cond_chunks) -> void
+{
+  std::unique_lock<std::mutex> lock(mutex_chunks);
+  while (true)
+    {
+      auto & chunk = state.chunks[static_cast<std::size_t>(state.chunk_reverse_next)];
+      while (not (state.finished_all or
+                  ((chunk.state == State::empty) and (not chunk.reverse_ready))))
+        {
+          cond_chunks.wait(lock);
+        }
+      if (state.finished_all)
+        {
+          return;
+        }
+      lock.unlock();
+      auto count = 0;
+      while ((count < chunk_size) and
+             read_reverse(*state.fastq_rev, chunk.merge_data[static_cast<std::size_t>(count)]))
+        {
+          ++count;
+        }
+      lock.lock();
+      chunk.reverse_count = count;
+      chunk.reverse_ready = true;
+      state.chunk_reverse_next = (state.chunk_reverse_next + 1) % state.chunk_count;
+      cond_chunks.notify_all();
+      if (count < chunk_size)
+        {
+          return;
+        }
+    }
+}
+
+
+/* Read a chunk of pairs: the forward records here, while the reverse
+   reader thread reads the reverse ones. Parsing both inputs on one thread
+   was the bound of the whole command from 8 threads on (1.48 of 1.50 s).
+   Each side reads until the chunk is full or its input stops (at its end
+   or on a parse error, deferred for that purpose); the pairs are then
+   those both sides read, and where the inputs stop is judged as the
+   sequential read_pair() would have met it: the input that stopped first
+   decides, the forward one on a tie, as it is read first. Called with the
+   chunk lock released; returns the number of pairs read, or -1 if the pool
+   stopped while waiting for the reverse records. */
+auto read_chunk_concurrently(struct mergepairs_cli_state_s & state, struct chunk_s & chunk,
+                             std::unique_lock<std::mutex> & lock,
+                             std::condition_variable & cond_chunks) -> int
+{
+  auto fwd_count = 0;
+  while ((fwd_count < chunk_size) and
+         read_forward(*state.fastq_fwd, chunk.merge_data[static_cast<std::size_t>(fwd_count)]))
+    {
+      ++fwd_count;
+    }
+
+  lock.lock();
+  while (not (chunk.reverse_ready or state.finished_all))
+    {
+      cond_chunks.wait(lock);
+    }
+  if (not chunk.reverse_ready)
+    {
+      lock.unlock();
+      return -1;
+    }
+  /* reset here, while the chunk is still empty: the reverse reader skips it
+     until it has been written and emptied again */
+  chunk.reverse_ready = false;
+  auto const rev_count = chunk.reverse_count;
+  lock.unlock();
+
+  auto const pairs = std::min(fwd_count, rev_count);
+  for (auto & a_read_pair : make_span(chunk.merge_data).first(static_cast<std::size_t>(pairs)))
+    {
+      finish_pair(state, a_read_pair);
+    }
+
+  if (fwd_count > rev_count)
+    {
+      /* the reverse input stopped first: a forward read has no mate (the
+         reverse reader has stopped, so its handle can be read here) */
+      auto const reason = state.fastq_rev->get_error() ?
+        MergeAbortReason::reverse_parse_error : MergeAbortReason::more_fwd_than_rev;
+      state.abort.request(reason, 0, vsearch::QualityLocation{});
+    }
+  else if (fwd_count < chunk_size)
+    {
+      /* the forward input stopped, at its end or on an error */
+      if (state.fastq_fwd->get_error())
+        {
+          state.abort.request(MergeAbortReason::forward_parse_error, 0,
+                              vsearch::QualityLocation{});
+        }
+      /* the reverse input read past it: it has more reads. Otherwise it
+         stopped at the same record, and what follows it is checked after
+         the pool, as in the sequential case. */
+      state.rev_surplus = (rev_count > fwd_count);
+    }
+  return pairs;
 }
 
 
@@ -727,10 +897,25 @@ inline auto chunk_perform_read(struct mergepairs_cli_state_s & state,
       lock.unlock();
       state.progress->update(state.fastq_fwd->get_position());
       auto r = 0;
-      while ((r < chunk_size) and
-             read_pair(state, state.chunks[static_cast<std::size_t>(state.chunk_read_next)].merge_data[static_cast<std::size_t>(r)]))
+      if (state.concurrent_reading)
         {
-          ++r;
+          r = read_chunk_concurrently(state, state.chunks[static_cast<std::size_t>(state.chunk_read_next)],
+                                      lock, cond_chunks);
+          if (r < 0)
+            {
+              /* the pool stopped (finished_all) while this chunk waited for
+                 its reverse records */
+              lock.lock();
+              return;
+            }
+        }
+      else
+        {
+          while ((r < chunk_size) and
+                 read_pair(state, state.chunks[static_cast<std::size_t>(state.chunk_read_next)].merge_data[static_cast<std::size_t>(r)]))
+            {
+              ++r;
+            }
         }
       state.chunks[static_cast<std::size_t>(state.chunk_read_next)].size = r;
       lock.lock();
@@ -975,6 +1160,21 @@ auto pair_all(struct mergepairs_cli_state_s & state) -> void
   std::mutex mutex_chunks;
   std::condition_variable cond_chunks;
 
+  /* with enough threads, a reverse reader of its own (see
+     read_reverse_ahead); its parse errors, and the forward reader's, are
+     deferred so that they are judged in input order and reported from
+     here, after the pool has joined */
+  state.concurrent_reading = (state.parameters.opt_threads >= concurrent_reading_threads);
+  std::thread rev_reader;
+  if (state.concurrent_reading)
+    {
+      state.fastq_fwd->enable_deferred_errors();
+      state.fastq_rev->enable_deferred_errors();
+      rev_reader = std::thread([&state, &mutex_chunks, &cond_chunks]() -> void {
+        read_reverse_ahead(state, mutex_chunks, cond_chunks);
+      });
+    }
+
   /* run the worker pool; the workers coordinate through mutex_chunks and
      cond_chunks until all chunks have been read, processed and written */
   {
@@ -984,6 +1184,12 @@ auto pair_all(struct mergepairs_cli_state_s & state) -> void
                               });
     threadrunner.run();
   }
+  if (rev_reader.joinable())
+    {
+      /* it returns by itself once its input stopped, or once finished_all
+         is set, which the pool does before it ends */
+      rev_reader.join();
+    }
 
   /* all workers have joined; if one hit an out-of-range quality value,
      report it and exit now, single-threaded, so the message reliably
@@ -991,7 +1197,7 @@ auto pair_all(struct mergepairs_cli_state_s & state) -> void
      worker thread */
   if (state.abort.aborted(std::memory_order_seq_cst))
     {
-      state.abort.report(state.parameters);
+      state.abort.report(state.parameters, *state.fastq_fwd, *state.fastq_rev);
     }
 }
 
@@ -1223,6 +1429,16 @@ auto fastq_mergepairs(struct Parameters const & parameters) -> void
     state.progress = nullptr;  // clear before the Progress it points to is destroyed
   }
 
+  /* the concurrent reader may have read past the forward end (rev_surplus),
+     or stopped on a deferred parse error where the forward input ended */
+  if (state.rev_surplus)
+    {
+      fatal("More reverse reads than forward reads");
+    }
+  if (fastq_rev->get_error())
+    {
+      fatal(fastq_rev->get_errmsg());
+    }
   if (fastq_rev->next(HeaderTruncation::at_first_blank, Mapping::upcase))
     {
       fatal("More reverse reads than forward reads");

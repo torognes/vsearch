@@ -32,6 +32,10 @@
       slower with more threads than with one: the queries are claimed
       in chunks instead of one at a time. The entries themselves are
       unchanged.
+    - change: `--fastq_mergepairs` reads its two input files at the same
+      time with `--threads` 5 or more, the reverse reads being parsed by
+      one additional thread; this makes the command about 1.7 times
+      faster from 8 threads on. The results are unchanged.
     - add: a warning when an option is given as an abbreviation of its
       full name (for instance `--thread` for `--threads`). The
       abbreviation is still honoured.
