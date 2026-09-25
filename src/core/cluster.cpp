@@ -83,12 +83,13 @@
 #include "utils/decimal_digits.hpp"  // decimal::to_text
 #include "utils/number_of_strands.hpp"
 #include "utils/print_view.hpp"  // fprint
-#include "utils/threads.hpp"
+#include "utils/round_gate.hpp"  // RoundGate
 #include "utils/reverse_complement.hpp"
 #include "utils/sequence_digest.hpp"
 #include <cassert>
 #include <algorithm>  // std::copy, std::count, std::minmax_element, std::max_element, std::min
 #include <array>
+#include <atomic>  // std::atomic
 #include <cstddef>  // std::ptrdiff_t, std::size_t
 #include <cstdint>  // int64_t, uint64_t
 #include <cstdio>  // std::FILE, std::fprintf
@@ -97,6 +98,7 @@
 #include <map>
 #include <memory>  // std::unique_ptr
 #include <string>
+#include <thread>  // std::thread
 #include <utility>  // std::get
 #include <vector>
 
@@ -164,14 +166,6 @@ struct cluster_cli_state_s
 
   cluster_cli_state_s(struct Parameters const & params, ClusterMode const cluster_mode)
     : parameters(params), mode(cluster_mode) {}
-};
-
-/* per-thread slice of queries assigned for the current round; owned by
-   cluster_work_pool_s (the threading primitives live inside its ThreadRunner) */
-struct thread_work_s
-{
-  int query_first;
-  int query_count;
 };
 
 
@@ -280,26 +274,38 @@ auto cluster_query_exit(struct searchinfo_s & si) -> void
 
 
 /* Self-contained per-invocation worker pool for the clustering search phase.
-   It owns the per-thread searchinfo_s arrays, the per-round query slices, and
-   its own ThreadRunner, so a caller drives its own pool with no shared
-   file-static state (E4) — this is what lets cluster_assign_batch() stop
-   borrowing the CLI path's si_plus/si_minus/thread_work/cluster_threadrunner
-   via a save/restore hack.
+   It owns the searchinfo_s arrays (one entry per query slot of a round, as
+   many as threads) and its own worker threads, so a caller drives its own
+   pool with no shared file-static state (E4) — this is what lets
+   cluster_assign_batch() stop borrowing the CLI path's si_plus/si_minus/
+   thread_work/cluster_threadrunner via a save/restore hack.
 
    Similar to the Scanner class in swarm (src/utils/scanner.{h,cc}), the sister
-   project's equivalent abstraction: the per-thread search state is a member
-   vector, the worker reads its own slice, and the ThreadRunner is held as the
-   last-created member whose lambda captures `this` — so the object must keep a
-   stable address and is non-copyable/non-movable. */
+   project's equivalent abstraction: the search state is a member vector, and
+   the worker threads are the last-created member, their lambda capturing
+   `this` — so the object must keep a stable address and is
+   non-copyable/non-movable.
+
+   A round is `queries` contiguous query slots. The main thread opens it
+   through a RoundGate (utils/round_gate.hpp), then claims slots with the
+   workers from one atomic counter, and waits for them before the serial
+   analysis. Which thread searches a slot does not matter: each slot has its
+   own searchinfo_s, and the search reads only the index, which the serial
+   phase alone extends. With a ThreadRunner and one fixed slot per worker, a
+   woken worker started late (the last one of a round 420 us after the
+   round, at 24 threads, against about 100 us per query) and every round
+   waited for it: the search phase ran at 17-30 % of its threads' capacity. */
 struct cluster_work_pool_s
 {
   struct Parameters const & parameters;  // run config, read by the workers (E1)
   struct Dbindex const & dbindex;       // k-mer index the workers search
   struct Database const & db;           // sequence database the workers query
-  std::vector<searchinfo_s> si_plus;    // one entry per thread
+  std::vector<searchinfo_s> si_plus;    // one entry per query slot (= thread)
   std::vector<searchinfo_s> si_minus;   // empty unless searching both strands
-  std::vector<thread_work_s> thread_work;
-  std::unique_ptr<ThreadRunner> runner;  // constructed last; lambda captures this
+  int round_queries = 0;                // query slots in the current round
+  std::atomic<int> next_query {0};      // next slot to claim in the round
+  RoundGate gate;                       // workers: every thread but the caller's
+  std::vector<std::thread> threads;     // started last; their lambda captures this
 
   cluster_work_pool_s(int const nthreads, int const seqcount,
                       int const tophits, bool const need_minus,
@@ -312,7 +318,7 @@ struct cluster_work_pool_s
       db(database),
       si_plus(static_cast<std::size_t>(nthreads)),
       si_minus(need_minus ? static_cast<std::size_t>(nthreads) : std::size_t{0}),
-      thread_work(static_cast<std::size_t>(nthreads))
+      gate(static_cast<std::size_t>(nthreads - 1))
   {
     for (auto & si : si_plus)
       {
@@ -324,13 +330,29 @@ struct cluster_work_pool_s
         cluster_query_init(si, seqcount, tophits, db, parameters, dbindex, unoise_acceptance);
         si.strand = 1;
       }
-    runner = make_unique<ThreadRunner>(static_cast<std::size_t>(nthreads),
-                                       [this](uint64_t const t) -> void { worker(t); });
+    /* the calling thread is the last of the nthreads: it searches too */
+    threads.reserve(static_cast<std::size_t>(nthreads - 1));
+    for (int nth = 1; nth < nthreads; ++nth)
+      {
+        threads.emplace_back([this]() -> void {
+          unsigned long seen = 0;
+          while (gate.wait_open(seen))
+            {
+              search_round();
+              gate.finish();
+            }
+        });
+      }
   }
 
   ~cluster_work_pool_s()
   {
-    runner.reset();  // join the workers before freeing the buffers they read
+    /* join the workers before freeing the buffers they read */
+    gate.close();
+    for (auto & thread : threads)
+      {
+        thread.join();
+      }
     for (auto & si : si_plus) { cluster_query_exit(si); }
     for (auto & si : si_minus) { cluster_query_exit(si); }
   }
@@ -340,13 +362,17 @@ struct cluster_work_pool_s
   auto operator=(cluster_work_pool_s const &) -> cluster_work_pool_s & = delete;
   auto operator=(cluster_work_pool_s &&) -> cluster_work_pool_s & = delete;
 
-  /* worker body: process this thread's assigned slice of the current round */
-  auto worker(uint64_t const t) -> void
+  /* claim and search query slots of the current round until none is left */
+  auto search_round() -> void
   {
-    auto const & work = thread_work[t];
-    for (int q = 0; q < work.query_count; q++)
+    while (true)
       {
-        auto const query = static_cast<std::size_t>(work.query_first + q);
+        auto const slot = next_query.fetch_add(1);
+        if (slot >= round_queries)
+          {
+            return;
+          }
+        auto const query = static_cast<std::size_t>(slot);
         cluster_query_core(si_plus[query], db, parameters);
         if (not si_minus.empty())
           {
@@ -355,40 +381,17 @@ struct cluster_work_pool_s
       }
   }
 
-  /* distribute `queries` across the threads and run one round */
+  /* search query slots 0 .. queries - 1 with the workers: one round */
   auto wakeup(int const queries) -> void
   {
-    int const nthreads = static_cast<int>(thread_work.size());
-    int const active = queries > nthreads ? nthreads : queries;
-    int queries_rest = queries;
-    int threads_rest = active;
-    int query_next = 0;
-    for (int t = 0; t < nthreads; t++)
-      {
-        auto const tdx = static_cast<std::size_t>(t);
-        if (t < active)
-          {
-            thread_work[tdx].query_first = query_next;
-            thread_work[tdx].query_count = (queries_rest + threads_rest - 1) / threads_rest;
-            queries_rest -= thread_work[tdx].query_count;
-            query_next += thread_work[tdx].query_count;
-            --threads_rest;
-          }
-        else
-          {
-            thread_work[tdx].query_first = query_next;
-            thread_work[tdx].query_count = 0;
-          }
-      }
-    /* Wake only the workers that were handed queries: the ones above `active`
-       were just given query_count = 0, so waking and joining them is pure
-       condition-variable round trip. With queries_per_thread == 1 every round
-       but the last of a run (or of a cluster_assign_batch() call) is exactly
-       nthreads queries wide, so this bites on the final round -- and on every
-       call of a batch shorter than the pool. Both callers stop their loop when
-       the input is exhausted, so `queries` is never 0. */
-    assert(active >= 1);
-    runner->run(static_cast<std::size_t>(active));
+    /* both callers stop their loop when the input is exhausted */
+    assert(queries >= 1);
+    assert(queries <= static_cast<int>(si_plus.size()));
+    round_queries = queries;
+    next_query.store(0);
+    gate.open_round();
+    search_round();
+    gate.wait_round();
   }
 };
 
@@ -1842,8 +1845,8 @@ auto cluster_assign_batch(struct cluster_session_s * cs,
      cluster_work_pool_s, rather than borrowing the CLI path's file-static
      si_plus/si_minus/thread_work/cluster_threadrunner through a save/restore
      hack (E4). The constructor allocates and cluster_query_init()s the
-     per-thread searchinfo arrays and creates the ThreadRunner; the destructor
-     joins the workers and cluster_query_exit()s them. The local si_plus/
+     searchinfo arrays and starts the worker threads; the destructor joins
+     the workers and cluster_query_exit()s them. The local si_plus/
      si_minus aliases let the loop below read unchanged. */
   /* false: as in cluster_session_init(), the library batch path has no UNOISE
      mode to ask for. */
