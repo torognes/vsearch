@@ -59,8 +59,10 @@ with `--fastq_minmergelen` and `--fastq_maxmergelen`.
 This command is multi-threaded; its outputs, and the order of their
 entries, are the same whatever the number of threads. Reading the two
 input files, rather than merging, limits its speed at high thread
-counts: with `--threads` 5 or more, the reverse reads are therefore
-parsed by one additional thread, at the same time as the forward reads.
+counts: with `--threads` 5 or more (3 or more when an input file is
+compressed), one of the threads therefore parses the reverse reads, at
+the same time as the forward reads. The command never runs more
+threads than `--threads`.
 
 To illustrate a merge with a 6-base overlap:
 

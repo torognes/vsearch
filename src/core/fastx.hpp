@@ -335,6 +335,11 @@ public:
   // The detected format is FASTQ (first byte '@'); false for FASTA and for an
   // empty input. Unlike is_fastq_input(), an empty input reports false here.
   auto is_fastq_format() const noexcept -> bool { return is_fastq; }
+  // The input is decompressed on the fly (gzip or bzip2)
+  auto is_compressed() const noexcept -> bool
+  {
+    return (format == Format::gzip) or (format == Format::bzip);
+  }
 
   // Deferred-error mode: a caller reading this handle from worker threads turns
   // it on so a parse error is recorded (see set_deferred_error) instead of
