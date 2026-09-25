@@ -98,7 +98,11 @@
 #include <limits>
 #include <map>  // std::map
 #include <memory>
-#include <mutex>  // std::mutex, std::lock_guard
+#include <atomic>  // std::atomic
+#include <chrono>  // std::chrono::steady_clock
+#include <condition_variable>  // std::condition_variable
+#include <mutex>  // std::mutex, std::lock_guard, std::unique_lock
+#include <thread>  // std::thread, std::this_thread::yield
 #include <numeric>  // std::accumulate
 #include <string>  // std::string
 #include <utility>  // std::move
@@ -2995,6 +2999,114 @@ struct denovo_worker_s {
   struct chimera_info_s ci;
   std::vector<struct hit> allhits_list = std::vector<struct hit>(maxcandidates);
   std::unique_ptr<LinearMemoryAligner> lma;
+  Uniquer target_kmers;  /* for the query's own k-mers, as the index counts them */
+};
+
+
+/* The rounds of chimera_denovo_batches: the main thread opens a round, the
+   workers (and the main thread) detect its queries, and the main thread
+   waits until every worker is done before it commits them.
+
+   Both sides spin, yielding, for a while before they sleep on a condition
+   variable. A round is short (about one query per thread), and a thread
+   woken from sleep starts a few hundred microseconds late: 229 us on
+   average, measured on an 8 P-core + 16 E-core machine, against 700 us for
+   a whole query. Late workers found the round's queries already claimed,
+   and the round lasted two queries instead of one. The spin is bounded,
+   so that workers do not burn cores through a long commit.
+   // C++20 refactoring: std::barrier and std::atomic::wait could replace this */
+/* how long RoundGate waits by spinning before it sleeps (C++11: a
+   namespace-scope constant, as a static member bound to a reference would
+   need an out-of-class definition) */
+constexpr std::chrono::microseconds spin_before_sleep {2000};
+
+
+class RoundGate
+{
+public:
+  explicit RoundGate(std::size_t const worker_count) noexcept : worker_count_(worker_count) {}
+
+  /* main thread: start a round; everything written before is visible to
+     the workers that see it */
+  auto open_round() -> void
+  {
+    running_.store(worker_count_);
+    {
+      std::lock_guard<std::mutex> const lock(mutex_);
+      ++generation_;
+    }
+    workers_cv_.notify_all();
+  }
+
+  /* main thread: wait until every worker has finished the round */
+  auto wait_round() -> void
+  {
+    if (spin_until([this]() -> bool { return running_.load() == 0; }))
+      {
+        return;
+      }
+    std::unique_lock<std::mutex> lock(mutex_);
+    main_cv_.wait(lock, [this]() -> bool { return running_.load() == 0; });
+  }
+
+  /* main thread: let the workers leave */
+  auto close() -> void
+  {
+    {
+      std::lock_guard<std::mutex> const lock(mutex_);
+      closed_ = true;
+      ++generation_;
+    }
+    workers_cv_.notify_all();
+  }
+
+  /* worker: wait for the round after `seen`; false once the gate is closed */
+  auto wait_open(unsigned long & seen) -> bool
+  {
+    auto const opened = [this, seen]() -> bool { return generation_.load() != seen; };
+    if (not spin_until(opened))
+      {
+        std::unique_lock<std::mutex> lock(mutex_);
+        workers_cv_.wait(lock, opened);
+      }
+    seen = generation_.load();
+    std::lock_guard<std::mutex> const lock(mutex_);
+    return not closed_;
+  }
+
+  /* worker: done with this round */
+  auto finish() -> void
+  {
+    if (running_.fetch_sub(1) == 1)
+      {
+        std::lock_guard<std::mutex> const lock(mutex_);
+        main_cv_.notify_one();
+      }
+  }
+
+private:
+  template <typename Condition>
+  static auto spin_until(Condition const & condition) -> bool
+  {
+    auto const deadline = std::chrono::steady_clock::now() + spin_before_sleep;
+    while (not condition())
+      {
+        if (std::chrono::steady_clock::now() > deadline)
+          {
+            return false;
+          }
+        std::this_thread::yield();
+      }
+    return true;
+  }
+
+  std::size_t const worker_count_;
+  std::atomic<std::size_t> running_ {0};
+  std::atomic<unsigned long> generation_ {0};
+  bool closed_ = false;  /* guarded by mutex_ */
+  std::mutex mutex_;
+  std::condition_variable workers_cv_;
+  std::condition_variable main_cv_;
 };
 
 
@@ -3027,9 +3139,12 @@ auto chimera_denovo_batches(struct chimera_cli_state_s & state) -> void
   int const tophits = static_cast<int>(state.detection_parameters.opt_maxaccepts +
                                        state.detection_parameters.opt_maxrejects);
   struct Scoring const scoring = scoring_from_options(state.parameters);
+  auto const wordlength = static_cast<int>(state.dbindex.wordlength);
+  auto const seqmask = state.parameters.opt_qmask;
 
-  /* one per worker thread, and one for the main thread's recomputations */
-  std::vector<struct denovo_worker_s> workers(thread_count + 1);
+  /* one per thread: thread_count - 1 worker threads, and the main thread,
+     which detects queries with them and then commits them */
+  std::vector<struct denovo_worker_s> workers(thread_count);
   for (auto & worker : workers)
     {
       chimera_thread_init(&worker.ci, tophits, state.detection_parameters,
@@ -3039,56 +3154,77 @@ auto chimera_denovo_batches(struct chimera_cli_state_s & state) -> void
   auto & committer = workers.back();
 
   std::vector<struct chimera_query_result_s> results(batch_size);
+  /* each query's k-mers, as a target for the rest of its batch should it
+     turn out not chimeric: they do not depend on its detection, so they
+     are counted by whoever detects it first */
+  std::vector<struct batch_target_s> prepared(batch_size);
   std::vector<struct batch_target_s> batch_targets;
-  Uniquer target_kmers;  /* the committer's own: the index's is not to be shared */
 
-  /* the batch being detected, set by the main thread between two runs */
+  /* the batch being detected, set by the main thread between two rounds */
   unsigned int batch_start = 0;
   unsigned int batch_end = 0;
-  unsigned int next_query = 0;
-  std::mutex mutex_input;
+  std::atomic<unsigned int> next_query {0};
 
   auto const detect = [&database](struct denovo_worker_s & worker,
-                            unsigned int const seqno,
-                            struct chimera_query_result_s & result) -> void {
+                                  unsigned int const seqno,
+                                  struct chimera_query_result_s & result) -> void {
     load_denovo_query(&worker.ci, database, seqno);
     auto const status = chimera_process_query(&worker.ci, worker.allhits_list,
                                               *worker.lma, database);
     collect_query_result(worker.ci, status, 0, result);
   };
 
-  ThreadRunner runner(thread_count, [&](uint64_t const nth_thread) -> void {
-    auto & worker = workers[nth_thread];
-    unsigned int seqno = 0;
-    run_worker_loop(mutex_input,
-                    [&]() -> bool {
-                      if (next_query >= batch_end)
-                        {
-                          return false;
-                        }
-                      seqno = next_query;
-                      ++next_query;
-                      return true;
-                    },
-                    [&]() -> void {
-                      auto & result = results[seqno - batch_start];
-                      detect(worker, seqno, result);
-                      collect_part_searches(worker.ci, result);
-                    });
-  });
+  /* claim and detect queries of the current batch until none is left */
+  auto const detect_batch = [&](struct denovo_worker_s & worker) -> void {
+    while (true)
+      {
+        auto const seqno = next_query.fetch_add(1);
+        if (seqno >= batch_end)
+          {
+            return;
+          }
+        auto const nth = seqno - batch_start;
+        detect(worker, seqno, results[nth]);
+        collect_part_searches(worker.ci, results[nth]);
+        auto & target = prepared[nth];
+        target.seqno = seqno;
+        target.length = static_cast<unsigned int>(database.getsequencelen(seqno));
+        target.set_kmers(worker.target_kmers.count(wordlength,
+                                                   database.sequence_view(seqno),
+                                                   seqmask));
+      }
+  };
+
+  RoundGate gate(thread_count - 1);
+  std::vector<std::thread> threads;
+  threads.reserve(thread_count - 1);
+  for (std::size_t nth = 0; nth + 1 < thread_count; ++nth)
+    {
+      threads.emplace_back([&gate, &detect_batch, &workers, nth]() -> void {
+        unsigned long seen = 0;
+        while (gate.wait_open(seen))
+          {
+            detect_batch(workers[nth]);
+            gate.finish();
+          }
+      });
+    }
 
   auto const query_count = static_cast<unsigned int>(database.getsequencecount());
   auto const minwordmatches = state.dbindex.minwordmatches;
   for (batch_start = 0; batch_start < query_count; batch_start = batch_end)
     {
       batch_end = batch_start + std::min(batch_size, query_count - batch_start);
-      next_query = batch_start;
-      runner.run();  // C++20 refactoring: a std::barrier could replace the per-batch run()
+      next_query.store(batch_start);
+      gate.open_round();
+      detect_batch(committer);
+      gate.wait_round();
 
       batch_targets.clear();
       for (auto seqno = batch_start; seqno < batch_end; ++seqno)
         {
-          auto & result = results[seqno - batch_start];
+          auto const nth = seqno - batch_start;
+          auto & result = results[nth];
           if (result_is_stale(result, batch_targets, minwordmatches))
             {
               detect(committer, seqno, result);
@@ -3106,17 +3242,15 @@ auto chimera_denovo_batches(struct chimera_cli_state_s & state) -> void
             }
           /* output_query_result indexed it: the rest of the batch was
              detected without it */
-          batch_targets.emplace_back();
-          auto & target = batch_targets.back();
-          target.seqno = seqno;
-          target.length = static_cast<unsigned int>(database.getsequencelen(seqno));
-          auto const kmers = target_kmers.count(static_cast<int>(state.dbindex.wordlength),
-                                                database.sequence_view(seqno),
-                                                state.parameters.opt_qmask);
-          target.set_kmers(kmers);
+          batch_targets.emplace_back(std::move(prepared[nth]));
         }
     }
 
+  gate.close();
+  for (auto & thread : threads)
+    {
+      thread.join();
+    }
   for (auto & worker : workers)
     {
       chimera_thread_exit(&worker.ci);
