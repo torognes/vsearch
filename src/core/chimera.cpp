@@ -277,14 +277,22 @@ struct chimera_info_s
   int parts = 0;  /* number of query parts for chimera detection */
 
   /* si[0 .. parts_ready) have been through query_init(). The rest are built on
-     demand by chimera_process_query, because each one owns a k-mer counter
-     array with one entry per database sequence: building all maxparts of them
-     up front costs 100 x 2 bytes per reference per thread, and a uchime run
-     uses four of them. dbindex/tophits are the two query_init() arguments that
-     are not already reachable from ci. */
+     demand by chimera_process_query, because each one owns an aligner and a
+     hit buffer, and a uchime run uses four of the maxparts. (Each also used
+     to own a k-mer counter array with one entry per database sequence; they
+     now share kmer_counters below.) dbindex/tophits are the two query_init()
+     arguments that are not already reachable from ci. */
   int parts_ready = 0;
   struct Dbindex const * dbindex = nullptr;
   int tophits = 0;
+
+  /* The k-mer counters of this thread's part searches: one array, with one
+     entry per database sequence, lent to each part's searchinfo_s while it
+     is searched (see CounterLoan). The parts are searched one after the
+     other, and search_topscores() clears the counters it reads, so they
+     can share it: one array per thread instead of one per part, of which
+     --chimeras_denovo uses up to 100. Sized by chimera_thread_init. */
+  std::vector<count_t> kmer_counters;
 
   /* API result fields — populated by eval_parents when result_out is set */
   struct chimera_result_s * result_out = nullptr;
@@ -2147,13 +2155,11 @@ static auto query_init(struct searchinfo_s * search_info, int const tophits,
                        struct Parameters const & parameters,
                        struct Dbindex const & dbindex) -> void
 {
-  static constexpr auto overflow_padding = 16U;  // 16 * sizeof(short) = 32 bytes
   search_info->parameters = &parameters;  /* searchcore reads config through the si (E1) */
   search_info->dbindex = &dbindex;  /* searchcore reads the k-mer index through the si */
   search_info->db = &db;  /* searchcore reads the sequences through the si */
   search_info->hits_v.resize(static_cast<size_t>(tophits));
-  search_info->kmers_v.reserve(db.getsequencecount() + overflow_padding);
-  search_info->kmers_v.resize(db.getsequencecount());
+  /* no kmers_v: the part borrows ci->kmer_counters while it is searched */
   search_info->hit_count = 0;
   /* search_info->uh (a Uniquer value member) is ready to use as default-constructed */
   // scoring.n_mismatch is always false: no chimera command accepts --n_mismatch
@@ -2218,6 +2224,11 @@ auto chimera_thread_init(struct chimera_info_s * ci, int const tophits,
   ci->tophits = tophits;
   ci->parts_ready = 0;
 
+  /* headroom past the logical end for the SIMD counter stores */
+  static constexpr auto overflow_padding = 16U;  // 16 * sizeof(short) = 32 bytes
+  ci->kmer_counters.reserve(db.getsequencecount() + overflow_padding);
+  ci->kmer_counters.resize(db.getsequencecount());
+
   // scoring.n_mismatch is always false: no chimera command accepts --n_mismatch
   ci->s.reset(search16_init(scoring_from_options(parameters)));
 }
@@ -2232,6 +2243,33 @@ auto chimera_thread_exit(struct chimera_info_s * ci) -> void
   }
 }
 }  // anonymous namespace
+
+
+/* Lends a thread's k-mer counters to one part search, and takes them back
+   when the search is over, also when fatal() throws (library sessions),
+   so that the next query finds them where it expects them. A swap: it
+   keeps the reserved headroom and costs nothing. */
+class CounterLoan
+{
+public:
+  CounterLoan(std::vector<count_t> & lender, struct searchinfo_s & borrower) noexcept
+    : lender_(lender), borrower_(borrower)
+  {
+    borrower_.kmers_v.swap(lender_);
+  }
+  ~CounterLoan()
+  {
+    borrower_.kmers_v.swap(lender_);
+  }
+  CounterLoan(CounterLoan const &) = delete;
+  CounterLoan(CounterLoan &&) = delete;
+  auto operator=(CounterLoan const &) -> CounterLoan & = delete;
+  auto operator=(CounterLoan &&) -> CounterLoan & = delete;
+
+private:
+  std::vector<count_t> & lender_;
+  struct searchinfo_s & borrower_;
+};
 
 
 /* Process a single query that has already been loaded into ci.
@@ -2268,7 +2306,10 @@ static auto chimera_process_query(struct chimera_info_s * ci,
       std::vector<struct hit> hits;
       for (auto i = 0; i < ci->parts; ++i)
         {
-          search_onequery(&ci->si[static_cast<size_t>(i)], parameters.opt_qmask);
+          {
+            CounterLoan const loan(ci->kmer_counters, ci->si[static_cast<size_t>(i)]);
+            search_onequery(&ci->si[static_cast<size_t>(i)], parameters.opt_qmask);
+          }
           search_joinhits(&ci->si[static_cast<size_t>(i)], nullptr, hits);
           for (auto & hit : hits) {
             if (hit.accepted and allhits_count < maxcandidates)
