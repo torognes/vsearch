@@ -302,10 +302,6 @@ struct cluster_work_pool_s
   struct Database const & db;           // sequence database the workers query
   std::vector<searchinfo_s> si_plus;    // one entry per query slot (= thread)
   std::vector<searchinfo_s> si_minus;   // empty unless searching both strands
-  int round_queries = 0;                // query slots in the current round
-  std::atomic<int> next_query {0};      // next slot to claim in the round
-  RoundGate gate;                       // workers: every thread but the caller's
-  std::vector<std::thread> threads;     // started last; their lambda captures this
 
   cluster_work_pool_s(int const nthreads, int const seqcount,
                       int const tophits, bool const need_minus,
@@ -393,6 +389,15 @@ struct cluster_work_pool_s
     search_round();
     gate.wait_round();
   }
+
+private:
+  /* declared after si_plus/si_minus, as before: members are initialized in
+     declaration order, and the threads, started last in the constructor,
+     read everything above them */
+  int round_queries = 0;                // query slots in the current round
+  std::atomic<int> next_query {0};      // next slot to claim in the round
+  RoundGate gate;                       // workers: every thread but the caller's
+  std::vector<std::thread> threads;     // started last; their lambda captures this
 };
 
 

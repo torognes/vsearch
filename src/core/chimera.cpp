@@ -101,9 +101,8 @@
 #include <memory>
 #include <atomic>  // std::atomic
 #include <chrono>  // std::chrono::steady_clock
-#include <condition_variable>  // std::condition_variable
-#include <mutex>  // std::mutex, std::lock_guard, std::unique_lock
-#include <thread>  // std::thread, std::this_thread::yield
+#include <mutex>  // std::mutex, std::lock_guard
+#include <thread>  // std::thread
 #include <numeric>  // std::accumulate
 #include <string>  // std::string
 #include <utility>  // std::move
