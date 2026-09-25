@@ -27,6 +27,11 @@
       queries, whatever the number of threads. Previously the order of
       the entries could vary from run to run with more than one thread;
       the entries themselves are unchanged.
+    - change: `--search_exact` now writes its results in the order of
+      the queries, whatever the number of threads, and no longer runs
+      slower with more threads than with one: the queries are claimed
+      in chunks instead of one at a time. The entries themselves are
+      unchanged.
     - add: a warning when an option is given as an abbreviation of its
       full name (for instance `--thread` for `--threads`). The
       abbreviation is still honoured.
