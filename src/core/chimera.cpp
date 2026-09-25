@@ -293,11 +293,19 @@ struct chimera_info_s
 
   /* The k-mer counters of this thread's part searches: one array, with one
      entry per database sequence, lent to each part's searchinfo_s while it
-     is searched (see CounterLoan). The parts are searched one after the
+     is searched (see PartSearchLoan). The parts are searched one after the
      other, and search_topscores() clears the counters it reads, so they
      can share it: one array per thread instead of one per part, of which
      --chimeras_denovo uses up to 100. Sized by chimera_thread_init. */
   std::vector<count_t> kmer_counters;
+
+  /* The SIMD aligner of this thread's part searches, lent the same way:
+     search_onequery() prepares it for its own part (search16_qprep) before
+     aligning, so nothing carries over from one part to the next. Its
+     backtrack buffer grows to part length x target length x 8 bytes, which
+     one aligner per part multiplied by up to 100 on long reads (about
+     800 MB per thread for 10 kb reads). Created by chimera_thread_init. */
+  std::unique_ptr<s16info_s, s16info_deleter> part_aligner;
 
   /* API result fields — populated by eval_parents when result_out is set */
   struct chimera_result_s * result_out = nullptr;
@@ -2178,11 +2186,10 @@ static auto query_init(struct searchinfo_s * search_info, int const tophits,
   search_info->dbindex = &dbindex;  /* searchcore reads the k-mer index through the si */
   search_info->db = &db;  /* searchcore reads the sequences through the si */
   search_info->hits_v.resize(static_cast<size_t>(tophits));
-  /* no kmers_v: the part borrows ci->kmer_counters while it is searched */
+  /* no kmers_v and no aligner (s): the part borrows ci->kmer_counters and
+     ci->part_aligner while it is searched */
   search_info->hit_count = 0;
   /* search_info->uh (a Uniquer value member) is ready to use as default-constructed */
-  // scoring.n_mismatch is always false: no chimera command accepts --n_mismatch
-  search_info->s.reset(search16_init(scoring_from_options(parameters)));
   search_info->m = Minheap(tophits);
 }
 
@@ -2247,6 +2254,8 @@ auto chimera_thread_init(struct chimera_info_s * ci, int const tophits,
   static constexpr auto overflow_padding = 16U;  // 16 * sizeof(short) = 32 bytes
   ci->kmer_counters.reserve(db.getsequencecount() + overflow_padding);
   ci->kmer_counters.resize(db.getsequencecount());
+  // scoring.n_mismatch is always false: no chimera command accepts --n_mismatch
+  ci->part_aligner.reset(search16_init(scoring_from_options(parameters)));
 
   // scoring.n_mismatch is always false: no chimera command accepts --n_mismatch
   ci->s.reset(search16_init(scoring_from_options(parameters)));
@@ -2256,6 +2265,7 @@ auto chimera_thread_init(struct chimera_info_s * ci, int const tophits,
 auto chimera_thread_exit(struct chimera_info_s * ci) -> void
 {
   ci->s.reset();
+  ci->part_aligner.reset();
 
   for (auto & a_search_info : ci->si) {
     query_exit(a_search_info);
@@ -2264,29 +2274,36 @@ auto chimera_thread_exit(struct chimera_info_s * ci) -> void
 }  // anonymous namespace
 
 
-/* Lends a thread's k-mer counters to one part search, and takes them back
-   when the search is over, also when fatal() throws (library sessions),
-   so that the next query finds them where it expects them. A swap: it
-   keeps the reserved headroom and costs nothing. */
-class CounterLoan
+/* Lends a thread's k-mer counters and part aligner (see kmer_counters and
+   part_aligner) to one part search, and takes them back when the search is
+   over, also when fatal() throws (library sessions), so that the next
+   query finds them where it expects them. Swaps: they keep the reserved
+   headroom and the grown buffers, and cost nothing. */
+class PartSearchLoan
 {
 public:
-  CounterLoan(std::vector<count_t> & lender, struct searchinfo_s & borrower) noexcept
+  PartSearchLoan(struct chimera_info_s & lender, struct searchinfo_s & borrower) noexcept
     : lender_(lender), borrower_(borrower)
   {
-    borrower_.kmers_v.swap(lender_);
+    swap_both();
   }
-  ~CounterLoan()
+  ~PartSearchLoan()
   {
-    borrower_.kmers_v.swap(lender_);
+    swap_both();
   }
-  CounterLoan(CounterLoan const &) = delete;
-  CounterLoan(CounterLoan &&) = delete;
-  auto operator=(CounterLoan const &) -> CounterLoan & = delete;
-  auto operator=(CounterLoan &&) -> CounterLoan & = delete;
+  PartSearchLoan(PartSearchLoan const &) = delete;
+  PartSearchLoan(PartSearchLoan &&) = delete;
+  auto operator=(PartSearchLoan const &) -> PartSearchLoan & = delete;
+  auto operator=(PartSearchLoan &&) -> PartSearchLoan & = delete;
 
 private:
-  std::vector<count_t> & lender_;
+  auto swap_both() noexcept -> void
+  {
+    borrower_.kmers_v.swap(lender_.kmer_counters);
+    borrower_.s.swap(lender_.part_aligner);
+  }
+
+  struct chimera_info_s & lender_;
   struct searchinfo_s & borrower_;
 };
 
@@ -2326,7 +2343,7 @@ static auto chimera_process_query(struct chimera_info_s * ci,
       for (auto i = 0; i < ci->parts; ++i)
         {
           {
-            CounterLoan const loan(ci->kmer_counters, ci->si[static_cast<size_t>(i)]);
+            PartSearchLoan const loan(*ci, ci->si[static_cast<size_t>(i)]);
             search_onequery(&ci->si[static_cast<size_t>(i)], parameters.opt_qmask);
           }
           search_joinhits(&ci->si[static_cast<size_t>(i)], nullptr, hits);
