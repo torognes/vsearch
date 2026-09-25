@@ -84,12 +84,14 @@
 #include "utils/number_of_strands.hpp"
 #include "utils/print_view.hpp"  // fprint
 #include "utils/round_gate.hpp"  // RoundGate
+#include "utils/batch_sizer.hpp"  // BatchSizer, batch_times_s
 #include "utils/reverse_complement.hpp"
 #include "utils/sequence_digest.hpp"
 #include <cassert>
 #include <algorithm>  // std::copy, std::count, std::minmax_element, std::max_element, std::min
 #include <array>
 #include <atomic>  // std::atomic
+#include <chrono>  // std::chrono::steady_clock, std::chrono::duration
 #include <cstddef>  // std::ptrdiff_t, std::size_t
 #include <cstdint>  // int64_t, uint64_t
 #include <cstdio>  // std::FILE, std::fprintf
@@ -295,12 +297,27 @@ auto cluster_query_exit(struct searchinfo_s & si) -> void
    woken worker started late (the last one of a round 420 us after the
    round, at 24 threads, against about 100 us per query) and every round
    waited for it: the search phase ran at 17-30 % of its threads' capacity. */
+/* The round width (queries per round) is chosen as the run goes by a
+   BatchSizer (utils/batch_sizer.hpp), between one and eight queries per
+   thread. A round lasts as long as its slowest query, so the other threads
+   wait at its end, a loss that wider rounds spread over more queries. But
+   each query of a round is also compared, serially, with the new centroids
+   found before it in the same round (evaluate_extra_hits), and that fixup
+   grows with the width. The sizer weighs the idle time measured in the
+   rounds against the fixup time the callers measure (record_fixup). The
+   results do not depend on the width. Measured with fixed widths
+   (2026-09-25, 50k 18S V9 amplicons): four queries per thread was the best
+   at 8 threads, two to four at 24.
+
+   The slots of a round beyond the first nthreads are initialized when a
+   round first uses them: each holds a k-mer counter per database sequence,
+   so only a run that widens its rounds pays for them. */
 struct cluster_work_pool_s
 {
   struct Parameters const & parameters;  // run config, read by the workers (E1)
   struct Dbindex const & dbindex;       // k-mer index the workers search
   struct Database const & db;           // sequence database the workers query
-  std::vector<searchinfo_s> si_plus;    // one entry per query slot (= thread)
+  std::vector<searchinfo_s> si_plus;    // one entry per query slot
   std::vector<searchinfo_s> si_minus;   // empty unless searching both strands
 
   cluster_work_pool_s(int const nthreads, int const seqcount,
@@ -312,29 +329,28 @@ struct cluster_work_pool_s
     : parameters(params),
       dbindex(index),
       db(database),
-      si_plus(static_cast<std::size_t>(nthreads)),
-      si_minus(need_minus ? static_cast<std::size_t>(nthreads) : std::size_t{0}),
+      seqcount_(seqcount),
+      tophits_(tophits),
+      unoise_acceptance_(unoise_acceptance),
+      sizer(static_cast<std::size_t>(nthreads)),
+      busy(static_cast<std::size_t>(nthreads), 0.0),
       gate(static_cast<std::size_t>(nthreads - 1))
   {
-    for (auto & si : si_plus)
+    si_plus.resize(sizer.largest());
+    if (need_minus)
       {
-        cluster_query_init(si, seqcount, tophits, db, parameters, dbindex, unoise_acceptance);
-        si.strand = 0;
+        si_minus.resize(sizer.largest());
       }
-    for (auto & si : si_minus)
-      {
-        cluster_query_init(si, seqcount, tophits, db, parameters, dbindex, unoise_acceptance);
-        si.strand = 1;
-      }
+    initialize_slots(sizer.size());
     /* the calling thread is the last of the nthreads: it searches too */
     threads.reserve(static_cast<std::size_t>(nthreads - 1));
     for (int nth = 1; nth < nthreads; ++nth)
       {
-        threads.emplace_back([this]() -> void {
+        threads.emplace_back([this, nth]() -> void {
           unsigned long seen = 0;
           while (gate.wait_open(seen))
             {
-              search_round();
+              search_round(static_cast<std::size_t>(nth - 1));
               gate.finish();
             }
         });
@@ -349,8 +365,8 @@ struct cluster_work_pool_s
       {
         thread.join();
       }
-    for (auto & si : si_plus) { cluster_query_exit(si); }
-    for (auto & si : si_minus) { cluster_query_exit(si); }
+    for (auto & si : make_span(si_plus).first(initialized)) { cluster_query_exit(si); }
+    for (auto & si : make_span(si_minus).first(std::min(initialized, si_minus.size()))) { cluster_query_exit(si); }
   }
 
   cluster_work_pool_s(cluster_work_pool_s const &) = delete;
@@ -358,15 +374,17 @@ struct cluster_work_pool_s
   auto operator=(cluster_work_pool_s const &) -> cluster_work_pool_s & = delete;
   auto operator=(cluster_work_pool_s &&) -> cluster_work_pool_s & = delete;
 
-  /* claim and search query slots of the current round until none is left */
-  auto search_round() -> void
+  /* claim and search query slots of the current round until none is left;
+     thread is the caller's index in busy */
+  auto search_round(std::size_t const thread) -> void
   {
+    auto const started = std::chrono::steady_clock::now();
     while (true)
       {
         auto const slot = next_query.fetch_add(1);
         if (slot >= round_queries)
           {
-            return;
+            break;
           }
         auto const query = static_cast<std::size_t>(slot);
         cluster_query_core(si_plus[query], db, parameters);
@@ -375,7 +393,12 @@ struct cluster_work_pool_s
             cluster_query_core(si_minus[query], db, parameters);
           }
       }
+    busy[thread] += std::chrono::duration<double>(std::chrono::steady_clock::now() -
+                                                  started).count();
   }
+
+  /* how many queries the next round should hold */
+  auto round_width() const noexcept -> int { return static_cast<int>(sizer.size()); }
 
   /* search query slots 0 .. queries - 1 with the workers: one round */
   auto wakeup(int const queries) -> void
@@ -383,14 +406,57 @@ struct cluster_work_pool_s
     /* both callers stop their loop when the input is exhausted */
     assert(queries >= 1);
     assert(queries <= static_cast<int>(si_plus.size()));
+    initialize_slots(static_cast<std::size_t>(queries));
     round_queries = queries;
     next_query.store(0);
+    auto const started = std::chrono::steady_clock::now();
     gate.open_round();
-    search_round();
+    search_round(busy.size() - 1);
     gate.wait_round();
+    round_wall = std::chrono::duration<double>(std::chrono::steady_clock::now() -
+                                               started).count();
+  }
+
+  /* after the serial phase of a round: the time it spent comparing queries
+     with the new centroids of their own round (evaluate_extra_hits) */
+  auto record_fixup(double const fixup_wall) noexcept -> void
+  {
+    /* the workers' clocks are read after wait_round(), so they are final */
+    auto round_busy = 0.0;
+    for (auto & thread_busy : busy)
+      {
+        round_busy += thread_busy;
+        thread_busy = 0.0;
+      }
+    sizer.record(batch_times_s{round_wall, round_busy, fixup_wall});
   }
 
 private:
+  /* cluster_query_init() the slots up to count, if not done yet */
+  auto initialize_slots(std::size_t const count) -> void
+  {
+    for (; initialized < count; ++initialized)
+      {
+        auto & plus = si_plus[initialized];
+        cluster_query_init(plus, seqcount_, tophits_, db, parameters, dbindex, unoise_acceptance_);
+        plus.strand = 0;
+        if (si_minus.empty())
+          {
+            continue;
+          }
+        auto & minus = si_minus[initialized];
+        cluster_query_init(minus, seqcount_, tophits_, db, parameters, dbindex, unoise_acceptance_);
+        minus.strand = 1;
+      }
+  }
+
+  int const seqcount_;                  // for the slots initialized later
+  int const tophits_;
+  bool const unoise_acceptance_;
+  std::size_t initialized = 0;          // slots cluster_query_init()ed so far
+  BatchSizer sizer;                     // round width
+  double round_wall = 0.0;              // seconds, last round
+  std::vector<double> busy;             // seconds searching, per thread, last round
   /* declared after si_plus/si_minus, as before: members are initialized in
      declaration order, and the threads, started last in the constructor,
      read everything above them */
@@ -953,9 +1019,6 @@ auto cluster_core_parallel(struct cluster_cli_state_s & state,
                            int const seqcount, int const tophits,
                            struct Database const & db) -> void
 {
-  constexpr static int queries_per_thread = 1;
-  int const max_queries = queries_per_thread * static_cast<int>(state.parameters.opt_threads);
-
   /* Own worker pool + per-thread search state (E4); see cluster_work_pool_s.
      The local si_plus/si_minus aliases let the loops below read unchanged. */
   cluster_work_pool_s pool(static_cast<int>(state.parameters.opt_threads), seqcount, tophits,
@@ -964,7 +1027,7 @@ auto cluster_core_parallel(struct cluster_cli_state_s & state,
   auto & si_plus = pool.si_plus;
   auto & si_minus = pool.si_minus;
 
-  std::vector<int> extra_list(static_cast<std::size_t>(max_queries));
+  std::vector<int> extra_list(si_plus.size());
 
   struct Scoring const scoring = scoring_from_options(state.parameters);
 
@@ -986,6 +1049,7 @@ auto cluster_core_parallel(struct cluster_cli_state_s & state,
       /* read query sequences into the search info (si) for each thread */
 
       int queries = 0;
+      int const max_queries = pool.round_width();
 
       for (int i = 0; i < max_queries; i++)
         {
@@ -1020,6 +1084,7 @@ auto cluster_core_parallel(struct cluster_cli_state_s & state,
 
       /* analyse results */
       int extra_count = 0;
+      auto fixup_wall = 0.0;  /* seconds in evaluate_extra_hits */
 
       for (int i = 0; i < queries; i++)
         {
@@ -1036,11 +1101,14 @@ auto cluster_core_parallel(struct cluster_cli_state_s & state,
                                   make_view(extra_list).first(static_cast<std::size_t>(extra_count)),
                                   lma, tophits, db);
             };
+          auto const fixup_started = std::chrono::steady_clock::now();
           evaluate(si_p);
           for (auto & minus_strand : si_m)
             {
               evaluate(minus_strand);
             }
+          fixup_wall += std::chrono::duration<double>(std::chrono::steady_clock::now() -
+                                                      fixup_started).count();
 
           /* find best hit */
           struct hit * best = nullptr;
@@ -1109,6 +1177,7 @@ auto cluster_core_parallel(struct cluster_cli_state_s & state,
 
           sum_nucleotides += static_cast<int>(si_p.qsequence.size());
         }
+      pool.record_fixup(fixup_wall);
 
       progress.update(static_cast<uint64_t>(sum_nucleotides));
     }
@@ -1842,10 +1911,6 @@ auto cluster_assign_batch(struct cluster_session_s * cs,
 
   struct Parameters const & parameters = *cs->parameters;
 
-  constexpr int queries_per_thread = 1;
-  int const max_queries =
-    queries_per_thread * static_cast<int>(parameters.opt_threads);
-
   /* This batch owns its worker pool and per-thread search state via
      cluster_work_pool_s, rather than borrowing the CLI path's file-static
      si_plus/si_minus/thread_work/cluster_threadrunner through a save/restore
@@ -1866,7 +1931,7 @@ auto cluster_assign_batch(struct cluster_session_s * cs,
 
   LinearMemoryAligner lma(scoring);
 
-  std::vector<int> extra_list(static_cast<std::size_t>(max_queries));
+  std::vector<int> extra_list(si_plus.size());
 
   int seqno = start_seqno;
   int const end_seqno = start_seqno + count;
@@ -1875,6 +1940,7 @@ auto cluster_assign_batch(struct cluster_session_s * cs,
     {
       /* Load batch of queries */
       int queries = 0;
+      int const max_queries = pool.round_width();
       for (int i = 0; i < max_queries; i++)
         {
           if (seqno < end_seqno)
@@ -1900,6 +1966,7 @@ auto cluster_assign_batch(struct cluster_session_s * cs,
       /* Serial analysis with intra-batch fixup
          (adapted from cluster_core_parallel lines 725-1053) */
       int extra_count = 0;
+      auto fixup_wall = 0.0;  /* seconds in evaluate_extra_hits */
 
       for (int i = 0; i < queries; i++)
         {
@@ -1916,11 +1983,14 @@ auto cluster_assign_batch(struct cluster_session_s * cs,
                                   make_view(extra_list).first(static_cast<std::size_t>(extra_count)),
                                   lma, cs->tophits, *cs->db);
             };
+          auto const fixup_started = std::chrono::steady_clock::now();
           evaluate(si_p);
           for (auto & minus_strand : si_m)
             {
               evaluate(minus_strand);
             }
+          fixup_wall += std::chrono::duration<double>(std::chrono::steady_clock::now() -
+                                                      fixup_started).count();
 
           /* Find best hit across strands */
           struct hit const * best = nullptr;
@@ -1972,6 +2042,7 @@ auto cluster_assign_batch(struct cluster_session_s * cs,
 
           free_hit_alignments(si_p, si_m);
         }
+      pool.record_fixup(fixup_wall);
     }
 
   /* pool's destructor joins the workers and frees the per-thread search state */

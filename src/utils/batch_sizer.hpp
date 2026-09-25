@@ -87,6 +87,14 @@
    on 219k 18S V9 ones. Sizes move by half the thread count, between one
    and eight queries per thread. The output does not depend on the size. */
 
+/* It also chooses the round width of the clustering pool
+   (core/cluster.cpp, cluster_work_pool_s). There, the serial loss is the
+   comparison of each query with the new centroids found before it in the
+   same round (evaluate_extra_hits), which grows with the width in the
+   same way. With the same constants, the adaptive width was faster than
+   every fixed width from one to eight queries per thread, at 8, 16 and 24
+   threads (2026-09-25, 50k 18S V9 amplicons). */
+
 /* BatchSizer's bounds and window (namespace-scope: C++11 static members
    bound to a reference, as by std::max, would need an out-of-class
    definition) */
