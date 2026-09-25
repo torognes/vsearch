@@ -96,6 +96,7 @@
 #include <cstdio>  // std::FILE, std::fprintf, std::fputs
 #include <iterator>  // std::next
 #include <limits>
+#include <map>  // std::map
 #include <memory>
 #include <mutex>  // std::mutex, std::lock_guard
 #include <numeric>  // std::accumulate
@@ -452,6 +453,20 @@ struct chimera_query_result_s {
   /* denovo batch driver only: one per part search, none when the query was
      too short to be split and searched */
   std::vector<struct chimera_part_search_s> part_searches;
+  /* owned copies of the header and sequence, taken when the result must
+     outlive its worker's next claim (keep_query_text) */
+  std::vector<char> header_copy;
+  std::vector<char> sequence_copy;
+};
+
+
+/* Puts the results of the worker pool back into query order: a worker
+   writes its query if it is the next one due, then the queries that were
+   waiting for it; otherwise it leaves its result here and moves on. No
+   worker waits for another. Guarded by chimera_cli_state_s::mutex_output. */
+struct ordered_output_s {
+  unsigned int next_rank = 0;  /* the claim rank of the next query to write */
+  std::map<unsigned int, struct chimera_query_result_s> waiting;
 };
 
 
@@ -2617,6 +2632,44 @@ static auto output_query_result(struct chimera_cli_state_s & state,
 
 
 namespace {
+/* Make the result's header and sequence its own: for --uchime_ref they are
+   views into the worker's buffers, which its next claim overwrites. */
+static auto keep_query_text(struct chimera_query_result_s & result) -> void
+{
+  result.header_copy.assign(result.header.cbegin(), result.header.cend());
+  result.sequence_copy.assign(result.sequence.cbegin(), result.sequence.cend());
+  result.header = make_view(result.header_copy);
+  result.sequence = make_view(result.sequence_copy);
+}
+
+
+/* Write the result of the query claimed at `rank`, in claim order (see
+   ordered_output_s). Called with the output lock held. */
+static auto output_in_order(struct chimera_cli_state_s & state,
+                            struct ordered_output_s & ordered,
+                            unsigned int const rank,
+                            struct chimera_query_result_s & result,
+                            struct Database const & db) -> void
+{
+  if (rank != ordered.next_rank)
+    {
+      keep_query_text(result);
+      ordered.waiting.emplace(rank, std::move(result));
+      return;
+    }
+  output_query_result(state, result, db);
+  ++ordered.next_rank;
+  auto next = ordered.waiting.find(ordered.next_rank);
+  while (next != ordered.waiting.end())
+    {
+      output_query_result(state, next->second, db);
+      ordered.waiting.erase(next);
+      ++ordered.next_rank;
+      next = ordered.waiting.find(ordered.next_rank);
+    }
+}
+
+
 /* Copy database sequence seqno into chimera_info as the query to process
    (denovo) */
 auto load_denovo_query(struct chimera_info_s * chimera_info,
@@ -2640,6 +2693,7 @@ auto load_denovo_query(struct chimera_info_s * chimera_info,
 static auto chimera_thread_core(struct chimera_cli_state_s & state,
                          struct chimera_info_s * ci,
                          std::mutex & mutex_input,
+                         struct ordered_output_s & ordered,
                          struct Database const & db) -> uint64_t
 {
   /* tophits sizes the per-part minheaps; it is maxaccepts + maxrejects from
@@ -2659,6 +2713,7 @@ static auto chimera_thread_core(struct chimera_cli_state_s & state,
 
   /* this worker's current query, handed from detection to output */
   struct chimera_query_result_s result;
+  unsigned int claimed_rank = 0;  /* its rank in claim order */
 
   auto const has_work_to_claim = [&]() -> bool {
     /* get next sequence */
@@ -2712,6 +2767,7 @@ static auto chimera_thread_core(struct chimera_cli_state_s & state,
        loop runs denovo detection with one worker only: the index has to
        grow in query order, which claiming alone does not ensure, so more
        threads go to chimera_denovo_batches instead (see chimera()). */
+    claimed_rank = state.seqno;
     ++state.seqno;
     return true;
   };
@@ -2724,7 +2780,7 @@ static auto chimera_thread_core(struct chimera_cli_state_s & state,
 
     std::lock_guard<std::mutex> const output_lock(state.mutex_output);
 
-    output_query_result(state, result, db);
+    output_in_order(state, ordered, claimed_rank, result, db);
   };
 
   run_worker_loop(mutex_input, has_work_to_claim, process_query);
@@ -2742,14 +2798,21 @@ static auto chimera_threads_run(struct chimera_cli_state_s & state) -> void
      owned here rather than at file scope (the API path does not use it). */
   std::mutex mutex_input;
 
+  /* results are written in query order, whatever the thread count */
+  struct ordered_output_s ordered;
+
   /* run the worker pool; each worker processes queries until the input
      is exhausted. chimera_thread_core returns a value that the previous
      pthread_join already discarded, so it is ignored here too. */
   ThreadRunner threadrunner(static_cast<std::size_t>(state.detection_parameters.opt_threads),
-                            [&state, &mutex_input](uint64_t const nth_thread) -> void {
-                              chimera_thread_core(state, &state.cia[nth_thread], mutex_input, state.db);
+                            [&state, &mutex_input, &ordered](uint64_t const nth_thread) -> void {
+                              chimera_thread_core(state, &state.cia[nth_thread], mutex_input,
+                                                  ordered, state.db);
                             });
   threadrunner.run();
+  /* every claimed query was processed, so every rank up to the last was
+     written */
+  assert(ordered.waiting.empty());
 }
 
 
