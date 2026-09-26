@@ -65,6 +65,14 @@
     - change: library API version 0.28.0. `struct hit` changes layout
       (64-bit `nwscore`, new `id5` field) and `Parameters` gains two
       fields for `--relabel @`: library users must recompile.
+    - change: library API version 0.29.0. The batch functions
+      (`search_batch`, `chimera_detect_batch`, `cluster_assign_batch`)
+      now reuse worker threads and per-thread state owned by the
+      `VsearchSession`, instead of creating them at each call: the fixed
+      cost of a call drops from 0.1-1.1 ms to 3-32 µs at 8 to 24
+      threads, and batches of a few queries per thread are enough. The
+      results are unchanged. `VsearchSession` grows: library users must
+      recompile.
     - fix: `--fastq_mergepairs` computed `--fastq_maxdiffpct` over the
       alignment offset rather than the overlap, and tested
       `--fastq_minovlen` against the offset too. With staggered pairs
