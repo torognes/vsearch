@@ -292,6 +292,90 @@ static int test_session_reuse_after_recover()
 }
 
 
+/* --- Test 5: a session whose configuration is rejected leaves no trace ---
+   The VsearchSession constructor turns on the throwing fatal() mode before it
+   resolves the configuration, so that a rejected configuration is itself a
+   catchable VsearchError. A constructor that throws runs no destructor, so
+   the constructor must put the thread's previous mode back itself. Checked
+   twice: with no session open (the mode must be back to non-throwing, so a
+   later fatal() outside any session exits, as before), and inside an open
+   session (the mode must still be throwing, and the outer session usable). */
+static int test_rejected_session_restores_mode()
+{
+  int failures = 0;
+
+  auto const open_rejected_session = [&failures]() -> void {
+    struct Parameters rejected;
+    rejected.opt_threads = -1;  // out of range: the fixups call fatal()
+    try
+      {
+        VsearchSession const session(rejected);
+        std::fprintf(stderr, "FAIL: opt_threads = -1 did not raise VsearchError\n");
+        ++failures;
+      }
+    catch (VsearchError const &)
+      {
+        /* expected */
+      }
+  };
+
+  /* no session open: back to non-throwing */
+  if (fatal_detail::throw_on_fatal())
+    {
+      std::fprintf(stderr, "FAIL: fatal() throws before any session was opened\n");
+      ++failures;
+    }
+  open_rejected_session();
+  if (fatal_detail::throw_on_fatal())
+    {
+      std::fprintf(stderr, "FAIL: a rejected session left fatal() throwing outside any session\n");
+      ++failures;
+    }
+  else
+    {
+      std::fprintf(stderr, "PASS: a rejected session restores the non-throwing mode\n");
+    }
+
+  /* inside an open session: still throwing, and the session still works */
+  {
+    struct Parameters outer;
+    VsearchSession const session(outer);
+    open_rejected_session();
+    if (not fatal_detail::throw_on_fatal())
+      {
+        std::fprintf(stderr, "FAIL: a rejected nested session turned the throwing mode off\n");
+        ++failures;
+      }
+    bool caught = false;
+    try
+      {
+        Database bad;
+        bad.read("data/this_file_does_not_exist.fasta", 0, outer);
+      }
+    catch (VsearchError const &)
+      {
+        caught = true;
+      }
+    if (not caught)
+      {
+        std::fprintf(stderr, "FAIL: the outer session no longer throws after a rejected nested one\n");
+        ++failures;
+      }
+    else
+      {
+        std::fprintf(stderr, "PASS: a rejected nested session leaves the outer one throwing\n");
+      }
+  }
+
+  if (fatal_detail::throw_on_fatal())
+    {
+      std::fprintf(stderr, "FAIL: fatal() still throws after every session ended\n");
+      ++failures;
+    }
+  return failures;
+}
+
+
 int main()
 {
   int failures = 0;
@@ -318,6 +402,9 @@ int main()
 
   /* Test 4 manages its own (sequential) sessions. */
   failures += test_session_reuse_after_recover();
+
+  /* Test 5 opens (and fails to open) its own sessions. */
+  failures += test_rejected_session_restores_mode();
 
   return failures == 0 ? 0 : 1;
 }

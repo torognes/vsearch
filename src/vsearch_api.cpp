@@ -102,6 +102,33 @@ namespace fatal_detail {
 }
 
 
+namespace {
+/* Puts the thread's fatal() mode back to what it was, unless dismissed: a
+   constructor that throws runs no destructor, so without it a configuration
+   error caught from the fixups would leave fatal() throwing on this thread
+   with no session open. */
+class ThrowModeRestorer {
+public:
+  explicit ThrowModeRestorer(bool const previous) noexcept : previous_(previous) {}
+  ~ThrowModeRestorer()
+  {
+    if (armed_)
+      {
+        fatal_detail::throw_on_fatal() = previous_;
+      }
+  }
+  auto dismiss() noexcept -> void { armed_ = false; }
+  ThrowModeRestorer(ThrowModeRestorer const &) = delete;
+  ThrowModeRestorer(ThrowModeRestorer &&) = delete;
+  auto operator=(ThrowModeRestorer const &) -> ThrowModeRestorer & = delete;
+  auto operator=(ThrowModeRestorer &&) -> ThrowModeRestorer & = delete;
+private:
+  bool const previous_;
+  bool armed_ = true;
+};
+}  // anonymous namespace
+
+
 /* A library session is now just a caller-owned object: no process-wide lock and
    no begin/end pair, because vsearch keeps no shared mutable state to serialize
    (so independent sessions can run concurrently in different threads). The
@@ -122,9 +149,11 @@ VsearchSession::VsearchSession(struct Parameters & parameters)
     batch_session(make_unique<batch_session_s>()),
     previous_batch_session(batch_session_detail::current())
 {
+  ThrowModeRestorer restorer(previous_throw_mode);
   fatal_detail::throw_on_fatal() = true;
   vsearch_apply_defaults_fixups(parameters);
   batch_session_detail::current() = batch_session.get();
+  restorer.dismiss();  // the session is open: the destructor restores the mode
 }
 
 
