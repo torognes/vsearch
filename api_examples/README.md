@@ -125,6 +125,18 @@ contracts: the `VsearchError::message` carries the fatal text, and a fresh
 `VsearchSession` works after a caught fatal (proving the destructor restored
 the thread's fatal-mode as it left scope). Self-validating.
 
+### example_batch_session
+
+The batch functions (`search_batch`, `chimera_detect_batch`,
+`cluster_assign_batch`) reuse the `VsearchSession`'s worker threads and their
+per-thread state from one call to the next. Checks against the single-query API
+that their results do not depend on it: repeated and interleaved calls of
+several batch sizes with `opt_threads` changed between calls, calls after a
+caught fatal, a call from a thread with no session (which creates its threads
+for the call), calls in a nested session and then in the outer one, and
+`cluster_assign_batch` in chunks with `opt_threads` changed mid-run.
+Self-validating.
+
 ## Test data
 
 All test data uses synthetic 300bp DNA sequences with known properties:
