@@ -67,7 +67,10 @@
 
 #include "vsearch_api.h"  // VSEARCH_API_VERSION*, vsearch_api_version*, VsearchSession
 #include "parameters.hpp"  // vsearch_apply_defaults_fixups
+#include "core/batch_session.hpp"  // batch_session_s, batch_session_detail::current
 #include "utils/fatal.hpp"  // fatal_detail::throw_on_fatal
+#include "utils/make_unique.hpp"  // make_unique
+#include <cassert>  // assert
 
 
 auto vsearch_api_version() -> int
@@ -109,15 +112,27 @@ namespace fatal_detail {
    (rather than forced back to false) so nested sessions on one thread compose,
    and worker threads — which never construct a session — keep the default,
    non-throwing behaviour (an exception must not escape a std::thread). */
+/* The batch session becomes the thread's current one only once the fixups
+   have succeeded: a constructor that throws runs no destructor, which would
+   leave the thread pointing at a freed batch session. It starts empty; the
+   batch functions create its threads and state when first called (see
+   core/batch_session.hpp). */
 VsearchSession::VsearchSession(struct Parameters & parameters)
-  : previous_throw_mode(fatal_detail::throw_on_fatal())
+  : previous_throw_mode(fatal_detail::throw_on_fatal()),
+    batch_session(make_unique<batch_session_s>()),
+    previous_batch_session(batch_session_detail::current())
 {
   fatal_detail::throw_on_fatal() = true;
   vsearch_apply_defaults_fixups(parameters);
+  batch_session_detail::current() = batch_session.get();
 }
 
 
 VsearchSession::~VsearchSession()
 {
+  /* sessions on one thread end in the reverse order they began */
+  assert(batch_session_detail::current() == batch_session.get());
+  batch_session_detail::current() = previous_batch_session;
   fatal_detail::throw_on_fatal() = previous_throw_mode;
+  /* batch_session's destructor then joins the threads and frees the state */
 }
