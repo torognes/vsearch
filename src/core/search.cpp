@@ -86,6 +86,7 @@
 #include <cstdint>  // uint64_t, int64_t
 #include <memory>  // std::unique_ptr
 #include <mutex>  // std::mutex
+#include <utility>  // std::move
 #include <vector>
 
 
@@ -461,7 +462,7 @@ struct search_batch_context_s {
   Span<int> result_counts;
 
   /* the per-thread search state, the session's or this call's */
-  search_batch_state_s * state;
+  search_batch_state_s * state = nullptr;
 
   /* run configuration, set in search_batch and read by the workers instead of
      the opt_* globals (E1 shared-infra phase). */
@@ -586,14 +587,17 @@ auto search_batch(struct Parameters const & parameters,
   /* Allocate per-thread search state, or reuse the session's if it was built
      for the same inputs. Outside a session it lives for this call only. */
   search_batch_key_s const key {&parameters, &dbindex, &db, seqcount, tophits,
-                                parameters.opt_strand, nthreads};
+                                parameters.opt_strand, nthreads,};
   std::unique_ptr<batch_state_s> call_state;
   auto * const session = current_batch_session();
   auto & slot = (session != nullptr) ? session->search : call_state;
-  if (slot == nullptr or not (static_cast<search_batch_state_s &>(*slot).key == key))
+  auto * state = dynamic_cast<search_batch_state_s *>(slot.get());
+  if (state == nullptr or not (state->key == key))
     {
       slot.reset();  // free the stale state before allocating its successor
-      slot = make_unique<search_batch_state_s>(key);
+      auto fresh = make_unique<search_batch_state_s>(key);
+      state = fresh.get();
+      slot = std::move(fresh);
     }
 
   struct search_batch_context_s ctx;
@@ -601,7 +605,7 @@ auto search_batch(struct Parameters const & parameters,
   ctx.results = results;
   ctx.max_results_per_query = max_results_per_query;
   ctx.result_counts = result_counts;
-  ctx.state = &static_cast<search_batch_state_s &>(*slot);
+  ctx.state = state;
   ctx.parameters = &parameters;
   ctx.next_query = 0;
 

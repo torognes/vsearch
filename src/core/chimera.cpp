@@ -3807,7 +3807,7 @@ struct chimera_batch_context_s {
   Span<struct chimera_result_s> results;
 
   /* the per-thread chimera state, the session's or this call's */
-  chimera_batch_state_s * state;
+  chimera_batch_state_s * state = nullptr;
 
   /* work-stealing counter */
   std::mutex mutex;
@@ -3857,16 +3857,19 @@ auto chimera_detect_batch(struct Parameters const & parameters,
   std::unique_ptr<batch_state_s> call_state;
   auto * const session = current_batch_session();
   auto & slot = (session != nullptr) ? session->chimera : call_state;
-  if (slot == nullptr or not (static_cast<chimera_batch_state_s &>(*slot).key == key))
+  auto * state = dynamic_cast<chimera_batch_state_s *>(slot.get());
+  if (state == nullptr or not (state->key == key))
     {
       slot.reset();  // free the stale state before allocating its successor
-      slot = make_unique<chimera_batch_state_s>(key);
+      auto fresh = make_unique<chimera_batch_state_s>(key);
+      state = fresh.get();
+      slot = std::move(fresh);
     }
 
   struct chimera_batch_context_s ctx;
   ctx.queries = queries;
   ctx.results = results;
-  ctx.state = &static_cast<chimera_batch_state_s &>(*slot);
+  ctx.state = state;
   ctx.next_query = 0;
 
   /* run all queries through the worker pool (work-stealing on next_query) */

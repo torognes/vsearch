@@ -363,9 +363,11 @@ private:
    round first uses them. The k-mer counters, one per database sequence,
    belong to the threads, which lend them to the slots they search (see
    CounterLoan): a slot holds only its query and its hits. */
+namespace {
 /* whether a cluster_work_pool_s creates its worker threads, or searches with
    threads lent at each call (a library session's, see lend_threads) */
 enum struct PoolThreads : std::uint8_t { owned, lent };
+}  // anonymous namespace
 
 struct cluster_work_pool_s
 {
@@ -1971,6 +1973,40 @@ auto cluster_assign_single(struct cluster_session_s * cs,
 }
 
 
+namespace {
+/* cluster_assign_batch's search slots: in a library session, the ones kept in
+   cs (built at the first call, and again when opt_threads changed), lent the
+   session's threads; outside a session, new ones in call_pool, with threads
+   of their own, for this call only. Not noexcept: it allocates and may create
+   threads. */
+auto batch_work_pool(struct cluster_session_s & cluster_session,
+                     std::unique_ptr<cluster_work_pool_s> & call_pool) -> cluster_work_pool_s &
+{
+  struct Parameters const & parameters = *cluster_session.parameters;
+  auto const nthreads = static_cast<int>(parameters.opt_threads);
+  auto * const session = current_batch_session();
+  auto & pool_slot = (session != nullptr) ? cluster_session.work : call_pool;
+  auto const pool_threads = (session != nullptr) ? PoolThreads::lent : PoolThreads::owned;
+  if (pool_slot == nullptr or pool_slot->thread_count() != static_cast<std::size_t>(nthreads))
+    {
+      pool_slot.reset();  // free the stale slots before allocating their successors
+      /* false: as in cluster_session_init(), the library batch path has no UNOISE
+         mode to ask for. */
+      pool_slot = make_unique<cluster_work_pool_s>(nthreads, cluster_session.seqcount,
+                                                   cluster_session.tophits,
+                                                   parameters.opt_strand, parameters,
+                                                   *cluster_session.dbindex, *cluster_session.db,
+                                                   false, pool_threads);
+    }
+  if (session != nullptr)
+    {
+      pool_slot->lend_threads(session->pool(static_cast<std::size_t>(nthreads)));
+    }
+  return *pool_slot;
+}
+}  // anonymous namespace
+
+
 auto cluster_assign_batch(struct cluster_session_s * cs,
                           int const start_seqno,
                           Span<struct cluster_result_s> const results) -> void
@@ -2008,25 +2044,8 @@ auto cluster_assign_batch(struct cluster_session_s * cs,
      and searches with the session's threads, and the calling thread (see
      core/batch_session.hpp); outside a session, it lives for this call and
      owns its threads, as described above. */
-  auto const nthreads = static_cast<int>(parameters.opt_threads);
-  auto * const session = current_batch_session();
   std::unique_ptr<cluster_work_pool_s> call_pool;
-  auto & pool_slot = (session != nullptr) ? cs->work : call_pool;
-  auto const pool_threads = (session != nullptr) ? PoolThreads::lent : PoolThreads::owned;
-  if (pool_slot == nullptr or pool_slot->thread_count() != static_cast<std::size_t>(nthreads))
-    {
-      pool_slot.reset();  // free the stale slots before allocating their successors
-      /* false: as in cluster_session_init(), the library batch path has no UNOISE
-         mode to ask for. */
-      pool_slot = make_unique<cluster_work_pool_s>(nthreads, cs->seqcount, cs->tophits,
-                                                   parameters.opt_strand, parameters,
-                                                   *cs->dbindex, *cs->db, false, pool_threads);
-    }
-  auto & pool = *pool_slot;
-  if (session != nullptr)
-    {
-      pool.lend_threads(session->pool(static_cast<std::size_t>(nthreads)));
-    }
+  auto & pool = batch_work_pool(*cs, call_pool);
   auto & si_plus = pool.si_plus;
   auto & si_minus = pool.si_minus;
 
