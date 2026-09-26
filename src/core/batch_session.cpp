@@ -60,13 +60,17 @@
 
 #include "core/batch_session.hpp"
 #include "utils/make_unique.hpp"  // make_unique
-#include "utils/round_pool.hpp"  // RoundPool, Participation
+#include "utils/fatal.hpp"  // fatal_detail::ExitOnFatal
+#include "utils/round_pool.hpp"  // RoundPool
+#include <cassert>  // assert
 #include <cstddef>  // std::size_t
 #include <functional>  // std::function
 
 
-auto batch_session_s::pool(std::size_t const worker_count) -> RoundPool &
+auto batch_session_s::pool(std::size_t const thread_count) -> RoundPool &
 {
+  assert(thread_count >= 1);
+  auto const worker_count = thread_count - 1;
   if (pool_ == nullptr or pool_->worker_count() != worker_count)
     {
       pool_.reset();  // join the old threads before creating new ones
@@ -91,15 +95,20 @@ auto current_batch_session() noexcept -> batch_session_s *
 }
 
 
-auto run_batch_round(std::size_t const worker_count,
+auto run_batch_round(std::size_t const thread_count,
                      std::function<void(std::size_t)> const & task) -> void
 {
+  assert(thread_count >= 1);
+  auto const share = [&task](std::size_t const thread) -> void {
+    fatal_detail::ExitOnFatal const exit_on_fatal;
+    task(thread);
+  };
   auto * const session = current_batch_session();
   if (session == nullptr)
     {
-      RoundPool pool(worker_count);
-      pool.run(task, Participation::caller_waits);
+      RoundPool pool(thread_count - 1);
+      pool.run(share);
       return;
     }
-  session->pool(worker_count).run(task, Participation::caller_waits);
+  session->pool(thread_count).run(share);
 }

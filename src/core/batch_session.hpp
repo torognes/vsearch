@@ -105,10 +105,12 @@ struct batch_session_s
   std::unique_ptr<batch_state_s> search;   // core/search.cpp
   std::unique_ptr<batch_state_s> chimera;  // core/chimera.cpp
 
-  /* the session's worker threads; created at the first call, and again
-     when a call asks for a different number (opt_threads changed). Not
-     noexcept: creating threads may throw (see RoundPool). */
-  auto pool(std::size_t worker_count) -> RoundPool &;
+  /* the session's worker threads, for rounds of thread_count threads: the
+     calling thread takes a share of each round (see RoundPool), so there
+     are thread_count - 1 workers. Created at the first call, and again when
+     a call asks for another count (opt_threads changed). Not noexcept:
+     creating threads may throw (see RoundPool). */
+  auto pool(std::size_t thread_count) -> RoundPool &;
 
 private:
   /* last: destroyed first, joining idle threads before the states go */
@@ -120,11 +122,14 @@ private:
    nullptr when none is. */
 auto current_batch_session() noexcept -> batch_session_s *;
 
-/* One round of worker_count tasks, task(0) to task(worker_count - 1), each on
-   its own thread, the calling thread waiting: on the session's pool, or on
-   threads created for this call outside a session. Not noexcept: creating
-   threads may throw (see RoundPool). */
-auto run_batch_round(std::size_t worker_count,
+/* One round of thread_count tasks, task(0) to task(thread_count - 1), each on
+   its own thread, the last on the calling thread: with the session's pool,
+   or with threads created for this call outside a session. A fatal() in any
+   of the tasks exits the process, on the calling thread too, as it did when
+   worker threads alone ran them (see fatal_detail::ExitOnFatal). For
+   search_batch and chimera_detect_batch. Not noexcept: creating threads may
+   throw (see RoundPool). */
+auto run_batch_round(std::size_t thread_count,
                      std::function<void(std::size_t)> const & task) -> void;
 
 

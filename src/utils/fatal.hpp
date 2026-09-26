@@ -85,6 +85,21 @@ namespace fatal_detail {
   // std::thread body). See the VsearchSession ctor/dtor.
   auto throw_on_fatal() -> bool &;
 
+  // For its lifetime, fatal() on this thread exits, as on a worker thread,
+  // even in a library session. For work the session thread shares with the
+  // workers, where a fatal() used to reach a worker only, and exit.
+  class ExitOnFatal {
+  public:
+    ExitOnFatal() noexcept : previous_(throw_on_fatal()) { throw_on_fatal() = false; }
+    ~ExitOnFatal() { throw_on_fatal() = previous_; }
+    ExitOnFatal(ExitOnFatal const &) = delete;
+    ExitOnFatal(ExitOnFatal &&) = delete;
+    auto operator=(ExitOnFatal const &) -> ExitOnFatal & = delete;
+    auto operator=(ExitOnFatal &&) -> ExitOnFatal & = delete;
+  private:
+    bool const previous_;
+  };
+
   // The "exit or throw" tail of fatal(), split out of fatal.cpp so the throw
   // lives in a translation unit compiled with -fexceptions. The CLI links the
   // exit-only definition (fatal_exit.cpp, -fno-exceptions); the library links

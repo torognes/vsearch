@@ -63,27 +63,30 @@
 #include "utils/round_gate.hpp"  // RoundGate
 #include <cassert>  // assert
 #include <cstddef>  // std::size_t
-#include <cstdint>  // std::uint8_t
 #include <functional>  // std::function
 #include <thread>  // std::thread
 #include <vector>
 
 
-/* Persistent worker threads that run rounds of work for one driving thread,
-   through a RoundGate (utils/round_gate.hpp). Each call to run() is one
-   round: every worker calls the task once, with its own index, and run()
-   returns when all of them are done. The threads are created once and
-   joined by the destructor, so a caller that runs many short rounds (the
-   library batch functions, called once per batch, or the clustering pool,
-   once per round) pays for thread creation only once. */
+/* Persistent worker threads that run rounds of work with the thread that
+   drives them, through a RoundGate (utils/round_gate.hpp). Each call to
+   run() is one round: every worker, and the calling thread, call the task
+   once, each with its own index, and run() returns when all of them are
+   done. The threads are created once and joined by the destructor, so a
+   caller that runs many short rounds (the library batch functions, called
+   once per batch, or the clustering pool, once per round) pays for thread
+   creation only once.
 
-/* Whether the driving thread takes a share of a round's work. The library
-   batch functions keep it out: in a library session fatal() throws on the
-   thread that built the session (and only there), and an exception leaving
-   the task in the middle of a round would leave the workers running a round
-   whose data is being unwound. Their workers call std::exit on a fatal(),
-   as they did before the pool. */
-enum struct Participation : std::uint8_t { caller_waits, caller_joins };
+   The calling thread takes a share of each round rather than waiting for
+   the workers: a round is often shorter than RoundGate's spin, so a waiting
+   caller would keep a core busy spinning, one thread more than the round
+   has cores for (measured: clustering 6-13 % slower with nthreads workers
+   and a waiting caller than with nthreads - 1 workers and a searching
+   caller).
+
+   If the calling thread's share throws (fatal() in a library session), the
+   round still ends before the exception leaves run(): the workers finish
+   the round, and the pool can run the next one. */
 
 
 class RoundPool
@@ -124,28 +127,39 @@ public:
 
   auto worker_count() const noexcept -> std::size_t { return threads_.size(); }
 
-  /* one round: each worker runs task(its index, 0 .. worker_count() - 1);
-     with Participation::caller_joins the calling thread also runs
-     task(worker_count()). Not noexcept: with caller_joins, the task runs on
-     the calling thread and may throw (in the CLI, fatal() exits instead). */
-  auto run(std::function<void(std::size_t)> const & task,
-           Participation const participation) -> void
+  /* one round: each worker runs task(its index, 0 .. worker_count() - 1),
+     and the calling thread runs task(worker_count()). Not noexcept: the
+     calling thread's task may throw (in a library session; in the CLI,
+     fatal() exits). */
+  auto run(std::function<void(std::size_t)> const & task) -> void
   {
-    /* with nobody to run it, a round would end before it started */
-    assert(participation == Participation::caller_joins or worker_count() > 0);
     /* rounds do not nest: run() is called by one thread, and not from a task */
     assert(task_ == nullptr);
     task_ = &task;  // published to the workers by open_round()
     gate_.open_round();
-    if (participation == Participation::caller_joins)
-      {
-        task(worker_count());
-      }
-    gate_.wait_round();
-    task_ = nullptr;
+    RoundEnd const round_end(*this);  // waits for the workers, also on a throw
+    task(worker_count());
   }
 
 private:
+  /* ends the current round when run() returns or unwinds */
+  class RoundEnd
+  {
+  public:
+    explicit RoundEnd(RoundPool & pool) noexcept : pool_(pool) {}
+    ~RoundEnd()
+    {
+      pool_.gate_.wait_round();
+      pool_.task_ = nullptr;
+    }
+    RoundEnd(RoundEnd const &) = delete;
+    RoundEnd(RoundEnd &&) = delete;
+    auto operator=(RoundEnd const &) -> RoundEnd & = delete;
+    auto operator=(RoundEnd &&) -> RoundEnd & = delete;
+  private:
+    RoundPool & pool_;
+  };
+
   RoundGate gate_;
   std::function<void(std::size_t)> const * task_ = nullptr;
   std::vector<std::thread> threads_;  // last: their lambda reads the members above
