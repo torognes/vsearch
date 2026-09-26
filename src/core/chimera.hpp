@@ -198,7 +198,12 @@ auto chimera_detect_cleanup(struct chimera_info_s * ci) -> void;
    Manages session init/cleanup internally — caller must NOT call
    chimera_session_init/cleanup around this function.
    NOT safe to call concurrently with any other chimera API call.
-   Creates and destroys a thread pool per call.
+   In a VsearchSession, the worker threads and the per-thread chimera state
+   are created at the first call and reused by the next ones, as long as
+   parameters, dbindex, db, mode and opt_threads stay the same (the threads
+   are shared with search_batch and cluster_assign_batch); they are
+   released when the session ends. Called from a thread with no session, it
+   creates and destroys them at each call.
    Requires: parameters configured (same one passed to the VsearchSession
    constructor), database loaded and indexed.
    results: caller-allocated span of queries.size() elements (checked by
