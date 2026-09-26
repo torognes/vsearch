@@ -318,8 +318,9 @@ private:
 
 
 /* Self-contained per-invocation worker pool for the clustering search phase.
-   It owns the searchinfo_s arrays (one entry per query slot of a round, as
-   many as threads) and its own worker threads, so a caller drives its own
+   It owns the searchinfo_s arrays (one entry per query slot of a round: one
+   to eight per thread, as the round width adapts, see BatchSizer) and its
+   own worker threads, so a caller drives its own
    pool with no shared file-static state (E4) — this is what lets
    cluster_assign_batch() stop borrowing the CLI path's si_plus/si_minus/
    thread_work/cluster_threadrunner via a save/restore hack.
