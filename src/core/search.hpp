@@ -124,10 +124,15 @@ auto search_session_cleanup(struct search_session_s * ss) -> void;
    Requires: parameters configured (same one passed to the VsearchSession
    constructor), database loaded and indexed.
    NOT safe to call concurrently with any other search/session/init call.
-   Creates and destroys a thread pool per call; callers processing a
-   stream of queries should submit large batches to amortize this cost.
-   As a rule of thumb, aim for at least 10 * opt_threads queries per
-   call — below that, thread-pool setup dominates per-query cost.
+   In a VsearchSession, the worker threads and the per-thread search state
+   are created at the first call and reused by the next ones, as long as
+   parameters, dbindex, db, the database size and opt_threads stay the
+   same (the threads are shared with chimera_detect_batch and
+   cluster_assign_batch); they are released when the session ends. Called
+   from a thread with no session, it creates and destroys them at each
+   call; callers processing a stream of queries should then submit large
+   batches to amortize this cost (at least 10 * opt_threads queries per
+   call).
    results: caller-allocated span of (queries.size() * max_results_per_query),
    the hits of query i starting at i * max_results_per_query.
    result_counts: caller-allocated span of queries.size() elements.

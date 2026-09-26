@@ -117,7 +117,12 @@ auto cluster_assign_single(struct cluster_session_s * cs,
    Must be called with ascending, non-overlapping seqno ranges.
    results: caller-allocated span; its size is the number of sequences to
    assign, starting at start_seqno.
-   NOT safe to call concurrently with any other cluster API call. */
+   NOT safe to call concurrently with any other cluster API call.
+   In a VsearchSession, the search slots are kept in cs from one call to the
+   next (until cluster_session_cleanup) and search with the session's
+   worker threads, shared with search_batch and chimera_detect_batch.
+   Called from a thread with no session, it creates and destroys its
+   threads and slots at each call. */
 auto cluster_assign_batch(struct cluster_session_s * cs,
                           int start_seqno,
                           Span<struct cluster_result_s> results) -> void;

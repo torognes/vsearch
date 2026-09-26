@@ -67,7 +67,10 @@
 
 #include "vsearch_api.h"  // VSEARCH_API_VERSION*, vsearch_api_version*, VsearchSession
 #include "parameters.hpp"  // vsearch_apply_defaults_fixups
+#include "core/batch_session.hpp"  // batch_session_s, batch_session_detail::current
 #include "utils/fatal.hpp"  // fatal_detail::throw_on_fatal
+#include "utils/make_unique.hpp"  // make_unique
+#include <cassert>  // assert
 
 
 auto vsearch_api_version() -> int
@@ -99,6 +102,33 @@ namespace fatal_detail {
 }
 
 
+namespace {
+/* Puts the thread's fatal() mode back to what it was, unless dismissed: a
+   constructor that throws runs no destructor, so without it a configuration
+   error caught from the fixups would leave fatal() throwing on this thread
+   with no session open. */
+class ThrowModeRestorer {
+public:
+  explicit ThrowModeRestorer(bool const previous) noexcept : previous_(previous) {}
+  ~ThrowModeRestorer()
+  {
+    if (armed_)
+      {
+        fatal_detail::throw_on_fatal() = previous_;
+      }
+  }
+  auto dismiss() noexcept -> void { armed_ = false; }
+  ThrowModeRestorer(ThrowModeRestorer const &) = delete;
+  ThrowModeRestorer(ThrowModeRestorer &&) = delete;
+  auto operator=(ThrowModeRestorer const &) -> ThrowModeRestorer & = delete;
+  auto operator=(ThrowModeRestorer &&) -> ThrowModeRestorer & = delete;
+private:
+  bool const previous_;
+  bool armed_ = true;
+};
+}  // anonymous namespace
+
+
 /* A library session is now just a caller-owned object: no process-wide lock and
    no begin/end pair, because vsearch keeps no shared mutable state to serialize
    (so independent sessions can run concurrently in different threads). The
@@ -109,15 +139,29 @@ namespace fatal_detail {
    (rather than forced back to false) so nested sessions on one thread compose,
    and worker threads — which never construct a session — keep the default,
    non-throwing behaviour (an exception must not escape a std::thread). */
+/* The batch session becomes the thread's current one only once the fixups
+   have succeeded: a constructor that throws runs no destructor, which would
+   leave the thread pointing at a freed batch session. It starts empty; the
+   batch functions create its threads and state when first called (see
+   core/batch_session.hpp). */
 VsearchSession::VsearchSession(struct Parameters & parameters)
-  : previous_throw_mode(fatal_detail::throw_on_fatal())
+  : previous_throw_mode(fatal_detail::throw_on_fatal()),
+    batch_session(make_unique<batch_session_s>()),
+    previous_batch_session(batch_session_detail::current())
 {
+  ThrowModeRestorer restorer(previous_throw_mode);
   fatal_detail::throw_on_fatal() = true;
   vsearch_apply_defaults_fixups(parameters);
+  batch_session_detail::current() = batch_session.get();
+  restorer.dismiss();  // the session is open: the destructor restores the mode
 }
 
 
 VsearchSession::~VsearchSession()
 {
+  /* sessions on one thread end in the reverse order they began */
+  assert(batch_session_detail::current() == batch_session.get());
+  batch_session_detail::current() = previous_batch_session;
   fatal_detail::throw_on_fatal() = previous_throw_mode;
+  /* batch_session's destructor then joins the threads and frees the state */
 }

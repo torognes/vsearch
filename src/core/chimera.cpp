@@ -86,6 +86,7 @@
 #include "utils/open_file.hpp"
 #include "utils/span.hpp"
 #include "utils/threads.hpp"
+#include "core/batch_session.hpp"  // batch_state_s, current_batch_session, run_batch_round
 #include "utils/round_gate.hpp"  // RoundGate
 #include "utils/batch_sizer.hpp"  // BatchSizer, batch_times_s
 #include "utils/worker_loop.hpp"
@@ -3733,14 +3734,80 @@ struct chimera_info_thread_deleter {
   }
 };
 
-struct chimera_batch_context_s {
-  View<struct query_record_s> queries;
-  Span<struct chimera_result_s> results;
+namespace {
+
+/* What the per-thread chimera state of chimera_detect_batch is built for: a
+   call with other inputs builds it anew. */
+struct chimera_batch_key_s {
+  struct Parameters const * parameters;
+  struct Dbindex const * dbindex;
+  struct Database const * db;
+  ChimeraMode mode;
+  int threads;
+};
+
+
+auto operator==(chimera_batch_key_s const & lhs, chimera_batch_key_s const & rhs) noexcept -> bool
+{
+  return lhs.parameters == rhs.parameters and lhs.dbindex == rhs.dbindex and
+    lhs.db == rhs.db and lhs.mode == rhs.mode and lhs.threads == rhs.threads;
+}
+
+
+/* The per-thread chimera state of chimera_detect_batch, kept by the session
+   from one call to the next (see core/batch_session.hpp). */
+struct chimera_batch_state_s final : batch_state_s {
+  /* not noexcept: chimera_detect_thread_init allocates */
+  explicit chimera_batch_state_s(chimera_batch_key_s const & inputs) : key(inputs)
+  {
+    /* Session-level init (no longer mutates globals; the per-thread detection
+       configuration is built in chimera_detect_thread_init) */
+    chimera_session_init(*inputs.parameters);
+
+    ci_array.reserve(static_cast<size_t>(inputs.threads));
+
+    for (int t = 0; t < inputs.threads; t++)
+      {
+        /* own the handle before initialising it, so a fatal() in
+           chimera_detect_thread_init frees this element and all prior ones. */
+        ci_array.emplace_back(chimera_info_alloc());
+        chimera_detect_thread_init(ci_array.back().get(), *inputs.parameters,
+                                   *inputs.dbindex, *inputs.db, inputs.mode);
+      }
+  }
+
+  ~chimera_batch_state_s() override
+  {
+    /* Cleanup per-thread state: clearing the vector runs the deleter
+       (chimera_detect_thread_cleanup + chimera_info_free) on each element. */
+    ci_array.clear();
+
+    /* Session-level cleanup */
+    chimera_session_cleanup();
+  }
+
+  chimera_batch_state_s(chimera_batch_state_s const &) = delete;
+  chimera_batch_state_s(chimera_batch_state_s &&) = delete;
+  auto operator=(chimera_batch_state_s const &) -> chimera_batch_state_s & = delete;
+  auto operator=(chimera_batch_state_s &&) -> chimera_batch_state_s & = delete;
+
+  chimera_batch_key_s const key;
 
   /* per-thread chimera state arrays (sized to opt_threads). Owned unique_ptrs so
      a fatal() during per-thread init unwinds them, freeing every element built
      so far and the array itself. */
   std::vector<std::unique_ptr<struct chimera_info_s, chimera_info_thread_deleter>> ci_array;
+};
+
+}  // anonymous namespace
+
+
+struct chimera_batch_context_s {
+  View<struct query_record_s> queries;
+  Span<struct chimera_result_s> results;
+
+  /* the per-thread chimera state, the session's or this call's */
+  chimera_batch_state_s * state = nullptr;
 
   /* work-stealing counter */
   std::mutex mutex;
@@ -3751,7 +3818,7 @@ struct chimera_batch_context_s {
 static auto chimera_batch_worker_fn(struct chimera_batch_context_s & ctx,
                                     uint64_t const tid) -> void
 {
-  struct chimera_info_s * ci = ctx.ci_array[tid].get();
+  struct chimera_info_s * ci = ctx.state->ci_array[tid].get();
 
   int qi {0};
 
@@ -3784,40 +3851,30 @@ auto chimera_detect_batch(struct Parameters const & parameters,
 
   int const nthreads = std::max(1, static_cast<int>(parameters.opt_threads));
 
-  /* Session-level init (no longer mutates globals; the per-thread detection
-     configuration is built in chimera_detect_thread_init) */
-  chimera_session_init(parameters);
+  /* Allocate per-thread chimera state, or reuse the session's if it was built
+     for the same inputs. Outside a session it lives for this call only. */
+  chimera_batch_key_s const key {&parameters, &dbindex, &db, mode, nthreads};
+  std::unique_ptr<batch_state_s> call_state;
+  auto * const session = current_batch_session();
+  auto & slot = (session != nullptr) ? session->chimera : call_state;
+  auto * state = dynamic_cast<chimera_batch_state_s *>(slot.get());
+  if (state == nullptr or not (state->key == key))
+    {
+      slot.reset();  // free the stale state before allocating its successor
+      auto fresh = make_unique<chimera_batch_state_s>(key);
+      state = fresh.get();
+      slot = std::move(fresh);
+    }
 
-  /* Allocate per-thread chimera state */
   struct chimera_batch_context_s ctx;
   ctx.queries = queries;
   ctx.results = results;
+  ctx.state = state;
   ctx.next_query = 0;
 
-  ctx.ci_array.reserve(static_cast<size_t>(nthreads));
-
-  for (int t = 0; t < nthreads; t++)
-    {
-      /* own the handle before initialising it, so a fatal() in
-         chimera_detect_thread_init frees this element and all prior ones. */
-      ctx.ci_array.emplace_back(chimera_info_alloc());
-      chimera_detect_thread_init(ctx.ci_array.back().get(), parameters, dbindex, db,
-                                 mode);
-    }
-
   /* run all queries through the worker pool (work-stealing on next_query) */
-  {
-    ThreadRunner threadrunner(static_cast<std::size_t>(nthreads),
-                              [&ctx](uint64_t const tid) -> void {
-                                chimera_batch_worker_fn(ctx, tid);
-                              });
-    threadrunner.run();
-  }
-
-  /* Cleanup per-thread state: clearing the vector runs the deleter
-     (chimera_detect_thread_cleanup + chimera_info_free) on each element. */
-  ctx.ci_array.clear();
-
-  /* Session-level cleanup */
-  chimera_session_cleanup();
+  run_batch_round(static_cast<std::size_t>(nthreads),
+                  [&ctx](std::size_t const tid) -> void {
+                    chimera_batch_worker_fn(ctx, tid);
+                  });
 }

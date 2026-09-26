@@ -83,8 +83,9 @@
 #include "utils/decimal_digits.hpp"  // decimal::to_text
 #include "utils/number_of_strands.hpp"
 #include "utils/print_view.hpp"  // fprint
-#include "utils/round_gate.hpp"  // RoundGate
+#include "utils/round_pool.hpp"  // RoundPool
 #include "utils/batch_sizer.hpp"  // BatchSizer, batch_times_s
+#include "core/batch_session.hpp"  // current_batch_session
 #include "utils/reverse_complement.hpp"
 #include "utils/sequence_digest.hpp"
 #include <cassert>
@@ -93,14 +94,13 @@
 #include <atomic>  // std::atomic
 #include <chrono>  // std::chrono::steady_clock, std::chrono::duration
 #include <cstddef>  // std::ptrdiff_t, std::size_t
-#include <cstdint>  // int64_t, uint64_t
+#include <cstdint>  // int64_t, uint64_t, std::uint8_t
 #include <cstdio>  // std::FILE, std::fprintf
 #include <iterator>  // std::next
 #include <limits>
 #include <map>
 #include <memory>  // std::unique_ptr
 #include <string>
-#include <thread>  // std::thread
 #include <utility>  // std::get
 #include <vector>
 
@@ -325,6 +325,12 @@ private:
    cluster_assign_batch() stop borrowing the CLI path's si_plus/si_minus/
    thread_work/cluster_threadrunner via a save/restore hack.
 
+   In a library session, cluster_assign_batch() keeps its pool from one call
+   to the next, in its cluster_session_s, and lends it the session's worker
+   threads at each call (PoolThreads::lent) instead: the pool then owns no
+   threads. Either way, the calling thread searches with the workers (see
+   RoundPool, utils/round_pool.hpp).
+
    Similar to the Scanner class in swarm (src/utils/scanner.{h,cc}), the sister
    project's equivalent abstraction: the search state is a member vector, and
    the worker threads are the last-created member, their lambda capturing
@@ -332,8 +338,9 @@ private:
    non-copyable/non-movable.
 
    A round is `queries` contiguous query slots. The main thread opens it
-   through a RoundGate (utils/round_gate.hpp), then claims slots with the
-   workers from one atomic counter, and waits for them before the serial
+   through a RoundGate (utils/round_gate.hpp, driven by a RoundPool), then
+   claims slots with the workers from one atomic counter, and waits for them
+   before the serial
    analysis. Which thread searches a slot does not matter: each slot has its
    own searchinfo_s, and the search reads only the index, which the serial
    phase alone extends. With a ThreadRunner and one fixed slot per worker, a
@@ -356,6 +363,12 @@ private:
    round first uses them. The k-mer counters, one per database sequence,
    belong to the threads, which lend them to the slots they search (see
    CounterLoan): a slot holds only its query and its hits. */
+namespace {
+/* whether a cluster_work_pool_s creates its worker threads, or searches with
+   threads lent at each call (a library session's, see lend_threads) */
+enum struct PoolThreads : std::uint8_t { owned, lent };
+}  // anonymous namespace
+
 struct cluster_work_pool_s
 {
   struct Parameters const & parameters;  // run config, read by the workers (E1)
@@ -369,7 +382,8 @@ struct cluster_work_pool_s
                       struct Parameters const & params,
                       struct Dbindex const & index,
                       struct Database const & database,
-                      bool const unoise_acceptance)
+                      bool const unoise_acceptance,
+                      PoolThreads const pool_threads)
     : parameters(params),
       dbindex(index),
       db(database),
@@ -379,7 +393,7 @@ struct cluster_work_pool_s
       sizer(static_cast<std::size_t>(nthreads)),
       busy(static_cast<std::size_t>(nthreads), 0.0),
       counters(static_cast<std::size_t>(nthreads)),
-      gate(static_cast<std::size_t>(nthreads - 1))
+      pool_threads_(pool_threads)
   {
     for (auto & thread_counters : counters)
       {
@@ -392,29 +406,19 @@ struct cluster_work_pool_s
         si_minus.resize(sizer.largest());
       }
     initialize_slots(sizer.size());
-    /* the calling thread is the last of the nthreads: it searches too */
-    threads.reserve(static_cast<std::size_t>(nthreads - 1));
-    for (int nth = 1; nth < nthreads; ++nth)
+    if (pool_threads == PoolThreads::lent)
       {
-        threads.emplace_back([this, nth]() -> void {
-          unsigned long seen = 0;
-          while (gate.wait_open(seen))
-            {
-              search_round(static_cast<std::size_t>(nth - 1));
-              gate.finish();
-            }
-        });
+        return;  // the threads are lent by the caller (lend_threads)
       }
+    /* the calling thread is the last of the nthreads: it searches too */
+    own_threads_ = make_unique<RoundPool>(static_cast<std::size_t>(nthreads - 1));
+    threads_ = own_threads_.get();
   }
 
   ~cluster_work_pool_s()
   {
     /* join the workers before freeing the buffers they read */
-    gate.close();
-    for (auto & thread : threads)
-      {
-        thread.join();
-      }
+    own_threads_.reset();
     for (auto & si : make_span(si_plus).first(initialized)) { cluster_query_exit(si); }
     for (auto & si : make_span(si_minus).first(std::min(initialized, si_minus.size()))) { cluster_query_exit(si); }
   }
@@ -463,10 +467,10 @@ struct cluster_work_pool_s
     initialize_slots(static_cast<std::size_t>(queries));
     round_queries = queries;
     next_query.store(0);
+    assert(threads_ != nullptr);
     auto const started = std::chrono::steady_clock::now();
-    gate.open_round();
-    search_round(busy.size() - 1);
-    gate.wait_round();
+    /* the calling thread searches too, as thread busy.size() - 1 */
+    threads_->run([this](std::size_t const thread) -> void { search_round(thread); });
     round_wall = std::chrono::duration<double>(std::chrono::steady_clock::now() -
                                                started).count();
   }
@@ -484,6 +488,18 @@ struct cluster_work_pool_s
       }
     sizer.record(batch_times_s{round_wall, round_busy, fixup_wall});
   }
+
+  /* PoolThreads::lent: the threads that search the next rounds with the
+     calling thread, which must outlive those rounds */
+  auto lend_threads(RoundPool & threads) noexcept -> void
+  {
+    assert(pool_threads_ == PoolThreads::lent);
+    assert(threads.worker_count() + 1 == busy.size());
+    threads_ = &threads;
+  }
+
+  /* the number of threads searching each round, calling thread included */
+  auto thread_count() const noexcept -> std::size_t { return busy.size(); }
 
 private:
   /* cluster_query_init() the slots up to count, if not done yet */
@@ -522,8 +538,11 @@ private:
      read everything above them */
   int round_queries = 0;                // query slots in the current round
   std::atomic<int> next_query {0};      // next slot to claim in the round
-  RoundGate gate;                       // workers: every thread but the caller's
-  std::vector<std::thread> threads;     // started last; their lambda captures this
+  PoolThreads const pool_threads_;      // does the pool own its threads?
+  RoundPool * threads_ = nullptr;       // the threads searching the rounds
+  /* PoolThreads::owned: every thread but the caller's; started last, the
+     rounds they run call search_round() on this */
+  std::unique_ptr<RoundPool> own_threads_;
 };
 
 
@@ -1083,7 +1102,7 @@ auto cluster_core_parallel(struct cluster_cli_state_s & state,
      The local si_plus/si_minus aliases let the loops below read unchanged. */
   cluster_work_pool_s pool(static_cast<int>(state.parameters.opt_threads), seqcount, tophits,
                            state.parameters.opt_strand, state.effective_parameters, state.dbindex, db,
-                           state.mode == ClusterMode::unoise);
+                           state.mode == ClusterMode::unoise, PoolThreads::owned);
   auto & si_plus = pool.si_plus;
   auto & si_minus = pool.si_minus;
 
@@ -1805,6 +1824,10 @@ struct cluster_session_s {
   /* the sequence database this session clusters, supplied by the caller at
      cluster_session_init and installed on the si's; must outlive the session. */
   struct Database const * db = nullptr;
+  /* cluster_assign_batch's search slots in a library session, kept from one
+     call to the next and lent the VsearchSession's threads at each call;
+     freed by cluster_session_cleanup */
+  std::unique_ptr<cluster_work_pool_s> work;
 };
 
 
@@ -1839,6 +1862,7 @@ auto cluster_session_init(struct cluster_session_s * cs, struct Parameters const
   cs->parameters = &parameters;
   cs->dbindex = &dbindex;
   cs->db = &db;
+  cs->work.reset();  // sized for the previous database, if any
 
   /* Set search parameters matching the CLI cluster path.
      seqcount must be set BEFORE cluster_query_init (it sizes the kmers buffer).
@@ -1949,6 +1973,40 @@ auto cluster_assign_single(struct cluster_session_s * cs,
 }
 
 
+namespace {
+/* cluster_assign_batch's search slots: in a library session, the ones kept in
+   cs (built at the first call, and again when opt_threads changed), lent the
+   session's threads; outside a session, new ones in call_pool, with threads
+   of their own, for this call only. Not noexcept: it allocates and may create
+   threads. */
+auto batch_work_pool(struct cluster_session_s & cluster_session,
+                     std::unique_ptr<cluster_work_pool_s> & call_pool) -> cluster_work_pool_s &
+{
+  struct Parameters const & parameters = *cluster_session.parameters;
+  auto const nthreads = static_cast<int>(parameters.opt_threads);
+  auto * const session = current_batch_session();
+  auto & pool_slot = (session != nullptr) ? cluster_session.work : call_pool;
+  auto const pool_threads = (session != nullptr) ? PoolThreads::lent : PoolThreads::owned;
+  if (pool_slot == nullptr or pool_slot->thread_count() != static_cast<std::size_t>(nthreads))
+    {
+      pool_slot.reset();  // free the stale slots before allocating their successors
+      /* false: as in cluster_session_init(), the library batch path has no UNOISE
+         mode to ask for. */
+      pool_slot = make_unique<cluster_work_pool_s>(nthreads, cluster_session.seqcount,
+                                                   cluster_session.tophits,
+                                                   parameters.opt_strand, parameters,
+                                                   *cluster_session.dbindex, *cluster_session.db,
+                                                   false, pool_threads);
+    }
+  if (session != nullptr)
+    {
+      pool_slot->lend_threads(session->pool(static_cast<std::size_t>(nthreads)));
+    }
+  return *pool_slot;
+}
+}  // anonymous namespace
+
+
 auto cluster_assign_batch(struct cluster_session_s * cs,
                           int const start_seqno,
                           Span<struct cluster_result_s> const results) -> void
@@ -1981,12 +2039,13 @@ auto cluster_assign_batch(struct cluster_session_s * cs,
      hack (E4). The constructor allocates and cluster_query_init()s the
      searchinfo arrays and starts the worker threads; the destructor joins
      the workers and cluster_query_exit()s them. The local si_plus/
-     si_minus aliases let the loop below read unchanged. */
-  /* false: as in cluster_session_init(), the library batch path has no UNOISE
-     mode to ask for. */
-  cluster_work_pool_s pool(static_cast<int>(parameters.opt_threads), cs->seqcount,
-                           cs->tophits, parameters.opt_strand, parameters, *cs->dbindex, *cs->db,
-                           false);
+     si_minus aliases let the loop below read unchanged.
+     In a library session, the pool is kept in cs from one call to the next
+     and searches with the session's threads, and the calling thread (see
+     core/batch_session.hpp); outside a session, it lives for this call and
+     owns its threads, as described above. */
+  std::unique_ptr<cluster_work_pool_s> call_pool;
+  auto & pool = batch_work_pool(*cs, call_pool);
   auto & si_plus = pool.si_plus;
   auto & si_minus = pool.si_minus;
 
@@ -2109,7 +2168,9 @@ auto cluster_assign_batch(struct cluster_session_s * cs,
       pool.record_fixup(fixup_wall);
     }
 
-  /* pool's destructor joins the workers and frees the per-thread search state */
+  /* pool's destructor joins the workers and frees the per-thread search state
+     (outside a session; in a session, cs keeps the pool until
+     cluster_session_cleanup) */
 }
 
 
@@ -2125,4 +2186,5 @@ auto cluster_session_cleanup(struct cluster_session_s * cs) -> void
       cluster_query_exit(*cs->si_minus);
       cs->si_minus.reset();
     }
+  cs->work.reset();
 }

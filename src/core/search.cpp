@@ -75,7 +75,7 @@
 #include "core/unique.hpp"
 #include "utils/make_unique.hpp"
 #include "utils/number_of_strands.hpp"
-#include "utils/threads.hpp"
+#include "core/batch_session.hpp"  // batch_state_s, current_batch_session, run_batch_round
 #include "utils/worker_loop.hpp"
 #include "utils/reverse_complement.hpp"
 #include <array>  // std::array
@@ -86,6 +86,7 @@
 #include <cstdint>  // uint64_t, int64_t
 #include <memory>  // std::unique_ptr
 #include <mutex>  // std::mutex
+#include <utility>  // std::move
 #include <vector>
 
 
@@ -369,6 +370,90 @@ auto search_session_cleanup(struct search_session_s * ss) -> void
 /* === Batch search API === */
 
 
+namespace {
+
+/* What the per-thread search state of search_batch is built for: a call
+   with other inputs builds it anew. */
+struct search_batch_key_s {
+  struct Parameters const * parameters;
+  struct Dbindex const * dbindex;
+  struct Database const * db;
+  int seqcount;
+  int tophits;
+  bool both_strands;
+  int threads;
+};
+
+
+auto operator==(search_batch_key_s const & lhs, search_batch_key_s const & rhs) noexcept -> bool
+{
+  return lhs.parameters == rhs.parameters and lhs.dbindex == rhs.dbindex and
+    lhs.db == rhs.db and lhs.seqcount == rhs.seqcount and
+    lhs.tophits == rhs.tophits and lhs.both_strands == rhs.both_strands and
+    lhs.threads == rhs.threads;
+}
+
+
+/* The per-thread search state of search_batch, kept by the session from one
+   call to the next (see core/batch_session.hpp). */
+struct search_batch_state_s final : batch_state_s {
+  /* not noexcept: search_thread_init allocates */
+  explicit search_batch_state_s(search_batch_key_s const & inputs)
+    : key(inputs),
+      batch_si_plus(static_cast<std::size_t>(inputs.threads))
+  {
+    if (inputs.both_strands)
+      {
+        batch_si_minus.resize(static_cast<std::size_t>(inputs.threads));
+      }
+
+    /* Init per-thread search state before the workers start. Both vectors are
+       resize()d to nthreads just above (batch_si_minus stays empty unless
+       --strand both), so walking each one whole is the same set of calls the
+       index made -- and an empty batch_si_minus needs no emptiness test. */
+    for (auto & si : batch_si_plus)
+      {
+        search_thread_init(si, inputs.seqcount, inputs.tophits, *inputs.parameters,
+                           *inputs.dbindex, *inputs.db, Prefilter::kmer);
+      }
+    for (auto & si : batch_si_minus)
+      {
+        search_thread_init(si, inputs.seqcount, inputs.tophits, *inputs.parameters,
+                           *inputs.dbindex, *inputs.db, Prefilter::kmer);
+      }
+  }
+
+  ~search_batch_state_s() override
+  {
+    /* clean up per-thread search state (the vectors also free themselves, and
+       would run these searchinfo_s destructors on an exception unwind). */
+    for (auto & si : batch_si_plus)
+      {
+        search_thread_exit(si);
+      }
+    for (auto & si : batch_si_minus)
+      {
+        search_thread_exit(si);
+      }
+  }
+
+  search_batch_state_s(search_batch_state_s const &) = delete;
+  search_batch_state_s(search_batch_state_s &&) = delete;
+  auto operator=(search_batch_state_s const &) -> search_batch_state_s & = delete;
+  auto operator=(search_batch_state_s &&) -> search_batch_state_s & = delete;
+
+  search_batch_key_s const key;
+
+  /* per-thread search state arrays (sized to opt_threads). Owned vectors so a
+     fatal() during per-thread init unwinds them, running each searchinfo_s
+     destructor (freeing partially-initialised handles) and releasing the array. */
+  std::vector<struct searchinfo_s> batch_si_plus;
+  std::vector<struct searchinfo_s> batch_si_minus;  /* empty when searching the plus strand only */
+};
+
+}  // anonymous namespace
+
+
 /* Shared state for batch search worker threads */
 struct search_batch_context_s {
   View<struct query_record_s> queries;
@@ -376,11 +461,8 @@ struct search_batch_context_s {
   int max_results_per_query;
   Span<int> result_counts;
 
-  /* per-thread search state arrays (sized to opt_threads). Owned vectors so a
-     fatal() during per-thread init unwinds them, running each searchinfo_s
-     destructor (freeing partially-initialised handles) and releasing the array. */
-  std::vector<struct searchinfo_s> batch_si_plus;
-  std::vector<struct searchinfo_s> batch_si_minus;  /* empty when searching the plus strand only */
+  /* the per-thread search state, the session's or this call's */
+  search_batch_state_s * state = nullptr;
 
   /* run configuration, set in search_batch and read by the workers instead of
      the opt_* globals (E1 shared-infra phase). */
@@ -395,9 +477,10 @@ struct search_batch_context_s {
 static auto search_batch_worker_fn(struct search_batch_context_s & ctx,
                                    uint64_t const tid) -> void
 {
-  struct searchinfo_s * my_si_plus = &ctx.batch_si_plus[tid];
+  auto & state = *ctx.state;
+  struct searchinfo_s * my_si_plus = &state.batch_si_plus[tid];
   struct searchinfo_s * my_si_minus =
-    (not ctx.batch_si_minus.empty()) ? &ctx.batch_si_minus[tid] : nullptr;
+    (not state.batch_si_minus.empty()) ? &state.batch_si_minus[tid] : nullptr;
   struct Parameters const & parameters = *ctx.parameters;
   /* the strands to visit, in the plus-then-minus order the counter used to
      reconstruct; a local, so it outlives every loop below that slices it */
@@ -499,52 +582,36 @@ auto search_batch(struct Parameters const & parameters,
   tophits = std::min(tophits, seqcount);
 
   int const nthreads = static_cast<int>(parameters.opt_threads);
+  assert(nthreads >= 1);  // resolved by vsearch_apply_defaults_fixups
 
-  /* Allocate per-thread search state */
+  /* Allocate per-thread search state, or reuse the session's if it was built
+     for the same inputs. Outside a session it lives for this call only. */
+  search_batch_key_s const key {&parameters, &dbindex, &db, seqcount, tophits,
+                                parameters.opt_strand, nthreads,};
+  std::unique_ptr<batch_state_s> call_state;
+  auto * const session = current_batch_session();
+  auto & slot = (session != nullptr) ? session->search : call_state;
+  auto * state = dynamic_cast<search_batch_state_s *>(slot.get());
+  if (state == nullptr or not (state->key == key))
+    {
+      slot.reset();  // free the stale state before allocating its successor
+      auto fresh = make_unique<search_batch_state_s>(key);
+      state = fresh.get();
+      slot = std::move(fresh);
+    }
+
   struct search_batch_context_s ctx;
   ctx.queries = queries;
   ctx.results = results;
   ctx.max_results_per_query = max_results_per_query;
   ctx.result_counts = result_counts;
+  ctx.state = state;
   ctx.parameters = &parameters;
   ctx.next_query = 0;
 
-  ctx.batch_si_plus.resize(static_cast<std::size_t>(nthreads));
-  if (parameters.opt_strand)
-    {
-      ctx.batch_si_minus.resize(static_cast<std::size_t>(nthreads));
-    }
-
-  /* Init per-thread search state before the workers start. Both vectors are
-     resize()d to nthreads just above (batch_si_minus stays empty unless
-     --strand both), so walking each one whole is the same set of calls the
-     index made -- and an empty batch_si_minus needs no emptiness test. */
-  for (auto & si : ctx.batch_si_plus)
-    {
-      search_thread_init(si, seqcount, tophits, parameters, dbindex, db, Prefilter::kmer);
-    }
-  for (auto & si : ctx.batch_si_minus)
-    {
-      search_thread_init(si, seqcount, tophits, parameters, dbindex, db, Prefilter::kmer);
-    }
-
   /* run all queries through the worker pool (work-stealing on next_query) */
-  {
-    ThreadRunner threadrunner(static_cast<std::size_t>(nthreads),
-                              [&ctx](uint64_t const tid) -> void {
-                                search_batch_worker_fn(ctx, tid);
-                              });
-    threadrunner.run();
-  }
-
-  /* clean up per-thread search state (the vectors also free themselves, and
-     would run these searchinfo_s destructors on an exception unwind). */
-  for (auto & si : ctx.batch_si_plus)
-    {
-      search_thread_exit(si);
-    }
-  for (auto & si : ctx.batch_si_minus)
-    {
-      search_thread_exit(si);
-    }
+  run_batch_round(static_cast<std::size_t>(nthreads),
+                  [&ctx](std::size_t const tid) -> void {
+                    search_batch_worker_fn(ctx, tid);
+                  });
 }

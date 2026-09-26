@@ -270,6 +270,13 @@ may run concurrently in different threads (each owning its own objects), and
 nested sessions on one thread compose (the previous recoverable-error mode is
 saved and restored). Every program in `api_examples/` uses `VsearchSession`.
 
+The session also owns the worker threads of the batch functions
+(`search_batch`, `chimera_detect_batch`, `cluster_assign_batch`) and the
+per-thread state they reuse from one call to the next; its destructor joins
+the threads and frees that state. See
+[Batch functions and the session's thread pool](#batch-functions-and-the-sessions-thread-pool).
+Destroy a session on the thread that constructed it.
+
 ### Re-initialization
 
 Multiple sequential sessions in the same process are supported.
@@ -283,7 +290,7 @@ See `api_examples/example_reinit.cc` for a tested multi-session example.
 
 | Function | Description |
 |----------|-------------|
-| `VsearchSession session(Parameters &)` | Open a session (C++ RAII): the constructor resolves sentinels, applies the config, and enables the recoverable-error mode on the calling thread; the destructor restores the previous mode at scope exit. Non-copyable and non-movable. |
+| `VsearchSession session(Parameters &)` | Open a session (C++ RAII): the constructor resolves sentinels, applies the config, and enables the recoverable-error mode on the calling thread; the destructor restores the previous mode at scope exit, and joins and frees the batch functions' threads and per-thread state. Non-copyable and non-movable. |
 | `vsearch_apply_defaults_fixups(Parameters &)` | Resolve a struct's sentinel values (called by the `VsearchSession` constructor; exposed for inspection). |
 
 ---
@@ -524,6 +531,7 @@ De novo mode is inherently sequential (single-threaded).
 | `chimera_detect_single(ci, query, result)` | Detect chimera for one query, given as a `query_record_s`. Returns 0 on success. Fatal on an empty query sequence. |
 | `chimera_detect_init(ci, parameters, dbindex, db)` | Convenience: `session_init` + `thread_init`. Single-threaded only. |
 | `chimera_detect_cleanup(ci)` | Convenience: `thread_cleanup` + `session_cleanup`. Single-threaded only. |
+| `chimera_detect_batch(parameters, dbindex, db, queries, results, mode)` | Detect chimeras for a `View<query_record_s>` across `opt_threads` threads; `results` is a `Span` of `queries.size()`. Manages its own session and per-thread init; in a session, reuses the session's threads and per-thread state (see [Batch functions and the session's thread pool](#batch-functions-and-the-sessions-thread-pool)). |
 
 ---
 
@@ -620,7 +628,7 @@ counts into `result_counts`.
 | `search_session_init(ss, parameters, dbindex, db)` | Initialize session. Call after DB indexed. Respects `opt_strand`. Stores a reference to `dbindex`, which must outlive the session. |
 | `search_session_single(ss, query, results)` | Search one query, given as a `query_record_s`; `results` is a `Span` whose size caps the hits reported. Returns the number written. Both strands when `opt_strand` is true. Do not share a search session across threads (give each thread its own). |
 | `search_session_cleanup(ss)` | Free per-session resources. Call before `search_session_free`. |
-| `search_batch(parameters, dbindex, db, queries, results, max_per, counts)` | Bulk-parallel search of `dbindex`, over a `View<query_record_s>`. `results` is a `Span` of `queries.size() * max_per`, `counts` a `Span` of `queries.size()`. Internally uses `opt_threads`. |
+| `search_batch(parameters, dbindex, db, queries, results, max_per, counts)` | Bulk-parallel search of `dbindex`, over a `View<query_record_s>`. `results` is a `Span` of `queries.size() * max_per`, `counts` a `Span` of `queries.size()`. Internally uses `opt_threads`; in a session, reuses the session's threads and per-thread state (see [Batch functions and the session's thread pool](#batch-functions-and-the-sessions-thread-pool)). |
 
 ---
 
@@ -687,7 +695,8 @@ cluster_session_free(cs);
 | `cluster_session_free(cs)` | Free session state. Null-safe. |
 | `cluster_session_init(cs, parameters, dbindex, db)` | Initialize session. DB must be sorted; `dbindex.prepare()` called but NOT `add_all_sequences`. Stores a reference to `dbindex` (mutated as centroids are added); it must outlive the session. |
 | `cluster_assign_single(cs, seqno, result)` | Assign one sequence. Must be called in seqno order (0, 1, 2, ...). |
-| `cluster_session_cleanup(cs)` | Free session resources. |
+| `cluster_assign_batch(cs, start_seqno, results)` | Assign `results.size()` sequences from `start_seqno` on, searching with `opt_threads` threads. Ascending, non-overlapping ranges. In a session, `cs` keeps its search slots between calls and the searches run on the session's threads (see [Batch functions and the session's thread pool](#batch-functions-and-the-sessions-thread-pool)). |
+| `cluster_session_cleanup(cs)` | Free session resources, including the batch search slots. |
 
 ---
 
@@ -1136,6 +1145,7 @@ any previous allocation. No action is required from the caller.
 | Session init (`chimera_session_init`, etc.) | Single-threaded. |
 | Per-thread init (`chimera_detect_thread_init`, etc.) | Safe for different instances. |
 | Computation (`chimera_detect_single`, `search_session_single`, etc.) | Thread-safe with per-thread state. |
+| Batch functions (`search_batch`, `chimera_detect_batch`, `cluster_assign_batch`) | Called from the session's thread, one at a time; they run on the session's own worker threads. |
 | Cleanup | Single-threaded. Join all threads first. |
 
 ### Rules
@@ -1162,6 +1172,51 @@ any previous allocation. No action is required from the caller.
 
 6. **Masking:** `dust_single()` is thread-safe. `dust_all()` operates
    on the database and is single-threaded.
+
+7. **Batch functions run on the session's threads.** Call them from the
+   thread that opened the session, one at a time (see below).
+
+### Batch functions and the session's thread pool
+
+`search_batch`, `chimera_detect_batch` and `cluster_assign_batch` spread a
+batch over `parameters.opt_threads` threads. In a session they share one pool
+of worker threads, owned by the `VsearchSession`:
+
+- **Lifetime.** The pool is created at the first batch call, with
+  `opt_threads - 1` worker threads (the calling thread takes a share of every
+  batch), and created again if a later call asks for another `opt_threads`.
+  The per-thread working state of `search_batch` and `chimera_detect_batch`
+  (k-mer counters, aligners, hit buffers) is built at their first call and
+  kept by the session; it is built again when a call's inputs differ from the
+  ones it was built for (another `Parameters`, `Dbindex` or `Database` object,
+  another database size, `opt_strand` or `opt_threads`, or for chimeras
+  another `ChimeraMode`). The search slots of `cluster_assign_batch` are kept
+  by its `cluster_session_s` until `cluster_session_cleanup()`. The
+  `VsearchSession` destructor joins the threads and frees the state; the state
+  never reads the database or the index when freed, so the session may outlive
+  them.
+- **Configuration is read when the state is built.** Configure `Parameters`
+  before opening the session, as always: a field changed afterwards (other than
+  `opt_threads`) may not reach state built by an earlier batch call.
+- **Which session.** A batch function uses the innermost session open on the
+  calling thread. Called from a thread with no session, it creates threads and
+  state for that call only, and releases them when it returns. So a session's
+  pool is only ever used from the thread that opened it: batch calls on one
+  session run one at a time, and independent sessions in different threads
+  each have their own pool. Destroy a session on the thread that constructed
+  it.
+- **Errors.** A fatal error while `search_batch` or `chimera_detect_batch` is
+  processing queries ends the process, as it always has (it happens on a
+  worker thread, or on the calling thread, which runs its share of the batch
+  in the same mode). A fatal error raised by `cluster_assign_batch` on the
+  calling thread throws `VsearchError` after the other threads have finished
+  their share; the session's pool stays usable.
+- **Batch size.** Reusing the threads and state brought the fixed cost of a
+  call from 0.1-1.1 ms down to 3-32 µs (measured at 8 to 24 threads, 20k 18S
+  V9 references). A batch of 8 queries is already about 5 times faster than
+  the single-query API, and batches of 8 queries per thread reach most of the
+  throughput: at 24 threads, 6.4 µs per query for batches of 64 against 5.0
+  µs for batches of 4096 (search).
 
 ---
 

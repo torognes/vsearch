@@ -50,7 +50,7 @@ endif
 
 SHELL = /bin/bash
 
-EXAMPLES = example_chimera example_search example_merge example_merge_error example_cluster example_dust example_derep example_reinit example_lifecycle example_dbinfo example_recover
+EXAMPLES = example_chimera example_search example_merge example_merge_error example_cluster example_dust example_derep example_reinit example_lifecycle example_dbinfo example_recover example_batch_session
 
 all: $(EXAMPLES)
 
@@ -85,6 +85,9 @@ example_dbinfo: example_dbinfo.cc $(VSEARCH_LIB)
 	$(CXX) $(CXXFLAGS) -o $@ $< $(LDFLAGS)
 
 example_recover: example_recover.cc $(VSEARCH_LIB)
+	$(CXX) $(CXXFLAGS) -o $@ $< $(LDFLAGS)
+
+example_batch_session: example_batch_session.cc $(VSEARCH_LIB)
 	$(CXX) $(CXXFLAGS) -o $@ $< $(LDFLAGS)
 
 test: $(EXAMPLES)
@@ -148,6 +151,11 @@ test: $(EXAMPLES)
 	@./example_recover \
 		&& echo "PASS: library recovers from a fatal error and continues" \
 		|| (echo "FAIL: recover-and-continue test failed"; exit 1)
+	@echo ""
+	@echo "=== Running example_batch_session ==="
+	@./example_batch_session \
+		&& echo "PASS: batch calls reusing the session's threads and state match the single-query API" \
+		|| (echo "FAIL: batch-session test failed"; exit 1)
 	@echo ""
 	@echo "All tests passed."
 

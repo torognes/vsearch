@@ -125,7 +125,7 @@
 /* === API version === */
 
 #define VSEARCH_API_VERSION_MAJOR 0
-#define VSEARCH_API_VERSION_MINOR 28
+#define VSEARCH_API_VERSION_MINOR 29
 #define VSEARCH_API_VERSION_PATCH 0
 
 /* Encoded as MAJOR*1000000 + MINOR*1000 + PATCH (OpenSSL/libcurl
@@ -148,6 +148,7 @@
 /* Aggregate header — includes config.h, system headers, and all
    module headers, and defines the Parameters configuration struct. */
 #include "vsearch.hpp"
+#include <memory>  // std::unique_ptr (VsearchSession)
 
 /* Recoverable-error payload thrown by the engines when a fatal condition
    is hit inside a library session (see the error-handling section of
@@ -198,6 +199,16 @@ auto vsearch_api_version_string() -> const char *;
    Construct the session on the thread that will catch VsearchError; nested
    sessions on one thread compose (the previous mode is saved and restored).
 
+   The session also keeps what the batch functions (search_batch,
+   chimera_detect_batch, cluster_assign_batch) reuse from one call to the
+   next: a pool of worker threads, shared by the three and created at the
+   first batch call with parameters.opt_threads threads, and the per-thread
+   working state of search_batch and chimera_detect_batch, built at their
+   first call. The destructor joins the threads and frees that state. A
+   batch function finds the innermost session open on the calling thread;
+   called from a thread with no session, it creates threads and state for
+   that call only. Destroy the session on the thread that constructed it.
+
    Note: parameters.opt_minsize is NOT resolved here — it has command-specific
    defaults (1 for most commands, 8 for cluster_unoise). Set it explicitly if
    needed (the struct default is 0).
@@ -224,4 +235,9 @@ public:
   auto operator=(VsearchSession const &) -> VsearchSession & = delete;
 private:
   bool previous_throw_mode;
+  /* the batch functions' worker threads and per-thread state (opaque,
+     core/batch_session.hpp) */
+  std::unique_ptr<struct batch_session_s> batch_session;
+  /* the session that was current on this thread before this one */
+  struct batch_session_s * previous_batch_session;
 };
