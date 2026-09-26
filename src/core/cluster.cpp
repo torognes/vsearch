@@ -225,11 +225,23 @@ inline auto cluster_query_core(struct searchinfo_s & si, struct Database const &
 }
 
 
+/* headroom past the k-mer counters for their SIMD stores:
+   16 * sizeof(count_t) = 32 bytes */
+constexpr auto kmer_counter_padding = 16U;
+
+
+/* Whether a query's searchinfo_s gets k-mer counters of its own, or
+   borrows a thread's for each search (the worker pool's query slots, see
+   CounterLoan) */
+enum struct KmerCounters : unsigned char { owned, borrowed };
+
+
 auto cluster_query_init(struct searchinfo_s & si, int const seqcount, int const tophits,
                         struct Database const & db,
                         struct Parameters const & parameters,
                         struct Dbindex const & dbindex,
-                        bool const unoise_acceptance) -> void
+                        bool const unoise_acceptance,
+                        KmerCounters const counters) -> void
 {
   /* initialisation of data for one thread; run once for each thread */
   /* thread specific initialiation */
@@ -246,12 +258,14 @@ auto cluster_query_init(struct searchinfo_s & si, int const seqcount, int const 
      vectors themselves (RAII), so a fatal() unwinding out of a partial init or
      a query frees them. */
 
-  static constexpr auto overflow_padding = 16U;  // 16 * sizeof(count_t) = 32 bytes headroom
   si.qsequence_v.resize(db.getlongestsequence());
   si.qsequence = make_span(si.qsequence_v).first(0);
 
-  si.kmers_v.reserve(static_cast<std::size_t>(seqcount) + overflow_padding);
-  si.kmers_v.resize(static_cast<std::size_t>(seqcount));
+  if (counters == KmerCounters::owned)
+    {
+      si.kmers_v.reserve(static_cast<std::size_t>(seqcount) + kmer_counter_padding);
+      si.kmers_v.resize(static_cast<std::size_t>(seqcount));
+    }
   si.hits_v.resize(static_cast<std::size_t>(tophits));
 
   /* si.uh (a Uniquer value member) is ready to use as default-constructed */
@@ -272,12 +286,41 @@ auto cluster_query_exit(struct searchinfo_s & si) -> void
   /* the kmer counts, the hits and the query sequence live in the searchinfo_s
      vectors (kmers_v/hits_v/qsequence_v), which free their own storage. */
 }
+
+
+/* Lends a thread's k-mer counters to the query slot it searches, and takes
+   them back when the search is over, also when fatal() throws (library
+   sessions). Only search_topscores() reads them, during the search, and it
+   clears what it reads, so the slots can share them. A swap: it keeps the
+   reserved headroom and costs nothing. */
+class CounterLoan
+{
+public:
+  CounterLoan(std::vector<count_t> & lender, struct searchinfo_s & borrower) noexcept
+    : lender_(lender), borrower_(borrower)
+  {
+    borrower_.kmers_v.swap(lender_);
+  }
+  ~CounterLoan()
+  {
+    borrower_.kmers_v.swap(lender_);
+  }
+  CounterLoan(CounterLoan const &) = delete;
+  CounterLoan(CounterLoan &&) = delete;
+  auto operator=(CounterLoan const &) -> CounterLoan & = delete;
+  auto operator=(CounterLoan &&) -> CounterLoan & = delete;
+
+private:
+  std::vector<count_t> & lender_;
+  struct searchinfo_s & borrower_;
+};
 }  // anonymous namespace
 
 
 /* Self-contained per-invocation worker pool for the clustering search phase.
-   It owns the searchinfo_s arrays (one entry per query slot of a round, as
-   many as threads) and its own worker threads, so a caller drives its own
+   It owns the searchinfo_s arrays (one entry per query slot of a round: one
+   to eight per thread, as the round width adapts, see BatchSizer) and its
+   own worker threads, so a caller drives its own
    pool with no shared file-static state (E4) — this is what lets
    cluster_assign_batch() stop borrowing the CLI path's si_plus/si_minus/
    thread_work/cluster_threadrunner via a save/restore hack.
@@ -310,8 +353,9 @@ auto cluster_query_exit(struct searchinfo_s & si) -> void
    at 8 threads, two to four at 24.
 
    The slots of a round beyond the first nthreads are initialized when a
-   round first uses them: each holds a k-mer counter per database sequence,
-   so only a run that widens its rounds pays for them. */
+   round first uses them. The k-mer counters, one per database sequence,
+   belong to the threads, which lend them to the slots they search (see
+   CounterLoan): a slot holds only its query and its hits. */
 struct cluster_work_pool_s
 {
   struct Parameters const & parameters;  // run config, read by the workers (E1)
@@ -334,8 +378,14 @@ struct cluster_work_pool_s
       unoise_acceptance_(unoise_acceptance),
       sizer(static_cast<std::size_t>(nthreads)),
       busy(static_cast<std::size_t>(nthreads), 0.0),
+      counters(static_cast<std::size_t>(nthreads)),
       gate(static_cast<std::size_t>(nthreads - 1))
   {
+    for (auto & thread_counters : counters)
+      {
+        thread_counters.reserve(static_cast<std::size_t>(seqcount) + kmer_counter_padding);
+        thread_counters.resize(static_cast<std::size_t>(seqcount));
+      }
     si_plus.resize(sizer.largest());
     if (need_minus)
       {
@@ -387,9 +437,13 @@ struct cluster_work_pool_s
             break;
           }
         auto const query = static_cast<std::size_t>(slot);
-        cluster_query_core(si_plus[query], db, parameters);
+        {
+          CounterLoan const loan(counters[thread], si_plus[query]);
+          cluster_query_core(si_plus[query], db, parameters);
+        }
         if (not si_minus.empty())
           {
+            CounterLoan const loan(counters[thread], si_minus[query]);
             cluster_query_core(si_minus[query], db, parameters);
           }
       }
@@ -438,14 +492,16 @@ private:
     for (; initialized < count; ++initialized)
       {
         auto & plus = si_plus[initialized];
-        cluster_query_init(plus, seqcount_, tophits_, db, parameters, dbindex, unoise_acceptance_);
+        cluster_query_init(plus, seqcount_, tophits_, db, parameters, dbindex, unoise_acceptance_,
+                           KmerCounters::borrowed);
         plus.strand = 0;
         if (si_minus.empty())
           {
             continue;
           }
         auto & minus = si_minus[initialized];
-        cluster_query_init(minus, seqcount_, tophits_, db, parameters, dbindex, unoise_acceptance_);
+        cluster_query_init(minus, seqcount_, tophits_, db, parameters, dbindex, unoise_acceptance_,
+                           KmerCounters::borrowed);
         minus.strand = 1;
       }
   }
@@ -457,6 +513,10 @@ private:
   BatchSizer sizer;                     // round width
   double round_wall = 0.0;              // seconds, last round
   std::vector<double> busy;             // seconds searching, per thread, last round
+  /* the k-mer counters, one array per thread, lent to each slot the thread
+     searches (see CounterLoan): a round can hold up to eight slots per
+     thread, and each array has one entry per database sequence */
+  std::vector<std::vector<count_t>> counters;
   /* declared after si_plus/si_minus, as before: members are initialized in
      declaration order, and the threads, started last in the constructor,
      read everything above them */
@@ -1195,11 +1255,13 @@ auto cluster_core_serial(struct cluster_cli_state_s & state,
 
   bool const unoise_acceptance = (state.mode == ClusterMode::unoise);
   cluster_query_init(si_p.front(), seqcount, tophits, db, state.effective_parameters,
-                     state.dbindex, unoise_acceptance);
+                     state.dbindex, unoise_acceptance,
+                     KmerCounters::owned);
   if (state.parameters.opt_strand)
     {
       cluster_query_init(si_m.front(), seqcount, tophits, db, state.effective_parameters,
-                         state.dbindex, unoise_acceptance);
+                         state.dbindex, unoise_acceptance,
+                         KmerCounters::owned);
     }
 
   /* si_m is a one-element array whether or not the reverse strand is searched,
@@ -1792,13 +1854,15 @@ auto cluster_session_init(struct cluster_session_s * cs, struct Parameters const
   cs->si = make_unique<searchinfo_s>();
   /* false: the library cluster session has no UNOISE mode to ask for, exactly
      as it had no opt_cluster_unoise to set. */
-  cluster_query_init(*cs->si, cs->seqcount, cs->tophits, db, parameters, *cs->dbindex, false);
+  cluster_query_init(*cs->si, cs->seqcount, cs->tophits, db, parameters, *cs->dbindex, false,
+                     KmerCounters::owned);
   cs->si->strand = 0;
 
   if (parameters.opt_strand)
     {
       cs->si_minus = make_unique<searchinfo_s>();
-      cluster_query_init(*cs->si_minus, cs->seqcount, cs->tophits, db, parameters, *cs->dbindex, false);
+      cluster_query_init(*cs->si_minus, cs->seqcount, cs->tophits, db, parameters, *cs->dbindex, false,
+                         KmerCounters::owned);
       cs->si_minus->strand = 1;
     }
 

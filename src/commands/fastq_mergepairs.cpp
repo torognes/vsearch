@@ -95,12 +95,17 @@
 constexpr auto chunk_size = 500; /* read pairs per chunk */
 constexpr auto chunk_factor = 2; /* chunks per thread */
 /* From this many threads on, the reverse records are read by a thread of
-   their own (see read_reverse_ahead). With fewer, the workers, not the
-   reader, bound the command, and the extra thread only competes with them
-   when there are no more cores than threads (measured, 3M pairs, threads
-   pinned to as many cores: 7 % slower with 4 threads, 4 % faster with 5,
-   42 % faster with 8). */
+   their own (see read_reverse_ahead), counted in --threads: the worker pool
+   then has one thread less. With fewer threads, the workers, not the
+   reader, bound the command, and giving one of them up to a reader costs
+   more than it gains. Compressed input is decompressed by its reader, so
+   reading bounds the command sooner. Measured with --threads 3 to 8 pinned
+   to as many cores (3M plain pairs, 1M gzip pairs, 200k bzip2 pairs):
+   plain input 14 % slower with 4 threads, 7 % faster with 5, 46 % faster
+   with 8; gzip 66 % slower with 2, 26 % faster with 3, 46 % faster with 4;
+   bzip2 44 % faster with 3. */
 constexpr int64_t concurrent_reading_threads = 5;
+constexpr int64_t concurrent_reading_threads_compressed = 3;
 
 
 struct chunk_s
@@ -121,11 +126,12 @@ struct chunk_s
    with threads still writing to them — a data race that intermittently corrupts
    libc state and crashes (observed as SIGILL on FreeBSD). Instead, a worker that
    hits an out-of-range FASTQ quality value (recorded by the merge core on the
-   read pair) or a fwd/rev count mismatch records the error here and requests an
-   abort; every worker then unwinds its loop and pair_all() reports it and
-   std::exit()s from the main thread, after all workers have joined. The error is
-   written once (first worker to claim wins, then a release store on abort_) and
-   read after the join, which establishes the needed happens-before. Owned per run
+   read pair), a fwd/rev count mismatch, or a parse error in the forward or the
+   reverse input (deferred by the input handle, see report()) records the error
+   here and requests an abort; every worker then unwinds its loop and
+   pair_all() reports it and std::exit()s from the main thread, after all
+   workers have joined. The error is written once (first worker to claim
+   wins, then a release store on abort_) and read after the join, which establishes the needed happens-before. Owned per run
    by mergepairs_cli_state_s, so there is no cross-session state to reset. */
 class MergeAbort {
 public:
@@ -287,6 +293,9 @@ struct mergepairs_cli_state_s
      read by a thread of their own, ahead of the chunk reader (see
      read_reverse_ahead). */
   bool concurrent_reading = false;
+  /* the threads of the worker pool: --threads, less the reverse reader
+     when there is one, so that the command runs --threads threads in all */
+  int64_t worker_threads = 1;
   int chunk_reverse_next = 0;  /* next chunk for the reverse reader */
   /* the reverse input still had a record when the forward one ended */
   bool rev_surplus = false;
@@ -1026,14 +1035,14 @@ auto pair_worker(struct mergepairs_cli_state_s & state,
           break;
         }
 
-      if (state.parameters.opt_threads == 1)
+      if (state.worker_threads == 1)
         {
           /* One thread does it all */
           chunk_perform_read(state, lock, cond_chunks);
           chunk_perform_process(state, kmerhash, lock, cond_chunks);
           chunk_perform_write(state, lock, cond_chunks);
         }
-      else if (state.parameters.opt_threads == 2)
+      else if (state.worker_threads == 2)
         {
           if (t == 0)
             {
@@ -1095,7 +1104,7 @@ auto pair_worker(struct mergepairs_cli_state_s & state,
               chunk_perform_read(state, lock, cond_chunks);
               chunk_perform_process(state, kmerhash, lock, cond_chunks);
             }
-          else if (t == static_cast<uint64_t>(state.parameters.opt_threads) - 1)
+          else if (t == static_cast<uint64_t>(state.worker_threads) - 1)
             {
               /* last thread writes and processes */
               while (not
@@ -1164,7 +1173,11 @@ auto pair_all(struct mergepairs_cli_state_s & state) -> void
      read_reverse_ahead); its parse errors, and the forward reader's, are
      deferred so that they are judged in input order and reported from
      here, after the pool has joined */
-  state.concurrent_reading = (state.parameters.opt_threads >= concurrent_reading_threads);
+  auto const compressed = state.fastq_fwd->is_compressed() or state.fastq_rev->is_compressed();
+  state.concurrent_reading = (state.parameters.opt_threads >=
+                              (compressed ? concurrent_reading_threads_compressed :
+                               concurrent_reading_threads));
+  state.worker_threads = state.parameters.opt_threads - (state.concurrent_reading ? 1 : 0);
   std::thread rev_reader;
   if (state.concurrent_reading)
     {
@@ -1178,7 +1191,7 @@ auto pair_all(struct mergepairs_cli_state_s & state) -> void
   /* run the worker pool; the workers coordinate through mutex_chunks and
      cond_chunks until all chunks have been read, processed and written */
   {
-    ThreadRunner threadrunner(static_cast<std::size_t>(state.parameters.opt_threads),
+    ThreadRunner threadrunner(static_cast<std::size_t>(state.worker_threads),
                               [&state, &mutex_chunks, &cond_chunks](uint64_t const nth_thread) -> void {
                                 pair_worker(state, nth_thread, mutex_chunks, cond_chunks);
                               });
