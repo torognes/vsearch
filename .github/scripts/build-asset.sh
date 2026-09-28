@@ -13,6 +13,8 @@
 #   BINARY    name of the built binary            (default: vsearch)
 #   FORMAT    tar | zip                           (default: tar)
 #   OUTDIR    where to write the archive          (default: current directory)
+#   BUNDLE_DIR  optional tree copied as-is into the asset root, e.g. the
+#             Windows DLLs staged by windows-dlls.sh into bin/
 #
 # The asset layout deliberately matches what releases have always shipped,
 # except that the monolithic man/vsearch.1 and doc/vsearch_manual.pdf are
@@ -30,6 +32,7 @@ set -eu
 HOST="${HOST:-}"
 LDFLAGS_EXTRA="${LDFLAGS_EXTRA:-}"
 BINARY="${BINARY:-vsearch}"
+BUNDLE_DIR="${BUNDLE_DIR:-}"
 FORMAT="${FORMAT:-tar}"
 OUTDIR="${OUTDIR:-$(pwd)}"
 
@@ -76,6 +79,7 @@ mkdir -p "${dirname}/bin"
 cp ".stage/bin/${BINARY}" "${dirname}/bin/"
 cp -R .stage/share/man "${dirname}/man"
 cp README.md LICENSE.txt LICENSE_GNU_GPL3.txt "${dirname}/"
+test -z "${BUNDLE_DIR}" || cp -R "${BUNDLE_DIR}/." "${dirname}/"
 
 # The completion scripts, flattened out of the three per-shell directories
 # 'make install' spreads them over: README.md tells the reader of a binary

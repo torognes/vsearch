@@ -122,7 +122,7 @@ jobs:
           - { asset: linux-mips64el-static, host: mips64el-linux-gnuabi64, pkgs: "g++-mips64el-linux-gnuabi64 libsimde-dev", ld: "-static-libstdc++ -static-libgcc" }
           - { asset: linux-riscv64,         host: riscv64-linux-gnu,       pkgs: "g++-riscv64-linux-gnu libsimde-dev",       ld: "" }
           - { asset: linux-riscv64-static,  host: riscv64-linux-gnu,       pkgs: "g++-riscv64-linux-gnu libsimde-dev",       ld: "-static-libstdc++ -static-libgcc" }
-          - { asset: win-x86_64,            host: x86_64-w64-mingw32,      pkgs: "mingw-w64 libz-mingw-w64-dev zip",         ld: "", binary: vsearch.exe, format: zip }
+          - { asset: win-x86_64,            host: x86_64-w64-mingw32,      pkgs: "mingw-w64 libz-mingw-w64-dev zip curl ca-certificates zstd", ld: "", binary: vsearch.exe, format: zip }
 
     steps:
     - name: Checkout
@@ -181,6 +181,12 @@ jobs:
                 echo "::error::mingw-w64 is on the win32 threading model; C++11 <thread> is unavailable" >&2
                 exit 1
               }
+            fi
+            # zlib1.dll and libbz2.dll are not part of Windows: stage them,
+            # and bzlib.h, before the build (issue #658).
+            if [ "${HOST}" = x86_64-w64-mingw32 ] ; then
+              export BUNDLE_DIR=/work/bundle
+              sh /work/.github/scripts/windows-dlls.sh
             fi
             sh /work/.github/scripts/build-asset.sh
           '
