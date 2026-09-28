@@ -342,8 +342,10 @@ auto accumulate_slice_counts(struct searchinfo_s const & searchinfo,
              agree and neither can wrap a high-overlap target's count back
              to ~0 and silently drop it from the candidate set (the cap is
              far above any realistic minwordmatches). */
+          static_assert(kmer_count_ceiling == INT16_MAX,
+                        "the SIMD bitmap path saturates at the signed 16-bit maximum");
           count_t & counter = slice[*entry - first_index];
-          if (counter < INT16_MAX) { ++counter; }
+          if (counter < kmer_count_ceiling) { ++counter; }
         }
     }
 }

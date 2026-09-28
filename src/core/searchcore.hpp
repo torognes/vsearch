@@ -162,6 +162,11 @@ inline auto letter_pair_identity(struct hit const & hit) noexcept -> double {
 /* type of kmer hit counter element remember possibility of overflow */
 using count_t = unsigned short;
 
+/* where the k-mer hit counters saturate (accumulate_slice_counts): no count
+   ever exceeds it. The denovo chimera batch driver predicts the counts of
+   targets indexed after a search, and caps them here too. */
+constexpr count_t kmer_count_ceiling = INT16_MAX;
+
 /* What a target indexed after a search would have needed to enter that
    search's top-k-mer-hits heap, recorded by search_topscores() before
    search_onequery() starts popping the heap. Everything search_onequery()
