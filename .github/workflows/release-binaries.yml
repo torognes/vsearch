@@ -122,7 +122,7 @@ jobs:
           - { asset: linux-mips64el-static, host: mips64el-linux-gnuabi64, pkgs: "g++-mips64el-linux-gnuabi64 libsimde-dev", ld: "-static-libstdc++ -static-libgcc" }
           - { asset: linux-riscv64,         host: riscv64-linux-gnu,       pkgs: "g++-riscv64-linux-gnu libsimde-dev",       ld: "" }
           - { asset: linux-riscv64-static,  host: riscv64-linux-gnu,       pkgs: "g++-riscv64-linux-gnu libsimde-dev",       ld: "-static-libstdc++ -static-libgcc" }
-          - { asset: win-x86_64,            host: x86_64-w64-mingw32,      pkgs: "mingw-w64 libz-mingw-w64-dev zip curl ca-certificates zstd", ld: "", binary: vsearch.exe, format: zip }
+          - { asset: win-x86_64,            host: x86_64-w64-mingw32,      pkgs: "g++-mingw-w64-x86-64-posix libz-mingw-w64-dev zip curl ca-certificates zstd", ld: "", binary: vsearch.exe, format: zip }
 
     steps:
     - name: Checkout
@@ -156,8 +156,19 @@ jobs:
             set -eu
             sed -i "s|^# deb http://snapshot|deb http://snapshot|" /etc/apt/sources.list
             sed -i "s|^deb http://deb.debian.org|# deb http://deb.debian.org|" /etc/apt/sources.list
-            apt-get -o Acquire::Check-Valid-Until=false update -qq
-            apt-get install -y -qq g++ make zlib1g-dev libbz2-dev ${{ matrix.target.pkgs }}
+            # snapshot.debian.org throttles, and resets connections mid-file
+            # ("Connection reset by peer"). bullseye's apt (2.2) does not
+            # retry a failed download unless told to, and a reset can outlast
+            # its immediate retries, so the whole install is also given three
+            # tries, 30 s apart.
+            apt-get -o Acquire::Check-Valid-Until=false -o Acquire::Retries=5 update -qq
+            for attempt in 1 2 3 ; do
+              apt-get -o Acquire::Retries=5 install -y -qq \
+                g++ make zlib1g-dev libbz2-dev ${{ matrix.target.pkgs }} && break
+              test "${attempt}" -lt 3 || exit 1
+              echo "apt-get install failed (attempt ${attempt}), retrying in 30 s" >&2
+              sleep 30
+            done
             g++ --version | head -n 1
             ldd --version | head -n 1
             # Debian ships mingw-w64 twice, as a win32 and a posix threading
