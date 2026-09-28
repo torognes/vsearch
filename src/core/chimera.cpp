@@ -97,6 +97,7 @@
 #include <cstddef> // std::ptrdiff_t, std::size_t
 #include <cstdint> // int64_t, uint64_t
 #include <cstdio>  // std::FILE, std::fprintf, std::fputs
+#include <cstring>  // std::memcmp
 #include <iterator>  // std::next
 #include <limits>
 #include <map>  // std::map
@@ -2977,7 +2978,7 @@ auto enters_part_heap(struct chimera_part_search_s const & part,
     }
   /* the k-mer counters saturate at INT16_MAX (accumulate_slice_counts), so
      no count ever reaches more */
-  constexpr auto counter_ceiling = static_cast<std::size_t>(INT16_MAX);
+  constexpr auto counter_ceiling = static_cast<std::size_t>(kmer_count_ceiling);
   if (needed > counter_ceiling)
     {
       return false;
@@ -3013,6 +3014,68 @@ auto result_is_stale(struct chimera_query_result_s const & result,
                                           });
                      });
 }
+
+
+#ifndef NDEBUG
+/* exact equality, bit for bit (as -Wfloat-equal asks, a plain == on doubles
+   would be flagged even where exactness is the point) */
+auto same_bits(double const lhs, double const rhs) noexcept -> bool
+{
+  return std::memcmp(&lhs, &rhs, sizeof lhs) == 0;
+}
+
+
+auto same_threshold(struct TopscoresThreshold const & lhs,
+                    struct TopscoresThreshold const & rhs) noexcept -> bool
+{
+  return (lhs.minmatches == rhs.minmatches) and (lhs.filled == rhs.filled) and
+    (lhs.capacity == rhs.capacity) and (lhs.weakest.count == rhs.weakest.count) and
+    (lhs.weakest.seqno == rhs.weakest.seqno) and (lhs.weakest.length == rhs.weakest.length);
+}
+
+
+auto same_report(struct chimera_report_s const & lhs,
+                 struct chimera_report_s const & rhs) noexcept -> bool
+{
+  return (lhs.parent_a == rhs.parent_a) and (lhs.parent_b == rhs.parent_b) and
+    (lhs.parent_c == rhs.parent_c) and (lhs.parents_swapped == rhs.parents_swapped) and
+    same_bits(lhs.id_query_model, rhs.id_query_model) and same_bits(lhs.id_query_a, rhs.id_query_a) and
+    same_bits(lhs.id_query_b, rhs.id_query_b) and same_bits(lhs.id_query_c, rhs.id_query_c) and
+    same_bits(lhs.id_a_b, rhs.id_a_b) and same_bits(lhs.id_query_top, rhs.id_query_top) and
+    same_bits(lhs.divergence, rhs.divergence) and
+    same_bits(lhs.divergence_percent, rhs.divergence_percent) and
+    (lhs.left_yes == rhs.left_yes) and (lhs.left_no == rhs.left_no) and
+    (lhs.left_abstain == rhs.left_abstain) and (lhs.right_yes == rhs.right_yes) and
+    (lhs.right_no == rhs.right_no) and (lhs.right_abstain == rhs.right_abstain);
+}
+
+
+/* The batch driver's contract, checked in assert builds: a speculative
+   result that result_is_stale() lets through is exactly the result of
+   detecting the query again, against the index that now holds every
+   earlier query. Its part searches must also have left the same heaps,
+   which is what result_is_stale() claims. Doubles as the test that nothing
+   after search_topscores() reads the index (see TopscoresThreshold). The
+   floating-point fields compare exactly: both results come from the same
+   code on the same inputs. */
+auto same_detection(struct chimera_query_result_s const & speculative,
+                    struct chimera_query_result_s const & fresh) noexcept -> bool
+{
+  auto const & lhs = speculative.part_searches;
+  auto const & rhs = fresh.part_searches;
+  /* below low_score, the report holds whatever the worker's previous query
+     left in it, and nothing reads it (see output_query_result) */
+  auto const report_is_read = (speculative.status >= Status::low_score);
+  return (speculative.status == fresh.status) and same_bits(speculative.best_h, fresh.best_h) and
+    ((not report_is_read) or same_report(speculative.report, fresh.report)) and
+    (lhs.size() == rhs.size()) and
+    std::equal(lhs.cbegin(), lhs.cend(), rhs.cbegin(),
+               [](struct chimera_part_search_s const & left,
+                  struct chimera_part_search_s const & right) -> bool {
+                 return same_threshold(left.threshold, right.threshold);
+               });
+}
+#endif
 
 
 /* What one thread needs to run the detection core, as chimera_thread_core
@@ -3158,6 +3221,15 @@ auto chimera_denovo_batches(struct chimera_cli_state_s & state) -> void
             {
               detect(committer, seqno, result);
             }
+#ifndef NDEBUG
+          else
+            {
+              struct chimera_query_result_s fresh;
+              detect(committer, seqno, fresh);
+              collect_part_searches(committer.ci, fresh);
+              assert(same_detection(result, fresh));
+            }
+#endif
           serial_wall += std::chrono::duration<double>(std::chrono::steady_clock::now() -
                                                        check_started).count();
 
