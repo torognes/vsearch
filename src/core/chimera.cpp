@@ -3217,12 +3217,17 @@ auto chimera_denovo_batches(struct chimera_cli_state_s & state) -> void
           auto const nth = seqno - batch_start;
           auto & result = results[nth];
           auto const check_started = std::chrono::steady_clock::now();
-          if (result_is_stale(result, batch_targets, minwordmatches))
+          auto const recomputed = result_is_stale(result, batch_targets, minwordmatches);
+          if (recomputed)
             {
               detect(committer, seqno, result);
             }
+          serial_wall += std::chrono::duration<double>(std::chrono::steady_clock::now() -
+                                                       check_started).count();
 #ifndef NDEBUG
-          else
+          /* outside serial_wall, so that the batch sizes match a release
+             build's */
+          if (not recomputed)
             {
               struct chimera_query_result_s fresh;
               detect(committer, seqno, fresh);
@@ -3230,8 +3235,6 @@ auto chimera_denovo_batches(struct chimera_cli_state_s & state) -> void
               assert(same_detection(result, fresh));
             }
 #endif
-          serial_wall += std::chrono::duration<double>(std::chrono::steady_clock::now() -
-                                                       check_started).count();
 
           {
             std::lock_guard<std::mutex> const output_lock(state.mutex_output);
