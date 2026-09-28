@@ -110,6 +110,11 @@
       options of `--allpairs_global`; a reference to the Rsearch R
       package.
     - improve: code testing (new automatic tests in vsearch-tests).
+    - fix: the Windows binary distribution of v2.32.0 lacked
+      `zlib1.dll` and `libbz2.dll`, and was built without bzip2
+      support, so it could read neither gzip- nor bzip2-compressed
+      input. Both DLLs are back in the `bin` folder, next to
+      `vsearch.exe` (issue #658).
 
 **v2.32.0** released September 18th, 2026
 :   Includes the following changes:

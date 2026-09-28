@@ -94,7 +94,7 @@ sudo make install
 
 **Binary distribution**: Starting with version 1.4.0, binary distribution files containing pre-compiled binaries as well as the documentation will be made available as part of each [release](https://github.com/torognes/vsearch/releases). The included executables include support for input files compressed by zlib and bzip2 (with files usually ending in `.gz` or `.bz2`).
 
-Binary distributions are provided for x86-64 systems running GNU/Linux, macOS (version 10.7 or higher) or Windows (64-bit, version 7 or higher), 64-bit AMDv8 (aarch64) systems running GNU/Linux or macOS, as well as POWER8 (ppc64le), 64-bit little-endian RISC-V (risv64), and 64-bit little endian MIPS (mips64el) systems running GNU/Linux. A universal macOS binary is also provided. In addition, an x86_64 binary built for the discontinued RHEL 7 and CentOS 7 linux distributions is provided. The other Linux binaries are built on Debian 11 (oldoldstable, Bullseye). Binaries whose name ends in `-static` are available for all Linux architectures except x86_64: they carry the C++ runtime (`libstdc++`/`libgcc`) inside the executable, so they run on systems whose own C++ runtime is older than the one they were built with. They still use the system C library, and the compression libraries are still loaded at run time, so they read gzip and bzip2 input like every other binary. The Windows binary was built with cross compilation using [Mingw-w64](http://mingw-w64.org/).
+Binary distributions are provided for x86-64 systems running GNU/Linux, macOS (version 11 Big Sur or later) or Windows (64-bit, version 7 or higher), 64-bit ARMv8 (aarch64) systems running GNU/Linux or macOS, as well as POWER8 (ppc64le), 64-bit little-endian RISC-V (riscv64), and 64-bit little endian MIPS (mips64el) systems running GNU/Linux. A universal macOS binary is also provided. In addition, an x86_64 binary built for the discontinued RHEL 7 and CentOS 7 linux distributions is provided. The other Linux binaries are built on Debian 11 (oldoldstable, Bullseye). Binaries whose name ends in `-static` are available for all Linux architectures except x86_64: they carry the C++ runtime (`libstdc++`/`libgcc`) inside the executable, so they run on systems whose own C++ runtime is older than the one they were built with. They still use the system C library, and the compression libraries are still loaded at run time, so they read gzip and bzip2 input like every other binary. The Windows binary was built with cross compilation using [Mingw-w64](http://mingw-w64.org/).
 
 Download the appropriate executable for your system using the following commands if you are using a Linux or macOS system:
 
@@ -116,15 +116,18 @@ https://github.com/torognes/vsearch/releases/download/v{VERSION}/vsearch-{VERSIO
 **Windows**: You will now have the binary distribution in a folder
 called `vsearch-{VERSION}-win-x86_64`. The vsearch executable is called
 `vsearch.exe`. If you want to be able to call `vsearch.exe`
-from any command prompt window, you can put the VSEARCH executable in
-a folder (for instance `C:\Users\<yourname>\bin`), and add the new
+from any command prompt window, you can put the VSEARCH executable,
+together with the `zlib1.dll` and `libbz2.dll` files found next to it
+in `bin`, in a folder (for instance `C:\Users\<yourname>\bin`), and add the new
 folder to the user `Path`: open the `Environment Variables` window by
 searching for it in the Start menu, `Edit` user variables, add
 `;C:\Users\<yourname>\bin` to the end of the `Path` variable, and save
 your changes. The windows distribution also includes the `libbz2.dll`
 and `zlib1.dll` files required for reading compressed input
-files. These DLL's have been obtained for mingw-w64 from the MSYS2
-platform.
+files. vsearch looks for them only in the folder that holds
+`vsearch.exe`, so keep the three files together. These DLL's have
+been built for mingw-w64: `libbz2.dll` by the MSYS2 platform, and
+`zlib1.dll` by the Debian project.
 
 **Documentation:** The VSEARCH user's manual is a set of manual pages: a hub page listing every command, one page per command, one page per file format, and one page per reference topic. `make install` installs them all; type `man vsearch` for the hub, `man vsearch-usearch_global` for a command, `man 5 vsearch-fastq` for a file format, and `man 7 vsearch-userfields` for a reference topic. They are also readable [online](https://torognes.github.io/vsearch/), and they come with the binary distribution. To install them manually, copy the pages, or create symbolic links to them, in the `man1`, `man5` and `man7` subfolders of a folder included in your `$MANPATH`. Being generated, the pages themselves are not in git: they are built from the markdown sources in [`man`](https://github.com/torognes/vsearch/tree/master/man), which is where a documentation change belongs, and rebuilt with `make -C man regenerate-manpages`. The release history is one of those pages, `man 7 vsearch-history`, and is installed as a plain-text `NEWS` file as well.
 
@@ -219,7 +222,7 @@ Optionally, the header files for the following two optional libraries are requir
 
 VSEARCH will automatically check whether these libraries are available and load them dynamically.
 
-On Windows these libraries are called `zlib1.dll` and `libbz2.dll`. These DLL's are included with the released distribution of vsearch 2.27.0 and later.
+On Windows these libraries are called `zlib1.dll` and `libbz2.dll`. These DLL's are included with the released distribution of vsearch 2.27.0 and later, except 2.32.0 (issue #658), and must stay in the folder that holds `vsearch.exe`.
 
 
 ## VSEARCH license and third party licenses

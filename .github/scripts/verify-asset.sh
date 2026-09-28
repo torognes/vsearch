@@ -59,6 +59,41 @@ echo "${ASSET}: ${pages} manual pages, $(find "${root}/completion" -type f 2>/de
 case "${ASSET}" in
   win-*)
     echo "  PE binary, skipping the ELF checks"
+
+    # --- compression DLLs (issue #658) ------------------------------------
+    # The 2.32.0 asset shipped without them, and without bzip2 support
+    # compiled in, and nothing noticed: vsearch.exe still ran, and only
+    # "vsearch --version" on a Windows host told the story. objdump reads
+    # PE on any x86_64 binutils, so all of this is checkable from Linux.
+    #
+    # vsearch names a library only when its header was found at build
+    # time (src/os/dynlibs.cpp), so the string is the proof that support
+    # is compiled in.
+    test -f "${root}/LICENSE_bzip2.txt" || fail "LICENSE_bzip2.txt is missing"
+    for pair in zlib1.dll:gzdopen libbz2.dll:BZ2_bzReadOpen ; do
+      dll="${pair%%:*}"
+      sym="${pair#*:}"
+      grep -q -a "${dll}" "${binary}" || fail "vsearch.exe was built without ${dll} support"
+      test -f "${root}/bin/${dll}" || { fail "bin/${dll} is missing" ; continue ; }
+      objdump -p "${root}/bin/${dll}" | grep -q "[[:space:]]${sym}\$" || \
+        fail "bin/${dll} does not export ${sym}"
+    done
+
+    # Every import, of the exe and of both DLLs, must be a DLL that Windows
+    # ships: anything else (libwinpthread-1.dll, libgcc_s_seh-1.dll, ...)
+    # would be one more file to bundle, and a silent failure on every host
+    # that lacks it.
+    for pe in "${binary}" "${root}"/bin/*.dll ; do
+      test -f "${pe}" || continue  # an unmatched glob: already reported above
+      imports=$(objdump -p "${pe}" | sed -n 's/^[[:space:]]*DLL Name: //p' | tr '\n' ' ')
+      echo "  $(basename "${pe}") imports: ${imports}"
+      for dll in ${imports} ; do
+        case "$(echo "${dll}" | tr '[:upper:]' '[:lower:]')" in
+          kernel32.dll|msvcrt.dll|advapi32.dll|user32.dll|psapi.dll|ws2_32.dll|api-ms-win-*) ;;
+          *) fail "$(basename "${pe}") depends on ${dll}, which Windows does not ship" ;;
+        esac
+      done
+    done
     ;;
   *)
     needed=$(readelf -d "${binary}" 2>/dev/null | sed -n 's/.*(NEEDED).*\[\(.*\)\]/\1/p' | tr '\n' ' ')
