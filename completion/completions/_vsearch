@@ -12,7 +12,7 @@ _vsearch() {
     # Walk the command line for an action flag
     for w in "${words[@]:1:$CURRENT-1}"; do
         case "$w" in
-            --chimeras_denovo|--uchime_denovo|--uchime2_denovo|--uchime3_denovo|--uchime_ref|--cluster_fast|--cluster_size|--cluster_smallmem|--cluster_unoise|--sff_convert|--derep_fulllength|--derep_id|--derep_prefix|--derep_smallmem|--fastx_uniques|--rereplicate|--fasta2fastq|--fastq_convert|--fastq_chars|--fastq_stats|--fastq_eestats|--fastq_eestats2|--fastx_mask|--maskfasta|--orient|--fastq_join|--fastq_mergepairs|--fastx_syncpairs|--allpairs_global|--cut|--fastx_revcomp|--scramble|--search_exact|--search_global|--usearch_global|--shuffle|--sortbylength|--sortbysize|--fastx_getseq|--fastx_getseqs|--fastx_getsubseq|--fastx_subsample|--sintax|--fastx_filter|--fastq_filter|--makeudb_usearch|--udb2fasta|--udbinfo|--udbstats|--help|--version)
+            --chimeras_denovo|--uchime_denovo|--uchime2_denovo|--uchime3_denovo|--uchime_ref|--cluster_fast|--cluster_size|--cluster_smallmem|--cluster_unoise|--sff_convert|--derep_fulllength|--derep_id|--derep_prefix|--derep_smallmem|--fastx_uniques|--rereplicate|--fasta2fastq|--fastq_convert|--fastq_chars|--fastq_stats|--fastq_eestats|--fastq_eestats2|--fastx_mask|--maskfasta|--orient|--fastq_join|--fastq_mergepairs|--fastx_syncpairs|--allpairs_global|--cut|--fastx_revcomp|--scramble|--search_exact|--search_global|--search_oligodb|--usearch_global|--shuffle|--sortbylength|--sortbysize|--fastx_getseq|--fastx_getseqs|--fastx_getsubseq|--fastx_subsample|--sintax|--fastx_filter|--fastq_filter|--makeudb_usearch|--udb2fasta|--udbinfo|--udbstats|--help|--version)
                 cmd="$w"; break ;;
         esac
     done
@@ -1489,6 +1489,31 @@ _vsearch() {
             '--xlength[strip sequence length annotation from output labels]' \
             '--xsize[strip abundance information in output]'
             ;;
+        --search_oligodb)
+        _arguments -s \
+            '--search_oligodb[sequences to search for every occurrence of oligos]:file:_files -g '\''*.(fasta|fa|fna|ffn|fastq|fq|fasta.gz|fa.gz|fna.gz|ffn.gz|fastq.gz|fq.gz|fasta.bz2|fa.bz2|fna.bz2|ffn.bz2|fastq.bz2|fq.bz2)'\''' \
+            '--alnout[filename for human-readable alignment output]:file:_files' \
+            '--blast6out[filename for BLAST-like tab-separated output]:file:_files' \
+            '--bzip2_decompress[decompress input with bzip2 (required if pipe)]' \
+            '--db[reference database (FASTA, or UDB for --usearch_global/--sintax)]:file:_files -g '\''*.(fasta|fa|fna|ffn|udb|fasta.gz|fa.gz|fna.gz|ffn.gz|fasta.bz2|fa.bz2|fna.bz2|ffn.bz2)'\''' \
+            '--gzip_decompress[decompress input with gzip (required if pipe)]' \
+            '--hardmask[mask by replacing with N instead of lower case]' \
+            '--log[write messages, timing and memory info to file]:file:_files' \
+            '--maxdiffs[reject if more substitutions or indels]:n:' \
+            '--maxgaps[reject if more indels]:n:' \
+            '--n_mismatch[consider aligning with N'\''s as mismatches]' \
+            '--no_progress[do not show progress indicator]' \
+            '--notrunclabels[do not truncate labels at first space]' \
+            '--qmask[mask query/seqs (none, dust, soft; default dust)]:value:(none dust soft)' \
+            '--quiet[output just warnings and fatal errors to stderr]' \
+            '--rowlen[width of alignment lines in alnout output (64)]:n:' \
+            '--sizein[propagate abundance annotation from input]' \
+            '--strand[use plus or both strands (plus)]:value:(plus both)' \
+            '--target_cov[reject if fraction of target seq. aligned lower]:x:' \
+            '--threads[number of threads to use, zero for all cores (0)]:n:' \
+            '--userfields[fields to output in userout file]:string:' \
+            '--userout[filename for user-defined tab-separated output]:file:_files'
+            ;;
         --usearch_global)
         _arguments -s \
             '--usearch_global[queries for global alignment search]:file:_files -g '\''*.(fasta|fa|fna|ffn|fasta.gz|fa.gz|fna.gz|ffn.gz|fasta.bz2|fa.bz2|fna.bz2|ffn.bz2)'\''' \
@@ -2063,6 +2088,7 @@ _vsearch() {
             '--scramble[randomize nucleotide order within each sequence]:file:_files -g '\''*.(fasta|fa|fna|ffn|fastq|fq|fasta.gz|fa.gz|fna.gz|ffn.gz|fastq.gz|fq.gz|fasta.bz2|fa.bz2|fna.bz2|ffn.bz2|fastq.bz2|fq.bz2)'\''' \
             '--search_exact[queries for exact match search]:file:_files -g '\''*.(fasta|fa|fna|ffn|fasta.gz|fa.gz|fna.gz|ffn.gz|fasta.bz2|fa.bz2|fna.bz2|ffn.bz2)'\''' \
             '--search_global[queries for exhaustive global alignment search]:file:_files -g '\''*.(fasta|fa|fna|ffn|fasta.gz|fa.gz|fna.gz|ffn.gz|fasta.bz2|fa.bz2|fna.bz2|ffn.bz2)'\''' \
+            '--search_oligodb[sequences to search for every occurrence of oligos]:file:_files -g '\''*.(fasta|fa|fna|ffn|fastq|fq|fasta.gz|fa.gz|fna.gz|ffn.gz|fastq.gz|fq.gz|fasta.bz2|fa.bz2|fna.bz2|ffn.bz2|fastq.bz2|fq.bz2)'\''' \
             '--usearch_global[queries for global alignment search]:file:_files -g '\''*.(fasta|fa|fna|ffn|fasta.gz|fa.gz|fna.gz|ffn.gz|fasta.bz2|fa.bz2|fna.bz2|ffn.bz2)'\''' \
             '--shuffle[shuffle order of sequences in FASTA file randomly]:file:_files -g '\''*.(fasta|fa|fna|ffn|fasta.gz|fa.gz|fna.gz|ffn.gz|fasta.bz2|fa.bz2|fna.bz2|ffn.bz2)'\''' \
             '--sortbylength[sort sequences by length in given FASTA file]:file:_files -g '\''*.(fasta|fa|fna|ffn|fasta.gz|fa.gz|fna.gz|ffn.gz|fasta.bz2|fa.bz2|fna.bz2|ffn.bz2)'\''' \
