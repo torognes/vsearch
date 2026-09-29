@@ -38,7 +38,8 @@ for a description of the alignment model and identity definitions.
   the target), `I` (insertion, i.e. a gap in the query). Empty if
   there is no alignment. See
   [`vsearch-cigar(5)`](../formats/vsearch-cigar.5.md) for a description
-  of the operation alphabet.
+  of the operation alphabet. With `--search_oligodb`, the aligned
+  region only, without the terminal gaps.
 
 `caln`
 : Compact pairwise alignment in CIGAR format (Compact Idiosyncratic
@@ -48,7 +49,8 @@ for a description of the alignment model and identity definitions.
   exact-match shorthand appears only in `--uc` output). Empty if
   there is no alignment. See
   [`vsearch-cigar(5)`](../formats/vsearch-cigar.5.md) for a complete
-  description.
+  description. With `--search_oligodb`, the aligned region only,
+  without the terminal gaps.
 
 `qrow`
 : Query segment as seen in the pairwise alignment, with gap characters
@@ -128,6 +130,15 @@ The `lo`/`hi` variants span the whole sequence, from 1 to its length
 exclude terminal gaps and report the span of the actual aligned
 residues. The `lor`/`hir` variants report the same span as `lo`/`hi`,
 counted from zero rather than from one.
+
+With `--search_oligodb`, where an oligo (the target) is aligned to a
+small region of a long query, `qlo`, `qhi`, `tlo` and `thi` (and
+`qlor`, `qhir`, `tlor` and `thir`) report the span of that region
+instead, terminal gaps excluded: the positions of the occurrence in the
+query, and the part of the oligo aligned. On a minus-strand hit, `qlo`
+and `qhi` are positions on the plus strand of the query, swapped
+(`qlo` > `qhi`). See
+[`vsearch-search_oligodb(1)`](../commands/vsearch-search_oligodb.1.md).
 
 `qlo`
 : First nucleotide of the query aligned with the target: 1 when there
@@ -301,6 +312,8 @@ counted from zero rather than from one.
   A gap of length *k* costs its opening penalty plus (*k* - 1)
   extension penalties. See
   [`vsearch-pairwise_alignment_parameters(7)`](./vsearch-pairwise_alignment_parameters.7.md).
+  With `--search_oligodb`, `raw` is the number of differences of the
+  alignment instead (the same value as `diffs`).
 
 `bits`
 : Bit score. Not computed for nucleotide alignments. Always 0.

@@ -40,9 +40,11 @@ act on (see
   recommends denoising instead --- a route vsearch does provide (see
   `unoise3` in the next section).
 
-`search_pcr`, `search_pcr2`, `search_oligodb`
+`search_pcr`, `search_pcr2`
 : Not implemented. Extracting the region between two primers is not
-  something vsearch does; `--cut` cuts at a restriction pattern, which
+  something vsearch does (`--search_oligodb` finds the primers, see
+  [`vsearch-search_oligodb(1)`](../commands/vsearch-search_oligodb.1.md));
+  `--cut` cuts at a restriction pattern, which
   is a different operation (see
   [`vsearch-cut(1)`](../commands/vsearch-cut.1.md)).
 
@@ -169,6 +171,14 @@ differences in output or in accepted input, not accidents.
   reported. `--search_global` also defaults `--minseqlength` to 1 rather
   than 32, nothing in it requiring a sequence to hold a whole word (see
   [`vsearch-search_global(1)`](../commands/vsearch-search_global.1.md)).
+- `--search_oligodb` allows gaps (usearch's command aligns without gaps;
+  `--maxgaps 0` does the same), lets any number of Ns in a sequence
+  match (usearch drops a site with two Ns or more), reports occurrences
+  truncated by a sequence end, orders occurrences by position rather
+  than by score, and swaps `qlo` and `qhi` on the minus strand as every
+  vsearch command does. Its defaults are `--strand both` and
+  `--qmask none` (see
+  [`vsearch-search_oligodb(1)`](../commands/vsearch-search_oligodb.1.md)).
 - With `--blast6out` and `--output_no_hits`, usearch reports 13 fields
   for a query with no match, where the format has 12. vsearch reports
   the 12 the format calls for.
