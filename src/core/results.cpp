@@ -178,6 +178,46 @@ namespace {
     std::vector<char> target;
   };
 
+  /* The span a hit reports in its coordinate fields, 1-based (see HitSpan).
+     On a minus-strand hit the alignment was made against the reverse
+     complement of the query, so the query span is converted back to
+     plus-strand positions, and swapped: qlo > qhi. */
+  struct HitCoordinates {
+    int64_t qlo;
+    int64_t qhi;
+    int64_t tlo;
+    int64_t thi;
+  };
+
+  auto hit_coordinates(struct hit const & hit,
+                       int64_t const qseqlen,
+                       int64_t const tseqlen,
+                       HitSpan const span) -> HitCoordinates {
+    auto const in_region = (span == HitSpan::aligned_region);
+    auto const q_left = in_region ? int64_t{hit.trim_q_left} : int64_t{0};
+    auto const q_right = in_region ? int64_t{hit.trim_q_right} : int64_t{0};
+    auto const t_left = in_region ? int64_t{hit.trim_t_left} : int64_t{0};
+    auto const t_right = in_region ? int64_t{hit.trim_t_right} : int64_t{0};
+    auto const tlo = t_left + 1;
+    auto const thi = tseqlen - t_right;
+    if (hit.strand != 0) {
+      return {qseqlen - q_left, q_right + 1, tlo, thi};
+    }
+    return {q_left + 1, qseqlen - q_right, tlo, thi};
+  }
+
+  /* the part of the cigar string that caln and aln report */
+  auto reported_alignment(struct hit const & hit, HitSpan const span) -> View<char> {
+    auto const whole = make_view(hit.nwalignment);
+    if (span == HitSpan::whole_sequences) { return whole; }
+    assert(hit.trim_aln_left >= 0);
+    assert(hit.trim_aln_right >= 0);
+    auto const left = static_cast<std::size_t>(hit.trim_aln_left);
+    auto const right = static_cast<std::size_t>(hit.trim_aln_right);
+    assert(left + right <= whole.size());
+    return whole.subspan(left, whole.size() - left - right);
+  }
+
   auto both_alignment_rows(struct hit const & hit,
                            View<char> const query,
                            View<char> const target) -> AlignedRows {
@@ -269,7 +309,8 @@ auto results_show_blast6out_one(std::FILE * output_handle,
                                 struct hit const * hit,
                                 View<char> const query_head,
                                 int64_t const qseqlen,
-                                struct Database const & db) -> void
+                                struct Database const & db,
+                                HitSpan const span) -> void
 {
 
   /*
@@ -299,8 +340,9 @@ auto results_show_blast6out_one(std::FILE * output_handle,
   }
   // if 'hit->strand' then 'minus strand' else 'plus strand'
   auto const target = static_cast<uint64_t>(hit->target);
-  int const qstart = (hit->strand != 0) ? static_cast<int>(qseqlen) : 1;
-  int const qend = (hit->strand != 0) ? 1 : static_cast<int>(qseqlen);
+  auto const coordinates = hit_coordinates(*hit, qseqlen,
+                                           static_cast<int64_t>(db.getsequencelen(target)),
+                                           span);
 
   OutputRecord record {output_handle};
   fprint(record, query_head);
@@ -315,13 +357,13 @@ auto results_show_blast6out_one(std::FILE * output_handle,
   fprint(record, '\t');
   fprint_integer(record, hit->internal_gaps);
   fprint(record, '\t');
-  fprint_integer(record, qstart);
+  fprint_integer(record, coordinates.qlo);
   fprint(record, '\t');
-  fprint_integer(record, qend);
+  fprint_integer(record, coordinates.qhi);
   fprint(record, '\t');
-  fprint_integer(record, 1);
+  fprint_integer(record, coordinates.tlo);
   fprint(record, '\t');
-  fprint_integer(record, db.getsequencelen(target));
+  fprint_integer(record, coordinates.thi);
   fprint(record, '\t');
   fprint_integer(record, -1);
   fprint(record, '\t');
@@ -409,7 +451,8 @@ auto print_userfield(std::FILE * output_handle,
                      View<char> const query_head,
                      View<char> const qsequence,
                      View<char> const qsequence_rc,
-                     struct Database const & db) -> void
+                     struct Database const & db,
+                     HitSpan const span) -> void
 {
   auto const qseqlen = static_cast<int64_t>(qsequence.size());
 
@@ -453,16 +496,16 @@ auto print_userfield(std::FILE * output_handle,
       fprint_integer(output_handle, (hit != nullptr) ? hit->internal_indels : 0);
       break;
     case Userfield::qlo:
-      fprint_integer(output_handle, (hit != nullptr) ? ((hit->strand != 0) ? qseqlen : 1) : 0);
+      fprint_integer(output_handle, (hit != nullptr) ? hit_coordinates(*hit, qseqlen, tseqlen, span).qlo : 0);
       break;
     case Userfield::qhi:
-      fprint_integer(output_handle, (hit != nullptr) ? ((hit->strand != 0) ? 1 : qseqlen) : 0);
+      fprint_integer(output_handle, (hit != nullptr) ? hit_coordinates(*hit, qseqlen, tseqlen, span).qhi : 0);
       break;
     case Userfield::tlo:
-      fprint_integer(output_handle, (hit != nullptr) ? 1 : 0);
+      fprint_integer(output_handle, (hit != nullptr) ? hit_coordinates(*hit, qseqlen, tseqlen, span).tlo : 0);
       break;
     case Userfield::thi:
-      fprint_integer(output_handle, tseqlen);
+      fprint_integer(output_handle, (hit != nullptr) ? hit_coordinates(*hit, qseqlen, tseqlen, span).thi : 0);
       break;
     case Userfield::pv:
       fprint_integer(output_handle, (hit != nullptr) ? hit->matches : 0);
@@ -497,13 +540,13 @@ auto print_userfield(std::FILE * output_handle,
     case Userfield::aln:
       if (hit != nullptr)
         {
-          print_uncompressed_cigar(output_handle, make_view(hit->nwalignment));
+          print_uncompressed_cigar(output_handle, reported_alignment(*hit, span));
         }
       break;
     case Userfield::caln:
       if (hit != nullptr)
         {
-          fprint(output_handle, make_view(hit->nwalignment));
+          fprint(output_handle, reported_alignment(*hit, span));
         }
       break;
     case Userfield::qstrand:
@@ -652,17 +695,19 @@ auto print_userfield(std::FILE * output_handle,
 
     case Userfield::qlor:
       fprint_integer(output_handle,
-                     (hit != nullptr) ? ((hit->strand != 0) ? qseqlen - 1 : 0) : 0);
+                     (hit != nullptr) ? hit_coordinates(*hit, qseqlen, tseqlen, span).qlo - 1 : 0);
       break;
     case Userfield::qhir:
       fprint_integer(output_handle,
-                     (hit != nullptr) ? ((hit->strand != 0) ? 0 : qseqlen - 1) : 0);
+                     (hit != nullptr) ? hit_coordinates(*hit, qseqlen, tseqlen, span).qhi - 1 : 0);
       break;
     case Userfield::tlor:
-      fprint_integer(output_handle, 0);
+      fprint_integer(output_handle,
+                     (hit != nullptr) ? hit_coordinates(*hit, qseqlen, tseqlen, span).tlo - 1 : 0);
       break;
     case Userfield::thir:
-      fprint_integer(output_handle, (hit != nullptr) ? tseqlen - 1 : 0);
+      fprint_integer(output_handle,
+                     (hit != nullptr) ? hit_coordinates(*hit, qseqlen, tseqlen, span).thi - 1 : 0);
       break;
       /* no default: on purpose -- with every enumerator listed, -Wswitch
          reports a Userfield added without a matching case at compile time.
@@ -677,7 +722,8 @@ auto results_show_userout_one(std::FILE * output_handle, struct hit const * hit,
                               View<char> const qsequence,
                               View<char> const qsequence_rc,
                               struct Database const & db,
-                              struct Parameters const & parameters) -> void
+                              struct Parameters const & parameters,
+                              HitSpan const span) -> void
 {
 
   /*
@@ -694,14 +740,14 @@ auto results_show_userout_one(std::FILE * output_handle, struct hit const * hit,
   if (not userfields_requested.empty())
     {
       print_userfield(output_handle, userfields_requested.front(),
-                      hit, query_head, qsequence, qsequence_rc, db);
+                      hit, query_head, qsequence, qsequence_rc, db, span);
     }
 
   for (auto const field : make_view(userfields_requested).drop(1))
     {
       fprint(output_handle, '\t');
       print_userfield(output_handle, field,
-                      hit, query_head, qsequence, qsequence_rc, db);
+                      hit, query_head, qsequence, qsequence_rc, db, span);
     }
 
   fprint(output_handle, '\n');
