@@ -80,6 +80,7 @@ namespace vsearch {
       constexpr unsigned char code_of_N = 15;
       constexpr int64_t no_candidate = -1;
       constexpr auto word_bits = static_cast<int>(max_oligo_length);
+      constexpr unsigned int sign_bit = 63U;  /* of a 64-bit word */
 
       /* The four bits of a code are A, C, G and T: complementing a base set
          swaps A with T and C with G. */
@@ -295,7 +296,9 @@ namespace vsearch {
       for (std::size_t position = 0; position < read_length; ++position)
         {
           auto const row = static_cast<std::size_t>(codes_[position]) * lane_count;
-          auto best = std::numeric_limits<int64_t>::max();
+          /* the sign bit of score - threshold - 1 is set when a lane is
+             within the threshold: an OR of those needs no branch */
+          auto within = uint64_t{0};
           /* no branch and no early exit in this loop: it has to vectorise */
           for (std::size_t lane = 0; lane < lane_count; ++lane)
             {
@@ -314,9 +317,9 @@ namespace vsearch {
               horizontal_negative <<= 1U;
               positive_[lane] = horizontal_negative | ~(vertical_any | horizontal_positive);
               negative_[lane] = horizontal_positive & vertical_any;
-              best = std::min(best, score_[lane]);
+              within |= static_cast<uint64_t>(score_[lane] - threshold_ - 1);
             }
-          if (best > threshold_) { continue; }  /* the common case, far from any hit */
+          if ((within >> sign_bit) == 0U) { continue; }  /* the common case, far from any hit */
           for (std::size_t lane = 0; lane < lane_count; ++lane)
             {
               if (score_[lane] > threshold_) { continue; }
