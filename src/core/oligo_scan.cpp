@@ -660,15 +660,21 @@ namespace vsearch {
     }
 
 
+    /* --target_cov bounds truncation, not differences: it is compared with
+       the span of the oligo inside the read, deleted bases included, so
+       that --target_cov 1 excludes truncated occurrences and nothing else.
+       (Elsewhere in vsearch, and in the tcov field, the aligned fraction
+       counts letter pairs only, and a deletion lowers it.) */
     auto Scanner::passes_limits(Occurrence const & occurrence) const noexcept -> bool
     {
       auto const & limits = lane_set_.limits();
       auto const length = lane_set_.lanes()[occurrence.lane].pattern.size();
       auto const pairs = occurrence.matches + occurrence.mismatches;
+      auto const span = occurrence.pattern_end - occurrence.pattern_start;
       return (pairs > 0) and
         (occurrence.mismatches + occurrence.gap_columns <= limits.max_diffs) and
         (occurrence.gap_openings <= limits.max_gap_openings) and
-        (pairs >= limits.target_cov * static_cast<double>(length));
+        (span >= limits.target_cov * static_cast<double>(length));
     }
 
 

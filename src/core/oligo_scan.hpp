@@ -114,7 +114,7 @@ namespace vsearch {
     {
       int64_t max_diffs = 2;             /* --maxdiffs: mismatches + gap columns */
       int64_t max_gap_openings = std::numeric_limits<int64_t>::max();  /* --maxgaps */
-      double target_cov = 0.0;           /* --target_cov: aligned pairs over oligo length */
+      double target_cov = 0.0;           /* --target_cov: oligo span in the read over its length */
       Model model = Model::edit_distance;
     };
 
