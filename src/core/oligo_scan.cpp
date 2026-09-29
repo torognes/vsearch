@@ -60,6 +60,7 @@
 
 #include "core/oligo_scan.hpp"
 #include "utils/maps/four_bit.hpp"  // vsearch::maps::four_bit::map
+#include "utils/view.hpp"  // View
 #include <algorithm>  // std::min, std::sort, std::fill, std::transform, std::reverse
 #include <cassert>  // assert
 #include <cmath>  // std::ceil
@@ -154,6 +155,219 @@ namespace vsearch {
       auto move_index(Move const move) noexcept -> std::size_t
       {
         return static_cast<std::size_t>(move);
+      }
+
+
+      /* the window of the read an occurrence is aligned over */
+      struct WindowShape
+      {
+        std::size_t lane = 0;
+        int64_t length = 0;         /* pattern length: rows 0 .. length */
+        int64_t width = 0;          /* read bases: columns 0 .. width */
+        int64_t start = 0;          /* read position of column 1 */
+        int64_t free_overhang = 0;
+        bool at_read_start = false;
+        bool at_read_end = false;
+      };
+
+      struct TableCell
+      {
+        int64_t cost = unreachable;
+        int64_t row = 0;
+        int64_t column = 0;
+        Move move = Move::diagonal;
+      };
+
+
+      /* The (differences, gap openings) table of one window, three moves per
+         cell, over storage the scanner reuses from one occurrence to the
+         next. See Scanner::align_edit_distance for the rules. */
+      class WindowTable
+      {
+      public:
+        WindowTable(std::vector<int64_t> & costs,
+                    std::vector<unsigned char> & moves,
+                    WindowShape const & shape)
+          : costs_(costs), moves_(moves), shape_(shape),
+            columns_(static_cast<std::size_t>(shape.width) + 1)
+        {
+          auto const cells = (static_cast<std::size_t>(shape.length) + 1) * columns_ * move_count;
+          costs_.assign(cells, unreachable);
+          moves_.assign(cells, static_cast<unsigned char>(Move::start));
+        }
+
+        auto fill(LaneSet const & lane_set, std::vector<unsigned char> const & codes) noexcept -> void
+        {
+          for (int64_t row = 1; row <= shape_.length; ++row)
+            {
+              for (int64_t column = 0; column <= shape_.width; ++column)
+                {
+                  extend(row, column, Move::pattern_gap, difference_weight);
+                  if (column == 0) { continue; }
+                  auto const code = codes[static_cast<std::size_t>(shape_.start + column - 1)];
+                  auto const equal = bit_is_set(lane_set.mask(code, shape_.lane),
+                                                static_cast<int>(row - 1));
+                  extend(row, column, Move::diagonal, equal ? int64_t{0} : difference_weight);
+                  extend(row, column, Move::read_gap, difference_weight);
+                }
+            }
+        }
+
+        /* the end: the lowest cost, then the longest pattern prefix */
+        auto best_end() const noexcept -> TableCell
+        {
+          TableCell best;
+          best.column = shape_.width;
+          auto const shortest = shape_.at_read_end ?
+            shape_.length - shape_.free_overhang : shape_.length;
+          for (auto row = shortest; row <= shape_.length; ++row)
+            {
+              auto const diagonal = costs_[cell(row, shape_.width, Move::diagonal)];
+              if (diagonal > best.cost) { continue; }
+              best.cost = diagonal;
+              best.row = row;
+              best.move = Move::diagonal;
+            }
+          if (shape_.at_read_end) { return best; }
+          auto const pattern_gap = costs_[cell(shape_.length, shape_.width, Move::pattern_gap)];
+          if (pattern_gap < best.cost)
+            {
+              best.cost = pattern_gap;
+              best.row = shape_.length;
+              best.move = Move::pattern_gap;
+            }
+          return best;
+        }
+
+        /* the columns from the start to `end`, and the cell the alignment
+           starts from */
+        auto trace_back(TableCell const & end, std::string & columns) const -> TableCell
+        {
+          columns.clear();
+          auto here = end;
+          while (true)
+            {
+              assert(here.move != Move::start);
+              auto const from = static_cast<Move>(moves_[cell(here.row, here.column, here.move)]);
+              columns.push_back(column_letter(here.move));
+              if (here.move != Move::read_gap) { --here.row; }
+              if (here.move != Move::pattern_gap) { --here.column; }
+              if (from == Move::start) { break; }
+              here.move = from;
+            }
+          std::reverse(columns.begin(), columns.end());
+          return here;
+        }
+
+      private:
+        auto cell(int64_t const row, int64_t const column, Move const move) const noexcept -> std::size_t
+        {
+          return (((static_cast<std::size_t>(row) * columns_) + static_cast<std::size_t>(column)) * move_count)
+            + move_index(move);
+        }
+
+        static auto column_letter(Move const move) noexcept -> char
+        {
+          switch (move)
+            {
+            case Move::read_gap: return 'D';
+            case Move::pattern_gap: return 'I';
+            case Move::diagonal:
+            case Move::start:
+            default: return 'M';
+            }
+        }
+
+        /* an alignment may start here with a diagonal... */
+        auto starts_diagonal(int64_t const row, int64_t const column) const noexcept -> bool
+        {
+          return (row == 0) or
+            ((column == 0) and shape_.at_read_start and (row <= shape_.free_overhang));
+        }
+
+        /* ...or with a pattern gap, except at the read start */
+        auto starts_pattern_gap(int64_t const row, int64_t const column) const noexcept -> bool
+        {
+          return (row == 0) and ((column != 0) or not shape_.at_read_start);
+        }
+
+        auto may_start(Move const into, int64_t const row, int64_t const column) const noexcept -> bool
+        {
+          if (into == Move::diagonal) { return starts_diagonal(row, column); }
+          if (into == Move::pattern_gap) { return starts_pattern_gap(row, column); }
+          return false;  /* never with a read base facing a gap */
+        }
+
+        auto relax(std::size_t const target, int64_t const cost, Move const from) noexcept -> void
+        {
+          if (cost >= costs_[target]) { return; }
+          costs_[target] = cost;
+          moves_[target] = static_cast<unsigned char>(from);
+        }
+
+        /* the best way into (row, column) by the move `into` */
+        auto extend(int64_t const row, int64_t const column,
+                    Move const into, int64_t const step) noexcept -> void
+        {
+          auto const previous_row = (into == Move::read_gap) ? row : row - 1;
+          auto const previous_column = (into == Move::pattern_gap) ? column : column - 1;
+          auto const target = cell(row, column, into);
+          auto const opening = (into == Move::diagonal) ? int64_t{0} : opening_weight;
+          for (auto const from : {Move::diagonal, Move::read_gap, Move::pattern_gap})
+            {
+              auto const previous = costs_[cell(previous_row, previous_column, from)];
+              if (previous >= unreachable) { continue; }
+              auto const reopens = (from != into) ? opening : int64_t{0};
+              relax(target, previous + step + reopens, from);
+            }
+          if (may_start(into, previous_row, previous_column))
+            {
+              relax(target, step + opening, Move::start);
+            }
+        }
+
+        std::vector<int64_t> & costs_;
+        std::vector<unsigned char> & moves_;
+        WindowShape const shape_;
+        std::size_t const columns_;
+      };
+
+
+      /* matches, mismatches, gap columns and gap openings of an occurrence
+         whose positions and columns are set */
+      auto count_columns(LaneSet const & lane_set,
+                         std::vector<unsigned char> const & codes,
+                         Occurrence & occurrence) noexcept -> void
+      {
+        occurrence.matches = 0;
+        occurrence.mismatches = 0;
+        occurrence.gap_columns = 0;
+        occurrence.gap_openings = 0;
+        auto read_position = occurrence.read_start;
+        auto pattern_position = occurrence.pattern_start;
+        auto previous = 'M';
+        for (auto const operation : occurrence.columns)
+          {
+            if (operation == 'M')
+              {
+                auto const code = codes[static_cast<std::size_t>(read_position)];
+                auto const equal = bit_is_set(lane_set.mask(code, occurrence.lane), pattern_position);
+                occurrence.matches += equal ? 1 : 0;
+                occurrence.mismatches += equal ? 0 : 1;
+                ++read_position;
+                ++pattern_position;
+              }
+            else
+              {
+                ++occurrence.gap_columns;
+                occurrence.gap_openings += (operation != previous) ? 1 : 0;
+                read_position += (operation == 'D') ? 1 : 0;
+                pattern_position += (operation == 'I') ? 1 : 0;
+              }
+            previous = operation;
+          }
+        assert(read_position == occurrence.read_end + 1);
+        assert(pattern_position == occurrence.pattern_end);
       }
 
     }  // anonymous namespace
@@ -328,9 +542,19 @@ namespace vsearch {
             }
         }
 
-      /* A pattern truncated by the read end: in the last column, the cost of
-         a pattern prefix of i bases is the sum of the first i vertical
-         differences. The longest prefix wins a tie. */
+      note_truncated_ends_edit_distance();
+    }
+
+
+    /* A pattern truncated by the read end: in the last column of the scan,
+       the cost of a pattern prefix of i bases is the sum of the first i
+       vertical differences. The longest prefix wins a tie. */
+    auto Scanner::note_truncated_ends_edit_distance() -> void
+    {
+      auto const & lanes = lane_set_.lanes();
+      auto const lane_count = lanes.size();
+      auto const read_length = codes_.size();
+
       for (std::size_t lane = 0; lane < lane_count; ++lane)
         {
           auto const length = static_cast<int>(lanes[lane].pattern.size());
@@ -414,7 +638,17 @@ namespace vsearch {
             }
         }
 
-      /* a pattern truncated by the read end: prefixes, longest wins a tie */
+      note_truncated_ends_substitutions();
+    }
+
+
+    /* a pattern truncated by the read end: prefixes, longest wins a tie */
+    auto Scanner::note_truncated_ends_substitutions() -> void
+    {
+      auto const & lanes = lane_set_.lanes();
+      auto const lane_count = lanes.size();
+      auto const read_length = codes_.size();
+      auto const levels = static_cast<std::size_t>(threshold_) + 1;
       for (std::size_t lane = 0; lane < lane_count; ++lane)
         {
           auto const length = static_cast<int>(lanes[lane].pattern.size());
@@ -453,23 +687,7 @@ namespace vsearch {
       occurrence.pattern_start = static_cast<int>(skipped);
       occurrence.pattern_end = candidate.rows;
       occurrence.columns.assign(static_cast<std::size_t>(rows - skipped), 'M');
-      occurrence.matches = 0;
-      occurrence.mismatches = 0;
-      occurrence.gap_columns = 0;
-      occurrence.gap_openings = 0;
-      for (auto position = skipped; position < rows; ++position)
-        {
-          auto const read_position = occurrence.read_start + (position - skipped);
-          auto const code = codes_[static_cast<std::size_t>(read_position)];
-          if (bit_is_set(lane_set_.mask(code, candidate.lane), static_cast<int>(position)))
-            {
-              ++occurrence.matches;
-            }
-          else
-            {
-              ++occurrence.mismatches;
-            }
-        }
+      count_columns(lane_set_, codes_, occurrence);
       assert(occurrence.mismatches == candidate.cost);
       return true;
     }
@@ -491,174 +709,30 @@ namespace vsearch {
     {
       auto const & lane = lane_set_.lanes()[candidate.lane];
       auto const length = static_cast<int64_t>(lane.pattern.size());
-      auto const read_length = static_cast<int64_t>(codes_.size());
       auto const width = std::min(candidate.end + 1, length + threshold_);
-      auto const window_start = candidate.end + 1 - width;
-      auto const at_read_start = (window_start == 0);
-      auto const at_read_end = (candidate.end == read_length - 1);
-      auto const columns = static_cast<std::size_t>(width) + 1;
-      auto const cells = (static_cast<std::size_t>(length) + 1) * columns;
+      WindowShape shape;
+      shape.lane = candidate.lane;
+      shape.length = length;
+      shape.width = width;
+      shape.start = candidate.end + 1 - width;
+      shape.free_overhang = lane.free_overhang;
+      shape.at_read_start = (shape.start == 0);
+      shape.at_read_end = (candidate.end == static_cast<int64_t>(codes_.size()) - 1);
 
-      cell_costs_.assign(cells * move_count, unreachable);
-      cell_moves_.assign(cells * move_count, static_cast<unsigned char>(Move::start));
+      WindowTable table(cell_costs_, cell_moves_, shape);
+      table.fill(lane_set_, codes_);
+      auto const end = table.best_end();
+      if (end.cost >= unreachable) { return false; }
 
-      auto const cell = [columns](int64_t const row, int64_t const column, Move const move) -> std::size_t {
-        return (((static_cast<std::size_t>(row) * columns) + static_cast<std::size_t>(column)) * move_count)
-          + move_index(move);
-      };
-      /* an alignment may start here with a diagonal, or with a pattern gap */
-      auto const starts_diagonal = [&](int64_t const row, int64_t const column) -> bool {
-        return (row == 0) or ((column == 0) and at_read_start and (row <= lane.free_overhang));
-      };
-      auto const starts_pattern_gap = [&](int64_t const row, int64_t const column) -> bool {
-        return (row == 0) and not ((column == 0) and at_read_start);
-      };
-      /* the best way into (row, column) by `move`, from the given candidates */
-      auto const relax = [&](std::size_t const target, int64_t const cost, Move const from) -> void {
-        if (cost < cell_costs_[target])
-          {
-            cell_costs_[target] = cost;
-            cell_moves_[target] = static_cast<unsigned char>(from);
-          }
-      };
-      auto const extend = [&](int64_t const row, int64_t const column,
-                              Move const into, int64_t const step) -> void {
-        /* into: the move entering (row, column); its predecessor cell */
-        auto const previous_row = (into == Move::read_gap) ? row : row - 1;
-        auto const previous_column = (into == Move::pattern_gap) ? column : column - 1;
-        auto const target = cell(row, column, into);
-        auto const opening = (into == Move::diagonal) ? int64_t{0} : opening_weight;
-        for (auto const from : {Move::diagonal, Move::read_gap, Move::pattern_gap})
-          {
-            auto const previous = cell_costs_[cell(previous_row, previous_column, from)];
-            if (previous >= unreachable) { continue; }
-            auto const reopens = ((into != Move::diagonal) and (from != into)) ? opening : int64_t{0};
-            relax(target, previous + step + reopens, from);
-          }
-        auto const may_start = (into == Move::diagonal) ? starts_diagonal(previous_row, previous_column)
-          : (into == Move::pattern_gap) ? starts_pattern_gap(previous_row, previous_column)
-          : false;
-        if (may_start) { relax(target, step + opening, Move::start); }
-      };
-
-      for (int64_t row = 1; row <= length; ++row)
-        {
-          for (int64_t column = 0; column <= width; ++column)
-            {
-              if (column > 0)
-                {
-                  auto const code = codes_[static_cast<std::size_t>(window_start + column - 1)];
-                  auto const equal = bit_is_set(lane_set_.mask(code, candidate.lane),
-                                                static_cast<int>(row - 1));
-                  extend(row, column, Move::diagonal, equal ? int64_t{0} : difference_weight);
-                  extend(row, column, Move::read_gap, difference_weight);
-                }
-              extend(row, column, Move::pattern_gap, difference_weight);
-            }
-        }
-
-      /* the end: the lowest cost, then the longest pattern prefix */
-      auto best_cost = unreachable;
-      auto best_row = int64_t{0};
-      auto best_move = Move::diagonal;
-      auto const shortest = at_read_end ? length - lane.free_overhang : length;
-      for (auto row = shortest; row <= length; ++row)
-        {
-          auto const diagonal = cell_costs_[cell(row, width, Move::diagonal)];
-          if (diagonal <= best_cost)
-            {
-              best_cost = diagonal;
-              best_row = row;
-              best_move = Move::diagonal;
-            }
-        }
-      if (not at_read_end)
-        {
-          auto const pattern_gap = cell_costs_[cell(length, width, Move::pattern_gap)];
-          if (pattern_gap < best_cost)
-            {
-              best_cost = pattern_gap;
-              best_row = length;
-              best_move = Move::pattern_gap;
-            }
-        }
-      if (best_cost >= unreachable) { return false; }
-
-      /* trace back to the start */
-      occurrence.columns.clear();
-      auto row = best_row;
-      auto column = width;
-      auto move = best_move;
-      while (true)
-        {
-          auto const from = static_cast<Move>(cell_moves_[cell(row, column, move)]);
-          switch (move)
-            {
-            case Move::diagonal:
-              occurrence.columns.push_back('M');
-              --row;
-              --column;
-              break;
-            case Move::read_gap:
-              occurrence.columns.push_back('D');
-              --column;
-              break;
-            case Move::pattern_gap:
-              occurrence.columns.push_back('I');
-              --row;
-              break;
-            case Move::start:
-            default:
-              assert(false);
-              return false;
-            }
-          if (from == Move::start) { break; }
-          move = from;
-        }
-      std::reverse(occurrence.columns.begin(), occurrence.columns.end());
-
+      auto const start = table.trace_back(end, occurrence.columns);
       occurrence.lane = candidate.lane;
-      occurrence.read_start = window_start + column;
+      occurrence.read_start = shape.start + start.column;
       occurrence.read_end = candidate.end;
-      occurrence.pattern_start = static_cast<int>(row);
-      occurrence.pattern_end = static_cast<int>(best_row);
-      occurrence.matches = 0;
-      occurrence.mismatches = 0;
-      occurrence.gap_columns = 0;
-      occurrence.gap_openings = 0;
-      auto read_position = occurrence.read_start;
-      auto pattern_position = row;
-      auto previous = 'M';
-      for (auto const operation : occurrence.columns)
-        {
-          if (operation == 'M')
-            {
-              auto const code = codes_[static_cast<std::size_t>(read_position)];
-              if (bit_is_set(lane_set_.mask(code, candidate.lane),
-                             static_cast<int>(pattern_position)))
-                {
-                  ++occurrence.matches;
-                }
-              else
-                {
-                  ++occurrence.mismatches;
-                }
-              ++read_position;
-              ++pattern_position;
-            }
-          else
-            {
-              ++occurrence.gap_columns;
-              if (operation != previous) { ++occurrence.gap_openings; }
-              if (operation == 'D') { ++read_position; }
-              else { ++pattern_position; }
-            }
-          previous = operation;
-        }
-      assert(read_position == occurrence.read_end + 1);
-      assert(pattern_position == occurrence.pattern_end);
+      occurrence.pattern_start = static_cast<int>(start.row);
+      occurrence.pattern_end = static_cast<int>(end.row);
+      count_columns(lane_set_, codes_, occurrence);
       assert(((occurrence.mismatches + occurrence.gap_columns) * difference_weight)
-             + occurrence.gap_openings == best_cost);
+             + occurrence.gap_openings == end.cost);
       return true;
     }
 

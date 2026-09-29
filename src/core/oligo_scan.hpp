@@ -200,6 +200,8 @@ namespace vsearch {
       auto note(std::size_t lane, int64_t end, int64_t cost, int rows) -> void;
       auto scan_edit_distance() -> void;
       auto scan_substitutions() -> void;
+      auto note_truncated_ends_edit_distance() -> void;
+      auto note_truncated_ends_substitutions() -> void;
       auto verify(Candidate const & candidate, Occurrence & occurrence) -> bool;
       auto align_edit_distance(Candidate const & candidate, Occurrence & occurrence) -> bool;
       auto align_substitutions(Candidate const & candidate, Occurrence & occurrence) -> bool;

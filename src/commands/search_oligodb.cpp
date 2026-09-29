@@ -67,6 +67,7 @@
 #include "core/oligo_scan.hpp"
 #include "core/results.hpp"
 #include "core/searchcore.hpp"  // struct hit, align_trim, difference_count
+#include "utils/base_mapping.hpp"  // Mapping
 #include "utils/chunk_reorder.hpp"  // ChunkReorder
 #include "utils/fatal.hpp"
 #include "utils/maps/four_bit.hpp"  // vsearch::maps::four_bit::map
@@ -198,12 +199,44 @@ namespace {
   }
 
 
-  auto append_run(std::string & cigar, int64_t const run, char const operation) -> void
+  /* one run of identical alignment columns */
+  struct ColumnRun
   {
-    if (run == 0) { return; }
-    cigar += std::to_string(run);
-    cigar += operation;
-  }
+    char operation;
+    int64_t length;
+  };
+
+
+  /* The runs of an alignment, built as runs rather than one column per
+     position: the flanks are as long as the read, which can be hundreds of
+     kilobases. Adjacent runs of the same operation merge; empty runs are
+     dropped. */
+  class ColumnRuns
+  {
+  public:
+    auto append(ColumnRun const & run) -> void
+    {
+      if (run.length == 0) { return; }
+      if ((not runs_.empty()) and (runs_.back().operation == run.operation))
+        {
+          runs_.back().length += run.length;
+          return;
+        }
+      runs_.push_back(run);
+    }
+
+    auto append(std::string const & columns) -> void
+    {
+      for (auto const operation : columns) { append(ColumnRun{operation, 1}); }
+    }
+
+    auto reverse() noexcept -> void { std::reverse(runs_.begin(), runs_.end()); }
+
+    auto runs() const noexcept -> std::vector<ColumnRun> const & { return runs_; }
+
+  private:
+    std::vector<ColumnRun> runs_;
+  };
 
 
   /* An occurrence as a vsearch hit: a global alignment of the oligo (the
@@ -226,17 +259,16 @@ namespace {
     auto const overhang_right = pattern_length - occurrence.pattern_end;
     auto const minus = (lane.strand == oligo::Strand::minus);
 
-    /* the columns in the lane's orientation, then in the hit's */
-    std::string columns;
-    columns.reserve(occurrence.columns.size() + 4);
-    columns.append(static_cast<std::size_t>(flank_left), 'D');
-    columns.append(static_cast<std::size_t>(overhang_left), 'I');
-    columns += occurrence.columns;
-    columns.append(static_cast<std::size_t>(overhang_right), 'I');
-    columns.append(static_cast<std::size_t>(flank_right), 'D');
+    /* the runs in the lane's orientation, then in the hit's */
+    ColumnRuns runs;
+    runs.append(ColumnRun{'D', flank_left});
+    runs.append(ColumnRun{'I', overhang_left});
+    runs.append(occurrence.columns);
+    runs.append(ColumnRun{'I', overhang_right});
+    runs.append(ColumnRun{'D', flank_right});
     if (minus)
       {
-        std::reverse(columns.begin(), columns.end());
+        runs.reverse();
       }
 
     struct hit hit {};
@@ -248,26 +280,19 @@ namespace {
     hit.aligned = true;
     hit.weak = false;
 
-    /* run-length encode, and count the gap runs, terminal ones included */
+    /* the cigar string, and the gap runs, terminal ones included */
     auto gap_runs = 0;
-    auto run = int64_t{0};
-    auto previous = '\0';
-    for (auto const operation : columns)
+    auto alignment_length = int64_t{0};
+    for (auto const & run : runs.runs())
       {
-        if ((operation != previous) and (run > 0))
-          {
-            append_run(hit.nwalignment, run, previous);
-            if (previous != 'M') { ++gap_runs; }
-            run = 0;
-          }
-        previous = operation;
-        ++run;
+        hit.nwalignment += std::to_string(run.length);
+        hit.nwalignment += run.operation;
+        gap_runs += (run.operation != 'M') ? 1 : 0;
+        alignment_length += run.length;
       }
-    append_run(hit.nwalignment, run, previous);
-    if ((run > 0) and (previous != 'M')) { ++gap_runs; }
 
     auto const terminal_columns = flank_left + flank_right + overhang_left + overhang_right;
-    hit.nwalignmentlength = static_cast<int>(columns.size());
+    hit.nwalignmentlength = static_cast<int>(alignment_length);
     hit.matches = occurrence.matches;
     hit.mismatches = occurrence.mismatches;
     hit.nwindels = static_cast<int>(terminal_columns) + occurrence.gap_columns;
@@ -288,7 +313,7 @@ namespace {
 
 
   /* Write the hits of one query. Called with mutex_output held. */
-  auto output_query(struct search_oligodb_state_s & state,
+  auto output_query(struct search_oligodb_state_s const & state,
                     struct oligo_query_s const & query,
                     View<char> const header,
                     View<char> const sequence,
@@ -451,7 +476,7 @@ auto search_oligodb(struct Parameters const & parameters) -> void
 
   /* open output files; the handles are owned here so they outlive the worker
      pool, which reads the non-owning state.fp_* under the output lock */
-  OutputFileHandle alnout_handle = open_optional_output_file(parameters.opt_alnout, OutputOption{"--alnout"});
+  OutputFileHandle const alnout_handle = open_optional_output_file(parameters.opt_alnout, OutputOption{"--alnout"});
   state.fp_alnout = alnout_handle.get();
   if (state.fp_alnout != nullptr)
     {
@@ -460,14 +485,15 @@ auto search_oligodb(struct Parameters const & parameters) -> void
       fprint(state.fp_alnout, make_view(parameters.runtime.prog_header));
       fprint(state.fp_alnout, '\n');
     }
-  OutputFileHandle userout_handle = open_optional_output_file(parameters.opt_userout, OutputOption{"--userout"});
+  OutputFileHandle const userout_handle = open_optional_output_file(parameters.opt_userout, OutputOption{"--userout"});
   state.fp_userout = userout_handle.get();
-  OutputFileHandle blast6out_handle = open_optional_output_file(parameters.opt_blast6out, OutputOption{"--blast6out"});
+  OutputFileHandle const blast6out_handle = open_optional_output_file(parameters.opt_blast6out, OutputOption{"--blast6out"});
   state.fp_blast6out = blast6out_handle.get();
 
   read_oligos(state);
 
   std::vector<View<char>> oligos;
+  oligos.reserve(state.db.getsequencecount());
   for (uint64_t index = 0; index < state.db.getsequencecount(); ++index)
     {
       oligos.push_back(state.db.sequence_view(index));
@@ -513,7 +539,7 @@ auto search_oligodb(struct Parameters const & parameters) -> void
 
   auto const match_counts = vsearch::MatchCounts{state.qmatches, state.queries,
                                                  state.qmatches_abundance,
-                                                 state.queries_abundance};
+                                                 state.queries_abundance,};
   if (not parameters.opt_quiet)
     {
       vsearch::print_match_counts(stderr, match_counts, parameters.opt_sizein);
