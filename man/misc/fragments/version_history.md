@@ -6,6 +6,14 @@
       with no word pre-filter and no early stop, so a hit is found
       whatever its identity. No k-mer index is built, and memory does
       not grow with the thread count (issue #132).
+    - add: new command `--search_oligodb`, reporting every occurrence
+      of every oligo (primers, tags, barcodes, up to 64 nt, IUPAC codes
+      allowed) in the query sequences, with its position, on both
+      strands, gaps included, and truncated occurrences at the sequence
+      ends. Written for long reads carrying several copies of a target
+      (concatemers, rolling-circle amplification). Output with
+      `--userout`, `--blast6out` or `--alnout`, in input order at any
+      `--threads` value (related to issue #423).
     - add: new option `--tabbedout` for `--fastq_mergepairs`, reporting
       for each input pair, merged or not, how far it got through the
       merging pipeline and why it stopped. Lines are in input order at

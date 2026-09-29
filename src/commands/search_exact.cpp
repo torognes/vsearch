@@ -74,6 +74,7 @@
 #include "core/mask.hpp"
 #include "core/otutable.hpp"
 #include "utils/base_mapping.hpp"
+#include "utils/chunk_reorder.hpp"  // ChunkReorder
 #include "utils/fatal.hpp"
 #include "utils/fatal_allocator.hpp"  // FatalAllocator
 #include "utils/grow_to_fit.hpp"  // vsearch::grow_to_fit
@@ -91,11 +92,9 @@
 #include <cassert>  // assert
 #include <cstdint> // int64_t, uint64_t
 #include <cstdio>  // std::FILE, std::fprintf, std::size_t
-#include <map>  // std::map
 #include <mutex>  // std::mutex, std::lock_guard, std::unique_lock
 #include <numeric>  // std::accumulate
 #include <string>  // std::string, std::to_string
-#include <utility>  // std::move
 #include <vector>
 
 
@@ -158,9 +157,8 @@ struct search_exact_state_s
   std::mutex mutex_input;
   std::mutex mutex_output;
   unsigned long next_claim_rank = 0;  /* under mutex_input */
-  unsigned long next_output_rank = 0;  /* under mutex_output */
   /* chunks searched ahead of their turn, under mutex_output */
-  std::map<unsigned long, struct exact_chunk_s> waiting;
+  ChunkReorder<struct exact_chunk_s> waiting;
   int qmatches = 0;
   uint64_t qmatches_abundance = 0;
   int queries = 0;
@@ -564,22 +562,10 @@ auto search_exact_thread_run(uint64_t const t, struct search_exact_state_s & sta
 
     /* chunks are written in claim order, which is the input order: a chunk
        searched ahead of its turn waits, and the worker moves on */
-    if (chunk.rank != state.next_output_rank)
-      {
-        state.waiting.emplace(chunk.rank, std::move(chunk));
-        chunk = exact_chunk_s{};
-        return;
-      }
-    output_chunk(state, chunk);
-    ++state.next_output_rank;
-    auto next = state.waiting.find(state.next_output_rank);
-    while (next != state.waiting.end())
-      {
-        output_chunk(state, next->second);
-        state.waiting.erase(next);
-        ++state.next_output_rank;
-        next = state.waiting.find(state.next_output_rank);
-      }
+    state.waiting.submit(chunk.rank, chunk,
+                         [&state](struct exact_chunk_s const & ready) -> void {
+                           output_chunk(state, ready);
+                         });
   };
 
   run_worker_loop(state.mutex_input, has_work_to_claim, process_chunk);

@@ -99,6 +99,7 @@ commands:
   # Searching
   - --search_exact
   - --search_global
+  - --search_oligodb
   - --usearch_global
   # Shuffling / sorting
   - --shuffle
@@ -330,6 +331,10 @@ options:
     command: true
     arg: { type: file, ftype: fasta }
     desc: "queries for exhaustive global alignment search"
+  - name: --search_oligodb
+    command: true
+    arg: { type: file, ftype: fastx }
+    desc: "sequences to search for every occurrence of oligos"
   - name: --usearch_global
     command: true
     arg: { type: file, ftype: fasta }
@@ -2547,6 +2552,29 @@ command_options:
     - --xee
     - --xlength
     - --xsize
+
+  --search_oligodb:
+    - --alnout
+    - --blast6out
+    - --bzip2_decompress
+    - --db
+    - --gzip_decompress
+    - --hardmask
+    - --log
+    - --maxdiffs
+    - --maxgaps
+    - --n_mismatch
+    - --no_progress
+    - --notrunclabels
+    - --qmask
+    - --quiet
+    - --rowlen
+    - --sizein
+    - --strand
+    - --target_cov
+    - --threads
+    - --userfields
+    - --userout
 
   --sff_convert:
     - --fastq_asciiout

@@ -58,78 +58,59 @@
 
 */
 
-// Command-line interface: parse and validate the user-supplied options,
-// populate the global opt_* variables and the Parameters struct, and report
-// usage errors. Extracted from vsearch.cc to keep the argument-parsing
-// machinery separate from the command dispatch and the main program.
-
 #pragma once
 
+#include <map>  // std::map
+#include <utility>  // std::move
 
-/* The single command a run performs, resolved by the CLI parser (from the
-   requested command option) and returned to main() for the command dispatcher.
-   One enumerator per dispatch handler: the --h/--help and --v/--version option
-   aliases each collapse to a single command. Command::none means no (or no
-   valid) command was requested. The underlying type is fixed to int for a
-   stable, non-narrowing representation. This is CLI dispatch state, so it is
-   deliberately kept out of the public Parameters/library surface. */
-enum struct Command : int
+
+/* Writing chunks of work in the order they were claimed.
+
+   A command that parses its input inside the claim (under the input lock)
+   gives each chunk a rank, its claim order, which is also the input order.
+   Chunks are then processed in parallel and finish in any order. Submitted
+   with the output lock held, a chunk is written at once if its turn has come,
+   followed by every waiting chunk whose turn follows; otherwise it waits here,
+   and the worker moves on to claim another. The output is therefore
+   identical to a single-threaded run.
+
+   First written in --search_exact (commit 6f8f4e4d), where the claim order is
+   the input order; shared since with --search_oligodb.
+
+   Not thread-safe by itself: every call is made under the caller's output
+   lock. submit() cannot be noexcept: std::map allocates, and the writer is
+   the caller's. */
+template <typename Chunk>
+class ChunkReorder
+{
+public:
+  /* A chunk that has to wait is moved out of `chunk`, which the caller then
+     holds empty (default-constructed) and can reuse for its next claim. */
+  template <typename Write>
+  auto submit(unsigned long const rank, Chunk & chunk, Write write) -> void
   {
-    none,
-    help,
-    version,
-    allpairs_global,
-    usearch_global,
-    search_exact,
-    search_global,
-    search_oligodb,
-    sintax,
-    orient,
-    cluster_fast,
-    cluster_smallmem,
-    cluster_size,
-    cluster_unoise,
-    uchime_denovo,
-    uchime2_denovo,
-    uchime3_denovo,
-    uchime_ref,
-    chimeras_denovo,
-    derep_fulllength,
-    derep_prefix,
-    derep_id,
-    derep_smallmem,
-    fastq_chars,
-    fastq_stats,
-    fastq_filter,
-    fastx_filter,
-    fastq_convert,
-    fastq_eestats,
-    fastq_eestats2,
-    fastq_join,
-    fastq_mergepairs,
-    fastx_uniques,
-    fastx_mask,
-    fastx_revcomp,
-    fastx_syncpairs,
-    fastx_getseq,
-    fastx_getseqs,
-    fastx_getsubseq,
-    fastx_subsample,
-    fasta2fastq,
-    cut,
-    scramble,
-    shuffle,
-    sortbylength,
-    sortbysize,
-    rereplicate,
-    maskfasta,
-    sff_convert,
-    makeudb_usearch,
-    udb2fasta,
-    udbinfo,
-    udbstats,
-  };
+    if (rank != next_rank_)
+      {
+        waiting_.emplace(rank, std::move(chunk));
+        chunk = Chunk{};
+        return;
+      }
+    write(chunk);
+    ++next_rank_;
+    auto next = waiting_.find(next_rank_);
+    while (next != waiting_.end())
+      {
+        write(next->second);
+        waiting_.erase(next);
+        ++next_rank_;
+        next = waiting_.find(next_rank_);
+      }
+  }
 
-// Parse the command line, set the matching fields in parameters, validate the
-// requested command and its options, and return the resolved command.
-auto args_init(int argc, char ** argv, struct Parameters & parameters) -> Command;
+  /* true once every submitted chunk was written */
+  auto empty() const noexcept -> bool { return waiting_.empty(); }
+
+private:
+  unsigned long next_rank_ = 0;
+  std::map<unsigned long, Chunk> waiting_;
+};

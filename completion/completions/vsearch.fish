@@ -10,7 +10,7 @@
 # ---------------------------------------------------------------------------
 
 function __vsearch_current_command --description 'Echo the action flag on the line, if any'
-    set -l cmds --chimeras_denovo --uchime_denovo --uchime2_denovo --uchime3_denovo --uchime_ref --cluster_fast --cluster_size --cluster_smallmem --cluster_unoise --sff_convert --derep_fulllength --derep_id --derep_prefix --derep_smallmem --fastx_uniques --rereplicate --fasta2fastq --fastq_convert --fastq_chars --fastq_stats --fastq_eestats --fastq_eestats2 --fastx_mask --maskfasta --orient --fastq_join --fastq_mergepairs --fastx_syncpairs --allpairs_global --cut --fastx_revcomp --scramble --search_exact --search_global --usearch_global --shuffle --sortbylength --sortbysize --fastx_getseq --fastx_getseqs --fastx_getsubseq --fastx_subsample --sintax --fastx_filter --fastq_filter --makeudb_usearch --udb2fasta --udbinfo --udbstats --help --version
+    set -l cmds --chimeras_denovo --uchime_denovo --uchime2_denovo --uchime3_denovo --uchime_ref --cluster_fast --cluster_size --cluster_smallmem --cluster_unoise --sff_convert --derep_fulllength --derep_id --derep_prefix --derep_smallmem --fastx_uniques --rereplicate --fasta2fastq --fastq_convert --fastq_chars --fastq_stats --fastq_eestats --fastq_eestats2 --fastx_mask --maskfasta --orient --fastq_join --fastq_mergepairs --fastx_syncpairs --allpairs_global --cut --fastx_revcomp --scramble --search_exact --search_global --search_oligodb --usearch_global --shuffle --sortbylength --sortbysize --fastx_getseq --fastx_getseqs --fastx_getsubseq --fastx_subsample --sintax --fastx_filter --fastq_filter --makeudb_usearch --udb2fasta --udbinfo --udbstats --help --version
     for word in (commandline -opc)
         if contains -- $word $cmds
             echo $word
@@ -69,6 +69,7 @@ complete -c vsearch -n '__vsearch_no_command' -l fastx_revcomp -rfa '(__fish_com
 complete -c vsearch -n '__vsearch_no_command' -l scramble -rfa '(__fish_complete_suffix .fasta .fa .fna .ffn .fastq .fq .fasta.gz .fa.gz .fna.gz .ffn.gz .fastq.gz .fq.gz .fasta.bz2 .fa.bz2 .fna.bz2 .ffn.bz2 .fastq.bz2 .fq.bz2)' -d 'randomize nucleotide order within each sequence'
 complete -c vsearch -n '__vsearch_no_command' -l search_exact -rfa '(__fish_complete_suffix .fasta .fa .fna .ffn .fasta.gz .fa.gz .fna.gz .ffn.gz .fasta.bz2 .fa.bz2 .fna.bz2 .ffn.bz2)' -d 'queries for exact match search'
 complete -c vsearch -n '__vsearch_no_command' -l search_global -rfa '(__fish_complete_suffix .fasta .fa .fna .ffn .fasta.gz .fa.gz .fna.gz .ffn.gz .fasta.bz2 .fa.bz2 .fna.bz2 .ffn.bz2)' -d 'queries for exhaustive global alignment search'
+complete -c vsearch -n '__vsearch_no_command' -l search_oligodb -rfa '(__fish_complete_suffix .fasta .fa .fna .ffn .fastq .fq .fasta.gz .fa.gz .fna.gz .ffn.gz .fastq.gz .fq.gz .fasta.bz2 .fa.bz2 .fna.bz2 .ffn.bz2 .fastq.bz2 .fq.bz2)' -d 'sequences to search for every occurrence of oligos'
 complete -c vsearch -n '__vsearch_no_command' -l usearch_global -rfa '(__fish_complete_suffix .fasta .fa .fna .ffn .fasta.gz .fa.gz .fna.gz .ffn.gz .fasta.bz2 .fa.bz2 .fna.bz2 .ffn.bz2)' -d 'queries for global alignment search'
 complete -c vsearch -n '__vsearch_no_command' -l shuffle -rfa '(__fish_complete_suffix .fasta .fa .fna .ffn .fasta.gz .fa.gz .fna.gz .ffn.gz .fasta.bz2 .fa.bz2 .fna.bz2 .ffn.bz2)' -d 'shuffle order of sequences in FASTA file randomly'
 complete -c vsearch -n '__vsearch_no_command' -l sortbylength -rfa '(__fish_complete_suffix .fasta .fa .fna .ffn .fasta.gz .fa.gz .fna.gz .ffn.gz .fasta.bz2 .fa.bz2 .fna.bz2 .ffn.bz2)' -d 'sort sequences by length in given FASTA file'
@@ -1527,6 +1528,30 @@ complete -c vsearch -n '__vsearch_command_is --search_global' -l wordlength -x -
 complete -c vsearch -n '__vsearch_command_is --search_global' -l xee -f -d 'remove expected errors (ee) info from output'
 complete -c vsearch -n '__vsearch_command_is --search_global' -l xlength -f -d 'strip sequence length annotation from output labels'
 complete -c vsearch -n '__vsearch_command_is --search_global' -l xsize -f -d 'strip abundance information in output'
+
+# --- --search_oligodb ---
+complete -c vsearch -n '__vsearch_command_is --search_oligodb' -l search_oligodb -rfa '(__fish_complete_suffix .fasta .fa .fna .ffn .fastq .fq .fasta.gz .fa.gz .fna.gz .ffn.gz .fastq.gz .fq.gz .fasta.bz2 .fa.bz2 .fna.bz2 .ffn.bz2 .fastq.bz2 .fq.bz2)' -d 'sequences to search for every occurrence of oligos'
+complete -c vsearch -n '__vsearch_command_is --search_oligodb' -l alnout -rF -d 'filename for human-readable alignment output'
+complete -c vsearch -n '__vsearch_command_is --search_oligodb' -l blast6out -rF -d 'filename for BLAST-like tab-separated output'
+complete -c vsearch -n '__vsearch_command_is --search_oligodb' -l bzip2_decompress -f -d 'decompress input with bzip2 (required if pipe)'
+complete -c vsearch -n '__vsearch_command_is --search_oligodb' -l db -rfa '(__fish_complete_suffix .fasta .fa .fna .ffn .udb .fasta.gz .fa.gz .fna.gz .ffn.gz .fasta.bz2 .fa.bz2 .fna.bz2 .ffn.bz2)' -d 'reference database (FASTA, or UDB for --usearch_global/--sintax)'
+complete -c vsearch -n '__vsearch_command_is --search_oligodb' -l gzip_decompress -f -d 'decompress input with gzip (required if pipe)'
+complete -c vsearch -n '__vsearch_command_is --search_oligodb' -l hardmask -f -d 'mask by replacing with N instead of lower case'
+complete -c vsearch -n '__vsearch_command_is --search_oligodb' -l log -rF -d 'write messages, timing and memory info to file'
+complete -c vsearch -n '__vsearch_command_is --search_oligodb' -l maxdiffs -x -d 'reject if more substitutions or indels'
+complete -c vsearch -n '__vsearch_command_is --search_oligodb' -l maxgaps -x -d 'reject if more indels'
+complete -c vsearch -n '__vsearch_command_is --search_oligodb' -l n_mismatch -f -d 'consider aligning with N\'s as mismatches'
+complete -c vsearch -n '__vsearch_command_is --search_oligodb' -l no_progress -f -d 'do not show progress indicator'
+complete -c vsearch -n '__vsearch_command_is --search_oligodb' -l notrunclabels -f -d 'do not truncate labels at first space'
+complete -c vsearch -n '__vsearch_command_is --search_oligodb' -l qmask -x -a 'none dust soft' -d 'mask query/seqs (none, dust, soft; default dust)'
+complete -c vsearch -n '__vsearch_command_is --search_oligodb' -l quiet -f -d 'output just warnings and fatal errors to stderr'
+complete -c vsearch -n '__vsearch_command_is --search_oligodb' -l rowlen -x -d 'width of alignment lines in alnout output (64)'
+complete -c vsearch -n '__vsearch_command_is --search_oligodb' -l sizein -f -d 'propagate abundance annotation from input'
+complete -c vsearch -n '__vsearch_command_is --search_oligodb' -l strand -x -a 'plus both' -d 'use plus or both strands (plus)'
+complete -c vsearch -n '__vsearch_command_is --search_oligodb' -l target_cov -x -d 'reject if fraction of target seq. aligned lower'
+complete -c vsearch -n '__vsearch_command_is --search_oligodb' -l threads -x -d 'number of threads to use, zero for all cores (0)'
+complete -c vsearch -n '__vsearch_command_is --search_oligodb' -l userfields -x -d 'fields to output in userout file'
+complete -c vsearch -n '__vsearch_command_is --search_oligodb' -l userout -rF -d 'filename for user-defined tab-separated output'
 
 # --- --usearch_global ---
 complete -c vsearch -n '__vsearch_command_is --usearch_global' -l usearch_global -rfa '(__fish_complete_suffix .fasta .fa .fna .ffn .fasta.gz .fa.gz .fna.gz .ffn.gz .fasta.bz2 .fa.bz2 .fna.bz2 .ffn.bz2)' -d 'queries for global alignment search'

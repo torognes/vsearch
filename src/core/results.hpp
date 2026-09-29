@@ -100,12 +100,28 @@ auto results_show_lcaout(std::FILE * output_handle,
                          struct Database const & db,
                          struct Parameters const & parameters) -> void;
 
+/* What the coordinate fields of a hit report: qlo, qhi, tlo and thi (and
+   qlor, qhir, tlor and thir) in --userout, columns 7 to 10 of --blast6out,
+   and how much of the alignment caln and aln show.
+
+   - whole_sequences: the alignment commands, whose alignments are global and
+     so span both sequences, terminal gaps included. The coordinates run from
+     1 to each length (qlo and qhi swapped on a minus-strand hit), and caln and
+     aln include the terminal gaps.
+   - aligned_region: --search_oligodb, where the target (an oligo) aligns to a
+     small region of a long query. The coordinates are those of that region,
+     terminal gaps excluded; on a minus-strand hit, qlo and qhi are positions
+     on the query's plus strand, swapped (qlo > qhi). caln and aln show the
+     aligned region only. */
+enum struct HitSpan { whole_sequences, aligned_region };
+
 /* hit == nullptr: the query matched nothing */
 auto results_show_blast6out_one(std::FILE * output_handle,
                                 struct hit const * hit,
                                 View<char> query_head,
                                 int64_t qseqlen,
-                                struct Database const & db) -> void;
+                                struct Database const & db,
+                                HitSpan span = HitSpan::whole_sequences) -> void;
 
 /* How the '=' (perfect match) verdict of a .uc H record is reached.
    --cluster_fast ignores terminal gaps, so a query identical to a longer
@@ -134,7 +150,8 @@ auto results_show_userout_one(std::FILE * output_handle,
                               View<char> qsequence,
                               View<char> qsequence_rc,
                               struct Database const & db,
-                              struct Parameters const & parameters) -> void;
+                              struct Parameters const & parameters,
+                              HitSpan span = HitSpan::whole_sequences) -> void;
 
 auto results_show_fastapairs_one(std::FILE * output_handle,
                                  struct hit const & hit,

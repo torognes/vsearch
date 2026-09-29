@@ -520,8 +520,12 @@ namespace {
   }
 
 
-  constexpr auto number_of_commands = std::size_t{53};
-  constexpr auto number_of_options = std::size_t{260};
+  /* --search_oligodb's own defaults (see apply_command_defaults) */
+  constexpr auto default_oligo_maxdiffs = int64_t{2};
+  constexpr auto default_oligo_target_cov = 0.75;
+
+  constexpr auto number_of_commands = std::size_t{54};
+  constexpr auto number_of_options = std::size_t{261};
   constexpr auto max_number_of_options_per_command = std::size_t{100};
 
   enum
@@ -736,6 +740,7 @@ namespace {
       option_scramble_kmer,
       option_search_exact,
       option_search_global,
+      option_search_oligodb,
       option_self,
       option_selfid,
       option_sff_clip,
@@ -1017,6 +1022,7 @@ namespace {
       {"scramble_kmer",              true },
       {"search_exact",               true },
       {"search_global",              true },
+      {"search_oligodb",             true },
       {"self",                       false },
       {"selfid",                     false },
       {"sff_clip",                   false },
@@ -2664,6 +2670,35 @@ namespace {
         option_xsize,
         -1, },
 
+      /* --search_oligodb reports every occurrence of every oligo, so it has
+         none of the options that select or order hits (--maxaccepts,
+         --maxhits, --top_hits_only, --id), and none of the per-query or
+         per-target outputs (--matched, --dbmatched, --otutabout...): what
+         it produces is a list of positions. */
+      { option_search_oligodb,
+        option_alnout,
+        option_blast6out,
+        option_bzip2_decompress,
+        option_db,
+        option_gzip_decompress,
+        option_hardmask,
+        option_log,
+        option_maxdiffs,
+        option_maxgaps,
+        option_n_mismatch,
+        option_no_progress,
+        option_notrunclabels,
+        option_qmask,
+        option_quiet,
+        option_rowlen,
+        option_sizein,
+        option_strand,
+        option_target_cov,
+        option_threads,
+        option_userfields,
+        option_userout,
+        -1, },
+
       { option_sff_convert,
         option_fastq_asciiout,
         option_fastq_qmaxout,
@@ -3180,6 +3215,7 @@ namespace {
       Command::scramble,          // option_scramble
       Command::search_exact,      // option_search_exact
       Command::search_global,     // option_search_global
+      Command::search_oligodb,    // option_search_oligodb
       Command::sff_convert,       // option_sff_convert
       Command::shuffle,           // option_shuffle
       Command::sintax,            // option_sintax
@@ -3257,7 +3293,7 @@ namespace {
     count is not spelled out here: it follows from output_options above and
     from the command's own valid_options row.
   */
-  constexpr std::array<int, 14> commands_requiring_an_output =
+  constexpr std::array<int, 15> commands_requiring_an_output =
     {{
       option_allpairs_global,
       option_chimeras_denovo,
@@ -3268,6 +3304,7 @@ namespace {
       option_fastq_mergepairs,
       option_search_exact,
       option_search_global,
+      option_search_oligodb,
       option_uchime2_denovo,
       option_uchime3_denovo,
       option_uchime_denovo,
@@ -4206,6 +4243,10 @@ namespace {
             parameters.input_filename = optarg;
             break;
 
+          case option_search_oligodb:
+            parameters.input_filename = optarg;
+            break;
+
           case option_fastx_mask:
             parameters.input_filename = optarg;
             break;
@@ -4786,6 +4827,7 @@ namespace {
       case Command::maskfasta:
       case Command::search_exact:
       case Command::search_global:
+      case Command::search_oligodb:
       case Command::sintax:
       case Command::uchime2_denovo:
       case Command::uchime3_denovo:
@@ -5452,6 +5494,35 @@ namespace {
         parameters.opt_uc_allhits = true;
       }
 
+    /* --search_oligodb looks for every occurrence of short oligos: on both
+       strands, without masking (a primer site may well be low-complexity),
+       within usearch's default of two differences, and reporting occurrences
+       truncated by a read end as long as three quarters of the oligo lie
+       inside the read: at one half, random partial matches at read ends
+       outnumbered the real truncated barcodes seven to one on a nanopore
+       run (1.7 M reads, 96 barcodes of 24 nt, --maxdiffs 3, 2026-09-29:
+       2,456,380 against 340,343), and at three quarters they are 1,181
+       against 38,879. */
+    if (command == Command::search_oligodb)
+      {
+        if (not options_selected[option_strand])
+          {
+            parameters.opt_strand = true;
+          }
+        if (not options_selected[option_qmask])
+          {
+            parameters.opt_qmask = Masking::none;
+          }
+        if (not options_selected[option_maxdiffs])
+          {
+            parameters.opt_maxdiffs = default_oligo_maxdiffs;
+          }
+        if (not options_selected[option_target_cov])
+          {
+            parameters.opt_target_cov = default_oligo_target_cov;
+          }
+      }
+
     if (command == Command::rereplicate)
       {
         parameters.opt_xsize = true;
@@ -5604,6 +5675,11 @@ namespace {
     if ((command == Command::search_exact) and (parameters.opt_db == nullptr))
       {
         fatal("Database filename not specified with --db");
+      }
+
+    if ((command == Command::search_oligodb) and (parameters.opt_db == nullptr))
+      {
+        fatal("Oligo database filename not specified with --db");
       }
 
     if (command == Command::fastx_subsample)

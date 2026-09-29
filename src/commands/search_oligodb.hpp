@@ -58,78 +58,9 @@
 
 */
 
-// Command-line interface: parse and validate the user-supplied options,
-// populate the global opt_* variables and the Parameters struct, and report
-// usage errors. Extracted from vsearch.cc to keep the argument-parsing
-// machinery separate from the command dispatch and the main program.
-
 #pragma once
 
-
-/* The single command a run performs, resolved by the CLI parser (from the
-   requested command option) and returned to main() for the command dispatcher.
-   One enumerator per dispatch handler: the --h/--help and --v/--version option
-   aliases each collapse to a single command. Command::none means no (or no
-   valid) command was requested. The underlying type is fixed to int for a
-   stable, non-narrowing representation. This is CLI dispatch state, so it is
-   deliberately kept out of the public Parameters/library surface. */
-enum struct Command : int
-  {
-    none,
-    help,
-    version,
-    allpairs_global,
-    usearch_global,
-    search_exact,
-    search_global,
-    search_oligodb,
-    sintax,
-    orient,
-    cluster_fast,
-    cluster_smallmem,
-    cluster_size,
-    cluster_unoise,
-    uchime_denovo,
-    uchime2_denovo,
-    uchime3_denovo,
-    uchime_ref,
-    chimeras_denovo,
-    derep_fulllength,
-    derep_prefix,
-    derep_id,
-    derep_smallmem,
-    fastq_chars,
-    fastq_stats,
-    fastq_filter,
-    fastx_filter,
-    fastq_convert,
-    fastq_eestats,
-    fastq_eestats2,
-    fastq_join,
-    fastq_mergepairs,
-    fastx_uniques,
-    fastx_mask,
-    fastx_revcomp,
-    fastx_syncpairs,
-    fastx_getseq,
-    fastx_getseqs,
-    fastx_getsubseq,
-    fastx_subsample,
-    fasta2fastq,
-    cut,
-    scramble,
-    shuffle,
-    sortbylength,
-    sortbysize,
-    rereplicate,
-    maskfasta,
-    sff_convert,
-    makeudb_usearch,
-    udb2fasta,
-    udbinfo,
-    udbstats,
-  };
-
-// Parse the command line, set the matching fields in parameters, validate the
-// requested command and its options, and return the resolved command.
-auto args_init(int argc, char ** argv, struct Parameters & parameters) -> Command;
+/* --search_oligodb: every occurrence of every oligo of --db (primers, tags,
+   barcodes) in the query sequences, within --maxdiffs differences, gaps
+   included, on both strands by default */
+auto search_oligodb(struct Parameters const & parameters) -> void;

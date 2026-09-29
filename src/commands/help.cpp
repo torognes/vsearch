@@ -70,7 +70,7 @@
   /*       0         1         2         3         4         5         6         7          */
   /*       01234567890123456789012345678901234567890123456789012345678901234567890123456789 */
   // C++17 refactoring: deduce the size with CTAD and drop this constant
-  static constexpr std::size_t help_line_count = 563;
+  static constexpr std::size_t help_line_count = 564;
   static constexpr std::array<char const *, help_line_count> help_message =
     {{
       "\n",
@@ -404,6 +404,7 @@
       "Searching\n",
       "  --search_exact FILENAME     filename of queries for exact match search\n",
       "  --search_global FILENAME    filename of queries for exhaustive global search\n",
+      "  --search_oligodb FILENAME   filename of sequences to search for oligos\n",
       "  --usearch_global FILENAME   filename of queries for global alignment search\n",
       " Data\n",
       "  --db FILENAME               FASTA or UDB database (only FASTA for search_exact)\n",

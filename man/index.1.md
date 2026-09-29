@@ -205,6 +205,9 @@ system-wide.
 **[`vsearch-search_global(1)`](./commands/vsearch-search_global.1.md)**
 : Exhaustively search sequences against a reference database.
 
+**[`vsearch-search_oligodb(1)`](./commands/vsearch-search_oligodb.1.md)**
+: Find every occurrence of oligos (primers, tags, barcodes) in sequences.
+
 **[`vsearch-usearch_global(1)`](./commands/vsearch-usearch_global.1.md)**
 : Search sequences against a reference database using global alignment.
 
