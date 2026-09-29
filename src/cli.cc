@@ -5499,9 +5499,10 @@ namespace {
        within usearch's default of two differences, and reporting occurrences
        truncated by a read end as long as three quarters of the oligo lie
        inside the read: at one half, random partial matches at read ends
-       outnumbered the real truncated barcodes eleven to one on a nanopore
-       run (1.7 M reads, 96 barcodes of 24 nt, 2026-09-29), and at three
-       quarters they are 477 against 35,595. */
+       outnumbered the real truncated barcodes seven to one on a nanopore
+       run (1.7 M reads, 96 barcodes of 24 nt, --maxdiffs 3, 2026-09-29:
+       2,456,380 against 340,343), and at three quarters they are 1,181
+       against 38,879. */
     if (command == Command::search_oligodb)
       {
         if (not options_selected[option_strand])
