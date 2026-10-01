@@ -69,6 +69,7 @@
 #include <algorithm>  // std::copy, std::max
 #include <cstddef>  // std::ptrdiff_t, std::size_t
 #include <cstdint>  // int64_t
+#include <initializer_list>
 #include <iterator>  // std::next
 #include <limits>
 
@@ -510,8 +511,7 @@ auto LinearMemoryAligner::diff(View<char> const a_sub,
               auto const b_code = four_bit::map(b_sub[static_cast<std::size_t>(j - 1)]);
               h = p + scorematrix[(matrix_size * std::size_t{b_code}) + a_code];
 
-              h = std::max(f, h);
-              h = std::max(EE[jdx], h);
+              h = std::max({h, f, EE[jdx]});
               p = HH[jdx];
               HH[jdx] = h;
             }
@@ -563,8 +563,7 @@ auto LinearMemoryAligner::diff(View<char> const a_sub,
               auto const b_code = four_bit::map(b_sub[static_cast<std::size_t>(b_len - j)]);
               h = p + scorematrix[(matrix_size * std::size_t{b_code}) + a_code];
 
-              h = std::max(f, h);
-              h = std::max(YY[jdx], h);
+              h = std::max({h, f, YY[jdx]});
               p = XX[jdx];
               XX[jdx] = h;
             }
