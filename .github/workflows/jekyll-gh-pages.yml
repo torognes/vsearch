@@ -253,6 +253,10 @@ jobs:
 
   # Deployment job
   deploy:
+    # the build job survives a skipped archived job through always(), but
+    # GitHub skips every job downstream of a skipped one, not just its
+    # direct dependents, so this job needs the same rescue
+    if: always() && needs.build.result == 'success'
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
