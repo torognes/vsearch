@@ -35,6 +35,11 @@
       queries, whatever the number of threads. Previously the order of
       the entries could vary from run to run with more than one thread;
       the entries themselves are unchanged.
+    - change: the `--uchimealns` alignments of `--uchime_denovo`,
+      `--uchime2_denovo`, `--uchime3_denovo` and `--uchime_ref` are
+      trimmed to the query: parent regions reaching beyond the query
+      are no longer shown as runs of gaps on the query line. Detection
+      results are unchanged (issue #159).
     - change: `--search_exact` now writes its results in the order of
       the queries, whatever the number of threads, and no longer runs
       slower with more threads than with one: the queries are claimed
