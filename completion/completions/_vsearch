@@ -257,6 +257,7 @@ _vsearch() {
             '--clusterout_id[add cluster id info to consout and profile files]' \
             '--clusterout_sort[order msaout, consout, profile by decreasing abundance]' \
             '--clusters[output each cluster to a separate FASTA file (prefix)]:string:' \
+            '--cons_notruncate[terminal gaps do not vote in consensus]' \
             '--consout[output cluster consensus sequences to FASTA file]:file:_files' \
             '--fasta_width[width of FASTA seq lines, 0 for no wrap (80)]:n:' \
             '--fastapairs[FASTA file with pairs of query and target]:file:_files' \
@@ -349,6 +350,7 @@ _vsearch() {
             '--clusterout_id[add cluster id info to consout and profile files]' \
             '--clusterout_sort[order msaout, consout, profile by decreasing abundance]' \
             '--clusters[output each cluster to a separate FASTA file (prefix)]:string:' \
+            '--cons_notruncate[terminal gaps do not vote in consensus]' \
             '--consout[output cluster consensus sequences to FASTA file]:file:_files' \
             '--fasta_width[width of FASTA seq lines, 0 for no wrap (80)]:n:' \
             '--fastapairs[FASTA file with pairs of query and target]:file:_files' \
@@ -441,6 +443,7 @@ _vsearch() {
             '--clusterout_id[add cluster id info to consout and profile files]' \
             '--clusterout_sort[order msaout, consout, profile by decreasing abundance]' \
             '--clusters[output each cluster to a separate FASTA file (prefix)]:string:' \
+            '--cons_notruncate[terminal gaps do not vote in consensus]' \
             '--consout[output cluster consensus sequences to FASTA file]:file:_files' \
             '--fasta_width[width of FASTA seq lines, 0 for no wrap (80)]:n:' \
             '--fastapairs[FASTA file with pairs of query and target]:file:_files' \
@@ -534,6 +537,7 @@ _vsearch() {
             '--clusterout_id[add cluster id info to consout and profile files]' \
             '--clusterout_sort[order msaout, consout, profile by decreasing abundance]' \
             '--clusters[output each cluster to a separate FASTA file (prefix)]:string:' \
+            '--cons_notruncate[terminal gaps do not vote in consensus]' \
             '--consout[output cluster consensus sequences to FASTA file]:file:_files' \
             '--fasta_width[width of FASTA seq lines, 0 for no wrap (80)]:n:' \
             '--fastapairs[FASTA file with pairs of query and target]:file:_files' \
