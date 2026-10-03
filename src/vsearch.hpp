@@ -162,8 +162,8 @@ public:
   double opt_min_unmasked_pct = 0;
   double opt_sample_pct = 0;
   int64_t opt_fasta_width = default_fasta_width;
-  int64_t opt_fastq_ascii = sanger_ascii_offset;
-  int64_t opt_fastq_asciiout = sanger_ascii_offset;
+  int opt_fastq_ascii = sanger_ascii_offset;
+  int opt_fastq_asciiout = sanger_ascii_offset;
   int64_t opt_fastq_qmax = default_max_quality;
   /* the sentinel, not a ceiling: the default depends on what the caller is
      about to write (see QualityOrigin in parameters.hpp), which this struct

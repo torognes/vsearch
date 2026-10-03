@@ -497,6 +497,23 @@ namespace {
   }
 
 
+  /* --fastq_ascii and --fastq_asciiout: an offset must be 33 or 64, which is
+     checked once all options are read (with its own message). The member is
+     an int, so an argument beyond the int range is stored as an offset that
+     check rejects, rather than wrapped into one it might accept
+     (4294967329 would otherwise wrap to 33). */
+  auto args_get_ascii_offset(char const * arg) -> int
+  {
+    static constexpr auto rejected_offset = 0;
+    auto const value = args_getlong(arg);
+    if ((value < std::numeric_limits<int>::min()) or (value > std::numeric_limits<int>::max()))
+      {
+        return rejected_offset;
+      }
+    return static_cast<int>(value);
+  }
+
+
   /* std::strtod, for the reasons given above args_getlong(). std::strtod
      parses "nan" and "inf" just as "%lf" did, so the isfinite() guard is still
      what rejects them; it also catches overflow, which strtod reports as
@@ -4207,7 +4224,7 @@ namespace {
             break;
 
           case option_fastq_ascii:
-            parameters.opt_fastq_ascii = args_getlong(optarg);
+            parameters.opt_fastq_ascii = args_get_ascii_offset(optarg);
             break;
 
           case option_fastq_qmin:
@@ -4295,7 +4312,7 @@ namespace {
             break;
 
           case option_fastq_asciiout:
-            parameters.opt_fastq_asciiout = args_getlong(optarg);
+            parameters.opt_fastq_asciiout = args_get_ascii_offset(optarg);
             break;
 
           case option_fastq_qminout:

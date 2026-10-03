@@ -130,7 +130,7 @@ inline auto check_quality_in_window(int const quality_score,
 inline auto fastq_get_qual(char const quality_symbol, struct Parameters const & parameters,
                            fastx_s const & input_handle) -> int
 {
-  int const quality_score = quality_symbol - static_cast<int>(parameters.opt_fastq_ascii);
+  int const quality_score = quality_symbol - parameters.opt_fastq_ascii;
   check_quality_in_window(quality_score, parameters, input_handle);
   return quality_score;
 }
@@ -238,7 +238,7 @@ auto analyse(fastx_handle input_handle, vsearch::QualityTable const & quality_ta
              value, so the compiler reloads and stores res.ee around every
              iteration otherwise. */
           auto sum = 0.0;
-          auto const ascii_offset = static_cast<int>(parameters.opt_fastq_ascii);
+          auto const ascii_offset = parameters.opt_fastq_ascii;
           for (auto const quality_symbol : quality_symbols)
             {
               check_quality_in_window(quality_symbol - ascii_offset, parameters,
@@ -478,7 +478,7 @@ auto filter(bool const fastq_only, char const * filename, struct Parameters cons
   int64_t truncated = 0;
 
   /* one 10^-(q/10) per quality symbol, not per base */
-  vsearch::QualityTable const quality_table(static_cast<int>(parameters.opt_fastq_ascii),
+  vsearch::QualityTable const quality_table(parameters.opt_fastq_ascii,
                                             vsearch::ProbabilityCap::none);
 
   /* Which shape analyse()'s per-base quality loop takes, decided here rather
