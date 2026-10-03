@@ -542,6 +542,42 @@ namespace {
     fprint(output_handle, '\n');
   }
 
+  constexpr auto alignment_gap = '-';
+
+  constexpr auto is_residue(char const symbol) noexcept -> bool {
+    return symbol != alignment_gap;
+  }
+
+  /* The columns of an --uchimealns alignment that hold the query, from
+     its first residue to one past its last. Outside of that span, the
+     columns are parent overhang facing terminal gaps of the query: they
+     carry no diffs and no votes, and are not printed (issue #159). */
+  struct column_span_s {
+    int first;
+    int last;
+  };
+
+  auto query_column_span(std::vector<char> const & query) noexcept -> column_span_s {
+    auto const first = std::find_if(query.cbegin(), query.cend(), is_residue);
+    assert(first != query.cend());  // a query has at least one residue
+    auto const last = std::find_if(query.crbegin(), query.crend(), is_residue).base();
+    return {
+      static_cast<int>(std::distance(query.cbegin(), first)),
+      static_cast<int>(std::distance(query.cbegin(), last)),
+    };
+  }
+
+  /* Residues of an aligned parent in the columns before 'column', so that
+     position counters start right when the leading overhang is skipped. */
+  auto residues_before(std::vector<char> const & aligned_parent,
+                       int const column) noexcept -> int {
+    assert(column >= 0);
+    assert(static_cast<std::size_t>(column) <= aligned_parent.size());
+    return static_cast<int>(std::count_if(aligned_parent.cbegin(),
+                                          std::next(aligned_parent.cbegin(), column),
+                                          is_residue));
+  }
+
 }  // end of anonymous namespace
 
 
@@ -1982,7 +2018,6 @@ auto print_report(struct chimera_cli_state_s const & cli,
   auto const & report = result.report;
   auto const & alignment = result.alignment;
   auto const status = result.status;
-  auto const alnlen = static_cast<int>(alignment.query.size());
   int const sumL = report.left_no + report.left_abstain + report.left_yes;
   int const sumR = report.right_no + report.right_abstain + report.right_yes;
 
@@ -2016,13 +2051,15 @@ auto print_report(struct chimera_cli_state_s const & cli,
                           attributes_to_strip(parameters));
       fprint(cli.fp_uchimealns, "\n\n");
 
-      auto const width = parameters.opt_alignwidth > 0 ? parameters.opt_alignwidth : alnlen;
+      auto const span = query_column_span(alignment.query);
+      auto const spanlen = span.last - span.first;
+      auto const width = parameters.opt_alignwidth > 0 ? parameters.opt_alignwidth : spanlen;
       auto qpos = 0;
-      auto p1pos = 0;
-      auto p2pos = 0;
-      auto rest = alnlen;
+      auto p1pos = residues_before(alignment.parents[0], span.first);
+      auto p2pos = residues_before(alignment.parents[1], span.first);
+      auto rest = spanlen;
 
-      for (auto i = 0; i < alnlen; i += width)
+      for (auto i = span.first; i < span.last; i += width)
         {
           /* count non-gap symbols on current line */
 
