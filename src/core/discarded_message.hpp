@@ -68,6 +68,10 @@
 
 namespace vsearch {
 
+/* What was discarded: sequences, or (--minclustersize and --maxclustersize,
+   issue #263) whole clusters. */
+enum struct DiscardedItem : char { sequence, cluster };
+
 /* One wording for "this option discarded that many sequences", in one place.
 
    Four options report it -- --minseqlength, --maxseqlength and --minsize from
@@ -97,7 +101,8 @@ namespace vsearch {
 inline auto print_discarded(std::FILE * output_stream,
                             char const * const option_name,
                             int64_t const threshold,
-                            uint64_t const discarded) -> void
+                            uint64_t const discarded,
+                            DiscardedItem const item = DiscardedItem::sequence) -> void
 {
   std::fputs(option_name, output_stream);
   fprint(output_stream, ' ');
@@ -105,7 +110,14 @@ inline auto print_discarded(std::FILE * output_stream,
   fprint(output_stream, ": ");
   fprint_integer(output_stream, discarded);
   fprint(output_stream, ' ');
-  std::fputs((discarded == 1 ? "sequence" : "sequences"), output_stream);
+  if (item == DiscardedItem::cluster)
+    {
+      std::fputs((discarded == 1 ? "cluster" : "clusters"), output_stream);
+    }
+  else
+    {
+      std::fputs((discarded == 1 ? "sequence" : "sequences"), output_stream);
+    }
   fprint(output_stream, " discarded.\n");
 }
 

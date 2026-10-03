@@ -176,8 +176,10 @@ public:
   int64_t opt_fastq_minqual = 0;
   int64_t opt_fastq_tail = default_fastq_tail;
   int64_t opt_maxseqlength = default_maxseqlength;
+  int64_t opt_maxclustersize = std::numeric_limits<int64_t>::max();
   int64_t opt_maxsize = std::numeric_limits<int64_t>::max();
   int64_t opt_maxuniquesize = std::numeric_limits<int64_t>::max();
+  int64_t opt_minclustersize = 1;
   int64_t opt_minseqlength = -1;
   int64_t opt_minsize = 0;
   int64_t opt_minuniquesize = 1;
