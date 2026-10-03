@@ -191,6 +191,7 @@ public:
   bool opt_bzip2_decompress = false;
   bool opt_clusterout_id = false;
   bool opt_clusterout_sort = false;
+  bool opt_cons_notruncate = false;
   bool opt_eeout = false;
   bool opt_fasta_score = false;
   bool opt_fastq_allowmergestagger = false;

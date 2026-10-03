@@ -70,7 +70,7 @@
 #include "utils/span.hpp"
 #include "utils/reverse_complement.hpp"
 #include <array>
-#include <algorithm>  // std::fill, std::fill_n, std::max, std::max_element
+#include <algorithm>  // std::fill, std::fill_n, std::find_if, std::for_each, std::max, std::max_element
 #include <cassert>
 #include <cstddef>  // std::size_t
 #include <cstdint>  // uint64_t
@@ -168,6 +168,40 @@ auto update_msa(char const nucleotide, int &position_in_alignment,
                 std::vector<char>& alignment) -> void {
   alignment[static_cast<std::vector<char>::size_type>(position_in_alignment)] = nucleotide;
   ++position_in_alignment;
+}
+
+
+/* Do the gaps before the first and after the last residue of a row
+   vote in the consensus and count in the profile? They do by default;
+   with --cons_notruncate they do not (issue #86). */
+enum struct TerminalGaps : char { vote, ignore };
+
+constexpr auto alignment_gap = '-';
+
+constexpr auto is_residue(char const symbol) noexcept -> bool {
+  return symbol != alignment_gap;
+}
+
+
+/* Count one finished row of the alignment in the profile: the whole
+   row, or only from its first to its last residue when terminal gaps
+   are ignored */
+auto add_row_to_profile(View<char> const row,
+                        prof_type const abundance,
+                        TerminalGaps const terminal_gaps,
+                        std::vector<prof_type> & profile) noexcept -> void {
+  auto const * first = row.cbegin();
+  auto const * last = row.cend();
+  if (terminal_gaps == TerminalGaps::ignore) {
+    first = std::find_if(row.cbegin(), row.cend(), is_residue);
+    assert(first != row.cend());  // a sequence has at least one residue
+    last = std::find_if(row.crbegin(), row.crend(), is_residue).base();
+  }
+  auto position = static_cast<int>(std::distance(row.cbegin(), first));
+  std::for_each(first, last, [&](char const nucleotide) -> void {
+    update_profile(nucleotide, position, abundance, profile);
+    ++position;
+  });
 }
 }  // anonymous namespace
 
@@ -282,7 +316,6 @@ auto reverse_complement_target_if_need_be(int const strand, Span<char> const rc_
 auto process_and_print_centroid(Span<char> const rc_buffer,
                                 View<struct msa_target_s> const targets,
                                 std::vector<int> const &max_insertions,
-                                std::vector<prof_type> &profile,
                                 std::vector<char> &aln_v,
                                 std::FILE * fp_msaout,
                                 struct Database const & db,
@@ -292,24 +325,20 @@ auto process_and_print_centroid(Span<char> const rc_buffer,
   auto const target_seqno = target.seqno;
   auto const target_seq = reverse_complement_target_if_need_be(target.strand, rc_buffer,
                                                                db.sequence_view(static_cast<uint64_t>(target_seqno)));
-  prof_type const target_abundance = parameters.opt_sizein ? db.getabundance(static_cast<uint64_t>(target_seqno)) : 1;
   auto position_in_alignment = 0;
 
   for (auto i = 0; i < centroid_len; ++i)
     {
       for (auto j = 0; j < max_insertions[static_cast<std::vector<int>::size_type>(i)]; ++j)
         {
-          update_profile('-', position_in_alignment, target_abundance, profile);
           update_msa('-', position_in_alignment, aln_v);
         }
-      update_profile(target_seq[static_cast<std::size_t>(i)], position_in_alignment, target_abundance, profile);
       update_msa(target_seq[static_cast<std::size_t>(i)], position_in_alignment, aln_v);
     }
 
   // insert
   for (auto j = 0; j < max_insertions[static_cast<std::vector<int>::size_type>(centroid_len)]; ++j)
     {
-      update_profile('-', position_in_alignment, target_abundance, profile);
       update_msa('-', position_in_alignment, aln_v);
     }
 
@@ -321,15 +350,12 @@ auto process_and_print_centroid(Span<char> const rc_buffer,
 }
 
 
-auto insert_gaps_in_alignment_and_profile(bool const is_inserted,
-                                          int const max_insertions_at_position,
-                                          int & position_in_alignment,
-                                          prof_type const target_abundance,
-                                          std::vector<prof_type> & profile,
-                                          std::vector<char> & aln_v) -> void {
+auto insert_gaps_in_alignment(bool const is_inserted,
+                              int const max_insertions_at_position,
+                              int & position_in_alignment,
+                              std::vector<char> & aln_v) noexcept -> void {
   if (is_inserted) { return ; }
   for (auto i = 0; i < max_insertions_at_position; ++i) {
-    update_profile('-', position_in_alignment, target_abundance, profile);
     update_msa('-', position_in_alignment, aln_v);
   }
 }
@@ -337,6 +363,7 @@ auto insert_gaps_in_alignment_and_profile(bool const is_inserted,
 
 auto compute_and_print_msa(View<struct msa_target_s> const targets,
                            std::vector<int> const &max_insertions,
+                           TerminalGaps const terminal_gaps,
                            std::vector<prof_type> &profile,
                            std::vector<char> &aln_v,
                            std::FILE * fp_msaout,
@@ -345,13 +372,19 @@ auto compute_and_print_msa(View<struct msa_target_s> const targets,
 
   blank_line_before_each_msa(fp_msaout);
 
+  /* aln_v ends in a '\0' past the alignment */
+  auto const row = make_view(aln_v).first(aln_v.size() - 1);
+
   /* Find longest target sequence on reverse strand and allocate buffer */
   std::vector<char> rc_buffer_v;
   auto const rc_buffer = allocate_buffer_for_reverse_strand_target(targets, rc_buffer_v, db);
 
   // ------------------------------------------------------- deal with centroid
   process_and_print_centroid(rc_buffer, targets, max_insertions,
-                             profile, aln_v, fp_msaout, db, parameters);
+                             aln_v, fp_msaout, db, parameters);
+  auto const & centroid = targets.front();
+  prof_type const centroid_abundance = parameters.opt_sizein ? db.getabundance(static_cast<uint64_t>(centroid.seqno)) : 1;
+  add_row_to_profile(row, centroid_abundance, terminal_gaps, profile);
 
   // --------------------------------- deal with other sequences in the cluster
   for (auto const & target : targets.drop(1))
@@ -389,26 +422,30 @@ auto compute_and_print_msa(View<struct msa_target_s> const targets,
 
           switch (operation) {
           case 'D':
-            for (auto j = 0; j < runlength; ++j)
-              {
-                update_profile(target_seq[static_cast<std::size_t>(tpos)], position_in_alignment, target_abundance, profile);
-                update_msa(target_seq[static_cast<std::size_t>(tpos)], position_in_alignment, aln_v);
-                ++tpos;
-              }
-            for (auto j = runlength; j < max_insertions[static_cast<std::vector<int>::size_type>(qpos)]; ++j)
-              {
-                update_profile('-', position_in_alignment, target_abundance, profile);
-                update_msa('-', position_in_alignment, aln_v);
-              }
-            is_inserted = true;
+            {
+              /* residues first, then padding; except before the centroid
+                 when terminal gaps are ignored: the residues then stay
+                 next to the centroid's first position, and the padding
+                 becomes the row's leading terminal gaps */
+              auto const max_insertions_at_position = max_insertions[static_cast<std::vector<int>::size_type>(qpos)];
+              assert(runlength <= max_insertions_at_position);  // walk A kept the longest run
+              auto const padding = static_cast<int>(max_insertions_at_position - runlength);
+              auto const is_left_overhang = (qpos == 0) and (terminal_gaps == TerminalGaps::ignore);
+              insert_gaps_in_alignment(not is_left_overhang, padding, position_in_alignment, aln_v);
+              for (auto j = 0; j < runlength; ++j)
+                {
+                  update_msa(target_seq[static_cast<std::size_t>(tpos)], position_in_alignment, aln_v);
+                  ++tpos;
+                }
+              insert_gaps_in_alignment(is_left_overhang, padding, position_in_alignment, aln_v);
+              is_inserted = true;
+            }
             break;
           case 'M':
             for (auto j = 0; j < runlength; ++j)
               {
-                insert_gaps_in_alignment_and_profile(is_inserted, max_insertions[static_cast<std::vector<int>::size_type>(qpos)],
-                                                     position_in_alignment, target_abundance,
-                                                     profile, aln_v);
-                update_profile(target_seq[static_cast<std::size_t>(tpos)], position_in_alignment, target_abundance, profile);
+                insert_gaps_in_alignment(is_inserted, max_insertions[static_cast<std::vector<int>::size_type>(qpos)],
+                                         position_in_alignment, aln_v);
                 update_msa(target_seq[static_cast<std::size_t>(tpos)], position_in_alignment, aln_v);
                 ++tpos;
                 ++qpos;
@@ -418,10 +455,8 @@ auto compute_and_print_msa(View<struct msa_target_s> const targets,
           case 'I':
             for (auto j = 0; j < runlength; ++j)
               {
-                insert_gaps_in_alignment_and_profile(is_inserted, max_insertions[static_cast<std::vector<int>::size_type>(qpos)],
-                                                     position_in_alignment, target_abundance,
-                                                     profile, aln_v);
-                update_profile('-', position_in_alignment, target_abundance, profile);
+                insert_gaps_in_alignment(is_inserted, max_insertions[static_cast<std::vector<int>::size_type>(qpos)],
+                                         position_in_alignment, aln_v);
                 update_msa('-', position_in_alignment, aln_v);
                 ++qpos;
                 is_inserted = false;
@@ -432,12 +467,13 @@ auto compute_and_print_msa(View<struct msa_target_s> const targets,
           }
         }
 
-      insert_gaps_in_alignment_and_profile(is_inserted, max_insertions[static_cast<std::vector<int>::size_type>(qpos)],
-                                           position_in_alignment, target_abundance,
-                                           profile, aln_v);
+      insert_gaps_in_alignment(is_inserted, max_insertions[static_cast<std::vector<int>::size_type>(qpos)],
+                               position_in_alignment, aln_v);
 
       /* end of sequence string */
       aln_v[static_cast<std::vector<char>::size_type>(position_in_alignment)] = '\0';
+
+      add_row_to_profile(row, target_abundance, terminal_gaps, profile);
 
       /* print header & sequence */
       print_header_and_sequence(fp_msaout, "", target_seqno, aln_v, db, parameters);
@@ -446,6 +482,7 @@ auto compute_and_print_msa(View<struct msa_target_s> const targets,
 
 
 auto compute_and_print_consensus(std::vector<int> const &max_insertions,
+                                 TerminalGaps const terminal_gaps,
                                  std::vector<char> &aln_v,
                                  std::vector<char> &cons_v,
                                  std::vector<prof_type> const &profile,
@@ -457,9 +494,11 @@ auto compute_and_print_consensus(std::vector<int> const &max_insertions,
   auto const alignment_length = static_cast<int>(aln_v.size() - 1);
   int conslen = 0;
 
-  /* Censor part of the consensus sequence outside the centroid sequence */
-  auto const left_censored = max_insertions.front();
-  auto const right_censored = max_insertions.back();
+  /* Censor part of the consensus sequence outside the centroid sequence,
+     unless terminal gaps are ignored (no censoring) */
+  auto const is_censored = terminal_gaps == TerminalGaps::vote;
+  auto const left_censored = is_censored ? max_insertions.front() : 0;
+  auto const right_censored = is_censored ? max_insertions.back() : 0;
   assert(left_censored >= 0);
   assert(right_censored >= 0);
   /* aln_v ends in a '\0' past the alignment, so the censoring and the
@@ -494,6 +533,9 @@ auto compute_and_print_consensus(std::vector<int> const &max_insertions,
           best_count = N_count;
           best_sym = index_of_N; // N
         }
+
+      /* every voting column holds a residue of at least one sequence */
+      assert(best_count > 0);
 
       /* compare to the number of gap symbols */
       auto const gap_count = counters[gap_counter];
@@ -614,13 +656,16 @@ auto msa(std::FILE * fp_msaout, std::FILE * fp_consout, std::FILE * fp_profile,
   std::vector<char> aln_v(static_cast<std::vector<char>::size_type>(alignment_length + 1));
   std::vector<char> cons_v(static_cast<std::vector<char>::size_type>(alignment_length + 1));
 
+  auto const terminal_gaps = parameters.opt_cons_notruncate ? TerminalGaps::ignore : TerminalGaps::vote;
+
   /* msaout: multiple sequence alignment ... */
-  compute_and_print_msa(targets, max_insertions,
+  compute_and_print_msa(targets, max_insertions, terminal_gaps,
                         profile, aln_v,
                         fp_msaout, db, parameters);
 
   /* msaout: ... and consensus sequence at the end */
   compute_and_print_consensus(max_insertions,
+                              terminal_gaps,
                               aln_v,
                               cons_v,
                               profile,

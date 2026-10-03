@@ -525,8 +525,8 @@ namespace {
   constexpr auto default_oligo_target_cov = 0.75;
 
   constexpr auto number_of_commands = std::size_t{54};
-  constexpr auto number_of_options = std::size_t{261};
-  constexpr auto max_number_of_options_per_command = std::size_t{100};
+  constexpr auto number_of_options = std::size_t{262};
+  constexpr auto max_number_of_options_per_command = std::size_t{101};
 
   enum
     {
@@ -556,6 +556,7 @@ namespace {
       option_clusterout_id,
       option_clusterout_sort,
       option_clusters,
+      option_cons_notruncate,
       option_cons_truncate,
       option_consout,
       option_cut,
@@ -838,6 +839,7 @@ namespace {
       {"clusterout_id",              false },
       {"clusterout_sort",            false },
       {"clusters",                   true },
+      {"cons_notruncate",            false },
       {"cons_truncate",              false },
       {"consout",                    true },
       {"cut",                        true },
@@ -1243,6 +1245,7 @@ namespace {
         option_clusterout_id,
         option_clusterout_sort,
         option_clusters,
+        option_cons_notruncate,
         option_cons_truncate,
         option_consout,
         option_fasta_width,
@@ -1342,6 +1345,7 @@ namespace {
         option_clusterout_id,
         option_clusterout_sort,
         option_clusters,
+        option_cons_notruncate,
         option_cons_truncate,
         option_consout,
         option_fasta_width,
@@ -1441,6 +1445,7 @@ namespace {
         option_clusterout_id,
         option_clusterout_sort,
         option_clusters,
+        option_cons_notruncate,
         option_cons_truncate,
         option_consout,
         option_fasta_width,
@@ -1541,6 +1546,7 @@ namespace {
         option_clusterout_id,
         option_clusterout_sort,
         option_clusters,
+        option_cons_notruncate,
         option_cons_truncate,
         option_consout,
         option_fasta_width,
@@ -3934,6 +3940,10 @@ namespace {
 
           case option_consout:
             parameters.opt_consout = optarg;
+            break;
+
+          case option_cons_notruncate:
+            parameters.opt_cons_notruncate = true;
             break;
 
           case option_cons_truncate:
