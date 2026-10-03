@@ -70,7 +70,7 @@
   /*       0         1         2         3         4         5         6         7          */
   /*       01234567890123456789012345678901234567890123456789012345678901234567890123456789 */
   // C++17 refactoring: deduce the size with CTAD and drop this constant
-  static constexpr std::size_t help_line_count = 565;
+  static constexpr std::size_t help_line_count = 567;
   static constexpr std::array<char const *, help_line_count> help_message =
     {{
       "\n",
@@ -179,6 +179,8 @@
       "  --clusters STRING           output each cluster to a separate FASTA file\n",
       "  --consout FILENAME          output cluster consensus sequences to FASTA file\n",
       "  --lengthout                 write length annotation to output\n",
+      "  --maxclustersize INT        skip larger clusters in clusters/centroids/MSA\n",
+      "  --minclustersize INT        skip smaller clusters in clusters/centroids/MSA\n",
       "  --mothur_shared_out FN      filename for OTU table output in mothur format\n",
       "  --msaout FILENAME           output multiple seq. alignments to FASTA file\n",
       "  --otutabout FILENAME        filename for OTU table output in classic format\n",
