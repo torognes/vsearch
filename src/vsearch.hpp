@@ -73,6 +73,7 @@
 #include <vector>
 #include <limits>
 
+#include "core/identity_definition.hpp"  // IdentityDefinition
 #include "core/mask.hpp"  // Masking
 #include "utils/quality_encoding.hpp"  // sanger_ascii_offset (opt_fastq_ascii default), fastq_qmaxout_unset
 #include "utils/userfields.hpp"  // Userfield
@@ -362,7 +363,7 @@ public:
   int64_t   opt_fastq_trunclen               = -1;
   int64_t   opt_fastq_trunclen_keep          = -1;
   int64_t   opt_fastq_truncqual              = fastq_truncqual_unset;
-  int64_t   opt_iddef                        = 2;
+  IdentityDefinition opt_iddef = IdentityDefinition::edit_distance_no_terminal_gaps;
   int64_t   opt_idprefix                     = 0;
   int64_t   opt_idsuffix                     = 0;
   int64_t   opt_match                        = 2;

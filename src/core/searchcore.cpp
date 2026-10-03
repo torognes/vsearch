@@ -61,7 +61,7 @@
 #include "utils/view.hpp"
 #include "core/mask.hpp"
 #include "vsearch.hpp"
-#include "parameters.hpp"  // iddef_score_based
+#include "core/identity_definition.hpp"  // IdentityDefinition
 #include "arch/increment_counters.hpp"  // increment_counters_from_bitmap*
 #include "core/align_simd.hpp"
 #include "core/db.hpp"  // Database
@@ -725,22 +725,22 @@ auto align_trim(struct hit & hit, struct Parameters const & parameters) -> void
 
   switch (parameters.opt_iddef)
     {
-    case 0:
+    case IdentityDefinition::cd_hit:
       hit.id = hit.id0;
       break;
-    case 1:
+    case IdentityDefinition::edit_distance:
       hit.id = hit.id1;
       break;
-    case 2:
+    case IdentityDefinition::edit_distance_no_terminal_gaps:
       hit.id = hit.id2;
       break;
-    case 3:
+    case IdentityDefinition::marine_biological_lab:
       hit.id = hit.id3;
       break;
-    case 4:
+    case IdentityDefinition::blast:
       hit.id = hit.id4;
       break;
-    case iddef_score_based:
+    case IdentityDefinition::score_based:
       hit.id = hit.id5;
       break;
     default:

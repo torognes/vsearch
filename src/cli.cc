@@ -3992,7 +3992,7 @@ namespace {
             break;
 
           case option_iddef:
-            parameters.opt_iddef = args_getlong(optarg);
+            parameters.opt_iddef = static_cast<IdentityDefinition>(args_getlong(optarg));
             break;
 
           case option_slots:
