@@ -445,6 +445,9 @@ options:
     desc: "'no' vote weight (8.0)"
 
   # -------------------- Parameters: clustering --------------------
+  - name: --cons_notruncate
+    arg: { type: flag }
+    desc: "terminal gaps do not vote in consensus"
   - name: --cons_truncate
     arg: { type: flag }
     hidden: true
@@ -1214,6 +1217,7 @@ command_options:
     - --clusterout_id
     - --clusterout_sort
     - --clusters
+    - --cons_notruncate
     - --cons_truncate
     - --consout
     - --fasta_width
@@ -1311,6 +1315,7 @@ command_options:
     - --clusterout_id
     - --clusterout_sort
     - --clusters
+    - --cons_notruncate
     - --cons_truncate
     - --consout
     - --fasta_width
@@ -1408,6 +1413,7 @@ command_options:
     - --clusterout_id
     - --clusterout_sort
     - --clusters
+    - --cons_notruncate
     - --cons_truncate
     - --consout
     - --fasta_width
@@ -1506,6 +1512,7 @@ command_options:
     - --clusterout_id
     - --clusterout_sort
     - --clusters
+    - --cons_notruncate
     - --cons_truncate
     - --consout
     - --fasta_width

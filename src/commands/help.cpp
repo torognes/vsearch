@@ -70,7 +70,7 @@
   /*       0         1         2         3         4         5         6         7          */
   /*       01234567890123456789012345678901234567890123456789012345678901234567890123456789 */
   // C++17 refactoring: deduce the size with CTAD and drop this constant
-  static constexpr std::size_t help_line_count = 564;
+  static constexpr std::size_t help_line_count = 565;
   static constexpr std::array<char const *, help_line_count> help_message =
     {{
       "\n",
@@ -161,7 +161,8 @@
       "  --cluster_smallmem FILENAME cluster already sorted sequences (see -usersort)\n",
       "  --cluster_unoise FILENAME   denoise Illumina amplicon reads\n",
       " Parameters (most searching options also apply)\n",
-      "  --cons_truncate             do not ignore terminal gaps in MSA for consensus\n",
+      "  --cons_notruncate           terminal gaps do not vote in consensus\n",
+      "  --cons_truncate             ignored (terminal gaps vote by default)\n",
       "  --id REAL                   reject if identity lower, accepted values: 0-1.0\n",
       "  --iddef INT                 identity, 0-5=CD-HIT,all,int,MBL,BLAST,score (2)\n",
       "  --qmask none|dust|soft      mask seqs with dust, soft or no method (dust)\n",

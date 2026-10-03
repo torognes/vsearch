@@ -8,6 +8,8 @@
   consensus, each column within the centroid's span shows its most
   frequent nucleotide, or `-` when gaps outnumber every nucleotide;
   columns outside the centroid's span (terminal extensions contributed
-  by longer members) are shown as `+`, whatever their content. If
-  `--sizein` is specified, sequence abundances are taken into account
-  when computing the consensus.
+  by longer members) are shown as `+`, whatever their content, unless
+  `--cons_notruncate` is specified (terminal gaps then do not vote, and
+  these columns are part of the consensus). If `--sizein` is
+  specified, sequence abundances are taken into account when computing
+  the consensus.
