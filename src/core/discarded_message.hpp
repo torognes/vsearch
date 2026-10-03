@@ -72,17 +72,22 @@ namespace vsearch {
    issue #263) whole clusters. */
 enum struct DiscardedItem : char { sequence, cluster };
 
-/* One wording for "this option discarded that many sequences", in one place.
+/* One wording for "this option discarded that many sequences" (or clusters),
+   in one place.
 
-   Four options report it -- --minseqlength, --maxseqlength and --minsize from
-   Database::read() (core/db.cpp), and --minseqlength/--maxseqlength again from
-   the derep commands, which use their own reader (core/derep_stats.cpp). The
-   two files had grown an identical writer each, character for character apart
-   from the parameter names and the width of the count.
+   Five options report it -- --minseqlength, --maxseqlength and --minsize from
+   Database::read() (core/db.cpp), --minseqlength/--maxseqlength again from
+   the derep commands, which use their own reader (core/derep_stats.cpp), and
+   --minclustersize/--maxclustersize from cluster() (core/cluster.cpp), which
+   discard whole clusters rather than sequences (DiscardedItem::cluster). The
+   first two files had grown an identical writer each, character for character
+   apart from the parameter names and the width of the count.
 
    The sentence is:
 
      <option> <threshold>: <n> sequence(s) discarded.
+
+   (with "cluster(s)" instead of "sequence(s)" for DiscardedItem::cluster)
 
    and it is a warning, so callers write it to stderr with no --quiet gate:
    --quiet suppresses "messages to stdout and stderr, except for warnings and
