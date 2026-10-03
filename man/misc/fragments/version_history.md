@@ -35,6 +35,13 @@
       queries, whatever the number of threads. Previously the order of
       the entries could vary from run to run with more than one thread;
       the entries themselves are unchanged.
+    - add: new option `--cons_notruncate` for `--cluster_fast`,
+      `--cluster_size`, `--cluster_smallmem` and `--cluster_unoise`:
+      terminal gaps do not vote in the consensus (`--consout`,
+      `--msaout`) and are not counted in `--profile`, and the columns
+      outside the centroid are kept, so that flanking regions present
+      in only part of a cluster are not lost. Default output is
+      unchanged (issue #86).
     - change: the `--uchimealns` alignments of `--uchime_denovo`,
       `--uchime2_denovo`, `--uchime3_denovo` and `--uchime_ref` are
       trimmed to the query: parent regions reaching beyond the query

@@ -5,5 +5,6 @@
   for each cluster. The data is tab-separated with eight columns:
   position (0-based), consensus nucleotide, number of As, Cs, Gs, Ts
   or Us, gap symbols, and total number of ambiguous nucleotide symbols
-  (B, D, H, K, M, N, R, S, Y, V or W). If `--sizein` is specified,
-  sequence abundances are taken into account.
+  (B, D, H, K, M, N, R, S, Y, V or W). Gap symbols include terminal
+  gaps, unless `--cons_notruncate` is specified. If `--sizein` is
+  specified, sequence abundances are taken into account.

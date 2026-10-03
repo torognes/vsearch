@@ -72,6 +72,8 @@ command writes quality values.
 
 #(./fragments/option_clusters.md)
 
+#(./fragments/option_cons_notruncate.md)
+
 #(./fragments/option_consout.md)
 
 #(./fragments/option_iddef.md)
