@@ -84,7 +84,11 @@ are excluded before denoising.
 
 #(./fragments/option_maxaccepts.md)
 
+#(./fragments/option_maxclustersize.md)
+
 #(./fragments/option_maxrejects.md)
+
+#(./fragments/option_minclustersize.md)
 
 #(./fragments/option_minsize.md)
 

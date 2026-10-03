@@ -11,3 +11,5 @@
   `--cons_notruncate` to ignore terminal gaps and keep the columns
   outside the centroid's span. If `--sizein` is specified, sequence
   abundances are taken into account.
+  See `--minclustersize` and `--maxclustersize` to write only some
+  clusters.

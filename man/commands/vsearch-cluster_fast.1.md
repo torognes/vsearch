@@ -80,7 +80,11 @@ command writes quality values.
 
 #(./fragments/option_maxaccepts.md)
 
+#(./fragments/option_maxclustersize.md)
+
 #(./fragments/option_maxrejects_8.md)
+
+#(./fragments/option_minclustersize.md)
 
 #(./fragments/option_msaout.md)
 
