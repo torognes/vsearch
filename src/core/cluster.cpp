@@ -780,7 +780,7 @@ auto cluster_core_results_nohit(struct cluster_cli_state_s & state,
       fprint(state.fp_uc, "\t*\n");
     }
 
-  if (state.parameters.opt_output_no_hits != 0)
+  if (state.parameters.opt_output_no_hits)
     {
       if (state.fp_userout != nullptr)
         {
@@ -1177,7 +1177,7 @@ auto cluster_core_parallel(struct cluster_cli_state_s & state,
             {
               int const length = static_cast<int>(db.getsequencelen(static_cast<uint64_t>(seqno)));
 
-              if ((state.mode == ClusterMode::smallmem) and (state.parameters.opt_usersort == 0) and (length > lastlength))
+              if ((state.mode == ClusterMode::smallmem) and (not state.parameters.opt_usersort) and (length > lastlength))
                 {
                   fatal("Sequences not sorted by length and --usersort not specified.");
                 }
@@ -1339,7 +1339,7 @@ auto cluster_core_serial(struct cluster_cli_state_s & state,
     {
       int const length = static_cast<int>(db.getsequencelen(static_cast<uint64_t>(seqno)));
 
-      if ((state.mode == ClusterMode::smallmem) and (state.parameters.opt_usersort == 0) and (length > lastlength))
+      if ((state.mode == ClusterMode::smallmem) and (not state.parameters.opt_usersort) and (length > lastlength))
         {
           fatal("Sequences not sorted by length and --usersort not specified.");
         }

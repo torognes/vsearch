@@ -310,7 +310,7 @@ auto accumulate_slice_counts(struct searchinfo_s const & searchinfo,
           auto const bits = View<unsigned char>{std::next(bitmap, first_byte),
                                                 slice_bitmap_bytes};
 #ifdef __x86_64__
-          if (parameters.runtime.ssse3_present != 0)
+          if (parameters.runtime.ssse3_present)
             {
               increment_counters_from_bitmap_ssse3(slice, bits);
             }
@@ -891,10 +891,10 @@ auto search_acceptable_unaligned(struct searchinfo_s const & searchinfo,
                    dseq.last(static_cast<std::size_t>(parameters.opt_idsuffix))) == 0))
           and
           /* self */
-          ((parameters.opt_self == 0) or (searchinfo.query_head != dlabel))
+          ((not parameters.opt_self) or (searchinfo.query_head != dlabel))
           and
           /* selfid */
-          ((parameters.opt_selfid == 0) or
+          ((not parameters.opt_selfid) or
            (selfid_qseqlen != dseqlen) or
            (seqcmp(selfid_qseq, dseq.first(static_cast<std::size_t>(selfid_qseqlen))) != 0))
           );
@@ -972,10 +972,10 @@ auto search_acceptable_aligned(struct searchinfo_s const & searchinfo,
       /* mincols */
       (hit.internal_alignmentlength >= parameters.opt_mincols) and
       /* leftjust */
-      ((parameters.opt_leftjust == 0) or (hit.trim_q_left +
+      ((not parameters.opt_leftjust) or (hit.trim_q_left +
                            hit.trim_t_left == 0)) and
       /* rightjust */
-      ((parameters.opt_rightjust == 0) or (hit.trim_q_right +
+      ((not parameters.opt_rightjust) or (hit.trim_q_right +
                             hit.trim_t_right == 0)) and
       /* query_cov */
       (hit.matches + hit.mismatches >= parameters.opt_query_cov * static_cast<int>(searchinfo.qsequence.size())) and

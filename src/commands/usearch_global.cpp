@@ -217,7 +217,7 @@ static auto search_output_results(struct search_cli_state_s & state,
 
   if (not to_report.empty())  // hits.size() >=1 and <= opt_maxhits
     {
-      auto const top = top_hits(to_report, state.parameters.opt_top_hits_only != 0);
+      auto const top = top_hits(to_report, state.parameters.opt_top_hits_only);
 
       if (needs_otu_table(state.parameters))
         {

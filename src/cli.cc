@@ -3594,7 +3594,7 @@ namespace {
             break;
 
           case option_self:
-            parameters.opt_self = 1;
+            parameters.opt_self = true;
             break;
 
           case option_blast6out:
@@ -3706,7 +3706,7 @@ namespace {
             break;
 
           case option_output_no_hits:
-            parameters.opt_output_no_hits = 1;
+            parameters.opt_output_no_hits = true;
             break;
 
           case option_maxhits:
@@ -3714,7 +3714,7 @@ namespace {
             break;
 
           case option_top_hits_only:
-            parameters.opt_top_hits_only = 1;
+            parameters.opt_top_hits_only = true;
             break;
 
           case option_fasta_width:
@@ -3787,15 +3787,15 @@ namespace {
             break;
 
           case option_leftjust:
-            parameters.opt_leftjust = 1;
+            parameters.opt_leftjust = true;
             break;
 
           case option_rightjust:
-            parameters.opt_rightjust = 1;
+            parameters.opt_rightjust = true;
             break;
 
           case option_selfid:
-            parameters.opt_selfid = 1;
+            parameters.opt_selfid = true;
             break;
 
           case option_maxid:
@@ -3967,7 +3967,7 @@ namespace {
             break;
 
           case option_usersort:
-            parameters.opt_usersort = 1;
+            parameters.opt_usersort = true;
             break;
 
           case option_xn:
@@ -4047,7 +4047,7 @@ namespace {
             break;
 
           case option_uchimeout5:
-            parameters.opt_uchimeout5 = 1;
+            parameters.opt_uchimeout5 = true;
             break;
 
           case option_alignwidth:
@@ -4059,7 +4059,7 @@ namespace {
             break;
 
           case option_acceptall:
-            parameters.opt_acceptall = 1;
+            parameters.opt_acceptall = true;
             break;
 
           case option_allow_fewer:
@@ -5707,7 +5707,7 @@ namespace {
                                      struct Parameters const & parameters) -> void
   {
     if ((command == Command::allpairs_global) and
-        (not ((parameters.opt_acceptall != 0) or ((parameters.opt_id >= 0.0) and (parameters.opt_id <= 1.0)))))
+        (not (parameters.opt_acceptall or ((parameters.opt_id >= 0.0) and (parameters.opt_id <= 1.0)))))
       {
         fatal("Specify either --acceptall or --id with an identity from 0.0 to 1.0");
       }

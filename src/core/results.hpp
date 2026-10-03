@@ -242,7 +242,7 @@ inline auto results_show_no_hit(NoHitOutputFiles const & files,
                           PerfectMatch::whole_alignment);
     }
 
-  if (parameters.opt_output_no_hits == 0)
+  if (not parameters.opt_output_no_hits)
     {
       return;
     }
