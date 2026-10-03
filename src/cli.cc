@@ -3548,7 +3548,6 @@ namespace {
             break;
 
           case option_fulldp:
-            parameters.opt_fulldp = 1;
             vsearch::warn("Option --fulldp is ignored");
             break;
 
@@ -3981,7 +3980,9 @@ namespace {
 
           case option_slots:
             vsearch::warn("Option --slots is ignored");
-            parameters.opt_slots = static_cast<int>(args_getlong(optarg));
+            /* the value is not stored, but a non-numeric argument is still
+               rejected, as it always was */
+            static_cast<void>(args_getlong(optarg));
             break;
 
           case option_pattern:
