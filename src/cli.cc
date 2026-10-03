@@ -5818,8 +5818,7 @@ namespace {
              The default value is std::numeric_limits<long>::min(), meaning
              "no truncation"; skip the range check in that case so the default
              is preserved. */
-          static constexpr auto long_min = std::numeric_limits<long>::min();
-          if ((parameters.opt_fastq_truncqual != long_min) and
+          if ((parameters.opt_fastq_truncqual != fastq_truncqual_unset) and
               ((parameters.opt_fastq_truncqual < 0) or (parameters.opt_fastq_truncqual > 93))) {
             fatal("Argument to --fastq_truncqual must be in range 0..93");
           }

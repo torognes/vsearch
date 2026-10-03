@@ -107,6 +107,12 @@ constexpr int legacy_max_quality = 41;
    leaves it for resolve_fastq_qmaxout() at the point of use. */
 constexpr int64_t fastq_qmaxout_unset = std::numeric_limits<int64_t>::min();
 
+/* --fastq_truncqual's "not given" value: no quality score is at or below it,
+   so truncation never triggers. Named once here rather than redeclared as a
+   local long_min at each check; its value is the one the option has always
+   defaulted to. */
+constexpr int64_t fastq_truncqual_unset = std::numeric_limits<long>::min();
+
 
 /* The lowest and highest quality symbol seen so far, the two values every
    offset heuristic below is stated in terms of. Kept as one struct rather

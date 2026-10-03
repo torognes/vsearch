@@ -361,7 +361,7 @@ public:
   int64_t   opt_fastq_stripright             = 0;
   int64_t   opt_fastq_trunclen               = -1;
   int64_t   opt_fastq_trunclen_keep          = -1;
-  int64_t   opt_fastq_truncqual              = std::numeric_limits<long>::min();
+  int64_t   opt_fastq_truncqual              = fastq_truncqual_unset;
   int64_t   opt_iddef                        = 2;
   int64_t   opt_idprefix                     = 0;
   int64_t   opt_idsuffix                     = 0;

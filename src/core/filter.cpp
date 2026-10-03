@@ -387,7 +387,6 @@ auto filter(bool const fastq_only, char const * filename, struct Parameters cons
   check_parameters(parameters);
 
   static constexpr auto dbl_max_local = std::numeric_limits<double>::max();  // refactoring: redundant?
-  static constexpr auto long_min = std::numeric_limits<long>::min();
 
   if ((parameters.opt_fastqout == nullptr) and (parameters.opt_fastaout == nullptr) and
       (parameters.opt_fastqout_discarded == nullptr) and (parameters.opt_fastaout_discarded == nullptr) and
@@ -433,7 +432,7 @@ auto filter(bool const fastq_only, char const * filename, struct Parameters cons
                (parameters.opt_fastq_qmax < legacy_max_quality) or (parameters.opt_fastq_qmin > 0) or
                (parameters.opt_fastq_truncee < dbl_max_local) or
                (parameters.opt_fastq_truncee_rate < dbl_max_local) or
-               (parameters.opt_fastq_truncqual != long_min) or
+               (parameters.opt_fastq_truncqual != fastq_truncqual_unset) or
                (parameters.opt_fastq_minqual > 0) or
                (parameters.opt_fastqout_discarded != nullptr) or
                (parameters.opt_fastqout_discarded_rev != nullptr) or
@@ -495,7 +494,7 @@ auto filter(bool const fastq_only, char const * filename, struct Parameters cons
        that the window test has already accepted -- that is the subtle one,
        and 0 <= 0 is why the default command line qualifies. */
   auto const scan =
-    ((parameters.opt_fastq_truncqual == long_min) and
+    ((parameters.opt_fastq_truncqual == fastq_truncqual_unset) and
      (parameters.opt_fastq_truncee >= dbl_max_local) and
      (parameters.opt_fastq_truncee_rate >= dbl_max_local) and
      (parameters.opt_fastq_minqual <= parameters.opt_fastq_qmin))
@@ -634,7 +633,6 @@ auto filter(bool const fastq_only, char const * filename, struct Parameters cons
 namespace {
 
   auto check_parameters(struct Parameters const & parameters) -> void {
-    static constexpr auto long_min = std::numeric_limits<long>::min();
 
     auto const is_negative = std::signbit(parameters.opt_fastq_truncee_rate);
     if (is_negative) {
@@ -690,7 +688,7 @@ namespace {
        The default value is std::numeric_limits<long>::min(), meaning
        "no truncation"; skip the range check in that case so the
        default is preserved. */
-    if ((parameters.opt_fastq_truncqual != long_min) and
+    if ((parameters.opt_fastq_truncqual != fastq_truncqual_unset) and
         ((parameters.opt_fastq_truncqual < 0) or (parameters.opt_fastq_truncqual > 93))) {
       fatal("Argument to --fastq_truncqual must be in range 0..93");
     }
