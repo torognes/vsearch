@@ -63,6 +63,7 @@
 #include "parameters.hpp"  // parameters_resolve_derived, parameters_validate, validate_thread_count, QualityOrigin, fastq_output_offset, resolve_fastq_qmaxout
 #include "os/system.hpp"  // system_get_available_cores
 #include "core/buffer_headroom.hpp"  // buffer_headroom
+#include "core/identity_definition.hpp"  // IdentityDefinition
 #include "core/mask.hpp"  // Masking
 #include "utils/decimal_digits.hpp"  // decimal::Buffer, decimal::to_decimal
 #include "utils/print_view.hpp"  // fprint
@@ -5723,8 +5724,9 @@ namespace {
   auto validate_command_requirements(Command const command,
                                      struct Parameters const & parameters) -> void
   {
+    auto const is_identity_in_range = (parameters.opt_id >= 0.0) and (parameters.opt_id <= 1.0);
     if ((command == Command::allpairs_global) and
-        (not (parameters.opt_acceptall or ((parameters.opt_id >= 0.0) and (parameters.opt_id <= 1.0)))))
+        (not parameters.opt_acceptall) and (not is_identity_in_range))
       {
         fatal("Specify either --acceptall or --id with an identity from 0.0 to 1.0");
       }

@@ -70,6 +70,7 @@
 #include "utils/fatal.hpp"
 #include "core/quality_range.hpp"  // vsearch::classify_quality, quality_out_of_range_message
 #include "utils/open_file.hpp"
+#include "utils/quality_encoding.hpp"  // fastq_truncqual_unset
 #include "utils/quality_table.hpp"  // vsearch::QualityTable
 #include "utils/view.hpp"  // View<char>
 #include <algorithm>  // std::count_if, std::min, std::max

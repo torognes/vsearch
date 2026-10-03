@@ -68,6 +68,7 @@
 #include "parameters.hpp"  // validate_thread_count, parameters_resolve_derived, parameters_validate, vsearch_apply_defaults_fixups, QualityOrigin, fastq_output_offset, resolve_fastq_qmaxout
 #include "vsearch.hpp"  // struct Parameters
 #include "core/chimera.hpp"  // maxparents
+#include "core/identity_definition.hpp"  // IdentityDefinition
 #include "core/searchcore.hpp"  // minwordmatches_defaults
 #include "os/system.hpp"  // system_get_available_cores
 #include "utils/fatal.hpp"  // fatal
