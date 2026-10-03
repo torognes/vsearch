@@ -3948,7 +3948,7 @@ namespace {
 
           case option_cons_truncate:
             vsearch::warn("Option --cons_truncate is ignored");
-            parameters.opt_cons_truncate = 1;
+            parameters.opt_cons_truncate = true;
             break;
 
           case option_msaout:
@@ -5234,7 +5234,7 @@ namespace {
         fatal("Specify either --gzip_decompress or --bzip2_decompress, not both");
       }
 
-    if (parameters.opt_cons_notruncate and (parameters.opt_cons_truncate != 0))
+    if (parameters.opt_cons_notruncate and parameters.opt_cons_truncate)
       {
         fatal("Specify either --cons_truncate or --cons_notruncate, not both");
       }

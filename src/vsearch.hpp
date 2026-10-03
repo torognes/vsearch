@@ -192,6 +192,7 @@ public:
   bool opt_clusterout_id = false;
   bool opt_clusterout_sort = false;
   bool opt_cons_notruncate = false;
+  bool opt_cons_truncate = false;
   bool opt_eeout = false;
   bool opt_fasta_score = false;
   bool opt_fastq_allowmergestagger = false;
@@ -302,7 +303,6 @@ public:
   int       opt_chimeras_length_min          = 10;
   int       opt_chimeras_parents_max         = 3;
   int       opt_chimeras_parts               = 0;
-  int       opt_cons_truncate                = 0;
   int       opt_gap_extension_query_interior = 2;
   int       opt_gap_extension_query_left     = 1;
   int       opt_gap_extension_query_right    = 1;
