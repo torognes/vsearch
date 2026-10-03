@@ -5234,6 +5234,11 @@ namespace {
         fatal("Specify either --gzip_decompress or --bzip2_decompress, not both");
       }
 
+    if (parameters.opt_cons_notruncate and (parameters.opt_cons_truncate != 0))
+      {
+        fatal("Specify either --cons_truncate or --cons_notruncate, not both");
+      }
+
     /* --db and the query both map "-" to a duplicate of standard input, so
        giving "-" to both makes the two readers race over the same stream and
        silently return no hits. Reject that ambiguous spelling; feed one of

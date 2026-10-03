@@ -13,4 +13,5 @@
   (so that extensions of different lengths line up by their end). For
   example, a centroid `ACTGACCCAGT` and five members `ACCCAGT` give
   the consensus `ACCCAGT` by default, and `ACTGACCCAGT` with
-  `--cons_notruncate`.
+  `--cons_notruncate`. This option cannot be combined with
+  `--cons_truncate`.
