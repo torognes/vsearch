@@ -634,6 +634,9 @@ options:
   - name: --maxaccepts
     arg: { type: int }
     desc: "number of hits to accept and show per strand (1)"
+  - name: --maxclustersize
+    arg: { type: int }
+    desc: "skip larger clusters in clusters/centroids/MSA"
   - name: --maxdiffs
     arg: { type: int }
     desc: "reject if more substitutions or indels"
@@ -667,6 +670,9 @@ options:
   - name: --mid
     arg: { type: real }
     desc: "reject if percent identity lower, ignoring gaps"
+  - name: --minclustersize
+    arg: { type: int }
+    desc: "skip smaller clusters in clusters/centroids/MSA (1)"
   - name: --mincols
     arg: { type: int }
     desc: "reject if alignment length shorter"
@@ -1239,6 +1245,7 @@ command_options:
     - --match
     - --matched
     - --maxaccepts
+    - --maxclustersize
     - --maxdiffs
     - --maxgaps
     - --maxhits
@@ -1251,6 +1258,7 @@ command_options:
     - --maxsl
     - --maxsubs
     - --mid
+    - --minclustersize
     - --mincols
     - --minhsp
     - --minqt
@@ -1337,6 +1345,7 @@ command_options:
     - --match
     - --matched
     - --maxaccepts
+    - --maxclustersize
     - --maxdiffs
     - --maxgaps
     - --maxhits
@@ -1349,6 +1358,7 @@ command_options:
     - --maxsl
     - --maxsubs
     - --mid
+    - --minclustersize
     - --mincols
     - --minhsp
     - --minqt
@@ -1435,6 +1445,7 @@ command_options:
     - --match
     - --matched
     - --maxaccepts
+    - --maxclustersize
     - --maxdiffs
     - --maxgaps
     - --maxhits
@@ -1447,6 +1458,7 @@ command_options:
     - --maxsl
     - --maxsubs
     - --mid
+    - --minclustersize
     - --mincols
     - --minhsp
     - --minqt
@@ -1534,6 +1546,7 @@ command_options:
     - --match
     - --matched
     - --maxaccepts
+    - --maxclustersize
     - --maxdiffs
     - --maxgaps
     - --maxhits
@@ -1546,6 +1559,7 @@ command_options:
     - --maxsl
     - --maxsubs
     - --mid
+    - --minclustersize
     - --mincols
     - --minhsp
     - --minqt

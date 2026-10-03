@@ -525,8 +525,8 @@ namespace {
   constexpr auto default_oligo_target_cov = 0.75;
 
   constexpr auto number_of_commands = std::size_t{54};
-  constexpr auto number_of_options = std::size_t{262};
-  constexpr auto max_number_of_options_per_command = std::size_t{101};
+  constexpr auto number_of_options = std::size_t{264};
+  constexpr auto max_number_of_options_per_command = std::size_t{103};
 
   enum
     {
@@ -673,6 +673,7 @@ namespace {
       option_matched,
       option_max_unmasked_pct,
       option_maxaccepts,
+      option_maxclustersize,
       option_maxdiffs,
       option_maxgaps,
       option_maxhits,
@@ -688,6 +689,7 @@ namespace {
       option_maxuniquesize,
       option_mid,
       option_min_unmasked_pct,
+      option_minclustersize,
       option_mincols,
       option_mindiffs,
       option_mindiv,
@@ -956,6 +958,7 @@ namespace {
       {"matched",                    true },
       {"max_unmasked_pct",           true },
       {"maxaccepts",                 true },
+      {"maxclustersize",             true },
       {"maxdiffs",                   true },
       {"maxgaps",                    true },
       {"maxhits",                    true },
@@ -971,6 +974,7 @@ namespace {
       {"maxuniquesize",              true },
       {"mid",                        true },
       {"min_unmasked_pct",           true },
+      {"minclustersize",             true },
       {"mincols",                    true },
       {"mindiffs",                   true },
       {"mindiv",                     true },
@@ -1267,6 +1271,7 @@ namespace {
         option_match,
         option_matched,
         option_maxaccepts,
+        option_maxclustersize,
         option_maxdiffs,
         option_maxgaps,
         option_maxhits,
@@ -1279,6 +1284,7 @@ namespace {
         option_maxsl,
         option_maxsubs,
         option_mid,
+        option_minclustersize,
         option_mincols,
         option_minhsp,
         option_minqt,
@@ -1367,6 +1373,7 @@ namespace {
         option_match,
         option_matched,
         option_maxaccepts,
+        option_maxclustersize,
         option_maxdiffs,
         option_maxgaps,
         option_maxhits,
@@ -1379,6 +1386,7 @@ namespace {
         option_maxsl,
         option_maxsubs,
         option_mid,
+        option_minclustersize,
         option_mincols,
         option_minhsp,
         option_minqt,
@@ -1467,6 +1475,7 @@ namespace {
         option_match,
         option_matched,
         option_maxaccepts,
+        option_maxclustersize,
         option_maxdiffs,
         option_maxgaps,
         option_maxhits,
@@ -1479,6 +1488,7 @@ namespace {
         option_maxsl,
         option_maxsubs,
         option_mid,
+        option_minclustersize,
         option_mincols,
         option_minhsp,
         option_minqt,
@@ -1568,6 +1578,7 @@ namespace {
         option_match,
         option_matched,
         option_maxaccepts,
+        option_maxclustersize,
         option_maxdiffs,
         option_maxgaps,
         option_maxhits,
@@ -1580,6 +1591,7 @@ namespace {
         option_maxsl,
         option_maxsubs,
         option_mid,
+        option_minclustersize,
         option_mincols,
         option_minhsp,
         option_minqt,
@@ -3977,6 +3989,14 @@ namespace {
             parameters.opt_pattern = optarg;
             break;
 
+          case option_maxclustersize:
+            parameters.opt_maxclustersize = args_getlong(optarg);
+            break;
+
+          case option_minclustersize:
+            parameters.opt_minclustersize = args_getlong(optarg);
+            break;
+
           case option_maxuniquesize:
             parameters.opt_maxuniquesize = args_getlong(optarg);
             break;
@@ -5287,6 +5307,38 @@ namespace {
       {
         vsearch::warn("--minuniquesize is larger than --maxuniquesize: "
                       "no sequence will satisfy the abundance filter");
+      }
+
+    if (parameters.opt_minclustersize < 1)
+      {
+        fatal("The argument to minclustersize must be at least 1");
+      }
+
+    if (parameters.opt_maxclustersize < 1)
+      {
+        fatal("The argument to maxclustersize must be at least 1");
+      }
+
+    /* Same as the minuniquesize/maxuniquesize warning above: an inverted
+       range selects no cluster for the filtered outputs (issue #263). */
+    if (parameters.opt_minclustersize > parameters.opt_maxclustersize)
+      {
+        vsearch::warn("--minclustersize is larger than --maxclustersize: "
+                      "no cluster will satisfy the cluster size filter");
+      }
+
+    /* the cluster size filter only acts on outputs written once clusters
+       are complete (issue #263); without any of them it does nothing */
+    auto const has_cluster_size_filter =
+      options_selected[option_minclustersize] or options_selected[option_maxclustersize];
+    auto const has_filtered_output =
+      (parameters.opt_clusters != nullptr) or (parameters.opt_centroids != nullptr) or
+      (parameters.opt_consout != nullptr) or (parameters.opt_msaout != nullptr) or
+      (parameters.opt_profile != nullptr);
+    if (has_cluster_size_filter and not has_filtered_output)
+      {
+        vsearch::warn("--minclustersize and --maxclustersize have no effect without "
+                      "--clusters, --centroids, --consout, --msaout or --profile");
       }
 
     if (parameters.opt_maxsize < 1)

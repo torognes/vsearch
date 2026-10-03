@@ -13,3 +13,5 @@
   these columns are part of the consensus). If `--sizein` is
   specified, sequence abundances are taken into account when computing
   the consensus.
+  See `--minclustersize` and `--maxclustersize` to write only some
+  clusters.

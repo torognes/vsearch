@@ -69,6 +69,7 @@
 #include "core/attributes.hpp"
 #include "core/db.hpp"
 #include "core/dbindex.hpp"
+#include "core/discarded_message.hpp"
 #include "core/fasta.hpp"
 #include "core/linmemalign.hpp"
 #include "core/mask.hpp"
@@ -89,7 +90,7 @@
 #include "utils/reverse_complement.hpp"
 #include "utils/sequence_digest.hpp"
 #include <cassert>
-#include <algorithm>  // std::copy, std::count, std::minmax_element, std::max_element, std::min
+#include <algorithm>  // std::copy, std::count, std::count_if, std::minmax_element, std::max_element, std::min
 #include <array>
 #include <atomic>  // std::atomic
 #include <chrono>  // std::chrono::steady_clock, std::chrono::duration
@@ -547,6 +548,46 @@ private:
 
 
 namespace {
+/* --minclustersize and --maxclustersize (issue #263): the outputs written
+   once clusters are complete (--clusters, --centroids, --consout, --msaout,
+   --profile) keep only the clusters whose size is in range. The size is the
+   one --uc C records report: the member count, or the sum of the members'
+   abundances with --sizein. --uc and the OTU tables are not filtered. */
+auto passes_cluster_size_filter(int64_t const cluster_abundance,
+                                struct Parameters const & parameters) noexcept -> bool
+{
+  return (cluster_abundance >= parameters.opt_minclustersize) and
+    (cluster_abundance <= parameters.opt_maxclustersize);
+}
+
+
+auto has_cluster_size_filtered_output(struct Parameters const & parameters) noexcept -> bool
+{
+  return (parameters.opt_clusters != nullptr) or (parameters.opt_centroids != nullptr) or
+    (parameters.opt_consout != nullptr) or (parameters.opt_msaout != nullptr) or
+    (parameters.opt_profile != nullptr);
+}
+
+
+/* "minclustersize 2: 15 clusters discarded." on stderr (a warning: no --quiet
+   gate, as for the other discarded counts) and in the log */
+auto report_discarded_clusters(char const * const option_name,
+                               int64_t const threshold,
+                               uint64_t const discarded,
+                               struct Parameters const & parameters) -> void
+{
+  if (discarded == 0) { return; }
+  vsearch::print_discarded(stderr, option_name, threshold, discarded,
+                           vsearch::DiscardedItem::cluster);
+  if (parameters.fp_log != nullptr)
+    {
+      vsearch::print_discarded(parameters.fp_log, option_name, threshold, discarded,
+                               vsearch::DiscardedItem::cluster);
+      fprint(parameters.fp_log, '\n');
+    }
+}
+
+
 auto relabel_otu(int const clusterno, View<char> const sequence, struct Parameters const & parameters) -> std::string
 {
   if (parameters.opt_relabel != nullptr)
@@ -1598,7 +1639,10 @@ auto cluster(char const * dbname, ClusterMode const mode,
             /* performed with first sequence only in each cluster */
             /* the first sequence is always the centroid */
 
-            if (parameters.opt_centroids != nullptr)
+            auto const is_written = passes_cluster_size_filter(
+              cluster_abundance_v[static_cast<std::size_t>(clusterno)], parameters);
+
+            if ((parameters.opt_centroids != nullptr) and is_written)
               {
                 OutputAnnotations annotations {
                   static_cast<uint64_t>(cluster_abundance_v[static_cast<std::size_t>(clusterno)]),
@@ -1633,17 +1677,22 @@ auto cluster(char const * dbname, ClusterMode const mode,
                   }
 
                 ordinal = 0;
-                /* "%s%d": the prefix, then the cluster number in decimal.
-                   A std::string sizes itself, so there is no buffer to get
-                   wrong; std::fopen needs the terminator, which is what
-                   c_str() is for. */
-                std::string const filename =
-                  std::string(parameters.opt_clusters) + decimal::to_text(clusterno);
-                fp_clusters = open_output_file(filename.c_str());
-                if (not fp_clusters)
+                /* a cluster out of the size range gets no file at all, so
+                   that small clusters cost no inodes (issue #263) */
+                if (is_written)
                   {
-                    fatal("Unable to open clusters file for writing ("
-                          + filename + ")");
+                    /* "%s%d": the prefix, then the cluster number in decimal.
+                       A std::string sizes itself, so there is no buffer to get
+                       wrong; std::fopen needs the terminator, which is what
+                       c_str() is for. */
+                    std::string const filename =
+                      std::string(parameters.opt_clusters) + decimal::to_text(clusterno);
+                    fp_clusters = open_output_file(filename.c_str());
+                    if (not fp_clusters)
+                      {
+                        fatal("Unable to open clusters file for writing ("
+                              + filename + ")");
+                      }
                   }
               }
 
@@ -1652,7 +1701,7 @@ auto cluster(char const * dbname, ClusterMode const mode,
 
         /* performed for all sequences */
 
-        if (parameters.opt_clusters != nullptr)
+        if (fp_clusters)  // no file is open for a cluster out of the size range
           {
             ++ordinal;
             fasta_print_db_relabel(fp_clusters.get(), static_cast<uint64_t>(seqno), ordinal, state.db, parameters);
@@ -1671,6 +1720,22 @@ auto cluster(char const * dbname, ClusterMode const mode,
       }
   }
 
+
+  if (has_cluster_size_filtered_output(parameters))
+    {
+      auto const too_small = std::count_if(cluster_abundance_v.cbegin(), cluster_abundance_v.cend(),
+                                           [&parameters](int64_t const abundance) -> bool {
+                                             return abundance < parameters.opt_minclustersize;
+                                           });
+      auto const too_large = std::count_if(cluster_abundance_v.cbegin(), cluster_abundance_v.cend(),
+                                           [&parameters](int64_t const abundance) -> bool {
+                                             return abundance > parameters.opt_maxclustersize;
+                                           });
+      report_discarded_clusters("minclustersize", parameters.opt_minclustersize,
+                                static_cast<uint64_t>(too_small), parameters);
+      report_discarded_clusters("maxclustersize", parameters.opt_maxclustersize,
+                                static_cast<uint64_t>(too_large), parameters);
+    }
 
   auto const summary = ClusterSummary{clusters, singletons, seqcount,
                                       abundance_min, abundance_max};
@@ -1718,13 +1783,15 @@ auto cluster(char const * dbname, ClusterMode const mode,
 
             if (clusterno != lastcluster)
               {
-                if (lastcluster != -1)
+                auto const last_abundance = (lastcluster != -1)
+                  ? cluster_abundance_v[static_cast<std::size_t>(lastcluster)] : 0;
+                if ((lastcluster != -1) and passes_cluster_size_filter(last_abundance, parameters))
                   {
                     /* compute msa & consensus */
                     msa(msaout_handle.get(), consout_handle.get(), profile_handle.get(),
                         lastcluster,
                         make_view(msa_target_list_v).first(static_cast<std::size_t>(msa_target_count)),
-                        cluster_abundance_v[static_cast<std::size_t>(lastcluster)],
+                        last_abundance,
                         state.db,
                         parameters);
                   }
@@ -1743,13 +1810,15 @@ auto cluster(char const * dbname, ClusterMode const mode,
             progress.update(static_cast<uint64_t>(i));
           }
 
-        if (lastcluster != -1)
+        auto const last_abundance = (lastcluster != -1)
+          ? cluster_abundance_v[static_cast<std::size_t>(lastcluster)] : 0;
+        if ((lastcluster != -1) and passes_cluster_size_filter(last_abundance, parameters))
           {
             /* compute msa & consensus */
             msa(msaout_handle.get(), consout_handle.get(), profile_handle.get(),
                 lastcluster,
                 make_view(msa_target_list_v).first(static_cast<std::size_t>(msa_target_count)),
-                cluster_abundance_v[static_cast<std::size_t>(lastcluster)],
+                last_abundance,
                 state.db,
                 parameters);
           }

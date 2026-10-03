@@ -276,6 +276,7 @@ _vsearch() {
             '--match[score for match (2)]:n:' \
             '--matched[FASTA file for matching query sequences]:file:_files' \
             '--maxaccepts[number of hits to accept and show per strand (1)]:n:' \
+            '--maxclustersize[skip larger clusters in clusters/centroids/MSA]:n:' \
             '--maxdiffs[reject if more substitutions or indels]:n:' \
             '--maxgaps[reject if more indels]:n:' \
             '--maxhits[maximum number of hits to show (unlimited)]:n:' \
@@ -288,6 +289,7 @@ _vsearch() {
             '--maxsl[reject if shorter/longer length ratio higher]:x:' \
             '--maxsubs[reject if more substitutions]:n:' \
             '--mid[reject if percent identity lower, ignoring gaps]:x:' \
+            '--minclustersize[skip smaller clusters in clusters/centroids/MSA (1)]:n:' \
             '--mincols[reject if alignment length shorter]:n:' \
             '--minqt[reject if query/target length ratio lower]:x:' \
             '--minseqlength[minimum sequence length (clust/derep/search\: 32, other\: 1)]:n:' \
@@ -369,6 +371,7 @@ _vsearch() {
             '--match[score for match (2)]:n:' \
             '--matched[FASTA file for matching query sequences]:file:_files' \
             '--maxaccepts[number of hits to accept and show per strand (1)]:n:' \
+            '--maxclustersize[skip larger clusters in clusters/centroids/MSA]:n:' \
             '--maxdiffs[reject if more substitutions or indels]:n:' \
             '--maxgaps[reject if more indels]:n:' \
             '--maxhits[maximum number of hits to show (unlimited)]:n:' \
@@ -381,6 +384,7 @@ _vsearch() {
             '--maxsl[reject if shorter/longer length ratio higher]:x:' \
             '--maxsubs[reject if more substitutions]:n:' \
             '--mid[reject if percent identity lower, ignoring gaps]:x:' \
+            '--minclustersize[skip smaller clusters in clusters/centroids/MSA (1)]:n:' \
             '--mincols[reject if alignment length shorter]:n:' \
             '--minqt[reject if query/target length ratio lower]:x:' \
             '--minseqlength[minimum sequence length (clust/derep/search\: 32, other\: 1)]:n:' \
@@ -462,6 +466,7 @@ _vsearch() {
             '--match[score for match (2)]:n:' \
             '--matched[FASTA file for matching query sequences]:file:_files' \
             '--maxaccepts[number of hits to accept and show per strand (1)]:n:' \
+            '--maxclustersize[skip larger clusters in clusters/centroids/MSA]:n:' \
             '--maxdiffs[reject if more substitutions or indels]:n:' \
             '--maxgaps[reject if more indels]:n:' \
             '--maxhits[maximum number of hits to show (unlimited)]:n:' \
@@ -474,6 +479,7 @@ _vsearch() {
             '--maxsl[reject if shorter/longer length ratio higher]:x:' \
             '--maxsubs[reject if more substitutions]:n:' \
             '--mid[reject if percent identity lower, ignoring gaps]:x:' \
+            '--minclustersize[skip smaller clusters in clusters/centroids/MSA (1)]:n:' \
             '--mincols[reject if alignment length shorter]:n:' \
             '--minqt[reject if query/target length ratio lower]:x:' \
             '--minseqlength[minimum sequence length (clust/derep/search\: 32, other\: 1)]:n:' \
@@ -556,6 +562,7 @@ _vsearch() {
             '--match[score for match (2)]:n:' \
             '--matched[FASTA file for matching query sequences]:file:_files' \
             '--maxaccepts[number of hits to accept and show per strand (1)]:n:' \
+            '--maxclustersize[skip larger clusters in clusters/centroids/MSA]:n:' \
             '--maxdiffs[reject if more substitutions or indels]:n:' \
             '--maxgaps[reject if more indels]:n:' \
             '--maxhits[maximum number of hits to show (unlimited)]:n:' \
@@ -568,6 +575,7 @@ _vsearch() {
             '--maxsl[reject if shorter/longer length ratio higher]:x:' \
             '--maxsubs[reject if more substitutions]:n:' \
             '--mid[reject if percent identity lower, ignoring gaps]:x:' \
+            '--minclustersize[skip smaller clusters in clusters/centroids/MSA (1)]:n:' \
             '--mincols[reject if alignment length shorter]:n:' \
             '--minqt[reject if query/target length ratio lower]:x:' \
             '--minseqlength[minimum sequence length (clust/derep/search\: 32, other\: 1)]:n:' \

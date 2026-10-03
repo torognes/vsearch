@@ -8,3 +8,5 @@
   (B, D, H, K, M, N, R, S, Y, V or W). Gap symbols include terminal
   gaps, unless `--cons_notruncate` is specified. If `--sizein` is
   specified, sequence abundances are taken into account.
+  See `--minclustersize` and `--maxclustersize` to write only some
+  clusters.

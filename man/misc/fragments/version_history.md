@@ -35,6 +35,13 @@
       queries, whatever the number of threads. Previously the order of
       the entries could vary from run to run with more than one thread;
       the entries themselves are unchanged.
+    - add: new options `--minclustersize` and `--maxclustersize` for
+      `--cluster_fast`, `--cluster_size`, `--cluster_smallmem` and
+      `--cluster_unoise`: clusters out of the size range are left out
+      of `--clusters` (no file is created), `--centroids`,
+      `--consout`, `--msaout` and `--profile`, so that thousands of
+      small clusters no longer cost thousands of files. `--uc` and the
+      OTU tables are not filtered (issue #263).
     - add: new option `--cons_notruncate` for `--cluster_fast`,
       `--cluster_size`, `--cluster_smallmem` and `--cluster_unoise`:
       terminal gaps do not vote in the consensus (`--consout`,
