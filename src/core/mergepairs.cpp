@@ -119,7 +119,7 @@ inline auto get_qual(char const quality_symbol, struct Parameters const & parame
   assert(quality_symbol >= 33);
   assert(quality_symbol <= 126);
 
-  auto const quality_value = static_cast<int>(quality_symbol - parameters.opt_fastq_ascii);
+  auto const quality_value = quality_symbol - parameters.opt_fastq_ascii;
 
   /* An out-of-range value is recorded on the read pair (not signalled to any
      shared state); the caller stops processing this pair and, on the CLI path,
@@ -150,7 +150,7 @@ inline auto q_to_p(int const quality_symbol, struct Parameters const & parameter
   assert(quality_symbol >= 33);
   assert(quality_symbol <= 126);
 
-  auto const quality_value = static_cast<int>(quality_symbol - parameters.opt_fastq_ascii);
+  auto const quality_value = quality_symbol - parameters.opt_fastq_ascii;
 
   // refactor: extract branch to a separate operation
   if (quality_value < low_quality_threshold) {

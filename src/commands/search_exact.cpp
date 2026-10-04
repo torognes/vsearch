@@ -357,7 +357,7 @@ auto search_exact_output_results(struct search_exact_state_s & state,
 
   if (not to_report.empty())
     {
-      auto const top = top_hits(to_report, parameters.opt_top_hits_only != 0);
+      auto const top = top_hits(to_report, parameters.opt_top_hits_only);
 
       if (needs_otu_table(parameters))
         {

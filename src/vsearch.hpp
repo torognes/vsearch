@@ -73,6 +73,7 @@
 #include <vector>
 #include <limits>
 
+#include "core/identity_definition.hpp"  // IdentityDefinition
 #include "core/mask.hpp"  // Masking
 #include "utils/quality_encoding.hpp"  // sanger_ascii_offset (opt_fastq_ascii default), fastq_qmaxout_unset
 #include "utils/userfields.hpp"  // Userfield
@@ -162,8 +163,8 @@ public:
   double opt_min_unmasked_pct = 0;
   double opt_sample_pct = 0;
   int64_t opt_fasta_width = default_fasta_width;
-  int64_t opt_fastq_ascii = sanger_ascii_offset;
-  int64_t opt_fastq_asciiout = sanger_ascii_offset;
+  int opt_fastq_ascii = sanger_ascii_offset;
+  int opt_fastq_asciiout = sanger_ascii_offset;
   int64_t opt_fastq_qmax = default_max_quality;
   /* the sentinel, not a ceiling: the default depends on what the caller is
      about to write (see QualityOrigin in parameters.hpp), which this struct
@@ -189,6 +190,7 @@ public:
   int64_t opt_scramble_kmer = 1;
   int64_t opt_threads = 0;
   int64_t opt_topn = std::numeric_limits<int64_t>::max();
+  bool opt_acceptall = false;
   bool opt_allow_fewer = false;
   bool opt_bzip2_decompress = false;
   bool opt_clusterout_id = false;
@@ -205,11 +207,13 @@ public:
   bool opt_gzip_decompress = false;
   bool opt_hardmask = false;
   bool opt_label_substr_match = false;
+  bool opt_leftjust = false;
   bool opt_lengthout = false;
   bool opt_no_progress = true;   // library default (quiet); the CLI overrides in args_init
   bool opt_help = false;
   bool opt_join_padgapq_set_by_user = false;
   bool opt_notrunclabels = false;
+  bool opt_output_no_hits = false;
   bool opt_quiet = true;   // library default (quiet); the CLI overrides in args_init
   /* --relabel @ was given: label records with opt_relabel_sample, a period
      and the ordinal. A flag rather than a sentinel in opt_relabel, because
@@ -219,7 +223,10 @@ public:
   bool opt_relabel_md5 = false;
   bool opt_relabel_self = false;
   bool opt_relabel_sha1 = false;
+  bool opt_rightjust = false;
   bool opt_samheader = false;
+  bool opt_self = false;
+  bool opt_selfid = false;
   bool opt_sff_clip = false;
   bool opt_sintax_random = false;
   bool opt_sizein = false;
@@ -227,7 +234,10 @@ public:
   bool opt_sizeout = false;
   bool opt_stderr_is_tty = false;
   bool opt_strand = false;
+  bool opt_top_hits_only = false;
   bool opt_uc_allhits = false;
+  bool opt_uchimeout5 = false;
+  bool opt_usersort = false;
   bool opt_version = false;
   bool opt_xee = false;
   bool opt_xlength = false;
@@ -300,7 +310,6 @@ public:
   double    opt_weak_id                      = 10.0;
   double    opt_xn                           = 8.0;
 
-  int       opt_acceptall                    = 0;
   int       opt_alignwidth                   = 80;
   int       opt_chimeras_length_min          = 10;
   int       opt_chimeras_parents_max         = 3;
@@ -340,9 +349,6 @@ public:
   int       opt_length_cutoffs_longest       = std::numeric_limits<int>::max();
   int       opt_length_cutoffs_shortest      = 50;
   int       opt_mindiffs                     = 3;
-  int       opt_slots                        = 0;
-  int       opt_uchimeout5                   = 0;
-  int       opt_usersort                     = 0;
 
   Masking   opt_dbmask                       = Masking::dust;
   int64_t   opt_fastq_maxdiffs               = 10;
@@ -356,12 +362,10 @@ public:
   int64_t   opt_fastq_stripright             = 0;
   int64_t   opt_fastq_trunclen               = -1;
   int64_t   opt_fastq_trunclen_keep          = -1;
-  int64_t   opt_fastq_truncqual              = std::numeric_limits<long>::min();
-  int64_t   opt_fulldp                       = 0;
-  int64_t   opt_iddef                        = 2;
+  int64_t   opt_fastq_truncqual              = fastq_truncqual_unset;
+  IdentityDefinition opt_iddef = IdentityDefinition::edit_distance_no_terminal_gaps;
   int64_t   opt_idprefix                     = 0;
   int64_t   opt_idsuffix                     = 0;
-  int64_t   opt_leftjust                     = 0;
   int64_t   opt_match                        = 2;
   int64_t   opt_maxaccepts                   = 1;
   int64_t   opt_maxdiffs                     = std::numeric_limits<int>::max();
@@ -374,14 +378,9 @@ public:
   int64_t   opt_mintsize                     = 0;
   int64_t   opt_minwordmatches               = -1;
   int64_t   opt_mismatch                     = -4;
-  int64_t   opt_output_no_hits               = 0;
-  int64_t   opt_rightjust                    = 0;
   int64_t   opt_rowlen                       = 64;
-  int64_t   opt_self                         = 0;
-  int64_t   opt_selfid                       = 0;
   int64_t   opt_subseq_end                   = std::numeric_limits<int64_t>::max();
   int64_t   opt_subseq_start                 = 1;
-  int64_t   opt_top_hits_only                = 0;
   int64_t   opt_wordlength                   = 0;
 
   bool      opt_centroid_sizeout             = false;
@@ -405,8 +404,8 @@ public:
        the code actually branches on are kept; the ten other flags that used
        to sit here (altivec, neon, mmx, sse, sse3, sse41, sse42, popcnt, avx,
        avx2) were written and never read. */
-    int64_t sse2_present {0};
-    int64_t ssse3_present {0};
+    bool sse2_present {false};
+    bool ssse3_present {false};
 
     /* Guards the once-only gap-open penalty adjustment in
        vsearch_apply_defaults_fixups() so a repeated call on the same struct

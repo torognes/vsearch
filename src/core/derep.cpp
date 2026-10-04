@@ -274,7 +274,7 @@ namespace {
   {
     if (quality_symbols.empty()) { return; }
 
-    auto const ascii_offset = static_cast<int>(parameters.opt_fastq_ascii);
+    auto const ascii_offset = parameters.opt_fastq_ascii;
     /* cli.cc keeps ascii + qmin at 33 or more and ascii + qmax at 126 or
        less, so neither the lowest legal symbol nor the window width can
        leave the unsigned char domain */
@@ -688,7 +688,7 @@ static auto dereplicating(std::unique_ptr<fastx_s> const & input_handle,
 
   /* one 10^-(q/10) per quality symbol, not per base; the cap at 0.75 is the
      "quality below 2 carries no information" rule this loop applied per call */
-  vsearch::QualityTable const quality_table(static_cast<int>(parameters.opt_fastq_ascii),
+  vsearch::QualityTable const quality_table(parameters.opt_fastq_ascii,
                                             vsearch::ProbabilityCap::random_guess);
 
   if (extra_info)

@@ -790,7 +790,7 @@ auto results_show_lcaout(std::FILE * output_handle,
   std::array<std::array<TaxLevel, tax_levels>, tax_levels> cand_levels {{}};
   std::array<int, tax_levels> level_match {{}};
 
-  auto const top = top_hits(hits, parameters.opt_top_hits_only != 0);
+  auto const top = top_hits(hits, parameters.opt_top_hits_only);
 
   for (auto const & hit : top)
     {
@@ -905,7 +905,7 @@ auto results_show_alnout(std::FILE * output_handle,
 
 
   if (hits.empty()) {
-    if (parameters.opt_output_no_hits != 0) {
+    if (parameters.opt_output_no_hits) {
       fprint(output_handle, '\n');
       fprint(output_handle, "Query >");
       fprint(output_handle, query_head);
@@ -922,7 +922,7 @@ auto results_show_alnout(std::FILE * output_handle,
   fprint(output_handle, query_head);
   fprint(output_handle, "\n %Id   TLen  Target\n");
 
-  auto const top = top_hits(hits, parameters.opt_top_hits_only != 0);
+  auto const top = top_hits(hits, parameters.opt_top_hits_only);
 
   for (auto const & hit : top)
     {
@@ -1322,7 +1322,7 @@ auto results_show_samout(std::FILE * output_handle,
 
 
   if (hits.empty()) {
-    if (parameters.opt_output_no_hits != 0) {
+    if (parameters.opt_output_no_hits) {
       fprint(output_handle, query_head);
       fprint(output_handle, '\t');
       fprint_integer(output_handle, 0x04);
@@ -1347,7 +1347,7 @@ auto results_show_samout(std::FILE * output_handle,
     return;
   }
 
-  auto const top = top_hits(hits, parameters.opt_top_hits_only != 0);
+  auto const top = top_hits(hits, parameters.opt_top_hits_only);
 
   /* indexed rather than a range-for: the SAM flag marks every hit after the
      first as a secondary alignment (0x100), so the position is part of the

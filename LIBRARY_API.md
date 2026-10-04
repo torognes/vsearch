@@ -615,7 +615,7 @@ counts into `result_counts`.
 | `opt_id` | `double` | 0.0 | Minimum identity threshold (0.0–1.0). |
 | `opt_maxaccepts` | `int64_t` | 1 | Stop after N accepted hits. |
 | `opt_maxrejects` | `int64_t` | 32 | Stop after N rejected candidates. |
-| `opt_iddef` | `int64_t` | 2 | Identity definition (0–5). |
+| `opt_iddef` | `IdentityDefinition` | `edit_distance_no_terminal_gaps` | Identity definition (enumerators numbered 0–5, as `--iddef`). |
 | `opt_wordlength` | `int64_t` | 8 | K-mer length for candidate selection. |
 | `opt_strand` | `bool` | `false` | `false` = plus strand only, `true` = both strands. |
 
@@ -815,7 +815,7 @@ batch as it chooses.
 
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
-| `opt_fastq_ascii` | `int64_t` | 33 | ASCII offset for quality scores. |
+| `opt_fastq_ascii` | `int` | 33 | ASCII offset for quality scores. |
 | `opt_fastq_minovlen` | `int64_t` | 10 | Minimum overlap length. |
 | `opt_fastq_maxdiffs` | `int64_t` | 10 | Maximum mismatches in overlap. |
 | `opt_fastq_maxdiffpct` | `double` | 100.0 | Maximum mismatch percentage in overlap. |
@@ -908,7 +908,7 @@ interior). This matches the internal scoring convention.
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
 | `opt_id` | `double` | 0.0 | Minimum identity (0.0–1.0). |
-| `opt_iddef` | `int64_t` | 2 | Identity definition (0=CD-HIT, 1=edit distance, 2=default, 3=marine bio, 4=BLAST, 5=score-based; 5 requires `opt_match` > `opt_mismatch`). |
+| `opt_iddef` | `IdentityDefinition` | `edit_distance_no_terminal_gaps` | Identity definition: `cd_hit` (0), `edit_distance` (1), `edit_distance_no_terminal_gaps` (2, default), `marine_biological_lab` (3), `blast` (4), `score_based` (5; requires `opt_match` > `opt_mismatch`). |
 | `opt_maxaccepts` | `int64_t` | 1 | Stop after N accepted hits. |
 | `opt_maxrejects` | `int64_t` | 32 | Stop after N rejected candidates. |
 | `opt_maxhits` | `int64_t` | 0 | Maximum total hits (0 = unlimited, resolved by fixups). |

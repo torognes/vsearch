@@ -243,7 +243,7 @@ auto fastq_eestats(struct Parameters const & parameters) -> void
 
   /* one 10^-(q/10) per quality symbol, not per base; the cap at 1.0 is the
      std::max(qual, 0) the decoded quality value still goes through below */
-  vsearch::QualityTable const quality_table(static_cast<int>(parameters.opt_fastq_ascii),
+  vsearch::QualityTable const quality_table(parameters.opt_fastq_ascii,
                                             vsearch::ProbabilityCap::certain_error);
 
   /* per-symbol decoded scores and range verdicts; a rejected symbol goes back

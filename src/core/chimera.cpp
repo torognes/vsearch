@@ -2171,7 +2171,7 @@ auto print_report(struct chimera_cli_state_s const & cli,
                           attributes_to_strip(parameters));
       fprint(cli.fp_uchimeout, '\t');
 
-      if (parameters.opt_uchimeout5 == 0)
+      if (not parameters.opt_uchimeout5)
         {
           if (report.id_query_a >= report.id_query_b)
             {
@@ -2654,7 +2654,7 @@ static auto output_query_result(struct chimera_cli_state_s & state,
                               result.header,
                               attributes_to_strip(state.parameters));
 
-          if (state.parameters.opt_uchimeout5 != 0)
+          if (state.parameters.opt_uchimeout5)
             {
               fprint(state.fp_uchimeout, "\t*\t*\t*\t*\t*\t*\t*\t0\t0\t0\t0\t0\t0\t*\tN\n");
             }
@@ -3677,8 +3677,8 @@ static auto chimera_detection_parameters(struct Parameters const & parameters,
      the library entry point states uchime_ref explicitly. */
   if (chimera_is_denovo(mode))
     {
-      detection.opt_self = 1;
-      detection.opt_selfid = 1;
+      detection.opt_self = true;
+      detection.opt_selfid = true;
       detection.opt_maxsizeratio = 1.0 / parameters.opt_abskew;
     }
   return detection;

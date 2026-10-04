@@ -203,7 +203,7 @@ static auto allpairs_output_results(struct allpairs_state_s & state,
 
   if (not to_report.empty())
     {
-      auto const top = top_hits(to_report, state.parameters.opt_top_hits_only != 0);
+      auto const top = top_hits(to_report, state.parameters.opt_top_hits_only);
 
       PerHitOutputFiles per_hit_files;
       per_hit_files.fastapairs = state.fp_fastapairs;
@@ -286,7 +286,7 @@ static auto allpairs_thread_run(struct allpairs_state_s & state, uint64_t const 
 
     for (int target = searchinfo.query_no + 1; target < state.seqcount; target++)
       {
-        if ((state.parameters.opt_acceptall != 0) or search_acceptable_unaligned(searchinfo, target))
+        if (state.parameters.opt_acceptall or search_acceptable_unaligned(searchinfo, target))
           {
             pseqnos[static_cast<std::size_t>(searchinfo.hit_count)] = static_cast<unsigned int>(target);
             ++searchinfo.hit_count;
@@ -379,7 +379,7 @@ static auto allpairs_thread_run(struct allpairs_state_s & state, uint64_t const 
             align_trim(*hit, state.parameters);
 
             /* test accept/reject criteria after alignment */
-            if ((state.parameters.opt_acceptall != 0) or search_acceptable_aligned(searchinfo, *hit))
+            if (state.parameters.opt_acceptall or search_acceptable_aligned(searchinfo, *hit))
               {
                 finalhits[static_cast<std::size_t>(searchinfo.accepts)] = *hit;
                 ++searchinfo.accepts;

@@ -70,6 +70,7 @@
 #include "utils/fatal.hpp"
 #include "core/quality_range.hpp"  // vsearch::classify_quality, quality_out_of_range_message
 #include "utils/open_file.hpp"
+#include "utils/quality_encoding.hpp"  // fastq_truncqual_unset
 #include "utils/quality_table.hpp"  // vsearch::QualityTable
 #include "utils/view.hpp"  // View<char>
 #include <algorithm>  // std::count_if, std::min, std::max
@@ -130,7 +131,7 @@ inline auto check_quality_in_window(int const quality_score,
 inline auto fastq_get_qual(char const quality_symbol, struct Parameters const & parameters,
                            fastx_s const & input_handle) -> int
 {
-  int const quality_score = quality_symbol - static_cast<int>(parameters.opt_fastq_ascii);
+  int const quality_score = quality_symbol - parameters.opt_fastq_ascii;
   check_quality_in_window(quality_score, parameters, input_handle);
   return quality_score;
 }
@@ -238,7 +239,7 @@ auto analyse(fastx_handle input_handle, vsearch::QualityTable const & quality_ta
              value, so the compiler reloads and stores res.ee around every
              iteration otherwise. */
           auto sum = 0.0;
-          auto const ascii_offset = static_cast<int>(parameters.opt_fastq_ascii);
+          auto const ascii_offset = parameters.opt_fastq_ascii;
           for (auto const quality_symbol : quality_symbols)
             {
               check_quality_in_window(quality_symbol - ascii_offset, parameters,
@@ -387,7 +388,6 @@ auto filter(bool const fastq_only, char const * filename, struct Parameters cons
   check_parameters(parameters);
 
   static constexpr auto dbl_max_local = std::numeric_limits<double>::max();  // refactoring: redundant?
-  static constexpr auto long_min = std::numeric_limits<long>::min();
 
   if ((parameters.opt_fastqout == nullptr) and (parameters.opt_fastaout == nullptr) and
       (parameters.opt_fastqout_discarded == nullptr) and (parameters.opt_fastaout_discarded == nullptr) and
@@ -433,7 +433,7 @@ auto filter(bool const fastq_only, char const * filename, struct Parameters cons
                (parameters.opt_fastq_qmax < legacy_max_quality) or (parameters.opt_fastq_qmin > 0) or
                (parameters.opt_fastq_truncee < dbl_max_local) or
                (parameters.opt_fastq_truncee_rate < dbl_max_local) or
-               (parameters.opt_fastq_truncqual != long_min) or
+               (parameters.opt_fastq_truncqual != fastq_truncqual_unset) or
                (parameters.opt_fastq_minqual > 0) or
                (parameters.opt_fastqout_discarded != nullptr) or
                (parameters.opt_fastqout_discarded_rev != nullptr) or
@@ -479,7 +479,7 @@ auto filter(bool const fastq_only, char const * filename, struct Parameters cons
   int64_t truncated = 0;
 
   /* one 10^-(q/10) per quality symbol, not per base */
-  vsearch::QualityTable const quality_table(static_cast<int>(parameters.opt_fastq_ascii),
+  vsearch::QualityTable const quality_table(parameters.opt_fastq_ascii,
                                             vsearch::ProbabilityCap::none);
 
   /* Which shape analyse()'s per-base quality loop takes, decided here rather
@@ -495,7 +495,7 @@ auto filter(bool const fastq_only, char const * filename, struct Parameters cons
        that the window test has already accepted -- that is the subtle one,
        and 0 <= 0 is why the default command line qualifies. */
   auto const scan =
-    ((parameters.opt_fastq_truncqual == long_min) and
+    ((parameters.opt_fastq_truncqual == fastq_truncqual_unset) and
      (parameters.opt_fastq_truncee >= dbl_max_local) and
      (parameters.opt_fastq_truncee_rate >= dbl_max_local) and
      (parameters.opt_fastq_minqual <= parameters.opt_fastq_qmin))
@@ -634,7 +634,6 @@ auto filter(bool const fastq_only, char const * filename, struct Parameters cons
 namespace {
 
   auto check_parameters(struct Parameters const & parameters) -> void {
-    static constexpr auto long_min = std::numeric_limits<long>::min();
 
     auto const is_negative = std::signbit(parameters.opt_fastq_truncee_rate);
     if (is_negative) {
@@ -690,7 +689,7 @@ namespace {
        The default value is std::numeric_limits<long>::min(), meaning
        "no truncation"; skip the range check in that case so the
        default is preserved. */
-    if ((parameters.opt_fastq_truncqual != long_min) and
+    if ((parameters.opt_fastq_truncqual != fastq_truncqual_unset) and
         ((parameters.opt_fastq_truncqual < 0) or (parameters.opt_fastq_truncqual > 93))) {
       fatal("Argument to --fastq_truncqual must be in range 0..93");
     }

@@ -63,6 +63,7 @@
 #include "parameters.hpp"  // parameters_resolve_derived, parameters_validate, validate_thread_count, QualityOrigin, fastq_output_offset, resolve_fastq_qmaxout
 #include "os/system.hpp"  // system_get_available_cores
 #include "core/buffer_headroom.hpp"  // buffer_headroom
+#include "core/identity_definition.hpp"  // IdentityDefinition
 #include "core/mask.hpp"  // Masking
 #include "utils/decimal_digits.hpp"  // decimal::Buffer, decimal::to_decimal
 #include "utils/print_view.hpp"  // fprint
@@ -494,6 +495,23 @@ namespace {
         fatal("Illegal option argument");
       }
     return static_cast<int64_t>(value);
+  }
+
+
+  /* --fastq_ascii and --fastq_asciiout: an offset must be 33 or 64, which is
+     checked once all options are read (with its own message). The member is
+     an int, so an argument beyond the int range is stored as an offset that
+     check rejects, rather than wrapped into one it might accept
+     (4294967329 would otherwise wrap to 33). */
+  auto args_get_ascii_offset(char const * arg) -> int
+  {
+    static constexpr auto rejected_offset = 0;
+    auto const value = args_getlong(arg);
+    if ((value < std::numeric_limits<int>::min()) or (value > std::numeric_limits<int>::max()))
+      {
+        return rejected_offset;
+      }
+    return static_cast<int>(value);
   }
 
 
@@ -3548,7 +3566,6 @@ namespace {
             break;
 
           case option_fulldp:
-            parameters.opt_fulldp = 1;
             vsearch::warn("Option --fulldp is ignored");
             break;
 
@@ -3595,7 +3612,7 @@ namespace {
             break;
 
           case option_self:
-            parameters.opt_self = 1;
+            parameters.opt_self = true;
             break;
 
           case option_blast6out:
@@ -3707,7 +3724,7 @@ namespace {
             break;
 
           case option_output_no_hits:
-            parameters.opt_output_no_hits = 1;
+            parameters.opt_output_no_hits = true;
             break;
 
           case option_maxhits:
@@ -3715,7 +3732,7 @@ namespace {
             break;
 
           case option_top_hits_only:
-            parameters.opt_top_hits_only = 1;
+            parameters.opt_top_hits_only = true;
             break;
 
           case option_fasta_width:
@@ -3788,15 +3805,15 @@ namespace {
             break;
 
           case option_leftjust:
-            parameters.opt_leftjust = 1;
+            parameters.opt_leftjust = true;
             break;
 
           case option_rightjust:
-            parameters.opt_rightjust = 1;
+            parameters.opt_rightjust = true;
             break;
 
           case option_selfid:
-            parameters.opt_selfid = 1;
+            parameters.opt_selfid = true;
             break;
 
           case option_maxid:
@@ -3968,7 +3985,7 @@ namespace {
             break;
 
           case option_usersort:
-            parameters.opt_usersort = 1;
+            parameters.opt_usersort = true;
             break;
 
           case option_xn:
@@ -3976,12 +3993,14 @@ namespace {
             break;
 
           case option_iddef:
-            parameters.opt_iddef = args_getlong(optarg);
+            parameters.opt_iddef = static_cast<IdentityDefinition>(args_getlong(optarg));
             break;
 
           case option_slots:
             vsearch::warn("Option --slots is ignored");
-            parameters.opt_slots = static_cast<int>(args_getlong(optarg));
+            /* the value is not stored, but a non-numeric argument is still
+               rejected, as it always was */
+            static_cast<void>(args_getlong(optarg));
             break;
 
           case option_pattern:
@@ -4046,7 +4065,7 @@ namespace {
             break;
 
           case option_uchimeout5:
-            parameters.opt_uchimeout5 = 1;
+            parameters.opt_uchimeout5 = true;
             break;
 
           case option_alignwidth:
@@ -4058,7 +4077,7 @@ namespace {
             break;
 
           case option_acceptall:
-            parameters.opt_acceptall = 1;
+            parameters.opt_acceptall = true;
             break;
 
           case option_allow_fewer:
@@ -4206,7 +4225,7 @@ namespace {
             break;
 
           case option_fastq_ascii:
-            parameters.opt_fastq_ascii = args_getlong(optarg);
+            parameters.opt_fastq_ascii = args_get_ascii_offset(optarg);
             break;
 
           case option_fastq_qmin:
@@ -4294,7 +4313,7 @@ namespace {
             break;
 
           case option_fastq_asciiout:
-            parameters.opt_fastq_asciiout = args_getlong(optarg);
+            parameters.opt_fastq_asciiout = args_get_ascii_offset(optarg);
             break;
 
           case option_fastq_qminout:
@@ -5705,8 +5724,9 @@ namespace {
   auto validate_command_requirements(Command const command,
                                      struct Parameters const & parameters) -> void
   {
+    auto const is_identity_in_range = (parameters.opt_id >= 0.0) and (parameters.opt_id <= 1.0);
     if ((command == Command::allpairs_global) and
-        (not ((parameters.opt_acceptall != 0) or ((parameters.opt_id >= 0.0) and (parameters.opt_id <= 1.0)))))
+        (not parameters.opt_acceptall) and (not is_identity_in_range))
       {
         fatal("Specify either --acceptall or --id with an identity from 0.0 to 1.0");
       }
@@ -5817,8 +5837,7 @@ namespace {
              The default value is std::numeric_limits<long>::min(), meaning
              "no truncation"; skip the range check in that case so the default
              is preserved. */
-          static constexpr auto long_min = std::numeric_limits<long>::min();
-          if ((parameters.opt_fastq_truncqual != long_min) and
+          if ((parameters.opt_fastq_truncqual != fastq_truncqual_unset) and
               ((parameters.opt_fastq_truncqual < 0) or (parameters.opt_fastq_truncqual > 93))) {
             fatal("Argument to --fastq_truncqual must be in range 0..93");
           }

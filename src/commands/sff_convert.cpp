@@ -375,7 +375,7 @@ auto convert_quality_scores(std::vector<char> & quality_scores,
                             struct Parameters const & parameters) -> void {
   auto const qmin = static_cast<int>(parameters.opt_fastq_qminout);
   auto const qmax = static_cast<int>(parameters.opt_fastq_qmaxout);
-  auto const offset = static_cast<int>(parameters.opt_fastq_asciiout);
+  auto const offset = parameters.opt_fastq_asciiout;
   auto clamp_and_offset = [&](char const & quality_score) -> char {
     // Work in int over the raw (unsigned) byte: a quality byte > 127 would be
     // negative as a signed char, mis-clamping and risking signed overflow on

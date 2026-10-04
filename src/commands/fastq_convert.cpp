@@ -213,7 +213,7 @@ auto fastq_convert(struct Parameters const & parameters) -> void
                    only site that named the record and the line; the shared
                    message now carries those for every command that can
                    supply them -- see DONE_20260825_quality_range.md phase 5. */
-                auto const score = static_cast<int>(quality_char - parameters.opt_fastq_ascii);
+                auto const score = quality_char - parameters.opt_fastq_ascii;
                 vsearch::check_quality_score(score, parameters,
                                              input_handle->quality_location());
               }
