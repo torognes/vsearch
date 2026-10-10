@@ -19,7 +19,7 @@
 # a script or a pre-commit hook.
 #
 # Environment overrides:
-#   CLANG_TIDY     clang-tidy binary          (default: clang-tidy-23, else clang-tidy)
+#   CLANG_TIDY     clang-tidy binary          (default: clang-tidy-24, else clang-tidy)
 #   CHECKS         value for --checks         (default: the list below)
 #   HEADER_FILTER  value for --header-filter  (default: the checked files' own
 #                                              headers; set to '.*' for all headers)
@@ -27,7 +27,7 @@
 
 set -u
 
-CLANG_TIDY="${CLANG_TIDY:-clang-tidy-23}"
+CLANG_TIDY="${CLANG_TIDY:-clang-tidy-24}"
 command -v "${CLANG_TIDY}" >/dev/null 2>&1 || CLANG_TIDY=clang-tidy
 
 # Keep this list in sync with the one documented in CLAUDE.md.
