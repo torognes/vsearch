@@ -111,7 +111,7 @@ controllable:
   the overlap region.
 
 
-# ALGORITHM
+## Algorithm
 
 Merging happens in three stages: candidate overlaps are located with
 shared words, each candidate is scored by an ungapped alignment whose
