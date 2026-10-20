@@ -122,6 +122,44 @@ purpose:
 - the default masking is *none*, and the default strand is *both*.
 
 
+## Algorithm
+
+Each sequence is read once, and searched for all the oligos, on both
+strands, in the same pass. The search is bit-parallel: the state of an
+oligo fits in one 64-bit machine word, one bit per nucleotide of the
+oligo, which is why oligos are limited to 64 nucleotides. IUPAC
+ambiguity codes cost nothing: for each nucleotide symbol, the positions
+of an oligo it matches are computed once, as a bit mask.
+
+By default, the search is the bit-vector algorithm of Myers (1999),
+which gives, at every position of the sequence, the fewest differences
+(substitutions, insertions and deletions) of an alignment of the whole
+oligo ending there. Its cost does not depend on `--maxdiffs`. With
+`--maxgaps 0`, the search is the shift-and algorithm (Baeza-Yates and
+Gonnet 1992), extended to mismatches by Wu and Manber (1992), with one
+machine word per number of mismatches, from 0 to `--maxdiffs`: its cost
+grows with `--maxdiffs`.
+
+Both algorithms only report where an occurrence ends, and with how many
+differences. Each occurrence is then aligned again, by dynamic
+programming over a short window of the sequence, to recover its start
+and its alignment, and to choose, among the alignments with the fewest
+differences, the one with the fewest gap openings.
+
+Baeza-Yates R, Gonnet GH. (1992) A new approach to text searching.
+**Communications of the ACM** 35(10):74-82 doi:
+[10.1145/135239.135243](https://doi.org/10.1145/135239.135243)
+
+Myers G. (1999) A fast bit-vector algorithm for approximate string
+matching based on dynamic programming. **Journal of the ACM**
+46(3):395-415 doi:
+[10.1145/316542.316550](https://doi.org/10.1145/316542.316550)
+
+Wu S, Manber U. (1992) Fast text searching: allowing errors.
+**Communications of the ACM** 35(10):83-91 doi:
+[10.1145/135239.135244](https://doi.org/10.1145/135239.135244)
+
+
 # OPTIONS
 
 ## mandatory options
@@ -152,10 +190,6 @@ purpose:
 
 #(./fragments/option_blast6out_search_oligodb.md)
 
-#(./fragments/option_rowlen.md)
-
-#(./fragments/option_userfields.md)
-
 #(./fragments/option_userout.md)
 
 
@@ -177,7 +211,11 @@ purpose:
 
 #(./fragments/option_quiet.md)
 
+#(./fragments/option_rowlen.md)
+
 #(./fragments/option_sizein.md)
+
+#(./fragments/option_userfields.md)
 
 
 # EXAMPLES
