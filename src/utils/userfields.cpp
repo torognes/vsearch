@@ -183,7 +183,7 @@ auto parse_userfields_arg(char const * arg, struct Parameters & parameters) -> b
         }
 
       std::string const field(ptr, static_cast<std::size_t>(field_length));
-      auto const * const found =
+      auto const found =
         std::find_if(valid_names.cbegin(), valid_names.cend(),
                      [&field](std::pair<char const *, Userfield> const & entry) -> bool {
                        return field == entry.first;
