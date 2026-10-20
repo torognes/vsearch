@@ -12,9 +12,13 @@ __pycache__/
 .dirstamp
 /api_examples/example_chimera
 /api_examples/example_cluster
+/api_examples/example_dbinfo
 /api_examples/example_derep
 /api_examples/example_dust
+/api_examples/example_lifecycle
 /api_examples/example_merge
+/api_examples/example_merge_error
+/api_examples/example_recover
 /api_examples/example_reinit
 /api_examples/example_search
 /bin
