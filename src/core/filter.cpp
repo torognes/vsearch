@@ -261,6 +261,10 @@ auto analyse(fastx_handle input_handle, vsearch::QualityTable const & quality_ta
                   (res.ee > parameters.opt_fastq_truncee) or
                   (res.ee > parameters.opt_fastq_truncee_rate * (i + 1)))
                 {
+                  /* (ee + p) - p is not always ee in floating point: the
+                     result can be off by one unit in the last place. Only a
+                     read sitting exactly on --fastq_maxee could notice;
+                     --eeout prints far fewer digits. */
                   res.ee -= expected_error;
                   length = i;
                   break;
