@@ -190,10 +190,6 @@ Wu S, Manber U. (1992) Fast text searching: allowing errors.
 
 #(./fragments/option_blast6out_search_oligodb.md)
 
-#(./fragments/option_rowlen.md)
-
-#(./fragments/option_userfields.md)
-
 #(./fragments/option_userout.md)
 
 
@@ -215,7 +211,11 @@ Wu S, Manber U. (1992) Fast text searching: allowing errors.
 
 #(./fragments/option_quiet.md)
 
+#(./fragments/option_rowlen.md)
+
 #(./fragments/option_sizein.md)
+
+#(./fragments/option_userfields.md)
 
 
 # EXAMPLES
