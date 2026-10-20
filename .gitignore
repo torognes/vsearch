@@ -24,6 +24,9 @@ __pycache__/
 # sources in man/ and are not tracked. 'make dist' ships the pages anyway,
 # so building from a release tarball needs no pandoc.
 /man/manpages
+# The release history as plain text, generated from man/NEWS.md by
+# man/Makefile and shipped by 'make dist'.
+/NEWS
 # Objects, the generated config.h and the dependency files: one tree per
 # target triple and build flavour (see src/Makefile). Several flavours and
 # cross targets coexist there, which is what the out-of-tree autotools
