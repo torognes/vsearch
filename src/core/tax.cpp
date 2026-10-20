@@ -119,8 +119,8 @@ auto tax_split(int const seqno, std::array<TaxLevel, tax_levels> & levels,
   while (offset < tax_end)
     {
       /* Is the next char a recognized tax level letter? */
-      auto const * next_level = std::find(taxonomic_fields.begin(), taxonomic_fields.end(),
-                                          to_lower(header[static_cast<std::size_t>(offset)]));
+      auto const next_level = std::find(taxonomic_fields.begin(), taxonomic_fields.end(),
+                                        to_lower(header[static_cast<std::size_t>(offset)]));
       if (next_level != taxonomic_fields.end())
         {
           auto const level = static_cast<std::size_t>(std::distance(taxonomic_fields.begin(), next_level));
