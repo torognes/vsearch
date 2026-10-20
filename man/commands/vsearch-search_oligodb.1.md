@@ -122,7 +122,7 @@ purpose:
 - the default masking is *none*, and the default strand is *both*.
 
 
-# ALGORITHM
+## Algorithm
 
 Each sequence is read once, and searched for all the oligos, on both
 strands, in the same pass. The search is bit-parallel: the state of an
