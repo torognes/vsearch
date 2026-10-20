@@ -295,7 +295,10 @@ auto precompute_qual(struct Parameters const & parameters) -> QualityTables
 
           // Use a minimum mismatch penalty
 
-          tables.mism_score[x][y] = std::min(std::log2((1.0 - p) / 0.75), merge_mismatchmax);
+          // 1.0 - p, expanded: subtracting p from 1.0 cancels about
+          // nine digits when both bases are high quality
+          auto const p_mismatch = px + py - (px * py * 4.0 / 3.0);
+          tables.mism_score[x][y] = std::min(std::log2(p_mismatch / 0.75), merge_mismatchmax);
         }
     }
   return tables;
