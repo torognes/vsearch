@@ -497,7 +497,7 @@ De novo mode is inherently sequential (single-threaded).
 | `opt_dn` | `double` | 1.4 | Pseudo-count prior for votes. |
 | `opt_mindiv` | `double` | 0.8 | Minimum divergence. |
 | `opt_mindiffs` | `int64_t` | 3 | Minimum differences from parents. |
-| `opt_abskew` | `double` | 2.0 | Abundance skew (de novo mode). |
+| `opt_abskew` | `double` | unset | Abundance skew (de novo mode). Unset (below 1.0): the command's default, 2.0 (16.0 for `uchime3_denovo`, 1.0 for `chimeras_denovo`). |
 
 ### Functions
 

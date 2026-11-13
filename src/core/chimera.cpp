@@ -2849,7 +2849,15 @@ static auto chimera_detection_parameters(struct Parameters const & parameters,
     {
       detection.opt_self = 1;
       detection.opt_selfid = 1;
-      detection.opt_maxsizeratio = 1.0 / parameters.opt_abskew;
+      /* a library caller may leave opt_abskew unset (0): use the default of
+         the corresponding command, as the command line does */
+      auto abskew = parameters.opt_abskew;
+      if (abskew < 1.0)
+        {
+          abskew = (mode == ChimeraMode::chimeras_denovo) ? 1.0 :
+            (mode == ChimeraMode::uchime3_denovo) ? 16.0 : 2.0;
+        }
+      detection.opt_maxsizeratio = 1.0 / abskew;
     }
   return detection;
 }
