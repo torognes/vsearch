@@ -69,6 +69,7 @@
 #include "core/attributes.hpp"
 #include "core/db.hpp"
 #include "core/dbindex.hpp"
+#include "core/discarded_message.hpp"  // vsearch::print_discarded
 #include "core/fasta.hpp"
 #include "core/linmemalign.hpp"
 #include "core/mask.hpp"
@@ -87,7 +88,7 @@
 #include "utils/reverse_complement.hpp"
 #include "utils/sequence_digest.hpp"
 #include <cassert>
-#include <algorithm>  // std::copy, std::count, std::minmax_element, std::max_element, std::min
+#include <algorithm>  // std::copy, std::count, std::minmax_element, std::max_element, std::min, std::remove_if
 #include <array>
 #include <cstddef>  // std::ptrdiff_t, std::size_t
 #include <cstdint>  // int64_t, uint64_t
@@ -110,6 +111,12 @@ struct clusterinfo_s
 };
 
 using clusterinfo_t = struct clusterinfo_s;
+
+/* clusterinfo_s::clusterno of a sequence left out of the clustering: it
+   matched no centroid and its abundance is below --min_centroid_size, so it
+   may not found a cluster of its own either. cluster() removes these entries
+   before the clusters are sorted and written. */
+constexpr int no_cluster = -1;
 
 /* Per-invocation CLI state for the cluster*() commands — the output handles,
    the per-sequence cluster-assignment array, the cluster count and the
@@ -143,6 +150,7 @@ struct cluster_cli_state_s
   int clusters = 0;
   int count_matched = 0;
   int count_notmatched = 0;
+  int count_discarded = 0;  /* sequences marked no_cluster (--min_centroid_size) */
   std::FILE * fp_centroids = nullptr;
   std::FILE * fp_uc = nullptr;
   std::FILE * fp_alnout = nullptr;
@@ -595,6 +603,22 @@ auto cluster_core_results_nohit(struct cluster_cli_state_s & state,
                           OutputAnnotations{static_cast<uint64_t>(qsize), state.count_notmatched},
                           state.parameters);
     }
+}
+
+
+/* --min_centroid_size: the query matched no centroid and is too rare to
+   become one. It is left out of the clustering: it gets no cluster, is not
+   added to the k-mer index, and appears in no output file, like a sequence
+   --cluster_unoise drops for being below --minsize. With the default of 1 no
+   query is ever below the limit. */
+auto cluster_core_discard(struct cluster_cli_state_s & state,
+                          int const seqno) -> void
+{
+  state.clusterinfo[seqno].seqno = seqno;
+  state.clusterinfo[seqno].clusterno = no_cluster;
+  state.clusterinfo[seqno].cigar.clear();
+  state.clusterinfo[seqno].strand = 0;
+  ++state.count_discarded;
 }
 
 
@@ -1054,6 +1078,12 @@ auto cluster_core_parallel(struct cluster_cli_state_s & state,
               state.clusterinfo[myseqno].strand = best->strand;
               best->nwalignment.clear();
             }
+          else if (si_p.qsize < state.parameters.opt_min_centroid_size)
+            {
+              /* no hit found, and too rare to be a centroid: not added to
+                 the list of extra sequences either */
+              cluster_core_discard(state, myseqno);
+            }
           else
             {
               /* no hit found; add it to the list of extra sequences
@@ -1169,6 +1199,10 @@ auto cluster_core_serial(struct cluster_cli_state_s & state,
           state.clusterinfo[seqno].cigar = std::move(best->nwalignment);
           state.clusterinfo[seqno].strand = best->strand;
           best->nwalignment.clear();
+        }
+      else if (si_p[0].qsize < state.parameters.opt_min_centroid_size)
+        {
+          cluster_core_discard(state, seqno);
         }
       else
         {
@@ -1343,6 +1377,34 @@ auto cluster(char const * dbname, ClusterMode const mode,
     }
 
 
+  /* Drop the sequences --min_centroid_size left out of the clustering, so
+     that everything below sees clustered sequences only. Nothing to do, and
+     nothing reported, unless some were left out. */
+
+  if (state.count_discarded > 0)
+    {
+      clusterinfo_v.erase(std::remove_if(clusterinfo_v.begin(), clusterinfo_v.end(),
+                                         [](clusterinfo_t const & entry) -> bool {
+                                           return entry.clusterno == no_cluster;
+                                         }),
+                          clusterinfo_v.end());
+
+      /* a warning, like the --minsize one from Database::read(): not gated
+         by --quiet, and the log copy gets one extra newline */
+      vsearch::print_discarded(stderr, "min_centroid_size", parameters.opt_min_centroid_size,
+                               static_cast<uint64_t>(state.count_discarded));
+      if (parameters.fp_log != nullptr)
+        {
+          vsearch::print_discarded(parameters.fp_log, "min_centroid_size", parameters.opt_min_centroid_size,
+                                   static_cast<uint64_t>(state.count_discarded));
+          fprint(parameters.fp_log, '\n');
+        }
+    }
+
+  /* the number of sequences that belong to a cluster */
+  int const clustered = seqcount - state.count_discarded;
+
+
   /* find size and abundance of each cluster and save stats */
 
   std::vector<int64_t> cluster_abundance_v(static_cast<std::size_t>(clusters));
@@ -1408,9 +1470,9 @@ auto cluster(char const * dbname, ClusterMode const mode,
   uint64_t ordinal = 0;
 
   {
-    Progress progress("Writing clusters", static_cast<uint64_t>(seqcount), parameters);
+    Progress progress("Writing clusters", static_cast<uint64_t>(clustered), parameters);
     /* indexed rather than a range-for over clusterinfo_v (whose size is
-       seqcount): the counter is also the ordinal the progress bar is updated
+       clustered): the counter is also the ordinal the progress bar is updated
        with below, so here the index is data */
     for (std::size_t i = 0; i < clusterinfo_v.size(); ++i)
       {
@@ -1497,7 +1559,7 @@ auto cluster(char const * dbname, ClusterMode const mode,
   }
 
 
-  auto const summary = ClusterSummary{clusters, singletons, seqcount,
+  auto const summary = ClusterSummary{clusters, singletons, clustered,
                                       abundance_min, abundance_max};
 
   if (not parameters.opt_quiet)
@@ -1526,7 +1588,7 @@ auto cluster(char const * dbname, ClusterMode const mode,
       lastcluster = -1;
 
       {
-        Progress progress("Multiple alignments", static_cast<uint64_t>(seqcount), parameters);
+        Progress progress("Multiple alignments", static_cast<uint64_t>(clustered), parameters);
         /* indexed for the same reason as the "Writing clusters" loop above:
            the counter is the progress bar's ordinal */
         for (std::size_t i = 0; i < clusterinfo_v.size(); ++i)

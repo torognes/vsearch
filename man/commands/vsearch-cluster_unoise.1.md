@@ -54,6 +54,17 @@ The minimum abundance threshold for input sequences is controlled by
 `--minsize` (default 8). Sequences with an abundance below this value
 are excluded before denoising.
 
+A separate threshold, `--min_centroid_size` (default 1), applies only
+to the sequences that found new clusters. Sequences that pass
+`--minsize` but have an abundance below `--min_centroid_size` are
+still compared to the existing centroids and join one if the two
+conditions above are met; otherwise they are discarded instead of
+forming a cluster of their own. For example, `--minsize 1
+--min_centroid_size 8` yields the same centroids as the default
+`--minsize 8`, but also assigns the rarer sequences to those centroids
+where possible. The option has no effect unless it is larger than
+`--minsize`.
+
 
 # OPTIONS
 
@@ -83,6 +94,8 @@ are excluded before denoising.
 #(./fragments/option_maxaccepts.md)
 
 #(./fragments/option_maxrejects.md)
+
+#(./fragments/option_min_centroid_size.md)
 
 #(./fragments/option_minsize.md)
 
@@ -304,6 +317,21 @@ vsearch \
     --sizeout \
     --minsize 2 \
     --centroids denoised.fasta
+```
+
+Denoise with the default minimum abundance for centroids, but also
+assign rarer sequences to the centroids they match, and build an OTU
+table that includes them:
+
+```sh
+vsearch \
+    --cluster_unoise derep.fasta \
+    --sizein \
+    --sizeout \
+    --minsize 1 \
+    --min_centroid_size 8 \
+    --centroids denoised.fasta \
+    --otutabout otutab.tsv
 ```
 
 
