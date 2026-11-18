@@ -70,7 +70,7 @@
   /*       0         1         2         3         4         5         6         7          */
   /*       01234567890123456789012345678901234567890123456789012345678901234567890123456789 */
   // C++17 refactoring: deduce the size with CTAD and drop this constant
-  static constexpr std::size_t help_line_count = 562;
+  static constexpr std::size_t help_line_count = 563;
   static constexpr std::array<char const *, help_line_count> help_message =
     {{
       "\n",
@@ -168,6 +168,7 @@
       "  --sizein                    propagate abundance annotation from input\n",
       "  --strand plus|both          cluster using plus or both strands (plus)\n",
       "  --usersort                  indicate sequences not pre-sorted by length\n",
+      "  --min_centroid_size INT     minimum abundance of centroids (size, unoise) (1)\n",
       "  --minsize INT               minimum abundance (unoise only) (8)\n",
       "  --unoise_alpha REAL         alpha parameter (unoise only) (2.0)\n",
       " Output\n",

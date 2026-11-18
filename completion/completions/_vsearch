@@ -379,6 +379,7 @@ _vsearch() {
             '--maxsl[reject if shorter/longer length ratio higher]:x:' \
             '--maxsubs[reject if more substitutions]:n:' \
             '--mid[reject if percent identity lower, ignoring gaps]:x:' \
+            '--min_centroid_size[minimum abundance of centroids (cluster_size / unoise) (1)]:n:' \
             '--mincols[reject if alignment length shorter]:n:' \
             '--minqt[reject if query/target length ratio lower]:x:' \
             '--minseqlength[minimum sequence length (clust/derep/search\: 32, other\: 1)]:n:' \
@@ -564,6 +565,7 @@ _vsearch() {
             '--maxsl[reject if shorter/longer length ratio higher]:x:' \
             '--maxsubs[reject if more substitutions]:n:' \
             '--mid[reject if percent identity lower, ignoring gaps]:x:' \
+            '--min_centroid_size[minimum abundance of centroids (cluster_size / unoise) (1)]:n:' \
             '--mincols[reject if alignment length shorter]:n:' \
             '--minqt[reject if query/target length ratio lower]:x:' \
             '--minseqlength[minimum sequence length (clust/derep/search\: 32, other\: 1)]:n:' \

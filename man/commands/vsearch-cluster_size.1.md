@@ -29,6 +29,11 @@ cluster; otherwise, a new cluster is seeded with the query as its
 centroid. Because sequences are processed from most to least abundant,
 more abundant sequences take precedence as centroids.
 
+With `--min_centroid_size`, only sequences with at least the given
+abundance can seed a new cluster. Less abundant sequences are still
+compared to the existing centroids and join one if similar enough;
+otherwise they are discarded instead of seeding a cluster.
+
 Sequences are compared using global pairwise alignment
 (Needleman-Wunsch). The number of comparisons is limited by
 `--maxaccepts` and `--maxrejects`.
@@ -89,6 +94,8 @@ command writes quality values.
 #(./fragments/option_maxaccepts.md)
 
 #(./fragments/option_maxrejects.md)
+
+#(./fragments/option_min_centroid_size.md)
 
 #(./fragments/option_msaout.md)
 

@@ -520,8 +520,8 @@ namespace {
 
 
   constexpr auto number_of_commands = std::size_t{52};
-  constexpr auto number_of_options = std::size_t{258};
-  constexpr auto max_number_of_options_per_command = std::size_t{100};
+  constexpr auto number_of_options = std::size_t{259};
+  constexpr auto max_number_of_options_per_command = std::size_t{101};
 
   enum
     {
@@ -681,6 +681,7 @@ namespace {
       option_maxsubs,
       option_maxuniquesize,
       option_mid,
+      option_min_centroid_size,
       option_min_unmasked_pct,
       option_mincols,
       option_mindiffs,
@@ -960,6 +961,7 @@ namespace {
       {"maxsubs",                    true },
       {"maxuniquesize",              true },
       {"mid",                        true },
+      {"min_centroid_size",          true },
       {"min_unmasked_pct",           true },
       {"mincols",                    true },
       {"mindiffs",                   true },
@@ -1364,6 +1366,7 @@ namespace {
         option_maxsl,
         option_maxsubs,
         option_mid,
+        option_min_centroid_size,
         option_mincols,
         option_minhsp,
         option_minqt,
@@ -1563,6 +1566,7 @@ namespace {
         option_maxsl,
         option_maxsubs,
         option_mid,
+        option_min_centroid_size,
         option_mincols,
         option_minhsp,
         option_minqt,
@@ -4037,6 +4041,14 @@ namespace {
 
           case option_min_unmasked_pct:
             parameters.opt_min_unmasked_pct = args_getdouble(optarg);
+            break;
+
+          case option_min_centroid_size:
+            parameters.opt_min_centroid_size = args_getlong(optarg);
+            if (parameters.opt_min_centroid_size <= 0)
+              {
+                fatal("The argument to --min_centroid_size must be at least 1");
+              }
             break;
 
           case option_max_unmasked_pct:

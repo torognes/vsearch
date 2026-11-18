@@ -454,6 +454,9 @@ options:
   - name: --usersort
     arg: { type: flag }
     desc: "indicate sequences not pre-sorted by length"
+  - name: --min_centroid_size
+    arg: { type: int }
+    desc: "minimum abundance of centroids (cluster_size / unoise) (1)"
   - name: --minsize
     arg: { type: int }
     desc: "minimum abundance (sortbysize / filter / unoise)"
@@ -1330,6 +1333,7 @@ command_options:
     - --maxsl
     - --maxsubs
     - --mid
+    - --min_centroid_size
     - --mincols
     - --minhsp
     - --minqt
@@ -1525,6 +1529,7 @@ command_options:
     - --maxsl
     - --maxsubs
     - --mid
+    - --min_centroid_size
     - --mincols
     - --minhsp
     - --minqt
